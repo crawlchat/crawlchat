@@ -1,9 +1,9 @@
-import { Box, Flex, Group, Input, Stack, Text } from "@chakra-ui/react";
+import { Group, Heading, Input, Stack, Text } from "@chakra-ui/react";
 import { useEffect, useRef } from "react";
 import { useState } from "react";
 import type { Route } from "./+types/page";
 import { TbCheck, TbCircleCheckFilled } from "react-icons/tb";
-import { useFetcher } from "react-router";
+import { Link, redirect, useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 
 export async function loader() {
@@ -21,10 +21,6 @@ export function meta() {
   ];
 }
 
-function makeMessage(type: string, data: any) {
-  return JSON.stringify({ type, data });
-}
-
 export async function clientAction({ request }: { request: Request }) {
   const formData = await request.formData();
   const url = formData.get("url");
@@ -37,10 +33,15 @@ export async function clientAction({ request }: { request: Request }) {
     },
   });
 
-  return { response };
+  if (response.status === 212) {
+    throw redirect(`/chat?url=${url}`);
+  }
 }
 
-export default function LandingPage({ loaderData }: Route.ComponentProps) {
+export default function LandingPage({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   const socket = useRef<WebSocket>(null);
   const [scrapingUrl, setScrapingUrl] = useState<string>();
   const [stage, setStage] = useState<"idle" | "scraping" | "scraped" | "saved">(
@@ -70,18 +71,21 @@ export default function LandingPage({ loaderData }: Route.ComponentProps) {
     <Stack alignItems={"center"} justifyContent={"center"} height={"100dvh"}>
       <Stack w={"400px"}>
         <scrapeFetcher.Form method="post">
-          <Group w="full">
-            <Input
-              placeholder="https://example.com"
-              flex={1}
-              name="url"
-              disabled={loading}
-            />
-            <Button type="submit" loading={loading}>
-              Scrape
-              <TbCheck />
-            </Button>
-          </Group>
+          <Stack>
+            <Heading>Chat with any website!</Heading>
+            <Group w="full">
+              <Input
+                placeholder="https://example.com"
+                flex={1}
+                name="url"
+                disabled={loading}
+              />
+              <Button type="submit" loading={loading}>
+                Scrape
+                <TbCheck />
+              </Button>
+            </Group>
+          </Stack>
         </scrapeFetcher.Form>
 
         <Stack fontSize={"sm"}>

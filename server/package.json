@@ -21,6 +21,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.744.0",
     "@huggingface/transformers": "^3.3.3",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
@@ -28,6 +29,7 @@
     "express": "^4.21.2",
     "express-ws": "^5.0.2",
     "faiss-node": "^0.5.1",
+    "mongoose": "^8.10.0",
     "openai": "^4.83.0",
     "remark": "^15.0.1",
     "strip-markdown": "^6.0.0",

@@ -1,5 +1,8 @@
 import OpenAI from "openai";
-import { getFAISSLinks, searchFAISSRemote } from "./vector";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { getLinks, searchInIndex } from "./vector";
+import faiss from "faiss-node";
+import type { ScrapeStore } from "./scrape/crawl";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -22,8 +25,8 @@ export async function generateSearchQuery(userQuery: string) {
     messages: [
       {
         role: "user",
-        content: prompt
-      }
+        content: prompt,
+      },
     ],
     max_tokens: 20,
     temperature: 0.3,
@@ -32,29 +35,35 @@ export async function generateSearchQuery(userQuery: string) {
   return response.choices[0].message.content;
 }
 
-export async function getLLMResponse(baseUrl: string, query: string) {
-  const result = await searchFAISSRemote(baseUrl, query, 2);
-  if (!result) {
-    return null;
+export async function makeContext(
+  query: string,
+  index: faiss.IndexFlatL2,
+  store: ScrapeStore
+) {
+  const result = await searchInIndex(query, index, 2);
+  if (result) {
+    const links = await getLinks(store, result);
+    return links.map((link) => link.content).join("\n\n");
   }
-  const links = await getFAISSLinks(baseUrl, result);
-  const context = links.map((link) => link.content).join("\n\n");
+}
 
-  const prompt = `You are an AI assistant. Use the following context to answer the user's query.\n\nContext:\n${context}\n\nUser Query: ${query}`;
-
-  const response = await openai.chat.completions.create({
+export async function askLLM(
+  query: string,
+  messages: ChatCompletionMessageParam[],
+  options?: {
+    url?: string;
+    context?: string;
+  }
+) {
+  return await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
+      ...messages,
       {
-        role: "system",
-        content: "You are an AI assistant that helps answer questions based on provided context."
+        role: "user",
+        content: `${query}\n\nContext:\n${options?.context ?? ""}`,
       },
-      {
-        role: "user", 
-        content: prompt
-      }
-    ]
+    ],
+    stream: true,
   });
-
-  return { llmResponse: response.choices[0].message.content, links };
 }

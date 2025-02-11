@@ -1,13 +1,27 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import type { Express, Request, Response } from "express";
-import dotenv from "dotenv";
 import ws from "express-ws";
-import { saveStore, scrapeLoop, type ScrapeStore } from "./scrape";
-import { OrderedSet } from "./ordered-set";
-import { storeEmbeddingsInFAISS } from "./vector";
+import { scrapeLoop, type ScrapeStore } from "./scrape/crawl";
+import { OrderedSet } from "./scrape/ordered-set";
 import cors from "cors";
-
-dotenv.config();
+import OpenAI from "openai";
+import { askLLM, makeContext } from "./llm";
+import { Stream } from "openai/streaming";
+import mongoose from "mongoose";
+import {
+  createScrape,
+  getScrapeByUrl,
+  loadIndex,
+  loadStore,
+  saveIndex,
+  saveStore,
+  updateScrape,
+} from "./scrape/store";
+import { makeIndex } from "./vector";
+import { addMessage, createThread, getThread } from "./thread/store";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -26,18 +40,52 @@ function broadcast(message: string) {
   });
 }
 
+async function streamLLMResponse(
+  ws: WebSocket,
+  response: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>
+) {
+  let content = "";
+  let role: "developer" | "system" | "user" | "assistant" | "tool" = "user";
+  for await (const chunk of response) {
+    if (chunk.choices[0]?.delta?.content) {
+      content += chunk.choices[0].delta.content;
+      ws.send(
+        makeMessage("llm-chunk", { content: chunk.choices[0].delta.content })
+      );
+    }
+    if (chunk.choices[0]?.delta?.role) {
+      role = chunk.choices[0].delta.role;
+    }
+  }
+  return { content, role };
+}
+
 app.get("/", function (req: Request, res: Response) {
   res.json({ message: "ok" });
 });
 
-app.post("/scrape", function (req: Request, res: Response) {
+app.post("/scrape", async function (req: Request, res: Response) {
   const url = req.body.url;
-  const store: ScrapeStore = {
-    urls: {},
-    urlSet: new OrderedSet(),
-  };
-  store.urlSet.add(url);
+
+  const existingScrape = await getScrapeByUrl(url);
+  if (existingScrape) {
+    res.status(212).json({ message: "already-scraped" });
+    return;
+  }
+
   (async function () {
+    const scrape = await createScrape(url);
+
+    const store: ScrapeStore = {
+      urls: {},
+      urlSet: new OrderedSet(),
+    };
+    store.urlSet.add(url);
+
+    await updateScrape(scrape._id.toString(), {
+      status: "scraping",
+    });
+
     await scrapeLoop(store, req.body.url, {
       onPreScrape: async (url) => {
         broadcast(makeMessage("scrape-pre", { url }));
@@ -46,8 +94,16 @@ app.post("/scrape", function (req: Request, res: Response) {
         broadcast(makeMessage("scrape-complete", { url }));
       },
     });
-    await saveStore(url, store);
-    await storeEmbeddingsInFAISS(url, store);
+
+    await saveStore(scrape._id.toString(), store);
+
+    const index = await makeIndex(store);
+    await saveIndex(scrape._id.toString(), index);
+
+    await updateScrape(scrape._id.toString(), {
+      status: "done",
+    });
+
     broadcast(makeMessage("saved", { url }));
   })();
 
@@ -55,12 +111,57 @@ app.post("/scrape", function (req: Request, res: Response) {
 });
 
 expressWs.app.ws("/", function (ws, req) {
-  ws.send(makeMessage("ping", "pong"));
-  ws.on("message", function (msg) {
-    console.log(msg);
+  ws.on("message", async function (msg) {
+    const message = JSON.parse(msg.toString());
+
+    if (message.type === "create-thread") {
+      const thread = await createThread({ url: message.data.url });
+      ws.send(makeMessage("thread-created", { threadId: thread.id }));
+    }
+
+    if (message.type === "ask-llm") {
+      const threadId = message.data.threadId;
+      const thread = await getThread(threadId);
+      if (!thread || !thread.url) {
+        ws.send(makeMessage("error", { message: "Thread not found" }));
+        return;
+      }
+
+      const scrape = await getScrapeByUrl(thread.url);
+      if (!scrape) {
+        ws.send(makeMessage("error", { message: "Scrape not found" }));
+        return;
+      }
+
+      const store = await loadStore(scrape._id.toString());
+      const index = await loadIndex(scrape._id.toString());
+      if (!store || !index) {
+        ws.send(makeMessage("error", { message: "Store or index not found" }));
+        return;
+      }
+
+      const response = await askLLM(message.data.query, thread.messages, {
+        url: thread.url,
+        context: await makeContext(message.data.query, index, store),
+      });
+      const { content, role } = await streamLLMResponse(ws as any, response);
+      addMessage(threadId, { role, content } as any);
+      ws.send(makeMessage("llm-chunk", { end: true, content, role }));
+    }
+
+    if (message.type === "sync-thread") {
+      const threadId = message.data.threadId;
+      const thread = await getThread(threadId);
+      if (!thread) {
+        ws.send(makeMessage("error", { message: "Thread not found" }));
+        return;
+      }
+      ws.send(makeMessage("sync-thread", { thread }));
+    }
   });
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
+  await mongoose.connect(process.env.DATABASE_URL!);
   console.log(`Running on port ${port}`);
 });

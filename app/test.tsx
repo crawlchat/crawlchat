@@ -1,11 +1,11 @@
-import { loadStore, saveStore, scrapeLoop, type ScrapeStore } from "../server/src/scrape";
+import { loadStore, saveStore, scrapeLoop, type ScrapeStore } from "../server/src/scrape/crawl";
 import {
   extractMarkdownText,
   searchFAISS,
   storeEmbeddingsInFAISS,
 } from "../server/src/vector";
 import type { Route } from "./+types/test";
-import { OrderedSet } from "../server/src/ordered-set";
+import { OrderedSet } from "../server/src/scrape/ordered-set";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);

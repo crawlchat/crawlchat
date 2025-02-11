@@ -1,6 +1,5 @@
 import * as cheerio from "cheerio";
 import TurndownService from "turndown";
-import fs from "fs/promises";
 import { OrderedSet } from "./ordered-set";
 
 export type ScrapeStore = {
@@ -110,43 +109,3 @@ export async function scrapeLoop(
   }
 }
 
-export async function saveStore(baseUrl: string, store: ScrapeStore) {
-  const urlObj = new URL(baseUrl);
-  const dirPath = `./data/${urlObj.hostname}`;
-  await fs.mkdir(dirPath, { recursive: true });
-
-  for (let i = 0; i < store.urlSet.size(); i++) {
-    const url = store.urlSet.get(i);
-    const markdown = store.urls[url!]?.markdown;
-    await fs.writeFile(`${dirPath}/${i}.md`, markdown ?? "");
-  }
-
-  await fs.writeFile(
-    `${dirPath}/store.json`,
-    JSON.stringify({
-      urlSet: store.urlSet.values(),
-    })
-  );
-}
-
-export async function loadStore(baseUrl: string): Promise<ScrapeStore> {
-  const urlObj = new URL(baseUrl);
-
-  const storeText = await fs.readFile(
-    `./data/${urlObj.hostname}/store.json`,
-    "utf-8"
-  );
-  const storeJson = JSON.parse(storeText);
-  const store: ScrapeStore = { urlSet: new OrderedSet(), urls: {} };
-  store.urlSet.fill(storeJson.urlSet);
-
-  for (let i = 0; i < store.urlSet.size(); i++) {
-    const url = store.urlSet.get(i);
-    const markdown = await fs.readFile(
-      `./data/${urlObj.hostname}/${i}.md`,
-      "utf-8"
-    );
-    store.urls[url!] = { markdown };
-  }
-  return store;
-}

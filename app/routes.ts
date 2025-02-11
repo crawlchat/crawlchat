@@ -22,4 +22,5 @@ export default [
 
   route("test", "test.tsx"),
   route("llm-talk", "llm-talk.tsx"),
+  route("chat", "landing/chat.tsx"),
 ] satisfies RouteConfig;
