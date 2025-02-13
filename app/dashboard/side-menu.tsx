@@ -156,7 +156,7 @@ export function SideMenu({
                     </Link>
                   </MenuItem> */}
               <MenuItem value="logout" asChild>
-                <Link to="/dashboard/logout">
+                <Link to="/logout">
                   <TbLogout />
                   Logout
                 </Link>

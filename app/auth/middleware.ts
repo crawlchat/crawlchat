@@ -4,22 +4,26 @@ import { getSession } from "~/session";
 
 export async function getAuthUser(
   request: Request,
-  options?: { redirectTo?: string; dontRedirect?: boolean, userId?: string }
+  options?: { redirectTo?: string; dontRedirect?: boolean; userId?: string }
 ) {
   const redirectTo = options?.redirectTo ?? "/login";
 
   const session = await getSession(request.headers.get("cookie"));
-  const user = session.get("user");
+  const sessionUser = session.get("user");
 
-  if (!user && !options?.dontRedirect) {
+  if (!sessionUser && !options?.dontRedirect) {
     throw redirect(redirectTo);
   }
 
-  if (options?.userId && user?.id !== options.userId) {
+  if (options?.userId && sessionUser?.id !== options.userId) {
     throw redirect(redirectTo, {
       status: 403,
     });
   }
+
+  const user = await prisma.user.findUnique({
+    where: { id: sessionUser?.id },
+  });
 
   return user;
 }
