@@ -124,7 +124,7 @@ export async function scrapeLoop(
     const markdown = await scrapeWithLinks(url, store, baseUrl, options);
 
     if (options?.afterScrape) {
-      options.afterScrape(url, markdown);
+      await options.afterScrape(url, markdown);
     }
 
     if (Object.keys(store.urls).length > limit) {

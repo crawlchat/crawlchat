@@ -1,6 +1,6 @@
 import { Pinecone } from "@pinecone-database/pinecone";
 import { v4 as uuidv4 } from "uuid";
-import { pipeline } from "@huggingface/transformers";
+import { pipeline, AutoTokenizer } from "@huggingface/transformers";
 
 const pc = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
@@ -21,6 +21,27 @@ export async function makeEmbedding(text: string) {
   );
   const output = await embedder(text, { pooling: "mean", normalize: true });
   return new Float32Array(output.data);
+}
+
+export async function chunkText(text: string, modelName = 'Xenova/all-MiniLM-L6-v2', maxTokens = 256, overlap = 50) {
+  const tokenizer = await AutoTokenizer.from_pretrained(modelName);
+  const tokens = await tokenizer(text, { add_special_tokens: false });
+  
+  const inputIds = Array.from(tokens.input_ids.data || tokens.input_ids) as number[];
+
+  const chunks = [];
+  let start = 0;
+
+  while (start < inputIds.length) {
+    let end = Math.min(start + maxTokens, inputIds.length);
+    let chunkTokens = inputIds.slice(start, end);
+    let chunkText = await tokenizer.decode(chunkTokens, { skip_special_tokens: true });
+
+    chunks.push(chunkText);
+    start += maxTokens - overlap;
+  }
+
+  return chunks;
 }
 
 export async function createIndex(userId: string) {
@@ -64,7 +85,7 @@ export async function search(
     topK?: number;
   }
 ) {
-  const topK = options?.topK ?? 1;
+  const topK = options?.topK ?? 5;
 
   const index = pc.index(makeIndexName(userId));
   return await index.namespace(makeNamespaceName(scrapeId)).query({

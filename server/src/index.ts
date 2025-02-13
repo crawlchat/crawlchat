@@ -12,7 +12,7 @@ import { askLLM } from "./llm";
 import { Stream } from "openai/streaming";
 import { addMessage } from "./thread/store";
 import { prisma } from "./prisma";
-import { makeEmbedding, saveEmbedding, search } from "./scrape/pinecone";
+import { chunkText, makeEmbedding, saveEmbedding, search } from "./scrape/pinecone";
 const userId = "6790c3cc84f4e51db33779c5";
 
 const app: Express = express();
@@ -104,10 +104,13 @@ app.post("/scrape", async function (req: Request, res: Response) {
         broadcast(makeMessage("scrape-complete", { url }));
       },
       afterScrape: async (url, markdown) => {
-        await saveEmbedding(userId, scrape.id, await makeEmbedding(markdown), {
-          content: markdown,
-          url,
-        });
+        const chunks = await chunkText(markdown);
+        for (const chunk of chunks) {
+          await saveEmbedding(userId, scrape.id, await makeEmbedding(chunk), {
+            content: chunk,
+            url,
+          });
+        }
       },
     });
 
