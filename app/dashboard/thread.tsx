@@ -1,4 +1,4 @@
-import { Stack } from "@chakra-ui/react";
+import { Group, Stack, Text } from "@chakra-ui/react";
 import type { Route } from "./+types/thread";
 import { prisma } from "~/prisma";
 import { redirect, useFetcher } from "react-router";

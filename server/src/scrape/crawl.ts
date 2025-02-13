@@ -98,6 +98,8 @@ export async function scrapeWithLinks(
 
     store.urlSet.add(linkUrlStr);
   }
+
+  return linkMarkdown;
 }
 
 export function urlsNotFetched(store: ScrapeStore) {
@@ -112,12 +114,18 @@ export async function scrapeLoop(
     skipRegex?: RegExp[];
     onPreScrape?: (url: string, store: ScrapeStore) => Promise<void>;
     onComplete?: () => Promise<void>;
+    afterScrape?: (url: string, markdown: string) => Promise<void>;
   }
 ) {
   const { limit = 1000 } = options ?? {};
 
   while (urlsNotFetched(store).length > 0) {
-    await scrapeWithLinks(urlsNotFetched(store)[0], store, baseUrl, options);
+    const url = urlsNotFetched(store)[0];
+    const markdown = await scrapeWithLinks(url, store, baseUrl, options);
+
+    if (options?.afterScrape) {
+      options.afterScrape(url, markdown);
+    }
 
     if (Object.keys(store.urls).length > limit) {
       console.log("Reached limit", limit);

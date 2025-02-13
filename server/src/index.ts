@@ -4,17 +4,15 @@ dotenv.config();
 import express from "express";
 import type { Express, Request, Response } from "express";
 import ws from "express-ws";
-import { scrape, scrapeLoop, type ScrapeStore } from "./scrape/crawl";
+import { scrapeLoop, type ScrapeStore } from "./scrape/crawl";
 import { OrderedSet } from "./scrape/ordered-set";
 import cors from "cors";
 import OpenAI from "openai";
-import { askLLM, makeContext } from "./llm";
+import { askLLM } from "./llm";
 import { Stream } from "openai/streaming";
-import { loadIndex, loadStore, saveIndex, saveStore } from "./scrape/store";
-import { makeIndex } from "./vector";
 import { addMessage } from "./thread/store";
 import { prisma } from "./prisma";
-
+import { makeEmbedding, saveEmbedding, search } from "./scrape/pinecone";
 const userId = "6790c3cc84f4e51db33779c5";
 
 const app: Express = express();
@@ -59,13 +57,7 @@ app.get("/", function (req: Request, res: Response) {
 });
 
 app.get("/test", async function (req: Request, res: Response) {
-  const store: ScrapeStore = {
-    urls: {},
-    urlSet: new OrderedSet(),
-  };
-  store.urlSet.add("https://elevenlabs.io/docs");
-  await scrapeLoop(store, "https://elevenlabs.io/docs", {limit: 100});
-  res.json(store);
+  res.json({ message: "ok" });
 });
 
 app.post("/scrape", async function (req: Request, res: Response) {
@@ -111,12 +103,13 @@ app.post("/scrape", async function (req: Request, res: Response) {
       onComplete: async () => {
         broadcast(makeMessage("scrape-complete", { url }));
       },
+      afterScrape: async (url, markdown) => {
+        await saveEmbedding(userId, scrape.id, await makeEmbedding(markdown), {
+          content: markdown,
+          url,
+        });
+      },
     });
-
-    await saveStore(scrape.id, store);
-
-    const index = await makeIndex(store);
-    await saveIndex(scrape.id, index);
 
     await prisma.scrape.update({
       where: { id: scrape.id },
@@ -159,14 +152,23 @@ expressWs.app.ws("/", function (ws, req) {
         links: [],
       });
 
-      const store = await loadStore(scrape.id);
-      const index = await loadIndex(scrape.id);
-      if (!store || !index) {
-        ws.send(makeMessage("error", { message: "Store or index not found" }));
-        return;
-      }
+      const result = await search(
+        userId,
+        scrape.id,
+        await makeEmbedding(message.data.query)
+      );
+      const matches = result.matches.map((match) => ({
+        content: match.metadata!.content as string,
+        url: match.metadata!.url as string,
+      }));
+      const context = {
+        content: matches.map((match) => match.content).join("\n\n"),
+        links: matches.map((match) => ({
+          url: match.url,
+          metaTags: [],
+        })),
+      };
 
-      const context = await makeContext(message.data.query, index, store);
       const response = await askLLM(message.data.query, thread.messages, {
         url: scrape.url,
         context: context?.content,
@@ -181,11 +183,7 @@ expressWs.app.ws("/", function (ws, req) {
       const { content, role } = await streamLLMResponse(ws as any, response);
       addMessage(threadId, {
         llmMessage: { role, content },
-        links:
-          context?.links?.map((link) => ({
-            url: link.url,
-            metaTags: link.metaTags,
-          })) ?? [],
+        links: context?.links,
       });
       ws.send(
         makeMessage("llm-chunk", {

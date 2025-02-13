@@ -23,6 +23,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.744.0",
     "@huggingface/transformers": "^3.3.3",
+    "@pinecone-database/pinecone": "^4.1.0",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -33,6 +34,7 @@
     "prisma": "^6.2.1",
     "remark": "^15.0.1",
     "strip-markdown": "^6.0.0",
-    "turndown": "^7.2.0"
+    "turndown": "^7.2.0",
+    "uuid": "^11.0.5"
   }
 }

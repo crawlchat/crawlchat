@@ -51,7 +51,7 @@ export async function makeIndex(store: ScrapeStore) {
 export async function searchInIndex(
   query: string,
   index: faiss.IndexFlatL2,
-  topK: number = 10
+  topK: number = 2
 ) {
   const queryEmbedding = await generateEmbeddings([query]);
   const queryArray = Array.from(queryEmbedding[0]);
