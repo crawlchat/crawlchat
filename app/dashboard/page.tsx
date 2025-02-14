@@ -39,6 +39,7 @@ import { ScrapeCard } from "~/scrapes/card";
 import { Page } from "~/components/page";
 import { createToken } from "~/jwt";
 import { makeMessage } from "./socket-util";
+import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -120,7 +121,7 @@ export default function LandingPage({
   const [advanced, setAdvanced] = useState(false);
 
   useEffect(() => {
-    socket.current = new WebSocket("ws://localhost:3000");
+    socket.current = new WebSocket(import.meta.env.VITE_SERVER_WS_URL);
     socket.current.onopen = () => {
       socket.current?.send(
         makeMessage("join-room", {
@@ -139,10 +140,21 @@ export default function LandingPage({
           scrapedCount: message.data.scrapedUrlCount,
         });
         setStage("scraping");
-      } else if (message.type === "scrape-complete") {
+      }
+
+      if (message.type === "scrape-complete") {
         setStage("scraped");
-      } else if (message.type === "saved") {
+      }
+
+      if (message.type === "saved") {
         setStage("saved");
+      }
+
+      if (message.type === "error") {
+        toaster.error({
+          title: "Failed to connect",
+          description: message.data.message,
+        });
       }
     };
   }, []);
@@ -155,7 +167,7 @@ export default function LandingPage({
       <Stack
         alignItems={"center"}
         justifyContent={"center"}
-        height={"100dvh"}
+        height={"100%"}
         gap={8}
       >
         <Stack w={"400px"}>

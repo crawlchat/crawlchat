@@ -53,8 +53,8 @@ function SideMenuItem({
           transition={"all 100ms ease"}
           _hover={{ bg: !isActive ? "brand.gray.100" : undefined }}
         >
-          {link.icon}
-          <Text>{link.label}</Text>
+          <Text>{link.icon}</Text>
+          <Text truncate>{link.label}</Text>
           {isPending && <Spinner size="xs" />}
         </Group>
       )}
@@ -117,14 +117,14 @@ export function SideMenu({
           <Separator />
         </Stack>
 
-        <Stack gap={1} w="full" px={3}>
-          {threads.map((thread, index) => (
+        <Stack gap={1} w="full" px={3} overflowY="auto">
+          {threads.slice(0, 6).map((thread, index) => (
             <SideMenuItem
               key={index}
               link={{
                 label: threadTitle[thread.id] ?? getThreadName(thread.messages),
                 to: `/threads/${thread.id}`,
-                icon: <TbMessage />,
+                icon: <TbMessage size={16} />,
               }}
             />
           ))}

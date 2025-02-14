@@ -2,7 +2,6 @@ import {
   Box,
   GridItem,
   Group,
-  Heading,
   IconButton,
   Input,
   Link,
@@ -11,7 +10,7 @@ import {
 import { Stack, Text } from "@chakra-ui/react";
 import type { Message, ScrapeLink, Thread } from "@prisma/client";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { TbCheck, TbSend, TbTrash, TbWorld } from "react-icons/tb";
+import { TbSend } from "react-icons/tb";
 import Markdown from "react-markdown";
 import { Prose } from "~/components/ui/prose";
 import { getLinkTitle, getThreadName } from "~/thread-util";
@@ -19,6 +18,7 @@ import { sleep } from "~/util";
 import { AppContext } from "./context";
 import { Button } from "~/components/ui/button";
 import { makeMessage } from "./socket-util";
+import { toaster } from "~/components/ui/toaster";
 
 function LinkCard({ link }: { link: ScrapeLink }) {
   return (
@@ -80,13 +80,9 @@ function UserMessage({ content }: { content: string }) {
 export default function ChatBox({
   thread,
   token,
-  deleting,
-  onDelete,
 }: {
   thread: Thread;
   token: string;
-  deleting: boolean;
-  onDelete: () => void;
 }) {
   const { setThreadTitle } = useContext(AppContext);
   const socket = useRef<WebSocket>(null);
@@ -95,7 +91,6 @@ export default function ChatBox({
   const [messages, setMessages] = useState<Message[]>(thread.messages);
   const containerRef = useRef<HTMLDivElement>(null);
   const promptBoxRef = useRef<HTMLDivElement>(null);
-  const [deleteActive, setDeleteActive] = useState(false);
   const selectionPopoverRef = useRef<HTMLDivElement>(null);
   const [selectedText, setSelectedText] = useState("");
 
@@ -107,7 +102,7 @@ export default function ChatBox({
   }, [messages]);
 
   useEffect(() => {
-    socket.current = new WebSocket("ws://localhost:3000");
+    socket.current = new WebSocket(import.meta.env.VITE_SERVER_WS_URL);
     socket.current.onopen = () => {
       socket.current!.send(
         makeMessage("join-room", {
@@ -137,6 +132,13 @@ export default function ChatBox({
         setContent((prev) => prev + message.data.content);
         scrollToBottom();
       }
+
+      if (message.type === "error") {
+        toaster.error({
+          title: "Failed to connect",
+          description: message.data.message,
+        });
+      }
     };
 
     return () => {
@@ -145,14 +147,6 @@ export default function ChatBox({
       }
     };
   }, [token]);
-
-  useEffect(() => {
-    if (deleteActive) {
-      setTimeout(() => {
-        setDeleteActive(false);
-      }, 3000);
-    }
-  }, [deleteActive]);
 
   useEffect(() => {
     setThreadTitle((titles) => ({
@@ -242,14 +236,6 @@ export default function ChatBox({
     });
   }
 
-  function handleDelete() {
-    if (!deleteActive) {
-      setDeleteActive(true);
-      return;
-    }
-    onDelete();
-  }
-
   function allMessages() {
     const allMessages = [
       ...messages,
@@ -275,21 +261,6 @@ export default function ChatBox({
 
   return (
     <Stack w={"full"} h="full" ref={containerRef}>
-      <Stack>
-        <Heading>{title}</Heading>
-        <Group>
-          <IconButton
-            size={"xs"}
-            variant={"subtle"}
-            onClick={handleDelete}
-            colorPalette={deleteActive || deleting ? "red" : undefined}
-            disabled={deleting}
-          >
-            {deleteActive || deleting ? <TbCheck /> : <TbTrash />}
-          </IconButton>
-        </Group>
-      </Stack>
-
       <Stack flex={1} pb={"60px"}>
         {allMessages().map((message, index) => (
           <Stack key={index}>

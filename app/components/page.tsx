@@ -1,4 +1,4 @@
-import { Box, Group, Heading, IconButton, Stack } from "@chakra-ui/react";
+import { Box, Group, Heading, IconButton, Stack, Text } from "@chakra-ui/react";
 import { useContext } from "react";
 import { TbMenu } from "react-icons/tb";
 import { AppContext } from "~/dashboard/context";
@@ -36,8 +36,8 @@ export function Page({
               <TbMenu />
             </IconButton>
             <Heading display={"flex"} alignItems={"center"} gap={2}>
-              {icon}
-              {title}
+              <Text>{icon}</Text>
+              <Text lineClamp={1}>{title}</Text>
             </Heading>
           </Group>
           {right}
