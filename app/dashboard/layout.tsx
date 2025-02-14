@@ -16,7 +16,7 @@ import { prisma } from "~/prisma";
 export function meta() {
   return [
     {
-      title: "VocalForm",
+      title: "CrawlChat",
     },
   ];
 }

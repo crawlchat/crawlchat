@@ -14,7 +14,7 @@ authenticator.use(
       sendEmail: async ({ emailAddress, magicLink }) => {
         await sendEmail(
           emailAddress,
-          "Login to VocalForm",
+          "Login to CrawlChat",
           `Click here to login: ${magicLink}`
         );
       },

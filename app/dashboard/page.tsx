@@ -61,7 +61,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta() {
   return [
     {
-      title: "Kaho",
+      title: "CrawlChat",
       description: "Chat with any website!",
     },
   ];

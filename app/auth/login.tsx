@@ -25,7 +25,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta() {
   return [
     {
-      title: "Login - VocalForm",
+      title: "Login - CrawlChat",
     },
   ];
 }

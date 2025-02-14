@@ -261,7 +261,7 @@ export default function ChatBox({
 
   return (
     <Stack w={"full"} h="full" ref={containerRef}>
-      <Stack flex={1} pb={"60px"}>
+      <Stack flex={1} pb={"100px"} gap={8}>
         {allMessages().map((message, index) => (
           <Stack key={index}>
             {message.role === "assistant" ? (

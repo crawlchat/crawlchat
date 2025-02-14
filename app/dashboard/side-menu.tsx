@@ -102,7 +102,7 @@ export function SideMenu({
           >
             <Group>
               <TbWand />
-              <Link to="/app">Kaho</Link>
+              <Link to="/app">CrawlChat</Link>
             </Group>
           </Heading>
         </Stack>
