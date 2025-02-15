@@ -92,16 +92,15 @@ export default function Index() {
       {/* Video Demo Section */}
       <section className="py-20 px-4 bg-gray-50">
         <div className="container mx-auto">
-          <div className="relative aspect-video max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gray-900 shadow-xl">
+          <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gray-900 shadow-xl">
             <video
               className="w-full h-full object-cover"
-              poster="https://images.unsplash.com/photo-1629654297299-c8506221ca97?q=80&w=1000"
-              src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+              poster="/demo-poster.png"
+              src="https://slickwid-public.s3.us-east-1.amazonaws.com/CrawlChat+Demo.mp4"
               controls
             >
               Your browser does not support the video tag.
             </video>
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-purple-900/20 pointer-events-none"></div>
           </div>
         </div>
       </section>
@@ -261,9 +260,14 @@ export default function Index() {
                 </li>
               </ul>
 
-              <Button className="w-full bg-white hover:bg-gray-100 text-gray-900 border border-gray-200">
-                Get Started Free
-                <TbArrowRight className="ml-2 h-5 w-5" />
+              <Button
+                className="w-full bg-white hover:bg-gray-100 text-gray-900 border border-gray-200"
+                asChild
+              >
+                <Link href="/login">
+                  Get Started Free
+                  <TbArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
             </div>
 
@@ -304,8 +308,11 @@ export default function Index() {
                 </li>
               </ul>
 
-              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                Upgrade to Pro
+              <Button
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                disabled
+              >
+                Coming soon!
                 <TbArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
@@ -340,7 +347,7 @@ export default function Index() {
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-gray-100">
         <div className="container mx-auto text-center text-gray-600">
-          <p>&copy; 2024 CrawlChat. All rights reserved.</p>
+          <p>&copy; 2025 CrawlChat. All rights reserved.</p>
         </div>
       </footer>
     </div>
