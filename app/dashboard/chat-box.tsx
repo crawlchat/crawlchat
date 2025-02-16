@@ -227,9 +227,11 @@ export default function ChatBox({
     if (!containerRef.current) return;
     if (!promptBoxRef.current) return;
 
+    const padding = 16;
+
     const rect = containerRef.current.getBoundingClientRect();
-    promptBoxRef.current.style.left = `${rect.left}px`;
-    promptBoxRef.current.style.width = `${rect.width}px`;
+    promptBoxRef.current.style.left = `${rect.left - padding}px`;
+    promptBoxRef.current.style.width = `${rect.width + padding * 2}px`;
     promptBoxRef.current.style.opacity = "1";
   }
 
@@ -274,7 +276,7 @@ export default function ChatBox({
 
   return (
     <Stack w={"full"} h="full" ref={containerRef}>
-      <Stack flex={1} pb={"100px"} gap={8}>
+      <Stack flex={1} pb={"140px"} gap={8}>
         {allMessages().map((message, index) => (
           <Stack key={index}>
             {message.role === "assistant" ? (
@@ -296,9 +298,11 @@ export default function ChatBox({
         w="full"
         zIndex={1}
         ref={promptBoxRef}
-        pb={4}
+        p={4}
         bg="brand.white"
         opacity={0}
+        borderTop={"1px solid"}
+        borderColor={"brand.outline"}
       >
         <Group w="full">
           <Input
