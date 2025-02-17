@@ -24,7 +24,6 @@ import { getRoomIds } from "./socket-room";
 import { authenticate, verifyToken } from "./jwt";
 import fs from "fs/promises";
 import { Prisma } from "@prisma/client";
-import { getMetaTitle } from "./scrape/parse";
 
 const app: Express = express();
 const expressWs = ws(app);
