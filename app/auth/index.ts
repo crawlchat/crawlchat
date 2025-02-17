@@ -36,13 +36,6 @@ authenticator.use(
         });
       }
 
-      await fetch(`${process.env.VITE_SERVER_URL}/create-index`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${createToken(user.id)}`,
-        },
-      });
-
       return user;
     }
   ),

@@ -21,12 +21,12 @@ async function getEmbedder() {
   return embedder;
 }
 
-function makeIndexName(userId: string) {
-  return `user-${userId}`;
+function makeIndexName() {
+  return "earth";
 }
 
-function makeNamespaceName(scrapeId: string) {
-  return `scrape-${scrapeId}`;
+function makeNamespaceName(userId: string, scrapeId: string) {
+  return `user-${userId}-scrape-${scrapeId}`;
 }
 
 export async function makeEmbedding(text: string) {
@@ -68,8 +68,8 @@ export async function chunkText(
   return chunks;
 }
 
-export async function createIndex(userId: string) {
-  const indexName = makeIndexName(userId);
+async function createIndex(userId: string) {
+  const indexName = makeIndexName();
   const indexes = await pc.listIndexes();
 
   if (indexes.indexes?.some((index) => index.name === indexName)) {
@@ -100,8 +100,8 @@ export async function saveEmbedding(
     };
   }[]
 ) {
-  const index = pc.index(makeIndexName(userId));
-  await index.namespace(makeNamespaceName(scrapeId)).upsert(
+  const index = pc.index(makeIndexName());
+  await index.namespace(makeNamespaceName(userId, scrapeId)).upsert(
     docs.map((doc) => ({
       id: uuidv4(),
       values: Array.from(doc.embedding),
@@ -120,8 +120,8 @@ export async function search(
 ) {
   const topK = options?.topK ?? 5;
 
-  const index = pc.index(makeIndexName(userId));
-  return await index.namespace(makeNamespaceName(scrapeId)).query({
+  const index = pc.index(makeIndexName());
+  return await index.namespace(makeNamespaceName(userId, scrapeId)).query({
     topK,
     vector: Array.from(queryEmbedding),
     includeMetadata: true,
@@ -129,6 +129,6 @@ export async function search(
 }
 
 export async function deleteScrape(userId: string, scrapeId: string) {
-  const index = pc.index(makeIndexName(userId));
-  await index.namespace(makeNamespaceName(scrapeId)).deleteAll();
+  const index = pc.index(makeIndexName());
+  await index.namespace(makeNamespaceName(userId, scrapeId)).deleteAll();
 }
