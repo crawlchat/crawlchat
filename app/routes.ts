@@ -23,4 +23,6 @@ export default [
     route("collections/:id", "scrapes/scrape-page.tsx"),
     route("settings", "dashboard/settings.tsx"),
   ]),
+
+  route("w/:id", "widget/scrape.tsx"),
 ] satisfies RouteConfig;
