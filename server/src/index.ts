@@ -67,9 +67,9 @@ app.get("/", function (req: Request, res: Response) {
 
 app.get("/test", async function (req: Request, res: Response) {
   const content = await scrape(
-    "https://docs.shipped.club/features/authentication"
+    "https://docs.voyageai.com/docs/pricing"
   );
-  await fs.writeFile("test.md", content.parseOutput.markdown);
+  await fs.writeFile("test.md", content.parseOutput.html ?? "");
   res.json({ message: "ok" });
 });
 
@@ -279,10 +279,15 @@ expressWs.app.ws("/", (ws: any, req) => {
         }
         const { content, role } = await streamLLMResponse(ws, response);
 
-        const linksWithTitle = context?.links.map((link) => ({
-          ...link,
-          title: "",
-        }));
+        const linksWithTitle: { url: string; title: string | null }[] = [];
+        for (const link of context?.links ?? []) {
+          const item = await prisma.scrapeItem.findFirst({
+            where: { url: link.url },
+          });
+          if (item) {
+            linksWithTitle.push({ ...link, title: item.title });
+          }
+        }
         addMessage(threadId, {
           llmMessage: { role, content },
           links: linksWithTitle,

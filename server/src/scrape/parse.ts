@@ -2,6 +2,8 @@ import * as cheerio from "cheerio";
 import TurndownService from "turndown";
 import { removeConsecutiveLinks, markdownToText } from "./markdown";
 import type { MetaTag } from "@prisma/client";
+// @ts-ignore
+import * as turndownPluginGfm from "turndown-plugin-gfm";
 
 const EXCLUDE_NON_MAIN_TAGS = [
   "header",
@@ -81,6 +83,7 @@ export type ParseOutput = {
   metaTags: MetaTag[];
   text: string;
   error?: string;
+  html?: string;
 };
 
 export function parseHtml(html: string): ParseOutput {
@@ -112,6 +115,7 @@ export function parseHtml(html: string): ParseOutput {
   cleanHtml($);
 
   const turndownService = new TurndownService();
+  turndownService.use(turndownPluginGfm.gfm);
   turndownService.addRule("headings", {
     filter: ["h1", "h2", "h3", "h4", "h5", "h6"],
     replacement: function (content, node) {
@@ -138,6 +142,7 @@ export function parseHtml(html: string): ParseOutput {
     links,
     metaTags,
     text: markdownToText(markdown),
+    html: content ?? undefined,
   };
 }
 
