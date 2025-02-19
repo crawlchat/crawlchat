@@ -25,7 +25,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   });
   const userToken = await createToken("6790c3cc84f4e51db33779c5");
   const thread = await prisma.thread.findFirstOrThrow({
-    where: { id: "67b51f867222da88524d7dae" },
+    where: { id: "67b5e7b57222da88524d7daf" },
   });
   return { scrape, userToken, thread };
 }
@@ -64,7 +64,7 @@ function ChatInput({ onAsk }: { onAsk: (query: string) => void }) {
         />
       </Group>
       <Group>
-        <IconButton rounded={"full"} onClick={handleAsk}>
+        <IconButton rounded={"full"} onClick={handleAsk} size={"xs"}>
           <TbArrowUp />
         </IconButton>
       </Group>
@@ -87,8 +87,9 @@ function UserMessage({ content }: { content: string }) {
       borderColor={"brand.outline"}
       className="user-message"
       p={4}
+      pb={0}
     >
-      <Text fontSize={"2xl"} fontWeight={"bolder"} opacity={0.5}>
+      <Text fontSize={"2xl"} fontWeight={"bolder"} opacity={0.8}>
         {content}
       </Text>
     </Stack>
@@ -108,16 +109,10 @@ function AssistantMessage({
         <MessageContent content={content} />
       </Stack>
       {links.length > 0 && (
-        <Stack
-          borderTop="1px solid"
-          borderColor={"brand.outline"}
-          gap={0}
-        >
+        <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
           {links.map((link, index) => (
-            <Stack
+            <Link
               key={index}
-              px={4}
-              py={3}
               borderBottom={"1px solid"}
               borderColor={"brand.outline"}
               _last={{ borderBottom: "none" }}
@@ -125,21 +120,28 @@ function AssistantMessage({
                 bg: "brand.gray.100",
               }}
               transition={"background-color 100ms ease-in-out"}
+              variant={"plain"}
+              href={link.url}
+              target="_blank"
+              textDecoration={"none"}
+              outline={"none"}
             >
-              <Group justify={"space-between"}>
-                <Stack gap={0}>
-                  <Text fontSize={"xs"} lineClamp={1}>
-                    {link.title}
-                  </Text>
-                  <Link fontSize={"xs"} opacity={0.5} lineClamp={1}>
-                    {link.url}
-                  </Link>
-                </Stack>
-                <Box>
-                  <TbChevronRight />
-                </Box>
-              </Group>
-            </Stack>
+              <Stack px={4} py={3} w="full">
+                <Group justify={"space-between"} w="full">
+                  <Stack gap={0}>
+                    <Text fontSize={"xs"} lineClamp={1}>
+                      {link.title}
+                    </Text>
+                    <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
+                      {link.url}
+                    </Text>
+                  </Stack>
+                  <Box>
+                    <TbChevronRight />
+                  </Box>
+                </Group>
+              </Stack>
+            </Link>
           ))}
         </Stack>
       )}
