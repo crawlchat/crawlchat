@@ -90,11 +90,9 @@ function UserMessage({ content }: { content: string }) {
 export default function ChatBox({
   thread,
   token,
-  patchFetcher,
 }: {
   thread: Thread;
   token: string;
-  patchFetcher: FetcherWithComponents<{ responseType: ResponseType }>;
 }) {
   const { setThreadTitle, containerWidth } = useContext(AppContext);
   const socket = useRef<WebSocket>(null);
@@ -274,9 +272,6 @@ export default function ChatBox({
     }
   }
 
-  const responseType =
-    patchFetcher.formData?.get("responseType") ?? thread.responseType ?? "long";
-
   return (
     <Stack w={"full"} h="full" ref={containerRef}>
       <Stack flex={1} pb={"140px"} gap={8}>
@@ -325,48 +320,6 @@ export default function ChatBox({
           >
             <TbSend />
           </IconButton>
-        </Group>
-        <Group>
-          <patchFetcher.Form method="patch">
-            <Group attached>
-              <Button
-                variant={responseType === "long" ? "solid" : "outline"}
-                size="xs"
-                type="submit"
-                name="responseType"
-                value="long"
-              >
-                Long
-              </Button>
-              <Button
-                variant={responseType === "brief" ? "solid" : "outline"}
-                size="xs"
-                type="submit"
-                name="responseType"
-                value="brief"
-              >
-                Brief
-              </Button>
-              <Button
-                variant={responseType === "short" ? "solid" : "outline"}
-                size="xs"
-                type="submit"
-                name="responseType"
-                value="short"
-              >
-                Short
-              </Button>
-              <Button
-                variant={responseType === "points" ? "solid" : "outline"}
-                size="xs"
-                type="submit"
-                name="responseType"
-                value="points"
-              >
-                Points
-              </Button>
-            </Group>
-          </patchFetcher.Form>
         </Group>
       </Stack>
 

@@ -72,6 +72,41 @@ function ChatInput({ onAsk }: { onAsk: (query: string) => void }) {
   );
 }
 
+function SourceLink({ link }: { link: { url: string; title: string | null } }) {
+  return (
+    <Link
+      borderBottom={"1px solid"}
+      borderColor={"brand.outline"}
+      _last={{ borderBottom: "none" }}
+      _hover={{
+        bg: "brand.gray.100",
+      }}
+      transition={"background-color 100ms ease-in-out"}
+      variant={"plain"}
+      href={link.url}
+      target="_blank"
+      textDecoration={"none"}
+      outline={"none"}
+    >
+      <Stack px={4} py={3} w="full">
+        <Group justify={"space-between"} w="full">
+          <Stack gap={0}>
+            <Text fontSize={"xs"} lineClamp={1}>
+              {link.title}
+            </Text>
+            <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
+              {link.url}
+            </Text>
+          </Stack>
+          <Box>
+            <TbChevronRight />
+          </Box>
+        </Group>
+      </Stack>
+    </Link>
+  );
+}
+
 function MessageContent({ content }: { content: string }) {
   return (
     <Prose maxW="full">
@@ -111,37 +146,7 @@ function AssistantMessage({
       {links.length > 0 && (
         <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
           {links.map((link, index) => (
-            <Link
-              key={index}
-              borderBottom={"1px solid"}
-              borderColor={"brand.outline"}
-              _last={{ borderBottom: "none" }}
-              _hover={{
-                bg: "brand.gray.100",
-              }}
-              transition={"background-color 100ms ease-in-out"}
-              variant={"plain"}
-              href={link.url}
-              target="_blank"
-              textDecoration={"none"}
-              outline={"none"}
-            >
-              <Stack px={4} py={3} w="full">
-                <Group justify={"space-between"} w="full">
-                  <Stack gap={0}>
-                    <Text fontSize={"xs"} lineClamp={1}>
-                      {link.title}
-                    </Text>
-                    <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
-                      {link.url}
-                    </Text>
-                  </Stack>
-                  <Box>
-                    <TbChevronRight />
-                  </Box>
-                </Group>
-              </Stack>
-            </Link>
+            <SourceLink key={index} link={link} />
           ))}
         </Stack>
       )}

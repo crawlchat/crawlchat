@@ -45,6 +45,7 @@ model Scrape {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   title           String?
+  chatPrompt      String?
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   threads         Thread[]

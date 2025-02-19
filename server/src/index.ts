@@ -276,7 +276,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         const response = await askLLM(message.data.query, thread.messages, {
           url: scrape.url,
           context: context?.content,
-          systemPrompt: getSystemPrompt(thread.responseType ?? "long"),
+          systemPrompt: scrape.chatPrompt ?? undefined,
         });
         if (context?.links) {
           ws.send(

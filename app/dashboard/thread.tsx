@@ -52,7 +52,6 @@ export async function action({ params, request }: Route.ActionArgs) {
 
 export default function ThreadPage({ loaderData }: Route.ComponentProps) {
   const deleteFetcher = useFetcher();
-  const patchFetcher = useFetcher<{ responseType: ResponseType }>();
   const { threadTitle } = useContext(AppContext);
   const [deleteActive, setDeleteActive] = useState(false);
 
@@ -104,7 +103,6 @@ export default function ThreadPage({ loaderData }: Route.ComponentProps) {
           token={loaderData.token}
           thread={loaderData.thread}
           key={loaderData.thread.id}
-          patchFetcher={patchFetcher}
         />
       </Stack>
     </Page>
