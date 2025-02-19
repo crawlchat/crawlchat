@@ -45,10 +45,26 @@ function getChunkSize(chunk: string[]) {
   return chunk.reduce((acc, line) => acc + line.length, 0) + chunk.length;
 }
 
+function plainChunk(line: string, chunkSize: number): string[] {
+  const chunks: string[] = [];
+  for (let i = 0; i < line.length; i += chunkSize) {
+    chunks.push(line.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
 export async function splitMarkdown(markdown: string) {
-  const lines = markdown.split("\n");
+  const originalLines: string[] = markdown.split("\n");
   const chunks: string[] = [];
   let currentChunk: string[] = [];
+
+  const lines: string[] = [];
+  for (let i = 0; i < originalLines.length; i++) {
+    const chunks = plainChunk(originalLines[i], size / 3);
+    for (const chunk of chunks) {
+      lines.push(chunk);
+    }
+  }
 
   let headingsAtSplit: Heading[] | undefined = undefined;
   const headings: Heading[] = [];

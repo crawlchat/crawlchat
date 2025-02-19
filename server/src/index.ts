@@ -70,7 +70,7 @@ app.get("/test", async function (req: Request, res: Response) {
   // const url = "https://www.remotion.dev/docs/google-fonts/get-available-fonts"
   const url = "https://www.remotion.dev/docs/google-fonts/get-available-fonts";
   const content = await scrape(url);
-  // await fs.writeFile("test.md", content.parseOutput.markdown);
+  await fs.writeFile("test.md", content.parseOutput.markdown);
   const chunks = await splitMarkdown(content.parseOutput.markdown);
   for (let i = 0; i < chunks.length; i++) {
     await fs.writeFile(`test-${i}.md`, chunks[i]);
