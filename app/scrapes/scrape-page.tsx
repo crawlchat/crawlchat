@@ -3,7 +3,9 @@ import {
   Badge,
   Box,
   DataList,
+  Group,
   HStack,
+  Spinner,
   Stack,
   Textarea,
 } from "@chakra-ui/react";
@@ -11,13 +13,22 @@ import type { Route } from "./+types/scrape-page";
 import { prisma } from "~/prisma";
 import { getScrapeTitle } from "./util";
 import { getAuthUser } from "~/auth/middleware";
-import { TbSettings, TbWorld } from "react-icons/tb";
+import {
+  TbAlertCircle,
+  TbCheck,
+  TbRefresh,
+  TbSettings,
+  TbWorld,
+} from "react-icons/tb";
 import moment from "moment";
 import { SettingsSection } from "~/dashboard/settings";
 import { Outlet, useFetcher, useNavigate } from "react-router";
 import type { Prisma } from "@prisma/client";
 import { SegmentedControl } from "~/components/ui/segmented-control";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Button } from "~/components/ui/button";
+import { createToken } from "~/jwt";
+import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -40,30 +51,42 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { scrape, items, tab };
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   const formData = await request.formData();
 
-  const chatPrompt = formData.get("chatPrompt") as string | null;
-  const scrapeId = formData.get("scrapeId");
+  const action = formData.get("action");
 
-  const update: Prisma.ScrapeUpdateInput = {};
-  if (chatPrompt) {
-    update.chatPrompt = chatPrompt;
+  if (action === "re-crawl") {
+    const token = createToken(user!.id);
+    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+      method: "POST",
+      body: JSON.stringify({ scrapeId: params.id }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return { action: "re-crawl", status: "success" };
   }
-
-  const scrape = await prisma.scrape.update({
-    where: { id: scrapeId as string, userId: user!.id },
-    data: update,
-  });
-
-  return { scrape };
 }
 
-export default function ScrapePage({ loaderData }: Route.ComponentProps) {
-  
+export default function ScrapePage({
+  loaderData,
+  actionData,
+}: Route.ComponentProps) {
   const [tab, setTab] = useState<string>(loaderData.tab);
   const navigate = useNavigate();
+  const recrawlFetcher = useFetcher();
+
+  useEffect(() => {
+    if (actionData?.status === "success" && actionData.action === "re-crawl") {
+      toaster.success({
+        title: "Success",
+        description: "Initiated the crawl",
+      });
+    }
+  }, [actionData]);
 
   function handleTabChange(value: string) {
     setTab(value);
@@ -71,7 +94,25 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <Page title={getScrapeTitle(loaderData.scrape)} icon={<TbWorld />}>
+    <Page
+      title={getScrapeTitle(loaderData.scrape)}
+      icon={<TbWorld />}
+      right={
+        <Group>
+          <recrawlFetcher.Form method="post">
+            <input type="hidden" name="action" value="re-crawl" />
+            <Button
+              variant={"subtle"}
+              type="submit"
+              loading={recrawlFetcher.state !== "idle"}
+            >
+              <TbRefresh />
+              Re-crawl
+            </Button>
+          </recrawlFetcher.Form>
+        </Group>
+      }
+    >
       <Stack>
         <DataList.Root orientation={"horizontal"}>
           <DataList.Item>
@@ -91,6 +132,29 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
             <DataList.ItemLabel>Created</DataList.ItemLabel>
             <DataList.ItemValue>
               {moment(loaderData.scrape.createdAt).fromNow()}
+            </DataList.ItemValue>
+          </DataList.Item>
+          <DataList.Item>
+            <DataList.ItemLabel>Status</DataList.ItemLabel>
+            <DataList.ItemValue>
+              {loaderData.scrape.status === "done" && (
+                <Badge colorPalette={"brand"} variant={"surface"}>
+                  <TbCheck />
+                  Completed
+                </Badge>
+              )}
+              {loaderData.scrape.status === "scraping" && (
+                <Badge variant={"surface"}>
+                  <Spinner size={"xs"} />
+                  Scraping
+                </Badge>
+              )}
+              {loaderData.scrape.status === "error" && (
+                <Badge variant={"surface"} colorPalette={"red"}>
+                  <TbAlertCircle />
+                  Error
+                </Badge>
+              )}
             </DataList.ItemValue>
           </DataList.Item>
         </DataList.Root>

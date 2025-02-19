@@ -4,6 +4,7 @@ import { SettingsSection } from "~/dashboard/settings";
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/scrape-settings";
 import { getAuthUser } from "~/auth/middleware";
+import type { Prisma } from "@prisma/client";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -19,6 +20,25 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { scrape };
 }
 
+export async function action({ request, params }: Route.ActionArgs) {
+  const user = await getAuthUser(request);
+  const formData = await request.formData();
+
+  const chatPrompt = formData.get("chatPrompt") as string | null;
+
+  const update: Prisma.ScrapeUpdateInput = {};
+  if (chatPrompt) {
+    update.chatPrompt = chatPrompt;
+  }
+
+  const scrape = await prisma.scrape.update({
+    where: { id: params.id, userId: user!.id },
+    data: update,
+  });
+
+  return { scrape };
+}
+
 export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const promptFetcher = useFetcher();
 
@@ -29,7 +49,6 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
         description="Customize the chat prompt for this scrape."
         fetcher={promptFetcher}
       >
-        <input type="hidden" name="scrapeId" value={loaderData.scrape.id} />
         <Textarea
           name="chatPrompt"
           defaultValue={loaderData.scrape.chatPrompt ?? ""}

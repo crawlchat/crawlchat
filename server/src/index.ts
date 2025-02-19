@@ -83,6 +83,19 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const url = req.body.url;
   const scrapeId = req.body.scrapeId!;
 
+  const scraping = await prisma.scrape.count({
+    where: {
+      userId,
+      status: "scraping",
+    },
+  });
+
+  if (scraping > 0) {
+    console.log("Too many scrapes", userId, scraping);
+    res.json({ message: "Too many scrapes" });
+    return;
+  }
+
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: scrapeId, userId },
   });
@@ -91,16 +104,16 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     getRoomIds({ userId }).map((roomId) =>
       broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
     );
+    await prisma.scrape.update({
+      where: { id: scrape.id },
+      data: { status: "scraping" },
+    });
+
     const store: ScrapeStore = {
       urls: {},
       urlSet: new OrderedSet(),
     };
     store.urlSet.add(url ?? scrape.url);
-
-    await prisma.scrape.update({
-      where: { id: scrape.id },
-      data: { status: "scraping" },
-    });
 
     await scrapeLoop(store, req.body.url ?? scrape.url, {
       limit: req.body.maxLinks
