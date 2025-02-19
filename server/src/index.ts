@@ -68,7 +68,7 @@ app.get("/", function (req: Request, res: Response) {
 
 app.get("/test", async function (req: Request, res: Response) {
   // const url = "https://www.remotion.dev/docs/google-fonts/get-available-fonts"
-  const url = "https://www.remotion.dev/docs/google-fonts/get-available-fonts";
+  const url = "https://www.chakra-ui.com/docs/components/table";
   const content = await scrape(url);
   await fs.writeFile("test.md", content.parseOutput.markdown);
   const chunks = await splitMarkdown(content.parseOutput.markdown);
@@ -126,9 +126,10 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
         const maxLinks = req.body.maxLinks
           ? parseInt(req.body.maxLinks)
           : undefined;
+        const actualRemainingUrlCount = store.urlSet.size() - scrapedUrlCount;
         const remainingUrlCount = maxLinks
-          ? maxLinks - scrapedUrlCount
-          : store.urlSet.size() - scrapedUrlCount;
+          ? Math.min(maxLinks, actualRemainingUrlCount)
+          : actualRemainingUrlCount;
         const roomIds = getRoomIds({ userId });
 
         const chunks = await splitMarkdown(markdown);

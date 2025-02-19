@@ -87,10 +87,10 @@ export async function splitMarkdown(markdown: string) {
 
   function addChunk(size: number) {
     let chunksToPush = getFutureChunk();
-    const futureSize = getChunkSize(chunksToPush);
+    const chunkSize = getChunkSize(chunksToPush);
 
-    if (futureSize > size) {
-      throw new Error(`Size exceeded. ${futureSize} > ${size}`);
+    if (chunkSize > size) {
+      throw new Error(`Size exceeded. ${chunkSize} > ${size}`);
     }
 
     chunks.push(chunksToPush.join("\n"));
@@ -114,17 +114,21 @@ export async function splitMarkdown(markdown: string) {
     }
 
     if (isTableLine(lines[i])) {
-      if (tableLines.header && tableLines.separator === "") {
-        tableLines.separator = line;
-      }
       if (tableLines.header === "") {
         tableLines.header = line;
+        tableLines.separator = lines[i + 1];
+        i++;
       }
     } else {
       tableLines.header = "";
       tableLines.separator = "";
     }
 
+    // console.log(
+    //   getChunkSize(getFutureChunk()),
+    //   getChunkSize(getFutureChunk([line])),
+    //   line
+    // );
     if (getChunkSize(getFutureChunk([line])) > size) {
       addChunk(size);
       headingsAtSplit = [...headings];

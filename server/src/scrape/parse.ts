@@ -149,6 +149,19 @@ export function parseHtml(html: string): ParseOutput {
       );
     },
   });
+  turndownService.addRule("table-cell", {
+    filter: ["td"],
+    replacement: function (content, node) {
+      const isFirstCell =
+        node.parentElement &&
+        Array.from(node.parentElement.children).indexOf(node as Element) === 0;
+      const cleanedContent = content.replace(/\n/g, " ");
+      if (isFirstCell) {
+        return `| ${cleanedContent} |`;
+      }
+      return ` ${cleanedContent} |`;
+    },
+  });
 
   let content = $("main").html() ?? $("body").html();
   if (!content) {
