@@ -1,9 +1,22 @@
-import { Badge, Stack, Table, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  Group,
+  IconButton,
+  Spinner,
+  Stack,
+  Table,
+  Text,
+} from "@chakra-ui/react";
 import type { Route } from "./+types/scrape-links";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import moment from "moment";
-import { TbCheck } from "react-icons/tb";
+import { TbCheck, TbRefresh } from "react-icons/tb";
+import { Tooltip } from "~/components/ui/tooltip";
+import type { ScrapeItem } from "@prisma/client";
+import { useFetcher } from "react-router";
+import { createToken } from "~/jwt";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -24,6 +37,51 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { scrape, items };
 }
 
+export async function action({ request, params }: Route.ActionArgs) {
+  const user = await getAuthUser(request);
+
+  const formData = await request.formData();
+  const url = formData.get("url");
+
+  const token = createToken(user!.id);
+
+  await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+    method: "POST",
+    body: JSON.stringify({ url, scrapeId: params.id }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+}
+
+function LinkRefresh({ url }: { url: string }) {
+  const fetcher = useFetcher();
+
+  return (
+    <Tooltip
+      content="Refresh content"
+      positioning={{ placement: "top" }}
+      showArrow
+    >
+      <fetcher.Form method="post">
+        <input type="hidden" name="url" value={url} />
+        <Box
+          opacity={fetcher.state === "idle" ? 0 : 1}
+          _groupHover={{ opacity: 1 }}
+          color="brand.fg"
+          cursor={"pointer"}
+          asChild
+        >
+          <button type="submit" disabled={fetcher.state !== "idle"}>
+            {fetcher.state !== "idle" ? <Spinner size="xs" /> : <TbRefresh />}
+          </button>
+        </Box>
+      </fetcher.Form>
+    </Tooltip>
+  );
+}
+
 export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
   return (
     <Stack>
@@ -39,7 +97,12 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
         <Table.Body>
           {loaderData.items.map((item) => (
             <Table.Row key={item.id}>
-              <Table.Cell>{item.url}</Table.Cell>
+              <Table.Cell className="group">
+                <Group>
+                  <Text>{item.url}</Text>
+                  <LinkRefresh url={item.url} />
+                </Group>
+              </Table.Cell>
               <Table.Cell>{item.title}</Table.Cell>
               <Table.Cell>
                 <Badge variant={"surface"} colorPalette={"brand"}>

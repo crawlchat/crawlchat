@@ -99,4 +99,6 @@ model ScrapeItem {
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([scrapeId, url])
 }

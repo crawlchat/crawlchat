@@ -88,6 +88,9 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   });
 
   (async function () {
+    getRoomIds({ userId }).map((roomId) =>
+      broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
+    );
     const store: ScrapeStore = {
       urls: {},
       urlSet: new OrderedSet(),
@@ -99,7 +102,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       data: { status: "scraping" },
     });
 
-    await scrapeLoop(store, req.body.url, {
+    await scrapeLoop(store, req.body.url ?? scrape.url, {
       limit: req.body.maxLinks
         ? parseInt(req.body.maxLinks)
         : url
@@ -145,8 +148,14 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
           });
         }
 
-        await prisma.scrapeItem.create({
-          data: {
+        await prisma.scrapeItem.upsert({
+          where: { scrapeId_url: { scrapeId: scrape.id, url } },
+          update: {
+            markdown,
+            title: getMetaTitle(store.urls[url]?.metaTags ?? []),
+            metaTags: store.urls[url]?.metaTags,
+          },
+          create: {
             userId,
             scrapeId: scrape.id,
             url,
