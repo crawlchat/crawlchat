@@ -25,7 +25,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   });
   const userToken = await createToken("6790c3cc84f4e51db33779c5");
   const thread = await prisma.thread.findFirstOrThrow({
-    where: { id: "67b4d6297222da88524d7dac" },
+    where: { id: "67b51f867222da88524d7dae" },
   });
   return { scrape, userToken, thread };
 }

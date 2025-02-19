@@ -23,6 +23,7 @@ import { getRoomIds } from "./socket-room";
 import { authenticate, verifyToken } from "./jwt";
 import fs from "fs/promises";
 import { getMetaTitle } from "./scrape/parse";
+import { splitMarkdown } from "./scrape/markdown-splitter";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -66,11 +67,15 @@ app.get("/", function (req: Request, res: Response) {
 });
 
 app.get("/test", async function (req: Request, res: Response) {
-  const content = await scrape(
-    "https://docs.voyageai.com/docs/pricing"
-  );
-  await fs.writeFile("test.md", content.parseOutput.html ?? "");
-  res.json({ message: "ok" });
+  // const url = "https://www.remotion.dev/docs/google-fonts/get-available-fonts"
+  const url = "https://www.remotion.dev/docs/google-fonts/get-available-fonts";
+  const content = await scrape(url);
+  // await fs.writeFile("test.md", content.parseOutput.markdown);
+  const chunks = await splitMarkdown(content.parseOutput.markdown);
+  for (let i = 0; i < chunks.length; i++) {
+    await fs.writeFile(`test-${i}.md`, chunks[i]);
+  }
+  res.json({ message: "ok", chunks });
 });
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
@@ -126,13 +131,16 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
           : store.urlSet.size() - scrapedUrlCount;
         const roomIds = getRoomIds({ userId });
 
-        const embedding = await makeEmbedding(markdown);
-        await saveEmbedding(userId, scrape.id, [
-          {
-            embedding,
-            metadata: { content: markdown, url },
-          },
-        ]);
+        const chunks = await splitMarkdown(markdown);
+        for (const chunk of chunks) {
+          const embedding = await makeEmbedding(chunk);
+          await saveEmbedding(userId, scrape.id, [
+            {
+              embedding,
+              metadata: { content: chunk, url },
+            },
+          ]);
+        }
 
         if (scrape.url === url) {
           await prisma.scrape.update({
