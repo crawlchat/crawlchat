@@ -1,14 +1,23 @@
 import { Page } from "~/components/page";
-import { Badge, DataList, Stack, Text, Textarea } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  DataList,
+  HStack,
+  Stack,
+  Textarea,
+} from "@chakra-ui/react";
 import type { Route } from "./+types/scrape-page";
 import { prisma } from "~/prisma";
 import { getScrapeTitle } from "./util";
 import { getAuthUser } from "~/auth/middleware";
-import { TbWorld } from "react-icons/tb";
+import { TbSettings, TbWorld } from "react-icons/tb";
 import moment from "moment";
 import { SettingsSection } from "~/dashboard/settings";
-import { useFetcher } from "react-router";
+import { Outlet, useFetcher, useNavigate } from "react-router";
 import type { Prisma } from "@prisma/client";
+import { SegmentedControl } from "~/components/ui/segmented-control";
+import { useState } from "react";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -25,7 +34,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     where: { scrapeId: scrape.id },
     select: { id: true, url: true },
   });
-  return { scrape, items };
+
+  const tab = request.url.split(scrape.id)[1].substring(1);
+
+  return { scrape, items, tab };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -49,7 +61,14 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function ScrapePage({ loaderData }: Route.ComponentProps) {
-  const promptFetcher = useFetcher();
+  
+  const [tab, setTab] = useState<string>(loaderData.tab);
+  const navigate = useNavigate();
+
+  function handleTabChange(value: string) {
+    setTab(value);
+    navigate(`/collections/${loaderData.scrape.id}/${value}`);
+  }
 
   return (
     <Page title={getScrapeTitle(loaderData.scrape)} icon={<TbWorld />}>
@@ -76,19 +95,35 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
           </DataList.Item>
         </DataList.Root>
 
-        <Stack mt={6}>
-          <SettingsSection
-            title="Chat Prompt"
-            description="Customize the chat prompt for this scrape."
-            fetcher={promptFetcher}
-          >
-            <input type="hidden" name="scrapeId" value={loaderData.scrape.id} />
-            <Textarea
-              name="chatPrompt"
-              defaultValue={loaderData.scrape.chatPrompt ?? ""}
-              placeholder="Enter a custom chat prompt for this scrape."
-            />
-          </SettingsSection>
+        <Box mt={6}>
+          <SegmentedControl
+            value={tab || "settings"}
+            onValueChange={(e) => handleTabChange(e.value)}
+            items={[
+              {
+                value: "settings",
+                label: (
+                  <HStack>
+                    <TbSettings />
+                    Settings
+                  </HStack>
+                ),
+              },
+              {
+                value: "links",
+                label: (
+                  <HStack>
+                    <TbWorld />
+                    Links
+                  </HStack>
+                ),
+              },
+            ]}
+          />
+        </Box>
+
+        <Stack>
+          <Outlet />
         </Stack>
       </Stack>
     </Page>

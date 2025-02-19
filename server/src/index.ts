@@ -81,27 +81,18 @@ app.get("/test", async function (req: Request, res: Response) {
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const userId = req.user!.id;
   const url = req.body.url;
+  const scrapeId = req.body.scrapeId!;
 
-  const existingScrape = await prisma.scrape.findFirst({
-    where: { url, userId },
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId, userId },
   });
-  if (existingScrape) {
-    res
-      .status(212)
-      .json({ message: "already-scraped", scrapeId: existingScrape.id });
-    return;
-  }
 
   (async function () {
-    const scrape = await prisma.scrape.create({
-      data: { url, status: "pending", userId },
-    });
-
     const store: ScrapeStore = {
       urls: {},
       urlSet: new OrderedSet(),
     };
-    store.urlSet.add(url);
+    store.urlSet.add(url ?? scrape.url);
 
     await prisma.scrape.update({
       where: { id: scrape.id },
@@ -109,7 +100,11 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     });
 
     await scrapeLoop(store, req.body.url, {
-      limit: req.body.maxLinks ? parseInt(req.body.maxLinks) : undefined,
+      limit: req.body.maxLinks
+        ? parseInt(req.body.maxLinks)
+        : url
+        ? 1
+        : undefined,
       skipRegex: req.body.skipRegex
         ? req.body.skipRegex
             .split(",")
@@ -118,7 +113,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       onComplete: async () => {
         const roomIds = getRoomIds({ userId });
         roomIds.forEach((roomId) =>
-          broadcast(roomId, makeMessage("scrape-complete", { url }))
+          broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
         );
       },
       afterScrape: async (url, { markdown }) => {
@@ -183,7 +178,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
 
     const roomIds = getRoomIds({ userId });
     roomIds.forEach((roomId) =>
-      broadcast(roomId, makeMessage("saved", { url }))
+      broadcast(roomId, makeMessage("saved", { scrapeId }))
     );
   })();
 
