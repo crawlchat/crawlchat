@@ -18,6 +18,9 @@ import { useEffect, useState } from "react";
 import { Prose } from "~/components/ui/prose";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import hljs from "highlight.js";
+import "highlight.js/styles/vs.css";
+import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findUnique({
@@ -110,7 +113,45 @@ function SourceLink({ link }: { link: { url: string; title: string | null } }) {
 function MessageContent({ content }: { content: string }) {
   return (
     <Prose maxW="full">
-      <Markdown remarkPlugins={[remarkGfm]}>{content}</Markdown>
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code: ({ node, ...props }) => {
+            const { children, className, ...rest } = props;
+
+            if (!className) {
+              return <code {...rest}>{children}</code>;
+            }
+
+            const language = className.replace("language-", "");
+            const code = children as string;
+
+            const highlighted = hljs.highlight(code, {
+              language: language ?? "javascript",
+            }).value;
+
+            return (
+              <Box position={"relative"} className="group">
+                <Box dangerouslySetInnerHTML={{ __html: highlighted }} />
+                <Box
+                  position={"absolute"}
+                  top={0}
+                  right={0}
+                  opacity={0}
+                  _groupHover={{ opacity: 1 }}
+                  transition={"opacity 100ms ease-in-out"}
+                >
+                  <ClipboardRoot value={code}>
+                    <ClipboardIconButton />
+                  </ClipboardRoot>
+                </Box>
+              </Box>
+            );
+          },
+        }}
+      >
+        {content}
+      </Markdown>
     </Prose>
   );
 }
