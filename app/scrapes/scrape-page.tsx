@@ -77,15 +77,14 @@ export async function action({ request, params }: Route.ActionArgs) {
   if (request.method === "DELETE") {
     await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
       method: "DELETE",
-      body: JSON.stringify({ scrapeId: formData.get("id") }),
+      body: JSON.stringify({ scrapeId: params.id }),
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${createToken(user!.id)}`,
       },
     });
-    const id = formData.get("id");
     await prisma.scrape.delete({
-      where: { id: id as string },
+      where: { id: params.id },
     });
     throw redirect("/collections");
   }
