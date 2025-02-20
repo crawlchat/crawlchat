@@ -42,7 +42,8 @@
     "remark-gfm": "^4.0.1",
     "remix-auth": "^4.1.0",
     "remix-auth-form": "^3.0.0",
-    "resend": "^4.1.1"
+    "resend": "^4.1.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",

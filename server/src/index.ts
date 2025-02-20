@@ -8,7 +8,7 @@ import { scrape, scrapeLoop, type ScrapeStore } from "./scrape/crawl";
 import { OrderedSet } from "./scrape/ordered-set";
 import cors from "cors";
 import OpenAI from "openai";
-import { askLLM, getSystemPrompt } from "./llm";
+import { askLLM } from "./llm";
 import { Stream } from "openai/streaming";
 import { addMessage } from "./thread/store";
 import { prisma } from "./prisma";
@@ -101,7 +101,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   });
 
   (async function () {
-    getRoomIds({ userId }).map((roomId) =>
+    getRoomIds({ userKey: userId }).map((roomId) =>
       broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
     );
     await prisma.scrape.update({
@@ -127,7 +127,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
             .map((regex: string) => new RegExp(regex))
         : undefined,
       onComplete: async () => {
-        const roomIds = getRoomIds({ userId });
+        const roomIds = getRoomIds({ userKey: userId });
         roomIds.forEach((roomId) =>
           broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
         );
@@ -141,7 +141,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
         const remainingUrlCount = maxLinks
           ? Math.min(maxLinks, actualRemainingUrlCount)
           : actualRemainingUrlCount;
-        const roomIds = getRoomIds({ userId });
+        const roomIds = getRoomIds({ userKey: userId });
 
         const chunks = await splitMarkdown(markdown);
         for (const chunk of chunks) {
@@ -198,7 +198,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       },
     });
 
-    const roomIds = getRoomIds({ userId });
+    const roomIds = getRoomIds({ userKey: userId });
     roomIds.forEach((roomId) =>
       broadcast(roomId, makeMessage("saved", { scrapeId }))
     );
@@ -221,7 +221,7 @@ app.delete(
 );
 
 expressWs.app.ws("/", (ws: any, req) => {
-  let loggedInUserId: string | null = null;
+  let userKey: string | null = null;
 
   ws.on("message", async (msg: Buffer | string) => {
     try {
@@ -237,15 +237,14 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         const token = authHeader.split(" ")[1];
         const user = verifyToken(token);
-        loggedInUserId = user.userId;
-        getRoomIds({ userId: loggedInUserId }).forEach((roomId) =>
+        userKey = user.userId;
+        getRoomIds({ userKey: userKey! }).forEach((roomId) =>
           joinRoom(roomId, ws)
         );
         return;
       }
 
-      // Check authentication for all other messages
-      if (!loggedInUserId) {
+      if (!userKey) {
         ws.send(makeMessage("error", { message: "Not authenticated" }));
         ws.close();
         return;
@@ -267,7 +266,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         });
 
         const result = await search(
-          thread.userId,
+          scrape.userId,
           scrape.id,
           await makeEmbedding(message.data.query)
         );
@@ -326,7 +325,7 @@ expressWs.app.ws("/", (ws: any, req) => {
   });
 
   ws.on("close", () => {
-    loggedInUserId = null;
+    userKey = null;
   });
 });
 
