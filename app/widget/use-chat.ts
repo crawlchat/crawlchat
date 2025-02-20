@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 import { toaster } from "~/components/ui/toaster";
 import { makeMessage } from "~/dashboard/socket-util";
 
+export type AskStage = "idle" | "asked" | "answering";
+
 export function useScrapeChat({
   token,
   scrapeId,
@@ -17,9 +19,7 @@ export function useScrapeChat({
   const socket = useRef<WebSocket>(null);
   const [messages, setMessages] = useState<Message[]>(defaultMessages);
   const [content, setContent] = useState("");
-  const [askStage, setAskStage] = useState<"idle" | "asked" | "answering">(
-    "idle"
-  );
+  const [askStage, setAskStage] = useState<AskStage>("idle");
 
   function connect() {
     socket.current = new WebSocket(import.meta.env.VITE_SERVER_WS_URL);

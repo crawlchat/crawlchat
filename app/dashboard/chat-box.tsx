@@ -3,6 +3,7 @@ import {
   Center,
   ClipboardRoot,
   Group,
+  Heading,
   IconButton,
   Input,
   Link,
@@ -11,21 +12,21 @@ import {
 import { Stack, Text } from "@chakra-ui/react";
 import type { Scrape, Thread } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { TbArrowUp, TbChevronRight } from "react-icons/tb";
+import { TbArrowUp, TbChevronRight, TbMessage } from "react-icons/tb";
 import Markdown from "react-markdown";
 import { Prose } from "~/components/ui/prose";
 import remarkGfm from "remark-gfm";
 import { ClipboardIconButton } from "~/components/ui/clipboard";
 import hljs from "highlight.js";
-import { useScrapeChat } from "~/widget/use-chat";
+import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import "highlight.js/styles/vs.css";
 
 function ChatInput({
   onAsk,
-  disabled,
+  stage,
 }: {
   onAsk: (query: string) => void;
-  disabled: boolean;
+  stage: AskStage;
 }) {
   const [query, setQuery] = useState("");
 
@@ -33,6 +34,18 @@ function ChatInput({
     onAsk(query);
     setQuery("");
   }
+
+  function getPlaceholder() {
+    switch (stage) {
+      case "asked":
+        return "😇 Thinking...";
+      case "answering":
+        return "🤓 Answering...";
+    }
+    return "Ask your question";
+  }
+
+  const disabled = stage !== "idle";
 
   return (
     <Group
@@ -44,7 +57,7 @@ function ChatInput({
     >
       <Group flex={1}>
         <Input
-          placeholder="Ask your question"
+          placeholder={getPlaceholder()}
           size={"xl"}
           p={0}
           outline={"none"}
@@ -125,7 +138,7 @@ function MessageContent({ content }: { content: string }) {
             const language = className?.replace("language-", "");
             const code = children as string;
 
-            const highlighted = hljs.highlight(code, {
+            const highlighted = hljs.highlight(code ?? "", {
               language: language ?? "javascript",
             }).value;
 
@@ -190,6 +203,17 @@ function AssistantMessage({
           ))}
         </Stack>
       )}
+    </Stack>
+  );
+}
+
+function NoMessages({ scrape }: { scrape: Scrape }) {
+  return (
+    <Stack p={4} justify={"center"} align={"center"} h="full" gap={4}>
+      <Text opacity={0.5}>
+        <TbMessage size={"60px"} />
+      </Text>
+      <Heading size={"2xl"}>{scrape.title}</Heading>
     </Stack>
   );
 }
@@ -263,6 +287,7 @@ export default function ScrapeWidget({
         gap={0}
       >
         <Stack flex="1" overflow={"auto"} gap={0}>
+          {messages.length === 0 && <NoMessages scrape={scrape} />}
           {messages.map((message, index) => (
             <Stack key={index}>
               {message.role === "user" ? (
@@ -282,7 +307,7 @@ export default function ScrapeWidget({
             </Stack>
           ))}
         </Stack>
-        <ChatInput onAsk={handleAsk} disabled={chat.askStage !== "idle"} />
+        <ChatInput onAsk={handleAsk} stage={chat.askStage} />
       </Stack>
     </Center>
   );

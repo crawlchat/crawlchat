@@ -137,7 +137,7 @@ export default function ScrapePage({
           <DataList.Item>
             <DataList.ItemLabel>Links scraped</DataList.ItemLabel>
             <DataList.ItemValue>
-              <Badge variant={"surface"}>
+              <Badge variant={"surface"} colorPalette={"brand"}>
                 <TbWorld />
                 {loaderData.items.length}
               </Badge>
