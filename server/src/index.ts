@@ -221,7 +221,7 @@ app.delete(
 );
 
 expressWs.app.ws("/", (ws: any, req) => {
-  let userId: string | null = null;
+  let loggedInUserId: string | null = null;
 
   ws.on("message", async (msg: Buffer | string) => {
     try {
@@ -237,33 +237,24 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         const token = authHeader.split(" ")[1];
         const user = verifyToken(token);
-        userId = user.userId;
-        getRoomIds({ userId }).forEach((roomId) => joinRoom(roomId, ws));
+        loggedInUserId = user.userId;
+        getRoomIds({ userId: loggedInUserId }).forEach((roomId) =>
+          joinRoom(roomId, ws)
+        );
         return;
       }
 
       // Check authentication for all other messages
-      if (!userId) {
+      if (!loggedInUserId) {
         ws.send(makeMessage("error", { message: "Not authenticated" }));
         ws.close();
         return;
       }
 
-      if (message.type === "create-thread") {
-        const scrape = await prisma.scrape.findFirstOrThrow({
-          where: { url: message.data.url, userId },
-        });
-
-        const thread = await prisma.thread.create({
-          data: { userId, scrapeId: scrape.id, messages: [] },
-        });
-        ws.send(makeMessage("thread-created", { threadId: thread.id }));
-      }
-
       if (message.type === "ask-llm") {
         const threadId = message.data.threadId;
         const thread = await prisma.thread.findFirstOrThrow({
-          where: { id: threadId, userId },
+          where: { id: threadId },
         });
 
         const scrape = await prisma.scrape.findFirstOrThrow({
@@ -276,7 +267,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         });
 
         const result = await search(
-          userId,
+          thread.userId,
           scrape.id,
           await makeEmbedding(message.data.query)
         );
@@ -335,7 +326,7 @@ expressWs.app.ws("/", (ws: any, req) => {
   });
 
   ws.on("close", () => {
-    userId = null;
+    loggedInUserId = null;
   });
 });
 
