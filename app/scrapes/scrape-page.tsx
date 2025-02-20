@@ -5,6 +5,7 @@ import {
   DataList,
   Group,
   HStack,
+  IconButton,
   Spinner,
   Stack,
   Textarea,
@@ -16,6 +17,7 @@ import { getAuthUser } from "~/auth/middleware";
 import {
   TbAlertCircle,
   TbCheck,
+  TbLink,
   TbRefresh,
   TbSettings,
   TbWorld,
@@ -93,12 +95,25 @@ export default function ScrapePage({
     navigate(`/collections/${loaderData.scrape.id}/${value}`);
   }
 
+  function copyUrl() {
+    const url = new URL(window.location.origin);
+    url.pathname = `/w/${loaderData.scrape.id}`;
+    navigator.clipboard.writeText(url.toString());
+    toaster.success({
+      title: "Copied to clipboard",
+      description: "URL copied to clipboard",
+    });
+  }
+
   return (
     <Page
       title={getScrapeTitle(loaderData.scrape)}
       icon={<TbWorld />}
       right={
         <Group>
+          <IconButton variant={"subtle"} onClick={copyUrl}>
+            <TbLink />
+          </IconButton>
           <recrawlFetcher.Form method="post">
             <input type="hidden" name="action" value="re-crawl" />
             <Button

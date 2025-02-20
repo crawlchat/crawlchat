@@ -1,4 +1,4 @@
-import { Stack, Text, Textarea } from "@chakra-ui/react";
+import { Input, Stack, Text, Textarea } from "@chakra-ui/react";
 import { useFetcher } from "react-router";
 import { SettingsSection } from "~/dashboard/settings";
 import { prisma } from "~/prisma";
@@ -25,10 +25,14 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
 
   const chatPrompt = formData.get("chatPrompt") as string | null;
+  const title = formData.get("title") as string | null;
 
   const update: Prisma.ScrapeUpdateInput = {};
   if (chatPrompt) {
     update.chatPrompt = chatPrompt;
+  }
+  if (title) {
+    update.title = title;
   }
 
   const scrape = await prisma.scrape.update({
@@ -41,9 +45,20 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const promptFetcher = useFetcher();
-
+  const nameFetcher = useFetcher();
   return (
-    <Stack>
+    <Stack gap={4}>
+      <SettingsSection
+        title="Name"
+        description="Give it a name. It will be shown on chat screen."
+        fetcher={nameFetcher}
+      >
+        <Input
+          name="title"
+          defaultValue={loaderData.scrape.title ?? ""}
+          placeholder="Enter a name for this scrape."
+        />
+      </SettingsSection>
       <SettingsSection
         title="Chat Prompt"
         description="Customize the chat prompt for this scrape."

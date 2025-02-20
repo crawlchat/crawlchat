@@ -99,7 +99,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
             <Table.Row key={item.id}>
               <Table.Cell className="group">
                 <Group>
-                  <Text>{item.url}</Text>
+                  <Text>{new URL(item.url).pathname}</Text>
                   <LinkRefresh url={item.url} />
                 </Group>
               </Table.Cell>

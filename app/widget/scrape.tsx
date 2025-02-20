@@ -48,6 +48,14 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   );
 }
 
+export function meta({ data }: Route.MetaArgs) {
+  return [
+    {
+      title: data.scrape.title ?? data.scrape.url,
+    },
+  ];
+}
+
 export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
   return (
     <Stack h="100dvh" bg="brand.gray.100" p={4}>
