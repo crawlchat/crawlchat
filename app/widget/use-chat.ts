@@ -25,11 +25,13 @@ export function useScrapeChat({
   const [askStage, setAskStage] = useState<AskStage>("idle");
 
   useEffect(() => {
-    const title = getThreadName(messages);
-    setThreadTitle((titles) => ({
-      ...titles,
-      [threadId]: title,
-    }));
+    if (setThreadTitle) {
+      const title = getThreadName(messages);
+      setThreadTitle((titles) => ({
+        ...titles,
+        [threadId]: title,
+      }));
+    }
   }, [messages]);
 
   function connect() {

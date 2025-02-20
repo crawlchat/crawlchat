@@ -1,7 +1,6 @@
 import {
   Box,
   Center,
-  ClipboardRoot,
   Group,
   Heading,
   IconButton,
@@ -13,13 +12,8 @@ import { Stack, Text } from "@chakra-ui/react";
 import type { Scrape, Thread } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { TbArrowUp, TbChevronRight, TbMessage } from "react-icons/tb";
-import Markdown from "react-markdown";
-import { Prose } from "~/components/ui/prose";
-import remarkGfm from "remark-gfm";
-import { ClipboardIconButton } from "~/components/ui/clipboard";
-import hljs from "highlight.js";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
-import "highlight.js/styles/vs.css";
+import { MarkdownProse } from "~/widget/markdown-prose";
 
 function ChatInput({
   onAsk,
@@ -122,52 +116,6 @@ function SourceLink({ link }: { link: { url: string; title: string | null } }) {
   );
 }
 
-function MessageContent({ content }: { content: string }) {
-  return (
-    <Prose maxW="full">
-      <Markdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          code: ({ node, ...props }) => {
-            const { children, className, ...rest } = props;
-
-            if (!className) {
-              return <code {...rest}>{children}</code>;
-            }
-
-            const language = className?.replace("language-", "");
-            const code = children as string;
-
-            const highlighted = hljs.highlight(code ?? "", {
-              language: language ?? "javascript",
-            }).value;
-
-            return (
-              <Box position={"relative"} className="group">
-                <Box dangerouslySetInnerHTML={{ __html: highlighted }} />
-                <Box
-                  position={"absolute"}
-                  top={0}
-                  right={0}
-                  opacity={0}
-                  _groupHover={{ opacity: 1 }}
-                  transition={"opacity 100ms ease-in-out"}
-                >
-                  <ClipboardRoot value={code}>
-                    <ClipboardIconButton />
-                  </ClipboardRoot>
-                </Box>
-              </Box>
-            );
-          },
-        }}
-      >
-        {content}
-      </Markdown>
-    </Prose>
-  );
-}
-
 function UserMessage({ content }: { content: string }) {
   return (
     <Stack
@@ -194,7 +142,7 @@ function AssistantMessage({
   return (
     <Stack>
       <Stack p={4} pt={0}>
-        <MessageContent content={content} />
+        <MarkdownProse>{content}</MarkdownProse>
       </Stack>
       {links.length > 0 && (
         <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>

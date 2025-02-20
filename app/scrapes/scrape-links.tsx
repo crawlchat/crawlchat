@@ -2,7 +2,7 @@ import {
   Badge,
   Box,
   Group,
-  IconButton,
+  Link as ChakraLink,
   Spinner,
   Stack,
   Table,
@@ -15,7 +15,7 @@ import moment from "moment";
 import { TbCheck, TbRefresh } from "react-icons/tb";
 import { Tooltip } from "~/components/ui/tooltip";
 import type { ScrapeItem } from "@prisma/client";
-import { useFetcher } from "react-router";
+import { Link, Outlet, useFetcher } from "react-router";
 import { createToken } from "~/jwt";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
@@ -103,7 +103,11 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                   <LinkRefresh url={item.url} />
                 </Group>
               </Table.Cell>
-              <Table.Cell>{item.title}</Table.Cell>
+              <Table.Cell>
+                <ChakraLink asChild>
+                  <Link to={item.id}>{item.title}</Link>
+                </ChakraLink>
+              </Table.Cell>
               <Table.Cell>
                 <Badge variant={"surface"} colorPalette={"brand"}>
                   <TbCheck />
@@ -115,6 +119,8 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
           ))}
         </Table.Body>
       </Table.Root>
+
+      <Outlet />
     </Stack>
   );
 }

@@ -1,6 +1,6 @@
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/scrape";
-import { Stack } from "@chakra-ui/react";
+import { Group, Link, Stack, Text } from "@chakra-ui/react";
 import { createToken } from "~/jwt";
 import "highlight.js/styles/vs.css";
 import ChatBox from "~/dashboard/chat-box";
@@ -65,6 +65,20 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         userToken={loaderData.userToken}
         key={loaderData.thread.id}
       />
+      <Group
+        justifyContent={"center"}
+        opacity={0.2}
+        _hover={{ opacity: 1 }}
+        transition={"opacity 100ms ease"}
+      >
+        <Text>
+          Made by{" "}
+          <Link href="https://crawlchat.com" variant={"underline"}>
+            CrawlChat
+          </Link>
+          !
+        </Text>
+      </Group>
     </Stack>
   );
 }

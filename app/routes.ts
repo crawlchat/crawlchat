@@ -24,7 +24,9 @@ export default [
 
     route("collections/:id", "scrapes/scrape-page.tsx", [
       route("settings", "scrapes/scrape-settings.tsx"),
-      route("links", "scrapes/scrape-links.tsx"),
+      route("links", "scrapes/scrape-links.tsx", [
+        route(":itemId", "scrapes/scrape-item.tsx"),
+      ]),
     ]),
   ]),
 
