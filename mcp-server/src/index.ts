@@ -34,5 +34,4 @@ server.tool(
 );
 
 const transport = new StdioServerTransport();
-console.log("✅ CrawlChat MCP server running...");
 await server.connect(transport);
