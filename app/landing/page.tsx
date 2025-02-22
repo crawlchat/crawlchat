@@ -11,6 +11,12 @@ import {
 import { Button } from "~/components/ui/button";
 import "./tailwind.css";
 import { Link } from "@chakra-ui/react";
+import { createToken } from "~/jwt";
+
+export async function loader() {
+  const token = createToken("landing-page");
+  return { token };
+}
 
 export function meta() {
   return [

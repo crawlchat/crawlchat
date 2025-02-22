@@ -24,6 +24,7 @@ import { authenticate, verifyToken } from "./jwt";
 import fs from "fs/promises";
 import { getMetaTitle } from "./scrape/parse";
 import { splitMarkdown } from "./scrape/markdown-splitter";
+import { Scrape } from "@prisma/client";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -148,7 +149,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
         const chunks = await splitMarkdown(markdown);
         for (const chunk of chunks) {
           const embedding = await makeEmbedding(chunk);
-          await saveEmbedding(userId, scrape.id, [
+          await saveEmbedding(scrape.id, [
             {
               embedding,
               metadata: { content: chunk, url },
@@ -268,7 +269,6 @@ expressWs.app.ws("/", (ws: any, req) => {
         });
 
         const result = await search(
-          scrape.userId,
           scrape.id,
           await makeEmbedding(message.data.query)
         );
@@ -340,11 +340,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 
   const query = req.query.query as string;
 
-  const result = await search(
-    scrape.userId,
-    scrape.id,
-    await makeEmbedding(query)
-  );
+  const result = await search(scrape.id, await makeEmbedding(query));
 
   res.json(result.matches.map((match) => match.metadata));
 });
