@@ -4,11 +4,8 @@ import {
   TbMessageCircle,
   TbShield,
   TbSearch,
-  TbRobot,
   TbBook,
   TbFileText,
-  TbGitPullRequest,
-  TbShoppingCart,
   TbCode,
 } from "react-icons/tb";
 import { Button } from "~/components/ui/button";
@@ -74,17 +71,22 @@ export default function Index() {
             Make it easily accessible to them by making your content or
             documents LLM ready.
           </p>
-          <div className="space-x-4">
-            <Button
-              asChild
-              className="bg-purple-600 text-white hover:bg-purple-700 px-8 py-6 rounded-full text-lg"
-            >
-              <Link href="/login">
-                Try CrawlChat Now
+          <form className="max-w-xl mx-auto mb-8">
+            <div className="flex flex-col md:flex-row gap-4">
+              <input
+                type="url"
+                placeholder="Enter your website URL"
+                className="flex-1 flex min-h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+              <Button
+                type="submit"
+                className="bg-purple-600 text-white hover:bg-purple-700 h-14 px-8 text-lg font-medium"
+              >
+                Try it
                 <TbArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
+              </Button>
+            </div>
+          </form>
         </div>
       </section>
 
