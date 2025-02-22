@@ -12,6 +12,7 @@ import {
   TbCircleCheck,
   TbMarkdown,
   TbRobotFace,
+  TbLoader2,
 } from "react-icons/tb";
 import { Button } from "~/components/ui/button";
 import "./tailwind.css";
@@ -171,6 +172,8 @@ export default function Index() {
     }
   }
 
+  const disable = scrapeFetcher.data && !scrapeFetcher.data.error;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Navigation */}
@@ -216,23 +219,27 @@ export default function Index() {
           {stage !== "saved" && (
             <scrapeFetcher.Form className="max-w-xl mx-auto mb-8" method="post">
               <div className="flex flex-col items-start w-full">
-                <div className="flex flex-col md:flex-row gap-4 w-full">
+                <div className="flex flex-col md:flex-row gap-2 w-full">
                   <input name="roomId" type="hidden" value={roomId} />
                   <input
                     name="url"
                     type="url"
                     placeholder="Enter your website URL"
                     className="flex-1 flex min-h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white"
-                    disabled={!!scrapeFetcher.data}
+                    disabled={disable}
                   />
-                  <Button
+                  <button
                     type="submit"
-                    className="bg-purple-600 text-white hover:bg-purple-700 h-14 px-8 text-lg font-medium"
-                    disabled={!!scrapeFetcher.data}
+                    className="bg-purple-600 text-white hover:bg-purple-700 h-14 px-8 text-lg font-medium flex justify-center items-center rounded-md disabled:opacity-50"
+                    disabled={disable}
                   >
                     Try it
-                    <TbArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
+                    {disable ? (
+                      <TbLoader2 className="animate-spin h-5 w-5 ml-2" />
+                    ) : (
+                      <TbArrowRight className="ml-2 h-5 w-5" />
+                    )}
+                  </button>
                 </div>
                 <div className="py-2 text-sm flex items-center gap-2 dark:text-gray-600">
                   {scrapeFetcher.data?.error ? (
