@@ -119,7 +119,6 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     }
 
     const roomIds = getRoomIds({ userKey: userId, roomId });
-    console.log("Room ids", roomIds);
 
     roomIds.forEach((roomId) =>
       broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
