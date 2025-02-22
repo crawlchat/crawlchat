@@ -84,6 +84,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const url = req.body.url;
   const scrapeId = req.body.scrapeId!;
   const dynamicFallbackContentLength = req.body.dynamicFallbackContentLength;
+  const roomId = req.body.roomId;
 
   const scraping = await prisma.scrape.count({
     where: {
@@ -103,7 +104,23 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   });
 
   (async function () {
-    getRoomIds({ userKey: userId }).map((roomId) =>
+    function getLimit() {
+      if (userId === process.env.OPEN_USER_ID) {
+        return 1;
+      }
+      if (req.body.maxLinks) {
+        return parseInt(req.body.maxLinks);
+      }
+      if (url) {
+        return 1;
+      }
+      return undefined;
+    }
+
+    const roomIds = getRoomIds({ userKey: userId, roomId });
+    console.log("Room ids", roomIds);
+
+    roomIds.forEach((roomId) =>
       broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
     );
     await prisma.scrape.update({
@@ -119,18 +136,13 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
 
     await scrapeLoop(store, req.body.url ?? scrape.url, {
       dynamicFallbackContentLength,
-      limit: req.body.maxLinks
-        ? parseInt(req.body.maxLinks)
-        : url
-        ? 1
-        : undefined,
+      limit: getLimit(),
       skipRegex: req.body.skipRegex
         ? req.body.skipRegex
             .split(",")
             .map((regex: string) => new RegExp(regex))
         : undefined,
       onComplete: async () => {
-        const roomIds = getRoomIds({ userKey: userId });
         roomIds.forEach((roomId) =>
           broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
         );
@@ -144,7 +156,6 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
         const remainingUrlCount = maxLinks
           ? Math.min(maxLinks, actualRemainingUrlCount)
           : actualRemainingUrlCount;
-        const roomIds = getRoomIds({ userKey: userId });
 
         const chunks = await splitMarkdown(markdown);
         for (const chunk of chunks) {
@@ -201,7 +212,6 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       },
     });
 
-    const roomIds = getRoomIds({ userKey: userId });
     roomIds.forEach((roomId) =>
       broadcast(roomId, makeMessage("saved", { scrapeId }))
     );

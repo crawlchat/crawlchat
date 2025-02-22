@@ -31,11 +31,17 @@ export function getRoomIds({
   userKey,
   scrapeId,
   threadId,
+  roomId,
 }: {
   userKey?: string;
   scrapeId?: string;
   threadId?: string;
+  roomId?: string;
 }) {
+  if (roomId) {
+    return [roomId];
+  }
+
   const roomIds: string[] = [];
   if (userKey) {
     roomIds.push(`user-${userKey}`);

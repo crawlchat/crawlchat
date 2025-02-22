@@ -7,16 +7,17 @@ import {
   TbBook,
   TbFileText,
   TbCode,
+  TbAlertCircle,
 } from "react-icons/tb";
 import { Button } from "~/components/ui/button";
 import "./tailwind.css";
 import { Link } from "@chakra-ui/react";
 import { createToken } from "~/jwt";
-
-export async function loader() {
-  const token = createToken("landing-page");
-  return { token };
-}
+import type { Route } from "./+types/page";
+import { useEffect, useState } from "react";
+import { prisma } from "~/prisma";
+import { useScrape } from "~/dashboard/use-scrape";
+import { useFetcher } from "react-router";
 
 export function meta() {
   return [
@@ -27,13 +28,88 @@ export function meta() {
   ];
 }
 
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const url = formData.get("url");
+  const roomId = formData.get("roomId");
+
+  if (!url) {
+    return { error: "URL is required" };
+  }
+  if (!roomId) {
+    return { error: "Room ID is required" };
+  }
+
+  const lastMinute = new Date(Date.now() - 60 * 1000);
+
+  const scrapes = await prisma.scrape.findMany({
+    where: {
+      userId: process.env.OPEN_USER_ID!,
+      createdAt: {
+        gt: lastMinute,
+      },
+    },
+  });
+
+  if (scrapes.length >= 1) {
+    console.log("Too many scrapes");
+    return { error: "Too many scrapes" };
+  }
+
+  const scrape = await prisma.scrape.create({
+    data: {
+      userId: process.env.OPEN_USER_ID!,
+      url: url as string,
+      status: "pending",
+    },
+  });
+
+  await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+    method: "POST",
+    body: JSON.stringify({
+      scrapeId: scrape.id,
+      userId: scrape.userId,
+      url,
+      maxLinks: 1,
+      roomId: `user-${roomId}`,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${createToken(process.env.OPEN_USER_ID!)}`,
+    },
+  });
+
+  return { token: createToken(roomId as string) };
+}
+
 export default function Index() {
+  const { connect, scraping, stage } = useScrape();
+  const scrapeFetcher = useFetcher();
+  const [roomId, setRoomId] = useState<string>("");
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    const getRandomRoomId = () => {
+      return Math.random().toString(36).substring(2, 15);
+    };
+    if (!localStorage.getItem("roomId")) {
+      localStorage.setItem("roomId", getRandomRoomId());
+    }
+    setRoomId(localStorage.getItem("roomId")!);
+  }, []);
+
+  useEffect(() => {
+    if (scrapeFetcher.data?.token) {
+      console.log("Connecting to", scrapeFetcher.data.token);
+      connect(scrapeFetcher.data.token);
+    }
+  }, [scrapeFetcher.data?.token]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -77,22 +153,46 @@ export default function Index() {
             Make it easily accessible to them by making your content or
             documents LLM ready.
           </p>
-          <form className="max-w-xl mx-auto mb-8">
-            <div className="flex flex-col md:flex-row gap-4">
-              <input
-                type="url"
-                placeholder="Enter your website URL"
-                className="flex-1 flex min-h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-              <Button
-                type="submit"
-                className="bg-purple-600 text-white hover:bg-purple-700 h-14 px-8 text-lg font-medium"
-              >
-                Try it
-                <TbArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+          <scrapeFetcher.Form className="max-w-xl mx-auto mb-8" method="post">
+            <div className="flex flex-col items-start w-full">
+              <div className="flex flex-col md:flex-row gap-4 w-full">
+                <input name="roomId" type="hidden" value={roomId} />
+                <input
+                  name="url"
+                  type="url"
+                  placeholder="Enter your website URL"
+                  className="flex-1 flex min-h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <Button
+                  type="submit"
+                  className="bg-purple-600 text-white hover:bg-purple-700 h-14 px-8 text-lg font-medium"
+                  loading={scrapeFetcher.state !== "idle"}
+                >
+                  Try it
+                  <TbArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+              <div className="py-2 text-sm flex items-center gap-2">
+                {scrapeFetcher.data?.error ? (
+                  <>
+                    <TbAlertCircle className="text-red-500 h-4 w-4" />
+                    <div>{scrapeFetcher.data?.error}</div>
+                  </>
+                ) : stage === "scraping" ? (
+                  <div>Scraping {scraping?.url ?? "url..."}</div>
+                ) : stage === "saved" ? (
+                  <div>Scraped {scraping?.url ?? "url"}!</div>
+                ) : (
+                  <>
+                    <TbAlertCircle className="h-4 w-4 opacity-50" />
+                    <div className="opacity-50">
+                      It will scrape and make it LLM ready!
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </form>
+          </scrapeFetcher.Form>
         </div>
       </section>
 
