@@ -13,7 +13,7 @@ import {
   Link as ChakraLink,
   Flex,
 } from "@chakra-ui/react";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useState } from "react";
 import type { Route } from "./+types/page";
 import {
@@ -40,13 +40,12 @@ import {
 import { ScrapeCard } from "~/scrapes/card";
 import { Page } from "~/components/page";
 import { createToken } from "~/jwt";
-import { makeMessage } from "./socket-util";
-import { toaster } from "~/components/ui/toaster";
 import {
   NumberInputField,
   NumberInputRoot,
 } from "~/components/ui/number-input";
 import { Tooltip } from "~/components/ui/tooltip";
+import { useScrape } from "./use-scrape";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -140,64 +139,13 @@ const maxLinks = createListCollection({
   ],
 });
 
-export default function LandingPage({
-  loaderData,
-  actionData,
-}: Route.ComponentProps) {
-  const socket = useRef<WebSocket>(null);
-  const [scraping, setScraping] = useState<{
-    url: string;
-    remainingCount: number;
-    scrapedCount: number;
-  }>();
-  const [stage, setStage] = useState<"idle" | "scraping" | "scraped" | "saved">(
-    "idle"
-  );
+export default function DashboardPage({ loaderData }: Route.ComponentProps) {
+  const { connect, stage, scraping } = useScrape();
   const scrapeFetcher = useFetcher();
   const [advanced, setAdvanced] = useState(false);
 
   useEffect(() => {
-    socket.current = new WebSocket(import.meta.env.VITE_SERVER_WS_URL);
-    socket.current.onopen = () => {
-      socket.current?.send(
-        makeMessage("join-room", {
-          headers: {
-            Authorization: `Bearer ${loaderData.token}`,
-          },
-        })
-      );
-    };
-    socket.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-
-      if (message.type === "scrape-start") {
-        setStage("scraping");
-      }
-
-      if (message.type === "scrape-pre") {
-        setScraping({
-          url: message.data.url,
-          remainingCount: message.data.remainingUrlCount,
-          scrapedCount: message.data.scrapedUrlCount,
-        });
-        setStage("scraping");
-      }
-
-      if (message.type === "scrape-complete") {
-        setStage("scraped");
-      }
-
-      if (message.type === "saved") {
-        setStage("saved");
-      }
-
-      if (message.type === "error") {
-        toaster.error({
-          title: "Failed to connect",
-          description: message.data.message,
-        });
-      }
-    };
+    connect(loaderData.token);
   }, []);
 
   const loading =

@@ -25,10 +25,6 @@ function makeIndexName() {
   return "earth";
 }
 
-function makeNamespaceName(userId: string, scrapeId: string) {
-  return `user-${userId}-scrape-${scrapeId}`;
-}
-
 export async function makeEmbedding(text: string) {
   const embedder = await getEmbedder();
   const output = await embedder(text, {
@@ -68,29 +64,7 @@ export async function chunkText(
   return chunks;
 }
 
-async function createIndex(userId: string) {
-  const indexName = makeIndexName();
-  const indexes = await pc.listIndexes();
-
-  if (indexes.indexes?.some((index) => index.name === indexName)) {
-    return;
-  }
-
-  await pc.createIndex({
-    name: indexName,
-    dimension: 384,
-    metric: "cosine",
-    spec: {
-      serverless: {
-        cloud: "aws",
-        region: "us-east-1",
-      },
-    },
-  });
-}
-
 export async function saveEmbedding(
-  userId: string,
   scrapeId: string,
   docs: {
     embedding: Float32Array<ArrayBuffer>;
@@ -101,17 +75,19 @@ export async function saveEmbedding(
   }[]
 ) {
   const index = pc.index(makeIndexName());
-  await index.namespace(makeNamespaceName(userId, scrapeId)).upsert(
+  await index.upsert(
     docs.map((doc) => ({
-      id: uuidv4(),
+      id: scrapeId + "/" + uuidv4(),
       values: Array.from(doc.embedding),
-      metadata: doc.metadata,
+      metadata: {
+        ...doc.metadata,
+        scrapeId,
+      },
     }))
   );
 }
 
 export async function search(
-  userId: string,
   scrapeId: string,
   queryEmbedding: Float32Array<ArrayBuffer>,
   options?: {
@@ -121,14 +97,32 @@ export async function search(
   const topK = options?.topK ?? 5;
 
   const index = pc.index(makeIndexName());
-  return await index.namespace(makeNamespaceName(userId, scrapeId)).query({
+  return await index.query({
     topK,
     vector: Array.from(queryEmbedding),
     includeMetadata: true,
+    filter: {
+      scrapeId,
+    },
   });
 }
 
-export async function deleteScrape(userId: string, scrapeId: string) {
+export async function deleteScrape(scrapeId: string) {
   const index = pc.index(makeIndexName());
-  await index.namespace(makeNamespaceName(userId, scrapeId)).deleteAll();
+
+  let page;
+
+  do {
+    page = await index.listPaginated({
+      prefix: scrapeId,
+      paginationToken: page?.pagination?.next,
+    });
+    const ids = page.vectors?.map((vector) => vector.id) ?? [];
+
+    if (ids.length === 0) {
+      break;
+    }
+
+    await index.deleteMany(ids);
+  } while (page.pagination?.next);
 }

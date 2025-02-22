@@ -161,7 +161,9 @@ function NoMessages({ scrape }: { scrape: Scrape }) {
       <Text opacity={0.5}>
         <TbMessage size={"60px"} />
       </Text>
-      <Heading size={"2xl"}>{scrape.title}</Heading>
+      <Heading size={"2xl"} px={4} textAlign={"center"}>
+        {scrape.title}
+      </Heading>
     </Stack>
   );
 }

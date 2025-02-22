@@ -4,16 +4,25 @@ import {
   TbMessageCircle,
   TbShield,
   TbSearch,
-  TbRobot,
   TbBook,
   TbFileText,
-  TbGitPullRequest,
-  TbShoppingCart,
   TbCode,
+  TbAlertCircle,
+  TbMessage,
+  TbCircleCheck,
+  TbMarkdown,
+  TbRobotFace,
+  TbLoader2,
 } from "react-icons/tb";
 import { Button } from "~/components/ui/button";
 import "./tailwind.css";
 import { Link } from "@chakra-ui/react";
+import { createToken } from "~/jwt";
+import type { Route } from "./+types/page";
+import { useEffect, useState } from "react";
+import { prisma } from "~/prisma";
+import { useScrape } from "~/dashboard/use-scrape";
+import { useFetcher } from "react-router";
 
 export function meta() {
   return [
@@ -24,13 +33,145 @@ export function meta() {
   ];
 }
 
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const url = formData.get("url");
+  const roomId = formData.get("roomId");
+
+  if (!url) {
+    return { error: "URL is required" };
+  }
+  if (!roomId) {
+    return { error: "Room ID is required" };
+  }
+
+  const lastMinute = new Date(Date.now() - 60 * 1000);
+
+  const scrapes = await prisma.scrape.findMany({
+    where: {
+      userId: process.env.OPEN_USER_ID!,
+      createdAt: {
+        gt: lastMinute,
+      },
+    },
+  });
+
+  if (scrapes.length >= 5) {
+    console.log("Too many scrapes");
+    return { error: "Too many scrapes" };
+  }
+
+  const scrape = await prisma.scrape.create({
+    data: {
+      userId: process.env.OPEN_USER_ID!,
+      url: url as string,
+      status: "pending",
+    },
+  });
+
+  await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+    method: "POST",
+    body: JSON.stringify({
+      scrapeId: scrape.id,
+      userId: scrape.userId,
+      url,
+      maxLinks: 1,
+      roomId: `user-${roomId}`,
+      includeMarkdown: true,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${createToken(process.env.OPEN_USER_ID!)}`,
+    },
+  });
+
+  return { token: createToken(roomId as string), scrapeId: scrape.id };
+}
+
+function ScrapeButton({
+  icon,
+  text,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  text: string;
+  onClick: () => void;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      className="bg-gradient-to-b from-purple-100 to-purple-200 p-4 rounded-xl flex gap-2 cursor-pointer hover:scale-105 transition-all"
+    >
+      <div className="text-2xl text-purple-600">{icon}</div>
+      <div className="dark:text-gray-900">{text}</div>
+    </div>
+  );
+}
+
 export default function Index() {
+  const { connect, scraping, stage } = useScrape();
+  const scrapeFetcher = useFetcher();
+  const [roomId, setRoomId] = useState<string>("");
+  const [mpcCmd, setMpcCmd] = useState<string>("");
+
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  useEffect(() => {
+    const getRandomRoomId = () => {
+      return Math.random().toString(36).substring(2, 15);
+    };
+    if (!localStorage.getItem("roomId")) {
+      localStorage.setItem("roomId", getRandomRoomId());
+    }
+    setRoomId(localStorage.getItem("roomId")!);
+  }, []);
+
+  useEffect(() => {
+    if (scrapeFetcher.data?.token) {
+      connect(scrapeFetcher.data.token);
+    }
+  }, [scrapeFetcher.data?.token]);
+
+  function handleChat() {
+    window.open(`/w/${scrapeFetcher.data?.scrapeId}`, "_blank");
+  }
+
+  function handleMarkdown() {
+    if (scraping?.markdown) {
+      const scrapedUrl = new URL(scraping.url);
+
+      const blob = new Blob([scraping.markdown], {
+        type: "text/markdown",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${scrapedUrl.hostname}-crawlchat-content.md`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }
+  }
+
+  function handleMCP() {
+    if (scraping?.url) {
+      const scrapedUrl = new URL(scraping.url);
+
+      const cmd = `npx crawl-chat-mcp --id=${
+        scrapeFetcher.data?.scrapeId
+      } --name=search_${scrapedUrl.hostname.replaceAll(/[\/\.]/g, "_")}`;
+      setMpcCmd(cmd);
+      navigator.clipboard.writeText(cmd);
+    }
+  }
+
+  const disable = scrapeFetcher.data && !scrapeFetcher.data.error;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -61,7 +202,7 @@ export default function Index() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-32 pb-10 px-4">
         <div className="container mx-auto text-center">
           <span className="inline-block px-4 py-1.5 bg-purple-100 rounded-full text-sm font-medium text-purple-900 mb-8">
             Connect documentations to MCP!
@@ -74,22 +215,93 @@ export default function Index() {
             Make it easily accessible to them by making your content or
             documents LLM ready.
           </p>
-          <div className="space-x-4">
-            <Button
-              asChild
-              className="bg-purple-600 text-white hover:bg-purple-700 px-8 py-6 rounded-full text-lg"
-            >
-              <Link href="/login">
-                Try CrawlChat Now
-                <TbArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
+          {stage !== "saved" && (
+            <scrapeFetcher.Form className="max-w-xl mx-auto mb-8" method="post">
+              <div className="flex flex-col items-start w-full">
+                <div className="flex flex-col md:flex-row gap-2 w-full">
+                  <input name="roomId" type="hidden" value={roomId} />
+                  <input
+                    name="url"
+                    type="url"
+                    placeholder="Enter your website URL"
+                    className="flex-1 flex min-h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white"
+                    disabled={disable}
+                  />
+                  <button
+                    type="submit"
+                    className="bg-purple-600 text-white hover:bg-purple-700 h-14 px-8 text-lg font-medium flex justify-center items-center rounded-md disabled:opacity-50"
+                    disabled={disable}
+                  >
+                    Try it
+                    {disable ? (
+                      <TbLoader2 className="animate-spin h-5 w-5 ml-2" />
+                    ) : (
+                      <TbArrowRight className="ml-2 h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                <div className="py-2 text-sm flex items-center gap-2 dark:text-gray-600">
+                  {scrapeFetcher.data?.error ? (
+                    <>
+                      <TbAlertCircle className="text-red-500 h-4 w-4" />
+                      <div className="text-red-500">
+                        {scrapeFetcher.data?.error}
+                      </div>
+                    </>
+                  ) : stage === "scraping" ? (
+                    <div>Scraping {scraping?.url ?? "url..."}</div>
+                  ) : (
+                    <>
+                      <TbAlertCircle className="h-4 w-4 opacity-50" />
+                      <div className="opacity-50">
+                        It will scrape and make it LLM ready!
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </scrapeFetcher.Form>
+          )}
+          {stage === "saved" && (
+            <div className="flex flex-col items-center gap-2">
+              <div className="text-purple-600 text-4xl">
+                <TbCircleCheck />
+              </div>
+              <div className="opacity-50 dark:text-gray-600">
+                {scraping?.url ?? "https://example.com"}
+              </div>
+              <div className="flex gap-2">
+                <ScrapeButton
+                  onClick={handleChat}
+                  icon={<TbMessage />}
+                  text="Chat"
+                />
+                <ScrapeButton
+                  onClick={handleMarkdown}
+                  icon={<TbMarkdown />}
+                  text="Markdown"
+                />
+                <ScrapeButton
+                  onClick={handleMCP}
+                  icon={<TbRobotFace />}
+                  text="MCP"
+                />
+              </div>
+              {mpcCmd && (
+                <div className="flex flex-col mt-2 text-sm max-w-[400px] dark:text-gray-600 gap-2">
+                  <div className="bg-gray-200 p-1 rounded-md px-2">
+                    {mpcCmd}
+                  </div>
+                  Copied!
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
       {/* Video Demo Section */}
-      <section className="py-20 px-4 bg-gray-50">
+      <section className="pb-20 px-4 bg-gray-50">
         <div className="container mx-auto">
           <div className="relative max-w-4xl mx-auto rounded-2xl overflow-hidden bg-gray-900 shadow-xl">
             <video

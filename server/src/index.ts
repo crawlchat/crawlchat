@@ -24,6 +24,7 @@ import { authenticate, verifyToken } from "./jwt";
 import fs from "fs/promises";
 import { getMetaTitle } from "./scrape/parse";
 import { splitMarkdown } from "./scrape/markdown-splitter";
+import { Scrape } from "@prisma/client";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -67,15 +68,9 @@ app.get("/", function (req: Request, res: Response) {
 });
 
 app.get("/test", async function (req: Request, res: Response) {
-  // const url = "https://www.remotion.dev/docs/google-fonts/get-available-fonts"
-  const url = "https://www.chakra-ui.com/docs/components/table";
-  const content = await scrape(url);
-  await fs.writeFile("test.md", content.parseOutput.markdown);
-  const chunks = await splitMarkdown(content.parseOutput.markdown);
-  for (let i = 0; i < chunks.length; i++) {
-    await fs.writeFile(`test-${i}.md`, chunks[i]);
-  }
-  res.json({ message: "ok", chunks });
+  const id = "67b9da88ac25fcf3263f8260";
+  const result = await deleteScrape(id);
+  res.json({ message: "ok", result });
 });
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
@@ -83,6 +78,8 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const url = req.body.url;
   const scrapeId = req.body.scrapeId!;
   const dynamicFallbackContentLength = req.body.dynamicFallbackContentLength;
+  const roomId = req.body.roomId;
+  const includeMarkdown = req.body.includeMarkdown;
 
   const scraping = await prisma.scrape.count({
     where: {
@@ -102,7 +99,22 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   });
 
   (async function () {
-    getRoomIds({ userKey: userId }).map((roomId) =>
+    function getLimit() {
+      if (userId === process.env.OPEN_USER_ID) {
+        return 1;
+      }
+      if (req.body.maxLinks) {
+        return parseInt(req.body.maxLinks);
+      }
+      if (url) {
+        return 1;
+      }
+      return undefined;
+    }
+
+    const roomIds = getRoomIds({ userKey: userId, roomId });
+
+    roomIds.forEach((roomId) =>
       broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
     );
     await prisma.scrape.update({
@@ -118,18 +130,13 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
 
     await scrapeLoop(store, req.body.url ?? scrape.url, {
       dynamicFallbackContentLength,
-      limit: req.body.maxLinks
-        ? parseInt(req.body.maxLinks)
-        : url
-        ? 1
-        : undefined,
+      limit: getLimit(),
       skipRegex: req.body.skipRegex
         ? req.body.skipRegex
             .split(",")
             .map((regex: string) => new RegExp(regex))
         : undefined,
       onComplete: async () => {
-        const roomIds = getRoomIds({ userKey: userId });
         roomIds.forEach((roomId) =>
           broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
         );
@@ -143,12 +150,11 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
         const remainingUrlCount = maxLinks
           ? Math.min(maxLinks, actualRemainingUrlCount)
           : actualRemainingUrlCount;
-        const roomIds = getRoomIds({ userKey: userId });
 
         const chunks = await splitMarkdown(markdown);
         for (const chunk of chunks) {
           const embedding = await makeEmbedding(chunk);
-          await saveEmbedding(userId, scrape.id, [
+          await saveEmbedding(scrape.id, [
             {
               embedding,
               metadata: { content: chunk, url },
@@ -187,6 +193,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
               url,
               scrapedUrlCount,
               remainingUrlCount,
+              markdown: includeMarkdown ? markdown : undefined,
             })
           )
         );
@@ -200,7 +207,6 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       },
     });
 
-    const roomIds = getRoomIds({ userKey: userId });
     roomIds.forEach((roomId) =>
       broadcast(roomId, makeMessage("saved", { scrapeId }))
     );
@@ -213,10 +219,9 @@ app.delete(
   "/scrape",
   authenticate,
   async function (req: Request, res: Response) {
-    const userId = req.user!.id;
     const scrapeId = req.body.scrapeId;
     try {
-      await deleteScrape(userId, scrapeId);
+      await deleteScrape(scrapeId);
     } catch (error) {}
     res.json({ message: "ok" });
   }
@@ -268,7 +273,6 @@ expressWs.app.ws("/", (ws: any, req) => {
         });
 
         const result = await search(
-          scrape.userId,
           scrape.id,
           await makeEmbedding(message.data.query)
         );
@@ -340,11 +344,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 
   const query = req.query.query as string;
 
-  const result = await search(
-    scrape.userId,
-    scrape.id,
-    await makeEmbedding(query)
-  );
+  const result = await search(scrape.id, await makeEmbedding(query));
 
   res.json(result.matches.map((match) => match.metadata));
 });
