@@ -160,7 +160,6 @@ export default function Index() {
   }
 
   function handleMCP() {
-    console.log(scraping);
     if (scraping?.url) {
       const scrapedUrl = new URL(scraping.url);
 
