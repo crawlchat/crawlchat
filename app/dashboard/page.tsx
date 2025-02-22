@@ -139,7 +139,7 @@ const maxLinks = createListCollection({
   ],
 });
 
-export default function LandingPage({ loaderData }: Route.ComponentProps) {
+export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const { connect, stage, scraping } = useScrape();
   const scrapeFetcher = useFetcher();
   const [advanced, setAdvanced] = useState(false);
