@@ -25,10 +25,6 @@ function makeIndexName() {
   return "earth";
 }
 
-function makeNamespaceName(userId: string, scrapeId: string) {
-  return `user-${userId}-scrape-${scrapeId}`;
-}
-
 export async function makeEmbedding(text: string) {
   const embedder = await getEmbedder();
   const output = await embedder(text, {
@@ -81,7 +77,7 @@ export async function saveEmbedding(
   const index = pc.index(makeIndexName());
   await index.upsert(
     docs.map((doc) => ({
-      id: uuidv4(),
+      id: scrapeId + "/" + uuidv4(),
       values: Array.from(doc.embedding),
       metadata: {
         ...doc.metadata,
@@ -111,7 +107,22 @@ export async function search(
   });
 }
 
-export async function deleteScrape(userId: string, scrapeId: string) {
+export async function deleteScrape(scrapeId: string) {
   const index = pc.index(makeIndexName());
-  await index.namespace(makeNamespaceName(userId, scrapeId)).deleteAll();
+
+  let page;
+
+  do {
+    page = await index.listPaginated({
+      prefix: scrapeId,
+      paginationToken: page?.pagination?.next,
+    });
+    const ids = page.vectors?.map((vector) => vector.id) ?? [];
+
+    if (ids.length === 0) {
+      break;
+    }
+
+    await index.deleteMany(ids);
+  } while (page.pagination?.next);
 }

@@ -68,15 +68,9 @@ app.get("/", function (req: Request, res: Response) {
 });
 
 app.get("/test", async function (req: Request, res: Response) {
-  // const url = "https://www.remotion.dev/docs/google-fonts/get-available-fonts"
-  const url = "https://www.chakra-ui.com/docs/components/table";
-  const content = await scrape(url);
-  await fs.writeFile("test.md", content.parseOutput.markdown);
-  const chunks = await splitMarkdown(content.parseOutput.markdown);
-  for (let i = 0; i < chunks.length; i++) {
-    await fs.writeFile(`test-${i}.md`, chunks[i]);
-  }
-  res.json({ message: "ok", chunks });
+  const id = "67b9da88ac25fcf3263f8260";
+  const result = await deleteScrape(id);
+  res.json({ message: "ok", result });
 });
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
@@ -225,10 +219,9 @@ app.delete(
   "/scrape",
   authenticate,
   async function (req: Request, res: Response) {
-    const userId = req.user!.id;
     const scrapeId = req.body.scrapeId;
     try {
-      await deleteScrape(userId, scrapeId);
+      await deleteScrape(scrapeId);
     } catch (error) {}
     res.json({ message: "ok" });
   }
