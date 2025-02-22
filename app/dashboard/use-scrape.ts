@@ -11,6 +11,7 @@ export function useScrape() {
     url: string;
     remainingCount: number;
     scrapedCount: number;
+    markdown?: string;
   }>();
 
   function connect(token: string) {
@@ -36,6 +37,7 @@ export function useScrape() {
           url: message.data.url,
           remainingCount: message.data.remainingUrlCount,
           scrapedCount: message.data.scrapedUrlCount,
+          markdown: message.data.markdown,
         });
         setStage("scraping");
       }

@@ -85,6 +85,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const scrapeId = req.body.scrapeId!;
   const dynamicFallbackContentLength = req.body.dynamicFallbackContentLength;
   const roomId = req.body.roomId;
+  const includeMarkdown = req.body.includeMarkdown;
 
   const scraping = await prisma.scrape.count({
     where: {
@@ -199,6 +200,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
               url,
               scrapedUrlCount,
               remainingUrlCount,
+              markdown: includeMarkdown ? markdown : undefined,
             })
           )
         );
