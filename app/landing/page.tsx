@@ -112,19 +112,26 @@ function ScrapeButton({
   icon,
   text,
   onClick,
+  disabled,
 }: {
   icon: React.ReactNode;
   text: string;
   onClick: () => void;
+  disabled?: boolean;
 }) {
+  const tooltip = disabled ? "Scrape to use it" : `${text} with this website`;
+
   return (
-    <div
+    <button
       onClick={onClick}
-      className="bg-gradient-to-b from-purple-100 to-purple-200 p-4 rounded-xl flex gap-2 cursor-pointer hover:scale-105 transition-all"
+      className="bg-gradient-to-b from-purple-100 to-purple-200 p-4 rounded-xl flex gap-2 enabled:cursor-pointer disabled:cursor-not-allowed transition-all flex-1 justify-center disabled:opacity-50 enabled:hover:scale-105"
+      disabled={disabled}
+      title={tooltip}
+      aria-label={tooltip}
     >
       <div className="text-2xl text-purple-600">{icon}</div>
       <div className="dark:text-gray-900">{text}</div>
-    </div>
+    </button>
   );
 }
 
@@ -254,89 +261,85 @@ export default function Index() {
             Make it easily accessible to them by making your content or
             documents LLM ready.
           </p>
-          {stage !== "saved" && (
-            <scrapeFetcher.Form className="max-w-xl mx-auto mb-8" method="post">
-              <div className="flex flex-col items-start w-full">
-                <div className="flex flex-col md:flex-row gap-2 w-full">
-                  <input type="hidden" name="type" value="scrape" />
-                  <input name="roomId" type="hidden" value={roomId} />
-                  <input
-                    name="url"
-                    type="url"
-                    placeholder="Enter your website URL"
-                    className="flex-1 flex min-h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-gray-900"
-                    disabled={disable}
-                  />
-                  <button
-                    type="submit"
-                    className="bg-purple-600 text-white hover:bg-purple-700 h-14 px-8 text-lg font-medium flex justify-center items-center rounded-md disabled:opacity-50"
-                    disabled={disable}
-                  >
-                    Try it
-                    {disable ? (
-                      <TbLoader2 className="animate-spin h-5 w-5 ml-2" />
-                    ) : (
-                      <TbArrowRight className="ml-2 h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                <div className="py-2 text-sm flex items-center gap-2 dark:text-gray-600">
-                  {scrapeFetcher.data?.error ? (
-                    <>
-                      <TbAlertCircle className="text-red-500 h-4 w-4" />
-                      <div className="text-red-500">
-                        {scrapeFetcher.data?.error}
-                      </div>
-                    </>
-                  ) : stage === "scraping" ? (
-                    <div>Scraping {scraping?.url ?? "url..."}</div>
-                  ) : (
-                    <>
-                      <TbAlertCircle className="h-4 w-4 opacity-50" />
-                      <div className="opacity-50">
-                        Fetches 5 pages and makes it LLM ready
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </scrapeFetcher.Form>
-          )}
-          {stage === "saved" && (
-            <div className="flex flex-col items-center gap-2">
-              <div className="text-purple-600 text-4xl">
-                <TbCircleCheck />
-              </div>
-              <div className="opacity-50 dark:text-gray-600">
-                {scraping?.url ?? "https://example.com"}
-              </div>
-              <div className="flex gap-2">
-                <ScrapeButton
-                  onClick={handleChat}
-                  icon={<TbMessage />}
-                  text="Chat"
-                />
-                <ScrapeButton
-                  onClick={handleLlmTxt}
-                  icon={<TbMarkdown />}
-                  text="LLM.txt"
-                />
-                <ScrapeButton
-                  onClick={handleMCP}
-                  icon={<TbRobotFace />}
-                  text="MCP"
-                />
-              </div>
-              {mpcCmd && (
-                <div className="flex flex-col mt-2 text-sm max-w-[400px] dark:text-gray-600 gap-2">
-                  <div className="bg-gray-200 p-1 rounded-md px-2">
-                    {mpcCmd}
+
+          <div className="flex flex-col items-center gap-2 max-w-xl mx-auto">
+            <div className="w-full md:h-16 flex flex-col justify-center items-center">
+              {stage === "idle" && (
+                <scrapeFetcher.Form className="w-full" method="post">
+                  <div className="flex flex-col items-start w-full">
+                    <div className="flex flex-col md:flex-row gap-2 w-full">
+                      <input type="hidden" name="type" value="scrape" />
+                      <input name="roomId" type="hidden" value={roomId} />
+                      <input
+                        name="url"
+                        type="url"
+                        placeholder="Enter your website URL"
+                        className="flex-1 flex min-h-14 w-full rounded-md border border-input bg-background px-3 py-2 text-lg ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-gray-900"
+                        disabled={disable}
+                      />
+                      <button
+                        type="submit"
+                        className="bg-purple-600 text-white hover:bg-purple-700 h-14 px-8 text-lg font-medium flex justify-center items-center rounded-md disabled:opacity-50"
+                        disabled={disable}
+                      >
+                        Try it
+                        {disable ? (
+                          <TbLoader2 className="animate-spin h-5 w-5 ml-2" />
+                        ) : (
+                          <TbArrowRight className="ml-2 h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  Copied!
-                </div>
+                </scrapeFetcher.Form>
+              )}
+              {stage !== "idle" && stage !== "saved" && (
+                <TbLoader2 className="animate-spin text-purple-600 text-6xl" />
+              )}
+              {stage === "saved" && (
+                <TbCircleCheck className="text-purple-600 text-6xl" />
               )}
             </div>
-          )}
+
+            <div className="py-2 text-sm flex items-center gap-2 dark:text-gray-600 opacity-50">
+              {scrapeFetcher.data?.error ? (
+                <div className="text-red-500">{scrapeFetcher.data?.error}</div>
+              ) : stage === "scraping" ? (
+                <div>Scraping {scraping?.url ?? "url..."}</div>
+              ) : stage === "saved" ? (
+                <div>Scraped and ready!</div>
+              ) : (
+                <div>Fetches 5 pages and makes it LLM ready!</div>
+              )}
+            </div>
+
+            <div className="flex gap-2 w-full">
+              <ScrapeButton
+                onClick={handleChat}
+                icon={<TbMessage />}
+                text="Chat"
+                disabled={stage !== "saved"}
+              />
+              <ScrapeButton
+                onClick={handleLlmTxt}
+                icon={<TbMarkdown />}
+                text="LLM.txt"
+                disabled={stage !== "saved"}
+              />
+              <ScrapeButton
+                onClick={handleMCP}
+                icon={<TbRobotFace />}
+                text="MCP"
+                disabled={stage !== "saved"}
+              />
+            </div>
+            {mpcCmd && (
+              <div className="flex flex-col mt-2 text-sm max-w-[400px] dark:text-gray-600 gap-2">
+                <div className="bg-gray-200 p-1 rounded-md px-2">{mpcCmd}</div>
+                Copied!
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
