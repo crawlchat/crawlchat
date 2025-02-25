@@ -31,6 +31,12 @@ export function useOpenScrape() {
     }
   }, [llmTxtFetcher.data?.llmTxt]);
 
+  useEffect(() => {
+    if (scrapeFetcher.data?.llmTxt) {
+      downloadTxt(scrapeFetcher.data.llmTxt, "llm.txt");
+    }
+  }, [scrapeFetcher.data?.llmTxt]);
+
   function downloadTxt(text: string, filename: string) {
     const blob = new Blob([text], {
       type: "text/markdown",
@@ -70,7 +76,9 @@ export function useOpenScrape() {
     }
   }
 
-  const disable = scrapeFetcher.data && !scrapeFetcher.data.error;
+  const disable =
+    scrapeFetcher.state !== "idle" ||
+    (scrapeFetcher.data && !scrapeFetcher.data.error);
 
   return {
     scrapeFetcher,

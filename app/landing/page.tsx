@@ -465,6 +465,14 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-gray-100">
+        <div className="container mx-auto text-center text-gray-600 flex gap-4 justify-center mb-4">
+          <div className="hover:underline">
+            <Link href="/llm-txt">LLM.txt Generator</Link>
+          </div>
+          <div className="hover:underline">
+            <Link href="/login">Login</Link>
+          </div>
+        </div>
         <div className="container mx-auto text-center text-gray-600">
           <p>&copy; 2025 CrawlChat. All rights reserved.</p>
         </div>
