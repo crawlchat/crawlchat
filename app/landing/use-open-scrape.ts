@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
+import { toaster } from "~/components/ui/toaster";
 import { useScrape } from "~/dashboard/use-scrape";
 
 export function useOpenScrape() {
@@ -73,6 +74,10 @@ export function useOpenScrape() {
       } --name=search_${scrapedUrl.hostname.replaceAll(/[\/\.]/g, "_")}`;
       setMpcCmd(cmd);
       navigator.clipboard.writeText(cmd);
+      toaster.success({
+        title: "Copied!",
+        description: "MCP command copied to clipboard",
+      });
     }
   }
 

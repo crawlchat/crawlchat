@@ -32,6 +32,7 @@ import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { useOpenScrape } from "./use-open-scrape";
 import { Tooltip } from "~/components/ui/tooltip";
+import { Toaster } from "~/components/ui/toaster";
 
 const maxW = "1200px";
 
@@ -74,7 +75,7 @@ export function Navbar() {
       as="nav"
       position={"sticky"}
       top={0}
-      bg={"white"}
+      bg={"brand.white"}
       zIndex={1}
       borderBottom={"1px solid"}
       borderColor={"brand.outline-subtle"}
@@ -182,38 +183,44 @@ function TryItOut() {
         </Text>
       </Group>
 
-      <Group w="full">
-        <Button
-          flex={1}
-          variant={"subtle"}
-          disabled={stage !== "saved"}
-          size={"2xl"}
-          onClick={openChat}
-        >
-          <TbMessage />
-          Chat
-        </Button>
-        <Button
-          flex={1}
-          variant={"subtle"}
-          disabled={stage !== "saved"}
-          size={"2xl"}
-          onClick={downloadLlmTxt}
-        >
-          <TbMarkdown />
-          LLM.txt
-        </Button>
-        <Button
-          flex={1}
-          variant={"subtle"}
-          disabled={stage !== "saved"}
-          size={"2xl"}
-          onClick={copyMcpCmd}
-        >
-          <TbRobotFace />
-          MCP
-        </Button>
-      </Group>
+      <Stack w="full" direction={["column", "row"]}>
+        <Box flex={1}>
+          <Button
+            variant={"subtle"}
+            disabled={stage !== "saved"}
+            size={"2xl"}
+            onClick={openChat}
+            w="full"
+          >
+            <TbMessage />
+            Chat
+          </Button>
+        </Box>
+        <Box flex={1}>
+          <Button
+            w={"full"}
+            variant={"subtle"}
+            disabled={stage !== "saved"}
+            size={"2xl"}
+            onClick={downloadLlmTxt}
+          >
+            <TbMarkdown />
+            LLM.txt
+          </Button>
+        </Box>
+        <Box flex={1}>
+          <Button
+            w="full"
+            variant={"subtle"}
+            disabled={stage !== "saved"}
+            size={"2xl"}
+            onClick={copyMcpCmd}
+          >
+            <TbRobotFace />
+            MCP
+          </Button>
+        </Box>
+      </Stack>
     </Stack>
   );
 }
@@ -699,6 +706,7 @@ export default function LandingPage() {
       <Pricing />
       <CTA />
       <Footer />
+      <Toaster />
     </Stack>
   );
 }
