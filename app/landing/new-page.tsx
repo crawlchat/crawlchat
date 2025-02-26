@@ -6,18 +6,28 @@ import {
   Heading,
   Input,
   Spinner,
+  Box,
+  SimpleGrid,
+  GridItem,
+  Image,
 } from "@chakra-ui/react";
 import type { PropsWithChildren } from "react";
 import {
+  TbApi,
   TbArrowRight,
+  TbBrandOpenai,
   TbCircleCheck,
+  TbCode,
   TbMarkdown,
   TbMessage,
   TbRobotFace,
+  TbSettings,
+  TbWorld,
 } from "react-icons/tb";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { useOpenScrape } from "./use-open-scrape";
+import { Tooltip } from "~/components/ui/tooltip";
 
 const maxW = "1200px";
 
@@ -40,6 +50,7 @@ function Navbar() {
       borderBottom={"1px solid"}
       borderColor={"brand.outline-subtle"}
       p={4}
+      px={8}
     >
       <Container>
         <Group>
@@ -111,7 +122,12 @@ function TryItOut() {
               disabled={disable}
               flex={1}
             />
-            <Button size={"2xl"} type="submit" loading={disable}>
+            <Button
+              size={"2xl"}
+              type="submit"
+              loading={disable}
+              colorPalette={"brand"}
+            >
               Try it
               <TbArrowRight />
             </Button>
@@ -119,9 +135,11 @@ function TryItOut() {
         </scrapeFetcher.Form>
       )}
 
-      {stage !== "idle" && stage !== "saved" && <Spinner color={"brand.fg"} />}
+      {stage !== "idle" && stage !== "saved" && (
+        <Spinner size={"xl"} color={"brand.fg"} />
+      )}
       {stage === "saved" && (
-        <Text fontSize={"4xl"} color={"brand.fg"}>
+        <Text fontSize={"6xl"} color={"brand.fg"}>
           <TbCircleCheck />
         </Text>
       )}
@@ -183,7 +201,7 @@ function TryItOut() {
 
 function Hero() {
   return (
-    <Stack w={"full"} p={4} py={12}>
+    <Stack w={"full"} px={8} py={12}>
       <Container>
         <Stack alignItems={"center"} w="full" gap={6}>
           <Text
@@ -227,11 +245,246 @@ function Hero() {
   );
 }
 
+function LandingHeading({ children }: PropsWithChildren) {
+  return (
+    <Heading
+      as="h2"
+      fontSize={"2xl"}
+      fontWeight={"bold"}
+      textAlign={"center"}
+      position={"relative"}
+      mb={4}
+    >
+      {children}
+      <Box
+        position={"absolute"}
+        bottom={-1.5}
+        left={"50%"}
+        w={6}
+        h={1}
+        bg="brand.fg"
+        rounded={"full"}
+        transform={"translateX(-50%)"}
+      />
+    </Heading>
+  );
+}
+
+function Demo() {
+  return (
+    <Stack w={"full"} px={8} py={12}>
+      <Container>
+        <Box rounded={"2xl"} overflow={"hidden"} w={"full"} h={"full"}>
+          <video
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+            poster="/demo-poster.png"
+            src="https://slickwid-public.s3.us-east-1.amazonaws.com/CrawlChat+Demo.mp4"
+            controls
+          >
+            Your browser does not support the video tag.
+          </video>
+        </Box>
+      </Container>
+    </Stack>
+  );
+}
+
+function HowItWorks() {
+  const steps = [
+    {
+      icon: <TbWorld />,
+      title: "Scrape",
+      description:
+        "Input your website URL and let CrawlChat crawl the content. We convert pages to markdown, create embeddings, and store them in a vector database.",
+    },
+    {
+      icon: <TbSettings />,
+      title: "Customise",
+      description:
+        "Once the content is scraped, you can customise how the content is to be used. Set custom rules, custom data, system prompts etc.",
+    },
+    {
+      icon: <TbMessage />,
+      title: "Chat & APIs",
+      description:
+        "There are multiple ways you use the data for AI. Easiest is to just embed the chat widget on your website. API's to query and MCP servers are also available!",
+    },
+  ];
+  return (
+    <Stack w={"full"} px={8} py={12} bg="brand.gray.50">
+      <Container>
+        <Stack alignItems={"center"} w="full" gap={6}>
+          <LandingHeading>How it works</LandingHeading>
+          <SimpleGrid columns={[1, 2, 3]} gap={6} w={"full"}>
+            {steps.map((step, i) => (
+              <GridItem key={step.title}>
+                <Stack
+                  key={step.title}
+                  gap={2}
+                  bgGradient={"to-b"}
+                  gradientFrom={"brand.subtle"}
+                  gradientTo={"brand.muted"}
+                  p={6}
+                  px={8}
+                  rounded={"2xl"}
+                  h="full"
+                >
+                  <Text fontSize={"5xl"} color="brand.fg">
+                    {step.icon}
+                  </Text>
+                  <Text fontSize={"2xl"} fontWeight={"medium"}>
+                    {i + 1}. {step.title}
+                  </Text>
+                  <Text opacity={0.6}>{step.description}</Text>
+                </Stack>
+              </GridItem>
+            ))}
+          </SimpleGrid>
+        </Stack>
+      </Container>
+    </Stack>
+  );
+}
+
+function UseCases() {
+  const useCases = [
+    {
+      icon: <TbMessage />,
+      title: "Embed chat",
+      description:
+        "It is quite common to have a heavy documentation or content for your service. It quickly gets complicated to create a chat bot that learns from all your content and answers users queries. CrawlChat takes care of it and let's you embed the chatbot with few clicks!",
+      integrations: [
+        {
+          image: "/icons/openai.webp",
+          tooltip: "Chat is powered by OpenAI",
+        },
+        {
+          image: "/icons/claude.png",
+          tooltip: "Chat is powered by Claude",
+        },
+      ],
+      integrationTag: "Integrated with",
+    },
+    {
+      icon: <TbCode />,
+      title: "API",
+      description:
+        "Want to use your content in other apps? CrawlChat provides APIs using which you can query the conentent and integrate it in your own apps. Rest all is taken care by CrawlChat!",
+      integrations: [
+        {
+          image: "/icons/rest.png",
+          tooltip: "Integrate with REST API",
+        },
+        {
+          image: "/icons/websocket.png",
+          tooltip: "Integrate with WebSocket",
+        },
+      ],
+      integrationTag: "Integrate with",
+    },
+    {
+      icon: <TbRobotFace />,
+      title: "MCP Server",
+      description:
+        "Model Context Protocol (MCP) has been very well adopted by the LLM systems already. It is a way to connect external systems to the LLMs which are generic in nature and don't know much about your services and content. CrawlChat let's you get MCP server for your content without any extra effort!",
+      integrations: [
+        {
+          image: "/icons/cursor.png",
+          tooltip: "Works with Cursor",
+        },
+        {
+          image: "/icons/windsurf.png",
+          tooltip: "Works with Windsurf",
+        },
+        {
+          image: "/icons/claude.png",
+          tooltip: "Works with Claude",
+        },
+      ],
+      integrationTag: "Works with",
+    },
+  ];
+
+  return (
+    <Stack w={"full"} px={8} py={12}>
+      <Container>
+        <Stack alignItems={"center"} w="full" gap={6}>
+          <LandingHeading>Use cases</LandingHeading>
+          <Stack w={"full"} gap={10}>
+            {useCases.map((useCase) => (
+              <Stack
+                key={useCase.title}
+                bgGradient={"to-br"}
+                gradientFrom={"brand.fg"}
+                gradientTo={"brand.emphasized"}
+                color="white"
+                w="full"
+                p={8}
+                rounded={"sm"}
+                position={"relative"}
+                pr={40}
+                overflow={"hidden"}
+              >
+                <Text
+                  as="h3"
+                  fontSize={"3xl"}
+                  fontWeight={"medium"}
+                  lineHeight={1}
+                >
+                  {useCase.title}
+                </Text>
+                <Text opacity={0.6} fontSize={"lg"}>
+                  {useCase.description}
+                </Text>
+                {useCase.integrations && (
+                  <Stack mt={4}>
+                    <Text fontSize={"xs"} opacity={0.5}>
+                      {useCase.integrationTag ?? "Powered by"}
+                    </Text>
+                    <Group gap={4}>
+                      {useCase.integrations?.map((integration, key) => (
+                        <Tooltip
+                          key={key}
+                          content={integration.tooltip}
+                          showArrow
+                        >
+                          <Image src={integration.image} w={10} h={10} />
+                        </Tooltip>
+                      ))}
+                    </Group>
+                  </Stack>
+                )}
+                <Box
+                  position={"absolute"}
+                  top={0}
+                  right={0}
+                  fontSize={"200px"}
+                  transform={"translateX(25%) translateY(-25%) rotate(10deg)"}
+                  opacity={0.2}
+                >
+                  {useCase.icon}
+                </Box>
+              </Stack>
+            ))}
+          </Stack>
+        </Stack>
+      </Container>
+    </Stack>
+  );
+}
+
 export default function LandingPage() {
   return (
     <Stack gap={0} w="full">
       <Navbar />
       <Hero />
+      <Demo />
+      <HowItWorks />
+      <UseCases />
     </Stack>
   );
 }

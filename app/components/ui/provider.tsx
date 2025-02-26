@@ -69,6 +69,12 @@ const config = defineConfig({
               _dark: "{colors.whiteAlpha.100}",
             },
           },
+          "gray.50": {
+            value: {
+              base: "{colors.blackAlpha.50}",
+              _dark: "{colors.whiteAlpha.50}",
+            },
+          },
           white: {
             value: {
               base: "{colors.white}",
