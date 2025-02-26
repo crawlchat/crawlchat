@@ -35,7 +35,16 @@ import { Tooltip } from "~/components/ui/tooltip";
 
 const maxW = "1200px";
 
-function Container({ children }: PropsWithChildren) {
+export function meta() {
+  return [
+    {
+      title: "CrawlChat - Make your content LLM ready!",
+      description: "Chat with Any Website using AI",
+    },
+  ];
+}
+
+export function Container({ children }: PropsWithChildren) {
   return (
     <Group maxW={maxW} mx={"auto"} w="full" justifyContent={"space-between"}>
       {children}
@@ -59,7 +68,7 @@ function LogoText() {
   );
 }
 
-function Navbar() {
+export function Navbar() {
   return (
     <Stack
       as="nav"
@@ -428,15 +437,12 @@ function UseCases() {
             {useCases.map((useCase) => (
               <Stack
                 key={useCase.title}
-                bgGradient={"to-br"}
-                gradientFrom={"brand.fg"}
-                gradientTo={"brand.emphasized"}
-                color="white"
+                bg="brand.subtle"
                 w="full"
-                p={8}
-                rounded={"sm"}
+                p={10}
+                rounded={"xl"}
                 position={"relative"}
-                pr={40}
+                pr={[undefined, 60]}
                 overflow={"hidden"}
               >
                 <Text
@@ -473,8 +479,9 @@ function UseCases() {
                   top={0}
                   right={0}
                   fontSize={"200px"}
-                  transform={"translateX(25%) translateY(-25%) rotate(10deg)"}
-                  opacity={0.2}
+                  transform={"rotate(10deg)"}
+                  opacity={[0, 0.2]}
+                  color="brand.fg"
                 >
                   {useCase.icon}
                 </Box>
@@ -633,16 +640,15 @@ export function CTA() {
             fontSize={"4xl"}
             fontWeight={"bold"}
             textAlign={"center"}
-            maxW={"500px"}
             lineHeight={1.2}
           >
             Ready to make your content LLM ready?
           </Heading>
-          <Text maxW={"400px"} textAlign={"center"}>
+          <Text maxW={"500px"} textAlign={"center"} opacity={0.6}>
             Join users who are already having meaningful conversations with web
             content using CrawlChat.
           </Text>
-          <Button colorPalette={"brand"} asChild size={"lg"} rounded={"full"}>
+          <Button colorPalette={"brand"} asChild size={"2xl"} rounded={"full"}>
             <Link to="/login">
               Get started
               <TbArrowRight />
@@ -654,7 +660,7 @@ export function CTA() {
   );
 }
 
-function Footer() {
+export function Footer() {
   return (
     <Stack w={"full"} px={8} py={12}>
       <Container>
@@ -674,7 +680,7 @@ function Footer() {
           </Stack>
           <Stack flex={1}>
             <ChakraLink href={"/terms"}>Terms</ChakraLink>
-            <ChakraLink href={"/privacy"}>Privacy</ChakraLink>
+            <ChakraLink href={"/policy"}>Privacy policy</ChakraLink>
           </Stack>
         </Group>
       </Container>

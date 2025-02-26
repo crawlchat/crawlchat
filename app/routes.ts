@@ -16,6 +16,8 @@ export default [
   route("new", "landing/new-page.tsx"),
   route("llm-txt", "landing/tools/llm-txt.tsx"),
   route("open-scrape", "landing/open-scrape.ts"),
+  route("terms", "landing/terms.tsx"),
+  route("policy", "landing/policy.tsx"),
 
   route("/logout", "auth/logout.tsx"),
   layout("dashboard/layout.tsx", [
