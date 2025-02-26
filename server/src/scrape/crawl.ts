@@ -16,7 +16,7 @@ type ScrapeResult = {
   parseOutput: ParseOutput;
 };
 
-export async function scrapeFetch(url: string): Promise<ScrapeResult> {
+export async function scrapeFetch(url: string): Promise<string> {
   console.log("Scraping", url);
   const headers = {
     "User-Agent":
@@ -44,25 +44,29 @@ export async function scrapeFetch(url: string): Promise<ScrapeResult> {
     headers,
     credentials: "same-origin",
   });
-  const parseOutput = parseHtml(await response.text());
-  return { parseOutput };
+  return await response.text();
 }
 
 export async function scrape(
   url: string,
-  options?: { dynamicFallbackContentLength?: number }
+  options?: {
+    dynamicFallbackContentLength?: number;
+    removeHtmlTags?: string;
+  }
 ): Promise<ScrapeResult> {
   const { dynamicFallbackContentLength = 100 } = options ?? {};
-  let output = await scrapeFetch(url);
-  if (output.parseOutput.text.length <= dynamicFallbackContentLength) {
+  let text = await scrapeFetch(url);
+  let error = undefined;
+  if (text.length <= dynamicFallbackContentLength) {
     try {
-      output.parseOutput = parseHtml(await scrapePw(url));
+      text = await scrapePw(url);
     } catch (e: any) {
       console.log(e);
-      output.error = e.message;
+      error = e.message;
     }
   }
-  return output;
+
+  return { parseOutput: parseHtml(text, options), error };
 }
 
 export async function scrapeWithLinks(
@@ -124,6 +128,7 @@ export async function scrapeLoop(
       opts: { text: string; markdown: string }
     ) => Promise<void>;
     dynamicFallbackContentLength?: number;
+    removeHtmlTags?: string;
   }
 ) {
   const { limit = 300 } = options ?? {};

@@ -131,6 +131,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     store.urlSet.add(url ?? scrape.url);
 
     await scrapeLoop(store, req.body.url ?? scrape.url, {
+      removeHtmlTags: req.body.removeHtmlTags,
       dynamicFallbackContentLength,
       limit: getLimit(),
       skipRegex: req.body.skipRegex

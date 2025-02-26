@@ -14,6 +14,7 @@ import {
   TbHome,
   TbLogout,
   TbMessage,
+  TbScan,
   TbSettings,
   TbWand,
 } from "react-icons/tb";
@@ -33,6 +34,7 @@ import { RiChatVoiceAiFill } from "react-icons/ri";
 
 const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
+  { label: "Scrape", to: "/scrape", icon: <TbScan /> },
   { label: "Collections", to: "/collections", icon: <TbFolder /> },
   // { label: "Settings", to: "/settings", icon: <TbSettings /> },
 ];

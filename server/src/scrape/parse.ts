@@ -56,6 +56,8 @@ const EXCLUDE_NON_MAIN_TAGS = [
   "iframe",
 ];
 
+const SAFE_CLEAN_TAGS = ["aside"];
+
 function cleanHtml($: cheerio.CheerioAPI) {
   for (const tag of EXCLUDE_NON_MAIN_TAGS) {
     const elem = $(tag);
@@ -88,6 +90,15 @@ function cleanScriptStyles($: cheerio.CheerioAPI) {
   $("style").remove();
 }
 
+function safeClean($: cheerio.CheerioAPI) {
+  for (const tag of SAFE_CLEAN_TAGS) {
+    const elem = $(tag);
+    if (elem.is("html") === false && elem.is("body") === false) {
+      elem.remove();
+    }
+  }
+}
+
 export type ParseLink = {
   text: string;
   href?: string;
@@ -102,7 +113,10 @@ export type ParseOutput = {
   html?: string;
 };
 
-export function parseHtml(html: string): ParseOutput {
+export function parseHtml(
+  html: string,
+  options?: { removeHtmlTags?: string }
+): ParseOutput {
   const $ = cheerio.load(html);
 
   const links = $("a")
@@ -133,6 +147,14 @@ export function parseHtml(html: string): ParseOutput {
   }
   cleanA($);
   cleanScriptStyles($);
+  safeClean($);
+
+  if (options?.removeHtmlTags) {
+    const removeHtmlTags = options.removeHtmlTags.split(",");
+    for (const tag of removeHtmlTags) {
+      $(tag.trim()).remove();
+    }
+  }
 
   const turndownService = new TurndownService();
   turndownService.use(turndownPluginGfm.gfm);
