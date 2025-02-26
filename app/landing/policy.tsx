@@ -1,0 +1,42 @@
+import { marked } from "marked";
+import fs from "fs";
+import path from "path";
+import type { Route } from "./+types/terms";
+import { Prose } from "~/components/ui/prose";
+import { Footer, Navbar } from "./new-page";
+import { Stack } from "@chakra-ui/react";
+import { Container } from "./new-page";
+
+export function meta() {
+  return [
+    {
+      title: "Privacy Policy - CrawlChat",
+    },
+  ];
+}
+
+export async function loader() {
+  const htmlContent = await marked.parse(
+    fs.readFileSync(path.join(process.cwd(), "app/landing/policy.md"), "utf8")
+  );
+
+  return { htmlContent };
+}
+
+export default function Terms({ loaderData }: Route.ComponentProps) {
+  return (
+    <>
+      <Navbar />
+      <Stack py={12}>
+        <Container>
+          <Prose
+            dangerouslySetInnerHTML={{ __html: loaderData.htmlContent }}
+            size={"lg"}
+            maxW={"100%"}
+          />
+        </Container>
+      </Stack>
+      <Footer />
+    </>
+  );
+}

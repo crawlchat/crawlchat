@@ -51,6 +51,12 @@ const config = defineConfig({
               _dark: "{colors.whiteAlpha.200}",
             },
           },
+          "outline-subtle": {
+            value: {
+              base: "{colors.blackAlpha.100}",
+              _dark: "{colors.whiteAlpha.100}",
+            },
+          },
           gray: {
             value: {
               base: "{colors.blackAlpha.50}",
@@ -61,6 +67,12 @@ const config = defineConfig({
             value: {
               base: "{colors.blackAlpha.100}",
               _dark: "{colors.whiteAlpha.100}",
+            },
+          },
+          "gray.50": {
+            value: {
+              base: "{colors.blackAlpha.50}",
+              _dark: "{colors.whiteAlpha.50}",
             },
           },
           white: {
