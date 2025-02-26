@@ -16,13 +16,17 @@ import {
   TbApi,
   TbArrowRight,
   TbBrandOpenai,
+  TbCheck,
   TbCircleCheck,
+  TbCircleCheckFilled,
   TbCode,
+  TbCrown,
   TbMarkdown,
   TbMessage,
   TbRobotFace,
   TbSettings,
   TbWorld,
+  TbX,
 } from "react-icons/tb";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -36,6 +40,22 @@ function Container({ children }: PropsWithChildren) {
     <Group maxW={maxW} mx={"auto"} w="full" justifyContent={"space-between"}>
       {children}
     </Group>
+  );
+}
+
+function LogoText() {
+  return (
+    <Text
+      fontSize={"xl"}
+      fontWeight={"bold"}
+      bgGradient={"to-r"}
+      gradientFrom={"brand.500"}
+      gradientTo={"brand.300"}
+      bgClip="text"
+      color={"transparent"}
+    >
+      CrawlChat
+    </Text>
   );
 }
 
@@ -54,17 +74,7 @@ function Navbar() {
     >
       <Container>
         <Group>
-          <Text
-            fontSize={"xl"}
-            fontWeight={"bold"}
-            bgGradient={"to-r"}
-            gradientFrom={"brand.500"}
-            gradientTo={"brand.300"}
-            bgClip="text"
-            color={"transparent"}
-          >
-            CrawlChat
-          </Text>
+          <LogoText />
         </Group>
         <Group gap={6}>
           <ChakraLink href={"/#use-cases"} display={["none", "flex"]}>
@@ -410,7 +420,7 @@ function UseCases() {
   ];
 
   return (
-    <Stack w={"full"} px={8} py={12}>
+    <Stack w={"full"} px={8} py={12} id="use-cases">
       <Container>
         <Stack alignItems={"center"} w="full" gap={6}>
           <LandingHeading>Use cases</LandingHeading>
@@ -477,6 +487,201 @@ function UseCases() {
   );
 }
 
+type Feature = {
+  label: string;
+  excluded?: boolean;
+};
+
+function PriceBox({
+  price,
+  title,
+  description,
+  features,
+  popular,
+  href,
+  disabled,
+}: {
+  price: number;
+  title: string;
+  description: string;
+  features: Feature[];
+  href: string;
+  popular?: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <Stack
+      flex={1}
+      p={8}
+      bg={popular ? "brand.subtle" : "brand.gray.50"}
+      rounded={"2xl"}
+      position={"relative"}
+      border={"2px solid"}
+      borderColor={popular ? "brand.emphasized" : "brand.subtle"}
+    >
+      {popular && (
+        <Group
+          position={"absolute"}
+          top={0}
+          left={"50%"}
+          transform={"translate(-50%, -50%)"}
+          bg="brand.fg"
+          p={1}
+          px={3}
+          rounded={"full"}
+          color="white"
+          fontSize={"xs"}
+          fontWeight={"bold"}
+        >
+          <TbCrown />
+          <Text>Popular</Text>
+        </Group>
+      )}
+
+      <Text fontSize={"2xl"} fontWeight={"bold"} lineHeight={1}>
+        {title}
+      </Text>
+      <Text opacity={0.6}>{description}</Text>
+
+      <Group alignItems={"flex-end"} gap={0} my={4}>
+        <Text fontSize={"4xl"} fontWeight={"bold"} lineHeight={1}>
+          ${price}
+        </Text>
+        <Text opacity={0.6}>/month</Text>
+      </Group>
+
+      <Stack>
+        {features.map((feature) => (
+          <Group
+            key={feature.label}
+            alignItems="center"
+            gap={2}
+            opacity={feature.excluded ? 0.5 : 1}
+          >
+            <Box color="brand.fg">
+              {feature.excluded ? <TbX /> : <TbCheck />}
+            </Box>
+            <Text>{feature.label}</Text>
+          </Group>
+        ))}
+      </Stack>
+
+      <Button
+        w="full"
+        mt={4}
+        variant={price === 0 ? "outline" : "solid"}
+        colorPalette={"brand"}
+        asChild
+        disabled={disabled}
+      >
+        <a href={href}>
+          {price === 0 ? "Get started" : "Purchase"}
+          <TbArrowRight />
+        </a>
+      </Button>
+    </Stack>
+  );
+}
+
+function Pricing() {
+  return (
+    <Stack w={"full"} px={8} py={12} id="pricing">
+      <Container>
+        <Stack alignItems={"center"} w="full" gap={6}>
+          <LandingHeading>Pricing</LandingHeading>
+          <Stack w={"full"} gap={6} direction={["column", "row"]}>
+            <PriceBox
+              price={0}
+              title="Free"
+              description="For personal use"
+              features={[
+                { label: "100 page scrapes per month" },
+                { label: "200 messages per month" },
+                { label: "API not available", excluded: true },
+                { label: "MCP not available", excluded: true },
+              ]}
+              href="/login"
+            />
+            <PriceBox
+              price={79}
+              title="Pro"
+              description="For power users and teams"
+              features={[
+                { label: "10,000 site scrapes per month" },
+                { label: "50,000 messages per month" },
+                { label: "API available" },
+                { label: "MCP available" },
+              ]}
+              popular
+              disabled
+              href="/login"
+            />
+          </Stack>
+        </Stack>
+      </Container>
+    </Stack>
+  );
+}
+
+export function CTA() {
+  return (
+    <Stack w={"full"} px={8} py={12} bg="brand.subtle">
+      <Container>
+        <Stack alignItems={"center"} w="full" gap={6}>
+          <Heading
+            as="h2"
+            fontSize={"4xl"}
+            fontWeight={"bold"}
+            textAlign={"center"}
+            maxW={"500px"}
+            lineHeight={1.2}
+          >
+            Ready to make your content LLM ready?
+          </Heading>
+          <Text maxW={"400px"} textAlign={"center"}>
+            Join users who are already having meaningful conversations with web
+            content using CrawlChat.
+          </Text>
+          <Button colorPalette={"brand"} asChild size={"lg"} rounded={"full"}>
+            <Link to="/login">
+              Get started
+              <TbArrowRight />
+            </Link>
+          </Button>
+        </Stack>
+      </Container>
+    </Stack>
+  );
+}
+
+function Footer() {
+  return (
+    <Stack w={"full"} px={8} py={12}>
+      <Container>
+        <Group w="full" alignItems={"flex-start"}>
+          <Stack flex={2}>
+            <LogoText />
+            <Text>Turn your content LLM ready!</Text>
+            <Text fontSize={"sm"} opacity={0.5}>
+              © 2025 CrawlChat
+            </Text>
+          </Stack>
+          <Stack flex={1}>
+            <ChakraLink href={"/"}>Home</ChakraLink>
+            <ChakraLink href={"/#pricing"}>Pricing</ChakraLink>
+            <ChakraLink href={"/#use-cases"}>Use cases</ChakraLink>
+            <ChakraLink href={"/llm-txt"}>LLM.txt Generator</ChakraLink>
+          </Stack>
+          <Stack flex={1}>
+            <ChakraLink href={"/terms"}>Terms</ChakraLink>
+            <ChakraLink href={"/privacy"}>Privacy</ChakraLink>
+          </Stack>
+        </Group>
+      </Container>
+    </Stack>
+  );
+}
+
 export default function LandingPage() {
   return (
     <Stack gap={0} w="full">
@@ -485,6 +690,9 @@ export default function LandingPage() {
       <Demo />
       <HowItWorks />
       <UseCases />
+      <Pricing />
+      <CTA />
+      <Footer />
     </Stack>
   );
 }
