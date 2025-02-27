@@ -17,6 +17,7 @@ export default [
   route("open-scrape", "landing/open-scrape.ts"),
   route("terms", "landing/terms.tsx"),
   route("policy", "landing/policy.tsx"),
+  route("embed-demo", "landing/embed-demo.tsx"),
 
   route("/logout", "auth/logout.tsx"),
   layout("dashboard/layout.tsx", [

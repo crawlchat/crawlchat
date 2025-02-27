@@ -87,21 +87,6 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         key={loaderData.thread.id}
         onBgClick={handleClose}
       />
-      <Group
-        justifyContent={"center"}
-        opacity={0.4}
-        _hover={{ opacity: 1 }}
-        transition={"opacity 100ms ease"}
-        p={4}
-      >
-        <Text>
-          Made by{" "}
-          <Link href="https://crawlchat.com" variant={"underline"}>
-            CrawlChat
-          </Link>
-          !
-        </Text>
-      </Group>
     </Stack>
   );
 }

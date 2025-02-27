@@ -243,7 +243,19 @@ export default function ScrapeWidget({
     }
   }
 
+  function getSize() {
+    switch (scrape.widgetConfig?.size) {
+      case "large":
+        return { width: "800px", height: "800px" };
+      case "full_screen":
+        return { width: "100%", height: "100%" };
+      default:
+        return { width: "500px", height: "500px" };
+    }
+  }
+
   const messages = chat.allMessages();
+  const { width, height } = getSize();
 
   return (
     <Center h="full" onClick={handleBgClick} p={4}>
@@ -254,9 +266,9 @@ export default function ScrapeWidget({
         boxShadow={"rgba(100, 100, 111, 0.2) 0px 7px 29px 0px"}
         bg="brand.white"
         w={"full"}
-        maxW={"500px"}
+        maxW={width}
         h="full"
-        maxH={"500px"}
+        maxH={height}
         overflow={"hidden"}
         gap={0}
       >
@@ -276,7 +288,7 @@ export default function ScrapeWidget({
                 <LoadingMessage />
               )}
               {chat.askStage !== "idle" && index === messages.length - 1 && (
-                <Box h="500px" w="full" />
+                <Box h={height} w="full" />
               )}
             </Stack>
           ))}

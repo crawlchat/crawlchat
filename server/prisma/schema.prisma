@@ -36,6 +36,16 @@ type MetaTag {
   value String
 }
 
+enum WidgetSize {
+  small
+  large
+  full_screen
+}
+
+type WidgetConfig {
+  size WidgetSize
+}
+
 model Scrape {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   userId          String   @db.ObjectId
@@ -47,6 +57,7 @@ model Scrape {
   title           String?
   chatPrompt      String?
   mcpToolName     String?
+  widgetConfig    WidgetConfig?
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   threads         Thread[]

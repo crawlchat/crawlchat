@@ -5,6 +5,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useMatches,
 } from "react-router";
 
 import type { Route } from "./+types/root";
@@ -26,6 +27,9 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const matches = useMatches();
+  const isEmbed = matches.some((match) => match.id === "landing/embed-demo");
+
   return (
     <html lang="en">
       <head>
@@ -44,6 +48,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
+        {isEmbed && (
+          <script
+            src="/embed.js"
+            id="crawlchat-script"
+            data-id="67ba9b3cac25fcf3263f826c"
+          />
+        )}
       </body>
     </html>
   );
