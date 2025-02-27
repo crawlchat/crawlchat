@@ -13,12 +13,9 @@ import {
 } from "@chakra-ui/react";
 import type { PropsWithChildren } from "react";
 import {
-  TbApi,
   TbArrowRight,
-  TbBrandOpenai,
   TbCheck,
   TbCircleCheck,
-  TbCircleCheckFilled,
   TbCode,
   TbCrown,
   TbMarkdown,
@@ -53,7 +50,7 @@ export function Container({ children }: PropsWithChildren) {
   );
 }
 
-function LogoText() {
+export function LogoText() {
   return (
     <Text
       fontSize={"xl"}

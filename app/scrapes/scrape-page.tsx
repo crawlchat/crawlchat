@@ -23,9 +23,10 @@ import {
   TbWorld,
   TbRobotFace,
   TbCode,
+  TbMessage,
 } from "react-icons/tb";
 import moment from "moment";
-import { Outlet, redirect, useFetcher, useNavigate } from "react-router";
+import { Link, Outlet, redirect, useFetcher, useNavigate } from "react-router";
 import { SegmentedControl } from "~/components/ui/segmented-control";
 import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
@@ -166,6 +167,11 @@ export default function ScrapePage({
               )}
             </IconButton>
           </Tooltip>
+          <IconButton asChild variant={"subtle"}>
+            <Link to={`/threads/new?id=${loaderData.scrape.id}`}>
+              <TbMessage />
+            </Link>
+          </IconButton>
           <IconButton variant={"subtle"} onClick={copyUrl}>
             <TbLink />
           </IconButton>
