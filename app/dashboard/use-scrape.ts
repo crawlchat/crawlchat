@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { makeMessage } from "./socket-util";
 import { toaster } from "~/components/ui/toaster";
+import type { FetcherWithComponents } from "react-router";
 
 export function useScrape() {
   const socket = useRef<WebSocket>(null);

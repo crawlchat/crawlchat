@@ -6,14 +6,16 @@ import {
   Badge,
   createListCollection,
   Center,
+  Spinner,
 } from "@chakra-ui/react";
 import {
+  TbArrowRight,
   TbCheck,
   TbCircleCheckFilled,
   TbInfoCircle,
   TbScan,
 } from "react-icons/tb";
-import { redirect, useFetcher } from "react-router";
+import { Link, redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
@@ -92,16 +94,19 @@ export async function action({ request }: { request: Request }) {
       const json = await response.json();
       throw redirect(`/threads/new?id=${json.scrapeId}`);
     }
+
+    return { scrapeId: scrape.id };
   }
 }
 
 const maxLinks = createListCollection({
   items: [
-    { label: "10 links", value: "10" },
-    { label: "50 links", value: "50" },
-    { label: "100 links", value: "100" },
-    { label: "500 links", value: "500" },
-    { label: "1000 links", value: "1000" },
+    { label: "10 pages", value: "10" },
+    { label: "50 pages", value: "50" },
+    { label: "100 pages", value: "100" },
+    { label: "300 pages", value: "300" },
+    { label: "500 pages", value: "500" },
+    { label: "1000 pages", value: "1000" },
   ],
 });
 
@@ -123,7 +128,12 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
           {stage === "idle" && (
             <scrapeFetcher.Form method="post">
               <Stack gap={4}>
-                <Field label="URL">
+                <Text opacity={0.5} mb={2}>
+                  First step in making your content LLM ready is to scrape it
+                  from your website. Give your content URL and set how you want
+                  to scrape it for better results.
+                </Text>
+                <Field label="URL" required>
                   <Input
                     placeholder="https://example.com"
                     name="url"
@@ -158,8 +168,12 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                 </Field>
 
                 <Stack direction={["column", "row"]} gap={4}>
-                  <SelectRoot name="maxLinks" collection={maxLinks}>
-                    <SelectLabel>Select max links</SelectLabel>
+                  <SelectRoot
+                    name="maxLinks"
+                    collection={maxLinks}
+                    defaultValue={["300"]}
+                  >
+                    <SelectLabel>Select max pages</SelectLabel>
                     <SelectTrigger>
                       <SelectValueText placeholder="Select max links" />
                     </SelectTrigger>
@@ -206,40 +220,53 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
             </scrapeFetcher.Form>
           )}
 
-          <Stack fontSize={"sm"}>
-            <Group justifyContent={"space-between"}>
-              {stage === "scraping" && (
-                <>
-                  <Text truncate display={["none", "block"]}>
-                    Scraping {scraping?.url}
-                  </Text>
-                  <Text truncate display={["block", "none"]}>
-                    Scraping...
-                  </Text>
-                </>
-              )}
-              {stage === "scraped" && (
-                <Text>Scraping complete</Text>
-              )}
-              {stage === "saved" && (
-                <Group gap={1}>
-                  <Text>Done</Text>
-                  <Text color={"brand.fg"}>
-                    <TbCircleCheckFilled />
-                  </Text>
-                </Group>
-              )}
+          {stage !== "idle" && (
+            <Stack>
+              <Group justifyContent={"space-between"}>
+                <Group>
+                  {stage === "scraping" && (
+                    <Spinner color="brand.fg" size={"sm"} />
+                  )}
+                  {stage === "saved" && (
+                    <Text color={"brand.fg"}>
+                      <TbCircleCheckFilled />
+                    </Text>
+                  )}
 
-              {scraping && (
+                  {stage === "scraping" && (
+                    <>
+                      <Text truncate display={["none", "block"]}>
+                        Scraping {scraping?.url ?? "..."}
+                      </Text>
+                      <Text truncate display={["block", "none"]}>
+                        Scraping...
+                      </Text>
+                    </>
+                  )}
+                  {stage === "saved" && <Text>Done</Text>}
+                </Group>
+
                 <Group>
                   <Badge>
-                    {scraping?.scrapedCount} /{" "}
-                    {scraping?.scrapedCount + scraping?.remainingCount}
+                    {scraping?.scrapedCount ?? "-"} /{" "}
+                    {scraping
+                      ? scraping.scrapedCount + scraping.remainingCount
+                      : "∞"}
                   </Badge>
                 </Group>
+              </Group>
+              {stage === "saved" && (
+                <Group justifyContent={"flex-end"}>
+                  <Button colorPalette={"brand"} asChild>
+                    <Link to={`/collections/${scrapeFetcher.data.scrapeId}`}>
+                      Go to collection
+                      <TbArrowRight />
+                    </Link>
+                  </Button>
+                </Group>
               )}
-            </Group>
-          </Stack>
+            </Stack>
+          )}
         </Stack>
       </Center>
     </Page>
