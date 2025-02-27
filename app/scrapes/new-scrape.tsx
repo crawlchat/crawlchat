@@ -235,11 +235,11 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
 
                   {stage === "scraping" && (
                     <>
-                      <Text truncate display={["none", "block"]}>
-                        Scraping {scraping?.url ?? "..."}
+                      <Text truncate display={["none", "block"]} maxW={"300px"}>
+                        Scraping ...{(scraping?.url ?? "").slice(-20)}
                       </Text>
                       <Text truncate display={["block", "none"]}>
-                        Scraping...
+                        Scraping ...
                       </Text>
                     </>
                   )}
