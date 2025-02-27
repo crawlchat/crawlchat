@@ -313,7 +313,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
               {stage === "saved" && (
                 <Group justifyContent={"flex-end"}>
                   <Button colorPalette={"brand"} asChild>
-                    <Link to={`/collections/${scrapeFetcher.data.scrapeId}`}>
+                    <Link to={`/collections/${scrapeFetcher.data.scrapeId}/settings`}>
                       Go to collection
                       <TbArrowRight />
                     </Link>
