@@ -5,6 +5,7 @@ import {
   Heading,
   IconButton,
   Input,
+  Kbd,
   Link,
   Skeleton,
 } from "@chakra-ui/react";
@@ -14,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { TbArrowUp, TbChevronRight, TbMessage } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
+import { InputGroup } from "~/components/ui/input-group";
 
 function ChatInput({
   onAsk,
@@ -35,8 +37,19 @@ function ChatInput({
         inputRef.current?.focus();
       }
     };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && !inputRef.current?.matches(":focus")) {
+        inputRef.current?.focus();
+      }
+    };
+
     window.addEventListener("message", handleOnMessage);
-    return () => window.removeEventListener("message", handleOnMessage);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("message", handleOnMessage);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   function handleAsk() {
@@ -65,23 +78,29 @@ function ChatInput({
       p={4}
     >
       <Group flex={1}>
-        <Input
-          ref={inputRef}
-          placeholder={getPlaceholder()}
-          size={"xl"}
-          p={0}
-          outline={"none"}
-          border="none"
-          fontSize={"lg"}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              handleAsk();
-            }
-          }}
-          disabled={disabled}
-        />
+        <InputGroup
+          flex="1"
+          startElement={<TbMessage size={"20px"} />}
+          endElement={<Kbd>⏎</Kbd>}
+        >
+          <Input
+            ref={inputRef}
+            placeholder={getPlaceholder()}
+            size={"xl"}
+            p={0}
+            outline={"none"}
+            border="none"
+            fontSize={"lg"}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleAsk();
+              }
+            }}
+            disabled={disabled}
+          />
+        </InputGroup>
       </Group>
       <Group>
         <IconButton
@@ -236,13 +255,23 @@ export default function ScrapeWidget({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === "focus") {
+        scroll();
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
   async function handleAsk(query: string) {
     chat.ask(query);
     await scroll();
   }
 
   async function scroll() {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     const message = document.querySelectorAll(`.user-message`);
     if (message) {
       message[message.length - 1]?.scrollIntoView({ behavior: "smooth" });
@@ -300,7 +329,7 @@ export default function ScrapeWidget({
                 <LoadingMessage />
               )}
               {chat.askStage !== "idle" && index === messages.length - 1 && (
-                <Box h={height} w="full" />
+                <Box h={"2000px"} w="full" />
               )}
             </Stack>
           ))}
