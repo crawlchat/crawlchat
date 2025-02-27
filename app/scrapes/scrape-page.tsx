@@ -57,22 +57,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await getAuthUser(request);
-  const formData = await request.formData();
-
-  const action = formData.get("action");
-
-  if (action === "re-crawl") {
-    const token = createToken(user!.id);
-    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
-      method: "POST",
-      body: JSON.stringify({ scrapeId: params.id }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return { action: "re-crawl", status: "success" };
-  }
 
   if (request.method === "DELETE") {
     await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
@@ -90,24 +74,11 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function ScrapePage({
-  loaderData,
-  actionData,
-}: Route.ComponentProps) {
+export default function ScrapePage({ loaderData }: Route.ComponentProps) {
   const [tab, setTab] = useState<string>(loaderData.tab);
   const navigate = useNavigate();
-  const recrawlFetcher = useFetcher();
   const deleteFetcher = useFetcher();
   const [deleteConfirm, setDeleteConfirm] = useState(false);
-
-  useEffect(() => {
-    if (actionData?.status === "success" && actionData.action === "re-crawl") {
-      toaster.success({
-        title: "Success",
-        description: "Initiated the crawl",
-      });
-    }
-  }, [actionData]);
 
   useEffect(() => {
     if (deleteConfirm) {
@@ -175,17 +146,15 @@ export default function ScrapePage({
           <IconButton variant={"subtle"} onClick={copyUrl}>
             <TbLink />
           </IconButton>
-          <recrawlFetcher.Form method="post">
-            <input type="hidden" name="action" value="re-crawl" />
-            <Button
-              variant={"subtle"}
-              type="submit"
-              loading={recrawlFetcher.state !== "idle"}
+
+          <Button variant={"subtle"} asChild>
+            <Link
+              to={`/scrape?url=${loaderData.scrape.url}&collection=${loaderData.scrape.id}&links=300`}
             >
               <TbRefresh />
               Re-crawl
-            </Button>
-          </recrawlFetcher.Form>
+            </Link>
+          </Button>
         </Group>
       }
     >

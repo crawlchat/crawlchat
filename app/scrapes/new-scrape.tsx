@@ -15,7 +15,7 @@ import {
   TbInfoCircle,
   TbScan,
 } from "react-icons/tb";
-import { Link, redirect, useFetcher } from "react-router";
+import { Link, redirect, useFetcher, useSearchParams } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
@@ -120,6 +120,7 @@ export async function action({ request }: { request: Request }) {
 
 const maxLinks = createListCollection({
   items: [
+    { label: "1 page", value: "1" },
     { label: "10 pages", value: "10" },
     { label: "50 pages", value: "50" },
     { label: "100 pages", value: "100" },
@@ -130,6 +131,7 @@ const maxLinks = createListCollection({
 });
 
 export default function NewScrape({ loaderData }: Route.ComponentProps) {
+  const [searchParams] = useSearchParams();
   const { connect, stage, scraping } = useScrape();
   const scrapeFetcher = useFetcher();
   const scrapesCollection = useMemo(
@@ -172,13 +174,14 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                     placeholder="https://example.com"
                     name="url"
                     disabled={loading}
+                    defaultValue={searchParams.get("url") ?? ""}
                   />
                 </Field>
 
                 <SelectRoot
                   name="scrapeId"
                   collection={scrapesCollection}
-                  defaultValue={["new"]}
+                  defaultValue={[searchParams.get("collection") ?? "new"]}
                 >
                   <SelectLabel>Collection</SelectLabel>
                   <SelectTrigger>
@@ -223,7 +226,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                   <SelectRoot
                     name="maxLinks"
                     collection={maxLinks}
-                    defaultValue={["300"]}
+                    defaultValue={[searchParams.get("links") ?? "300"]}
                   >
                     <SelectLabel>Select max pages</SelectLabel>
                     <SelectTrigger>
