@@ -202,6 +202,12 @@ export function useScrapeChat({
     setMessages([]);
   }
 
+  function deleteMessage(uuids: string[]) {
+    setMessages((prev) =>
+      prev.filter((message) => !uuids.includes(message.uuid))
+    );
+  }
+
   return {
     connect,
     disconnect,
@@ -215,5 +221,6 @@ export function useScrapeChat({
     pinMessage,
     unpinMessage,
     erase,
+    deleteMessage,
   };
 }

@@ -80,8 +80,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     throw redirect("/");
   }
 
-  console.log({ intent });
-
   if (intent === "pin") {
     const uuid = formData.get("uuid") as string;
     console.log({ uuid });
@@ -123,12 +121,28 @@ export async function action({ request, params }: Route.ActionArgs) {
       },
     });
   }
+
+  if (intent === "delete") {
+    const uuids = (formData.get("uuids") as string).split(",");
+
+    await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        messages: {
+          deleteMany: {
+            where: { uuid: { in: uuids } },
+          },
+        },
+      },
+    });
+  }
 }
 
 export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
   const pinFetcher = useFetcher();
   const unpinFetcher = useFetcher();
   const eraseFetcher = useFetcher();
+  const deleteFetcher = useFetcher();
 
   useEffect(() => {
     if (loaderData.embed) {
@@ -154,6 +168,10 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
     eraseFetcher.submit({ intent: "erase" }, { method: "post" });
   }
 
+  function handleDelete(uuids: string[]) {
+    deleteFetcher.submit({ intent: "delete", uuids }, { method: "post" });
+  }
+
   return (
     <Stack
       h="100dvh"
@@ -168,6 +186,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         onPin={handlePin}
         onUnpin={handleUnpin}
         onErase={handleErase}
+        onDelete={handleDelete}
       />
     </Stack>
   );

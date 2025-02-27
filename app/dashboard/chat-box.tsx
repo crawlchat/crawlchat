@@ -184,12 +184,14 @@ function AssistantMessage({
   pinned,
   onPin,
   onUnpin,
+  onDelete,
 }: {
   content: string;
   links: { url: string; title: string | null }[];
   pinned: boolean;
   onPin: () => void;
   onUnpin: () => void;
+  onDelete: () => void;
 }) {
   return (
     <Stack>
@@ -204,7 +206,12 @@ function AssistantMessage({
           >
             <TbPin />
           </IconButton>
-          <IconButton size={"xs"} rounded={"full"} variant={"subtle"}>
+          <IconButton
+            size={"xs"}
+            rounded={"full"}
+            variant={"subtle"}
+            onClick={onDelete}
+          >
             <TbTrash />
           </IconButton>
         </Group>
@@ -361,6 +368,7 @@ export default function ScrapeWidget({
   onPin,
   onUnpin,
   onErase,
+  onDelete,
 }: {
   thread: Thread;
   scrape: Scrape;
@@ -369,6 +377,7 @@ export default function ScrapeWidget({
   onPin: (uuid: string) => void;
   onUnpin: (uuid: string) => void;
   onErase: () => void;
+  onDelete: (uuids: string[]) => void;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -457,6 +466,11 @@ export default function ScrapeWidget({
     scroll(`#message-${uuid}`);
   }
 
+  function handleDelete(uuids: string[]) {
+    onDelete(uuids);
+    chat.deleteMessage(uuids);
+  }
+
   const { width, height } = getSize();
 
   return (
@@ -492,6 +506,12 @@ export default function ScrapeWidget({
                   pinned={chat.allMessages[index - 1]?.pinned}
                   onPin={() => handlePin(chat.allMessages[index - 1]?.uuid)}
                   onUnpin={() => handleUnpin(chat.allMessages[index - 1]?.uuid)}
+                  onDelete={() =>
+                    handleDelete([
+                      chat.allMessages[index - 1]?.uuid,
+                      message.uuid,
+                    ])
+                  }
                 />
               )}
               {chat.askStage === "asked" &&
