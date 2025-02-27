@@ -36,13 +36,22 @@ import { Tooltip } from "~/components/ui/tooltip";
 import { useScrape } from "~/dashboard/use-scrape";
 import { createToken } from "~/jwt";
 import type { Route } from "./+types/new-scrape";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { prisma } from "~/prisma";
+import type { Scrape } from "@prisma/client";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
+
+  const scrapes = await prisma.scrape.findMany({
+    where: {
+      userId: user!.id,
+    },
+  });
+
   return {
     token: createToken(user!.id),
+    scrapes,
   };
 }
 
@@ -59,18 +68,27 @@ export async function action({ request }: { request: Request }) {
     );
     const removeHtmlTags = formData.get("removeHtmlTags");
     const includeHtmlTags = formData.get("includeHtmlTags");
+    const scrapeId = formData.get("scrapeId");
 
     if (!url) {
       return { error: "URL is required" };
     }
 
-    const scrape = await prisma.scrape.create({
-      data: {
-        url: url as string,
-        userId: user!.id,
-        status: "pending",
-      },
-    });
+    let scrape: Scrape;
+
+    if (scrapeId === "new") {
+      scrape = await prisma.scrape.create({
+        data: {
+          url: url as string,
+          userId: user!.id,
+          status: "pending",
+        },
+      });
+    } else {
+      scrape = await prisma.scrape.findUniqueOrThrow({
+        where: { id: scrapeId as string },
+      });
+    }
 
     const token = createToken(user!.id);
 
@@ -83,6 +101,7 @@ export async function action({ request }: { request: Request }) {
         dynamicFallbackContentLength,
         removeHtmlTags,
         includeHtmlTags,
+        url: scrapeId !== "new" ? url : undefined,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -113,6 +132,20 @@ const maxLinks = createListCollection({
 export default function NewScrape({ loaderData }: Route.ComponentProps) {
   const { connect, stage, scraping } = useScrape();
   const scrapeFetcher = useFetcher();
+  const scrapesCollection = useMemo(
+    function () {
+      return createListCollection({
+        items: [
+          { title: "New collection", id: "new" },
+          ...loaderData.scrapes,
+        ].map((scrape) => ({
+          label: scrape.title,
+          value: scrape.id,
+        })),
+      });
+    },
+    [loaderData.scrapes]
+  );
 
   useEffect(() => {
     connect(loaderData.token);
@@ -133,6 +166,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                   from your website. Give your content URL and set how you want
                   to scrape it for better results.
                 </Text>
+
                 <Field label="URL" required>
                   <Input
                     placeholder="https://example.com"
@@ -140,6 +174,24 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                     disabled={loading}
                   />
                 </Field>
+
+                <SelectRoot
+                  name="scrapeId"
+                  collection={scrapesCollection}
+                  defaultValue={["new"]}
+                >
+                  <SelectLabel>Collection</SelectLabel>
+                  <SelectTrigger>
+                    <SelectValueText placeholder="Select collection" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {scrapesCollection.items.map((item) => (
+                      <SelectItem item={item} key={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectRoot>
 
                 <Field label="Skip URLs">
                   <Input name="skipRegex" placeholder="Ex: /blog or /docs/v1" />

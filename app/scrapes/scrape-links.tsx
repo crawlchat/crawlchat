@@ -31,7 +31,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const items = await prisma.scrapeItem.findMany({
     where: { scrapeId: scrape.id },
-    select: { id: true, url: true, title: true, createdAt: true },
+    select: {
+      id: true,
+      url: true,
+      title: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   return { scrape, items };
@@ -91,7 +97,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
             <Table.ColumnHeader>Url</Table.ColumnHeader>
             <Table.ColumnHeader>Title</Table.ColumnHeader>
             <Table.ColumnHeader>Status</Table.ColumnHeader>
-            <Table.ColumnHeader>Created</Table.ColumnHeader>
+            <Table.ColumnHeader>Updated</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -114,7 +120,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                   Success
                 </Badge>
               </Table.Cell>
-              <Table.Cell>{moment(item.createdAt).fromNow()}</Table.Cell>
+              <Table.Cell>{moment(item.updatedAt).fromNow()}</Table.Cell>
             </Table.Row>
           ))}
         </Table.Body>

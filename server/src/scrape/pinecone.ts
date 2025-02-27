@@ -24,6 +24,10 @@ function makeIndexName() {
   return "earth";
 }
 
+export function makeRecordId(scrapeId: string, id: string) {
+  return `${scrapeId}/${id}`;
+}
+
 export async function makeEmbedding(text: string) {
   const embedder = await getEmbedder();
   const output = await embedder(text, {
@@ -74,10 +78,13 @@ export async function saveEmbedding(
     id: string;
   }[]
 ) {
+  if (docs.length === 0) {
+    return;
+  }
   const index = pc.index(makeIndexName());
   await index.upsert(
     docs.map((doc) => ({
-      id: scrapeId + "/" + doc.id,
+      id: doc.id,
       values: Array.from(doc.embedding),
       metadata: {
         ...doc.metadata,
@@ -128,6 +135,9 @@ export async function deleteScrape(scrapeId: string) {
 }
 
 export async function deleteByIds(ids: string[]) {
+  if (ids.length === 0) {
+    return;
+  }
   const index = pc.index(makeIndexName());
   await index.deleteMany(ids);
 }

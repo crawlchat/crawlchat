@@ -16,6 +16,7 @@ import {
   deleteByIds,
   deleteScrape,
   makeEmbedding,
+  makeRecordId,
   saveEmbedding,
   search,
 } from "./scrape/pinecone";
@@ -102,6 +103,8 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     where: { id: scrapeId, userId },
   });
 
+  console.log("Scraping for", scrape.id);
+
   (async function () {
     function getLimit() {
       if (userId === process.env.OPEN_USER_ID) {
@@ -159,7 +162,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
         const chunks = await splitMarkdown(markdown);
         const chunkDocs = await Promise.all(
           chunks.map(async (chunk) => ({
-            id: uuidv4(),
+            id: makeRecordId(scrape.id, uuidv4()),
             embedding: await makeEmbedding(chunk),
             metadata: { content: chunk, url },
           }))
