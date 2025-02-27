@@ -11,8 +11,8 @@ import {
   Skeleton,
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
-import type { Scrape, Thread } from "@prisma/client";
-import { useEffect, useRef, useState } from "react";
+import type { Message, Scrape, Thread } from "@prisma/client";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TbArrowUp,
   TbChevronRight,
@@ -175,16 +175,27 @@ function UserMessage({ content }: { content: string }) {
 function AssistantMessage({
   content,
   links,
+  pinned,
+  onPin,
+  onUnpin,
 }: {
   content: string;
   links: { url: string; title: string | null }[];
+  pinned: boolean;
+  onPin: () => void;
+  onUnpin: () => void;
 }) {
   return (
     <Stack>
       <Stack px={4} gap={0}>
         <MarkdownProse>{content}</MarkdownProse>
         <Group>
-          <IconButton size={"xs"} rounded={"full"} variant={"subtle"}>
+          <IconButton
+            size={"xs"}
+            rounded={"full"}
+            variant={pinned ? "solid" : "subtle"}
+            onClick={pinned ? onUnpin : onPin}
+          >
             <TbPin />
           </IconButton>
           <IconButton size={"xs"} rounded={"full"} variant={"subtle"}>
@@ -226,8 +237,11 @@ function LoadingMessage() {
   );
 }
 
-function Toolbar() {
+function Toolbar({ messages }: { messages: Message[] }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const pinnedCount = useMemo(() => {
+    return messages.filter((message) => message.pinnedAt).length;
+  }, [messages]);
 
   useEffect(
     function () {
@@ -261,28 +275,30 @@ function Toolbar() {
         <Group></Group>
       </Group>
       <Group>
-        <Tooltip content="Pinned">
-          <IconButton
-            size={"xs"}
-            rounded={"full"}
-            variant={"subtle"}
-            position={"relative"}
-          >
-            <TbPin />
-            <Badge
-              ml="1"
-              colorScheme="red"
-              variant="solid"
-              borderRadius="full"
-              position={"absolute"}
-              top={-1}
-              right={-1}
+        {pinnedCount > 0 && (
+          <Tooltip content="Pinned">
+            <IconButton
               size={"xs"}
+              rounded={"full"}
+              variant={"subtle"}
+              position={"relative"}
             >
-              5
-            </Badge>
-          </IconButton>
-        </Tooltip>
+              <TbPin />
+              <Badge
+                ml="1"
+                colorScheme="red"
+                variant="solid"
+                borderRadius="full"
+                position={"absolute"}
+                top={-1}
+                right={-1}
+                size={"xs"}
+              >
+                {pinnedCount}
+              </Badge>
+            </IconButton>
+          </Tooltip>
+        )}
 
         <Tooltip
           content={confirmDelete ? "Are you sure?" : "Clear chat"}
@@ -309,11 +325,15 @@ export default function ScrapeWidget({
   scrape,
   userToken,
   onBgClick,
+  onPin,
+  onUnpin,
 }: {
   thread: Thread;
   scrape: Scrape;
   userToken: string;
   onBgClick?: () => void;
+  onPin: (uuid: string) => void;
+  onUnpin: (uuid: string) => void;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -327,12 +347,9 @@ export default function ScrapeWidget({
     return () => chat.disconnect();
   }, []);
 
-  useEffect(
-    function () {
-      scroll();
-    },
-    [chat.messages]
-  );
+  useEffect(function () {
+    scroll();
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -386,7 +403,16 @@ export default function ScrapeWidget({
     }
   }
 
-  const messages = chat.allMessages();
+  function handlePin(uuid: string) {
+    onPin(uuid);
+    chat.pinMessage(uuid);
+  }
+
+  function handleUnpin(uuid: string) {
+    onUnpin(uuid);
+    chat.unpinMessage(uuid);
+  }
+
   const { width, height } = getSize();
 
   return (
@@ -404,10 +430,10 @@ export default function ScrapeWidget({
         overflow={"hidden"}
         gap={0}
       >
-        <Toolbar />
+        <Toolbar messages={chat.messages} />
         <Stack flex="1" overflow={"auto"} gap={0}>
-          {messages.length === 0 && <NoMessages scrape={scrape} />}
-          {messages.map((message, index) => (
+          {chat.allMessages.length === 0 && <NoMessages scrape={scrape} />}
+          {chat.allMessages.map((message, index) => (
             <Stack key={index}>
               {message.role === "user" ? (
                 <UserMessage content={message.content} />
@@ -415,14 +441,17 @@ export default function ScrapeWidget({
                 <AssistantMessage
                   content={message.content}
                   links={message.links}
+                  pinned={chat.allMessages[index - 1]?.pinned}
+                  onPin={() => handlePin(chat.allMessages[index - 1]?.uuid)}
+                  onUnpin={() => handleUnpin(chat.allMessages[index - 1]?.uuid)}
                 />
               )}
-              {chat.askStage === "asked" && index === messages.length - 1 && (
-                <LoadingMessage />
-              )}
-              {chat.askStage !== "idle" && index === messages.length - 1 && (
-                <Box h={"2000px"} w="full" />
-              )}
+              {chat.askStage === "asked" &&
+                index === chat.allMessages.length - 1 && <LoadingMessage />}
+              {chat.askStage !== "idle" &&
+                index === chat.allMessages.length - 1 && (
+                  <Box h={"2000px"} w="full" />
+                )}
             </Stack>
           ))}
         </Stack>
