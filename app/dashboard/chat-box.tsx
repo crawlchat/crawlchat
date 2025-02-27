@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   Center,
   Group,
@@ -12,10 +13,18 @@ import {
 import { Stack, Text } from "@chakra-ui/react";
 import type { Scrape, Thread } from "@prisma/client";
 import { useEffect, useRef, useState } from "react";
-import { TbArrowUp, TbChevronRight, TbMessage } from "react-icons/tb";
+import {
+  TbArrowUp,
+  TbChevronRight,
+  TbEraser,
+  TbMessage,
+  TbPin,
+  TbTrash,
+} from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { InputGroup } from "~/components/ui/input-group";
+import { Tooltip } from "~/components/ui/tooltip";
 
 function ChatInput({
   onAsk,
@@ -78,11 +87,7 @@ function ChatInput({
       p={4}
     >
       <Group flex={1}>
-        <InputGroup
-          flex="1"
-          startElement={<TbMessage size={"20px"} />}
-          endElement={<Kbd>⏎</Kbd>}
-        >
+        <InputGroup flex="1" endElement={<Kbd>⏎</Kbd>}>
           <Input
             ref={inputRef}
             placeholder={getPlaceholder()}
@@ -176,8 +181,16 @@ function AssistantMessage({
 }) {
   return (
     <Stack>
-      <Stack p={4} pt={0}>
+      <Stack px={4} gap={0}>
         <MarkdownProse>{content}</MarkdownProse>
+        <Group>
+          <IconButton size={"xs"} rounded={"full"} variant={"subtle"}>
+            <TbPin />
+          </IconButton>
+          <IconButton size={"xs"} rounded={"full"} variant={"subtle"}>
+            <TbTrash />
+          </IconButton>
+        </Group>
       </Stack>
       {links.length > 0 && (
         <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
@@ -210,6 +223,84 @@ function LoadingMessage() {
       <Skeleton h={"20px"} w={"100%"} />
       <Skeleton h={"20px"} w={"60%"} />
     </Stack>
+  );
+}
+
+function Toolbar() {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  useEffect(
+    function () {
+      if (!confirmDelete) {
+        return;
+      }
+
+      const timeout = setTimeout(() => setConfirmDelete(false), 3000);
+      return () => clearTimeout(timeout);
+    },
+    [confirmDelete]
+  );
+
+  function handleDelete() {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+  }
+
+  return (
+    <Group
+      h="60px"
+      borderBottom={"1px solid"}
+      borderColor={"brand.outline"}
+      p={4}
+      w={"full"}
+      justify={"space-between"}
+    >
+      <Group w="full">
+        <Group></Group>
+      </Group>
+      <Group>
+        <Tooltip content="Pinned">
+          <IconButton
+            size={"xs"}
+            rounded={"full"}
+            variant={"subtle"}
+            position={"relative"}
+          >
+            <TbPin />
+            <Badge
+              ml="1"
+              colorScheme="red"
+              variant="solid"
+              borderRadius="full"
+              position={"absolute"}
+              top={-1}
+              right={-1}
+              size={"xs"}
+            >
+              5
+            </Badge>
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip
+          content={confirmDelete ? "Are you sure?" : "Clear chat"}
+          open={confirmDelete}
+          showArrow
+        >
+          <IconButton
+            size={"xs"}
+            rounded={"full"}
+            variant={confirmDelete ? "solid" : "subtle"}
+            colorPalette={confirmDelete ? "red" : undefined}
+            onClick={handleDelete}
+          >
+            <TbEraser />
+          </IconButton>
+        </Tooltip>
+      </Group>
+    </Group>
   );
 }
 
@@ -313,6 +404,7 @@ export default function ScrapeWidget({
         overflow={"hidden"}
         gap={0}
       >
+        <Toolbar />
         <Stack flex="1" overflow={"auto"} gap={0}>
           {messages.length === 0 && <NoMessages scrape={scrape} />}
           {messages.map((message, index) => (
