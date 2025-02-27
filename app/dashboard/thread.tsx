@@ -19,7 +19,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   if (!thread) {
     throw redirect("/app");
   }
-  const user = await getAuthUser(request, { userId: thread.userId });
+  const user = await getAuthUser(request, {
+    userId: thread.userId ?? undefined,
+  });
   if (!user) {
     throw redirect("/app");
   }

@@ -224,6 +224,18 @@ export default function ScrapeWidget({
     [chat.messages]
   );
 
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onBgClick?.();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   async function handleAsk(query: string) {
     chat.ask(query);
     await scroll();

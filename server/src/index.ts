@@ -313,6 +313,8 @@ expressWs.app.ws("/", (ws: any, req) => {
           newQueryMessage,
         ]);
 
+        console.log({ query });
+
         const result = await search(scrape.id, await makeEmbedding(query));
         const matches = result.matches.map((match) => ({
           content: match.metadata!.content as string,

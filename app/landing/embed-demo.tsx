@@ -1,12 +1,30 @@
 import { Box, Button, Group, Input, Kbd, Stack, Text } from "@chakra-ui/react";
+import { useEffect } from "react";
 import { TbArrowRight, TbSearch, TbWorld } from "react-icons/tb";
 import { InputGroup } from "~/components/ui/input-group";
 
 export function meta() {
-  return [];
+  return [
+    {
+      title: "CrawlChat Embed Demo",
+    },
+  ];
 }
 
 export default function EmbedDemo() {
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      console.log(event);
+      if (event.metaKey && event.key === "k") {
+        (window as any).crawlchatEmbed.show();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   function handleSearch() {
     (window as any).crawlchatEmbed.show();
   }
@@ -17,7 +35,11 @@ export default function EmbedDemo() {
         <Group justifyContent={"space-between"}>
           <Group>
             <TbWorld size={26} />
-            <Text fontSize={"2xl"} fontWeight={"bold"}>
+            <Text
+              fontSize={"2xl"}
+              fontWeight={"bold"}
+              display={["none", "block"]}
+            >
               My Website
             </Text>
           </Group>
@@ -30,7 +52,7 @@ export default function EmbedDemo() {
             >
               <Input placeholder="Search contacts" onClick={handleSearch} />
             </InputGroup>
-            <Button>
+            <Button display={["none", "flex"]}>
               Login
               <TbArrowRight />
             </Button>
@@ -38,15 +60,10 @@ export default function EmbedDemo() {
         </Group>
 
         <Box w={"full"} h={"100px"} bg={"gray.100"} />
-
         <Box w={"full"} h={"240px"} bg={"gray.100"} />
-
         <Box w={"full"} h={"60px"} bg={"gray.100"} />
-
         <Box w={"full"} h={"60px"} bg={"gray.100"} />
-
         <Box w={"full"} h={"60px"} bg={"gray.100"} />
-
         <Box w={"full"} h={"60px"} bg={"gray.100"} />
       </Stack>
     </Stack>
