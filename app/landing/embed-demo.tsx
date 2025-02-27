@@ -14,7 +14,6 @@ export function meta() {
 export default function EmbedDemo() {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      console.log(event);
       if (event.metaKey && event.key === "k") {
         (window as any).crawlchatEmbed.show();
       }
