@@ -52,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <script
             src="/embed.js"
             id="crawlchat-script"
-            data-id="67c01887c307a166a80fa594"
+            data-id="67bca5b7b57f15a3a6f8eac6"
           />
         )}
       </body>

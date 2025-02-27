@@ -40,7 +40,7 @@ export default function EmbedDemo() {
               fontWeight={"bold"}
               display={["none", "block"]}
             >
-              My Website
+              Demo Remotion
             </Text>
           </Group>
 
