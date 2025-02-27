@@ -114,11 +114,21 @@ export async function action({ request, params }: Route.ActionArgs) {
       },
     });
   }
+
+  if (intent === "erase") {
+    await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        messages: [],
+      },
+    });
+  }
 }
 
 export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
   const pinFetcher = useFetcher();
   const unpinFetcher = useFetcher();
+  const eraseFetcher = useFetcher();
 
   useEffect(() => {
     if (loaderData.embed) {
@@ -140,6 +150,10 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
     unpinFetcher.submit({ intent: "unpin", uuid }, { method: "post" });
   }
 
+  function handleErase() {
+    eraseFetcher.submit({ intent: "erase" }, { method: "post" });
+  }
+
   return (
     <Stack
       h="100dvh"
@@ -153,6 +167,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         onBgClick={handleClose}
         onPin={handlePin}
         onUnpin={handleUnpin}
+        onErase={handleErase}
       />
     </Stack>
   );

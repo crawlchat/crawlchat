@@ -25,6 +25,12 @@ import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { InputGroup } from "~/components/ui/input-group";
 import { Tooltip } from "~/components/ui/tooltip";
+import {
+  MenuContent,
+  MenuItem,
+  MenuRoot,
+  MenuTrigger,
+} from "~/components/ui/menu";
 
 function ChatInput({
   onAsk,
@@ -237,7 +243,15 @@ function LoadingMessage() {
   );
 }
 
-function Toolbar({ messages }: { messages: Message[] }) {
+function Toolbar({
+  messages,
+  onErase,
+  onPinSelect,
+}: {
+  messages: Message[];
+  onErase: () => void;
+  onPinSelect: (uuid: string) => void;
+}) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const pinnedCount = useMemo(() => {
     return messages.filter((message) => message.pinnedAt).length;
@@ -260,6 +274,11 @@ function Toolbar({ messages }: { messages: Message[] }) {
       setConfirmDelete(true);
       return;
     }
+    onErase();
+  }
+
+  function handlePinSelect(uuid: string) {
+    onPinSelect(uuid);
   }
 
   return (
@@ -276,28 +295,42 @@ function Toolbar({ messages }: { messages: Message[] }) {
       </Group>
       <Group>
         {pinnedCount > 0 && (
-          <Tooltip content="Pinned">
-            <IconButton
-              size={"xs"}
-              rounded={"full"}
-              variant={"subtle"}
-              position={"relative"}
-            >
-              <TbPin />
-              <Badge
-                ml="1"
-                colorScheme="red"
-                variant="solid"
-                borderRadius="full"
-                position={"absolute"}
-                top={-1}
-                right={-1}
+          <MenuRoot
+            positioning={{ placement: "bottom-end" }}
+            onSelect={(e) => handlePinSelect(e.value)}
+          >
+            <MenuTrigger asChild>
+              <IconButton
                 size={"xs"}
+                rounded={"full"}
+                variant={"subtle"}
+                position={"relative"}
               >
-                {pinnedCount}
-              </Badge>
-            </IconButton>
-          </Tooltip>
+                <TbPin />
+                <Badge
+                  ml="1"
+                  colorScheme="red"
+                  variant="solid"
+                  borderRadius="full"
+                  position={"absolute"}
+                  top={-1}
+                  right={-1}
+                  size={"xs"}
+                >
+                  {pinnedCount}
+                </Badge>
+              </IconButton>
+            </MenuTrigger>
+            <MenuContent>
+              {messages
+                .filter((m) => m.pinnedAt)
+                .map((message) => (
+                  <MenuItem value={message.uuid}>
+                    {(message.llmMessage as any)?.content}
+                  </MenuItem>
+                ))}
+            </MenuContent>
+          </MenuRoot>
         )}
 
         <Tooltip
@@ -327,6 +360,7 @@ export default function ScrapeWidget({
   onBgClick,
   onPin,
   onUnpin,
+  onErase,
 }: {
   thread: Thread;
   scrape: Scrape;
@@ -334,6 +368,7 @@ export default function ScrapeWidget({
   onBgClick?: () => void;
   onPin: (uuid: string) => void;
   onUnpin: (uuid: string) => void;
+  onErase: () => void;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -378,9 +413,9 @@ export default function ScrapeWidget({
     await scroll();
   }
 
-  async function scroll() {
+  async function scroll(selector = ".user-message") {
     await new Promise((resolve) => setTimeout(resolve, 100));
-    const message = document.querySelectorAll(`.user-message`);
+    const message = document.querySelectorAll(selector);
     if (message) {
       message[message.length - 1]?.scrollIntoView({ behavior: "smooth" });
     }
@@ -413,6 +448,15 @@ export default function ScrapeWidget({
     chat.unpinMessage(uuid);
   }
 
+  function handleErase() {
+    onErase();
+    chat.erase();
+  }
+
+  function handlePinSelect(uuid: string) {
+    scroll(`#message-${uuid}`);
+  }
+
   const { width, height } = getSize();
 
   return (
@@ -430,11 +474,15 @@ export default function ScrapeWidget({
         overflow={"hidden"}
         gap={0}
       >
-        <Toolbar messages={chat.messages} />
+        <Toolbar
+          messages={chat.messages}
+          onErase={handleErase}
+          onPinSelect={handlePinSelect}
+        />
         <Stack flex="1" overflow={"auto"} gap={0}>
           {chat.allMessages.length === 0 && <NoMessages scrape={scrape} />}
           {chat.allMessages.map((message, index) => (
-            <Stack key={index}>
+            <Stack key={index} id={`message-${message.uuid}`}>
               {message.role === "user" ? (
                 <UserMessage content={message.content} />
               ) : (

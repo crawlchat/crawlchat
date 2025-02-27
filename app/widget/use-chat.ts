@@ -198,6 +198,10 @@ export function useScrapeChat({
     });
   }
 
+  function erase() {
+    setMessages([]);
+  }
+
   return {
     connect,
     disconnect,
@@ -210,5 +214,6 @@ export function useScrapeChat({
     askStage,
     pinMessage,
     unpinMessage,
+    erase,
   };
 }
