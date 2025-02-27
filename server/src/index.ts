@@ -13,6 +13,7 @@ import { Stream } from "openai/streaming";
 import { addMessage } from "./thread/store";
 import { prisma } from "./prisma";
 import {
+  deleteByIds,
   deleteScrape,
   makeEmbedding,
   saveEmbedding,
@@ -29,6 +30,7 @@ import {
   QuestionSplitterAgent,
 } from "./llm/agentic";
 import { makeLLMTxt } from "./llm-txt";
+import { v4 as uuidv4 } from "uuid";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -155,15 +157,14 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
           : actualRemainingUrlCount;
 
         const chunks = await splitMarkdown(markdown);
-        for (const chunk of chunks) {
-          const embedding = await makeEmbedding(chunk);
-          await saveEmbedding(scrape.id, [
-            {
-              embedding,
-              metadata: { content: chunk, url },
-            },
-          ]);
-        }
+        const chunkDocs = await Promise.all(
+          chunks.map(async (chunk) => ({
+            id: uuidv4(),
+            embedding: await makeEmbedding(chunk),
+            metadata: { content: chunk, url },
+          }))
+        );
+        await saveEmbedding(scrape.id, chunkDocs);
 
         if (scrape.url === url) {
           await prisma.scrape.update({
@@ -172,12 +173,24 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
           });
         }
 
+        const existingItem = await prisma.scrapeItem.findFirst({
+          where: { scrapeId: scrape.id, url },
+        });
+        if (existingItem) {
+          await deleteByIds(
+            existingItem.embeddings.map((embedding) => embedding.id)
+          );
+        }
+
         await prisma.scrapeItem.upsert({
           where: { scrapeId_url: { scrapeId: scrape.id, url } },
           update: {
             markdown,
             title: getMetaTitle(store.urls[url]?.metaTags ?? []),
             metaTags: store.urls[url]?.metaTags,
+            embeddings: chunkDocs.map((doc) => ({
+              id: doc.id,
+            })),
           },
           create: {
             userId,
@@ -186,6 +199,9 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
             markdown,
             title: getMetaTitle(store.urls[url]?.metaTags ?? []),
             metaTags: store.urls[url]?.metaTags,
+            embeddings: chunkDocs.map((doc) => ({
+              id: doc.id,
+            })),
           },
         });
 
