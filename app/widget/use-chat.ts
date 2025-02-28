@@ -107,31 +107,15 @@ export function useScrapeChat({
 
   function handleLlmChunk({
     end,
-    role,
     content,
-    links,
-    uuid,
+    message,
   }: {
     end?: boolean;
-    role: string;
     content: string;
-    links?: { url: string; title: string }[];
-    uuid: string;
+    message: Message;
   }) {
     if (end) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          llmMessage: {
-            role,
-            content,
-          },
-          links: links ?? [],
-          pinnedAt: null,
-          uuid,
-          createdAt: new Date(),
-        },
-      ]);
+      setMessages((prev) => [...prev, message]);
       setContent("");
       setAskStage("idle");
       return;

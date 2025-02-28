@@ -381,9 +381,7 @@ expressWs.app.ws("/", (ws: any, req) => {
           makeMessage("llm-chunk", {
             end: true,
             content,
-            role,
-            links,
-            uuid: newAnswerMessage.uuid,
+            message: newAnswerMessage,
           })
         );
       }

@@ -11,7 +11,12 @@ import {
   Skeleton,
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
-import type { Message, Scrape, Thread } from "@prisma/client";
+import type {
+  Message,
+  MessageSourceLink,
+  Scrape,
+  Thread,
+} from "@prisma/client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TbArrowUp,
@@ -127,7 +132,7 @@ function ChatInput({
   );
 }
 
-function SourceLink({ link }: { link: { url: string; title: string | null } }) {
+function SourceLink({ link }: { link: MessageSourceLink }) {
   return (
     <Link
       borderBottom={"1px solid"}
@@ -146,7 +151,7 @@ function SourceLink({ link }: { link: { url: string; title: string | null } }) {
       <Stack px={4} py={3} w="full">
         <Group justify={"space-between"} w="full">
           <Stack gap={0}>
-            <Text fontSize={"xs"} lineClamp={1}>
+            <Text fontSize={"xs"} lineClamp={1} data-score={link.score}>
               {link.title}
             </Text>
             <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
@@ -187,7 +192,7 @@ function AssistantMessage({
   onDelete,
 }: {
   content: string;
-  links: { url: string; title: string | null }[];
+  links: MessageSourceLink[];
   pinned: boolean;
   onPin: () => void;
   onUnpin: () => void;

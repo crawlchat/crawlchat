@@ -75,8 +75,6 @@ export async function action({ request, params }: Route.ActionArgs) {
   const session = await getSession(request.headers.get("cookie"));
   const chatSessionKeys = session.get("chatSessionKeys") ?? {};
 
-  console.log({ chatSessionKeys });
-
   const threadId = chatSessionKeys[params.id];
 
   if (!threadId) {
@@ -85,7 +83,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   if (intent === "pin") {
     const uuid = formData.get("uuid") as string;
-    console.log({ uuid });
 
     await prisma.thread.update({
       where: { id: threadId },
