@@ -34,6 +34,8 @@ import {
   ScoredPineconeRecord,
 } from "@pinecone-database/pinecone";
 import { QueryResponse } from "@pinecone-database/pinecone";
+import { makeIndexer } from "./indexer/factory";
+import { MarsIndexer } from "./indexer/mars-indexer";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -79,8 +81,13 @@ async function betterSearch(
   let bestResult: [number, QueryResponse<RecordMetadata> | null] = [0, null];
   const bestMatches: ScoredPineconeRecord<RecordMetadata>[] = [];
 
+  const indexer = makeIndexer({ key: "mars" });
+
   for (let i = 0; i < 4; i++) {
-    const result = await search(scrapeId, await makeEmbedding(query), {
+    // const result = await search(scrapeId, await makeEmbedding(query), {
+    //   excludeIds: bestMatches.map((match) => match.id),
+    // });
+    const result = await indexer.search(scrapeId, query, {
       excludeIds: bestMatches.map((match) => match.id),
     });
 
@@ -94,7 +101,7 @@ async function betterSearch(
       }, 0) / result.matches.length;
 
     for (const match of result.matches) {
-      if (match.score && match.score > 0.3) {
+      if (match.score && match.score > 30) {
         bestMatches.push(match);
       }
     }
@@ -111,7 +118,7 @@ async function betterSearch(
       bestMatches: bestMatches.length,
     });
 
-    if (avgScore > 0.3 && maxScore > 0.3) {
+    if (bestMatches.length >= 3) {
       break;
     }
 
@@ -146,7 +153,11 @@ app.get("/", function (req: Request, res: Response) {
 });
 
 app.get("/test", async function (req: Request, res: Response) {
-  res.json({ message: "ok" });
+  const indexer = new MarsIndexer();
+  const result = await indexer.makeSparseEmbedding(
+    "The quick brown fox jumps over the lazy dog."
+  );
+  res.json({ message: result });
 });
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
@@ -230,14 +241,22 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
             : actualRemainingUrlCount;
 
           const chunks = await splitMarkdown(markdown);
-          const chunkDocs = await Promise.all(
-            chunks.map(async (chunk) => ({
-              id: makeRecordId(scrape.id, uuidv4()),
-              embedding: await makeEmbedding(chunk),
-              metadata: { content: chunk, url },
-            }))
-          );
-          await saveEmbedding(scrape.id, chunkDocs);
+          // const chunkDocs = await Promise.all(
+          //   chunks.map(async (chunk) => ({
+          //     id: makeRecordId(scrape.id, uuidv4()),
+          //     embedding: await makeEmbedding(chunk),
+          //     metadata: { content: chunk, url },
+          //   }))
+          // );
+          // await saveEmbedding(scrape.id, chunkDocs);
+
+          const indexer = makeIndexer({ key: "mars" });
+          const documents = chunks.map((chunk) => ({
+            id: makeRecordId(scrape.id, uuidv4()),
+            text: chunk,
+            metadata: { content: chunk, url },
+          }));
+          await indexer.upsert(scrape.id, documents);
 
           if (scrape.url === url) {
             await prisma.scrape.update({
@@ -261,7 +280,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
               markdown,
               title: getMetaTitle(store.urls[url]?.metaTags ?? []),
               metaTags: store.urls[url]?.metaTags,
-              embeddings: chunkDocs.map((doc) => ({
+              embeddings: documents.map((doc) => ({
                 id: doc.id,
               })),
               status: "completed",
@@ -273,7 +292,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
               markdown,
               title: getMetaTitle(store.urls[url]?.metaTags ?? []),
               metaTags: store.urls[url]?.metaTags,
-              embeddings: chunkDocs.map((doc) => ({
+              embeddings: documents.map((doc) => ({
                 id: doc.id,
               })),
               status: "completed",
@@ -292,6 +311,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
             )
           );
         } catch (error: any) {
+          console.error(error);
           await prisma.scrapeItem.upsert({
             where: { scrapeId_url: { scrapeId: scrape.id, url } },
             update: {
@@ -421,7 +441,7 @@ expressWs.app.ws("/", (ws: any, req) => {
             context: contextContent,
             systemPrompt: scrape.chatPrompt ?? undefined,
           });
-  
+
           const streamResponse = await streamLLMResponse(ws, response);
           content = streamResponse.content;
           role = streamResponse.role;
