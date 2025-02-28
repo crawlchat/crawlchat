@@ -89,6 +89,7 @@ export async function saveEmbedding(
       metadata: {
         ...doc.metadata,
         scrapeId,
+        id: doc.id,
       },
     }))
   );
@@ -99,18 +100,27 @@ export async function search(
   queryEmbedding: Float32Array<ArrayBuffer>,
   options?: {
     topK?: number;
+    excludeIds?: string[];
   }
 ) {
   const topK = options?.topK ?? 5;
+
+  const filter: Record<string, any> = {
+    scrapeId,
+  };
+
+  if (options?.excludeIds) {
+    filter.id = {
+      $nin: options.excludeIds,
+    };
+  }
 
   const index = pc.index(makeIndexName());
   return await index.query({
     topK,
     vector: Array.from(queryEmbedding),
     includeMetadata: true,
-    filter: {
-      scrapeId,
-    },
+    filter,
   });
 }
 

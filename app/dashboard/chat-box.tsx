@@ -199,7 +199,7 @@ function AssistantMessage({
   onDelete: () => void;
 }) {
   return (
-    <Stack>
+    <Stack pb={4}>
       <Stack px={4} gap={0}>
         <MarkdownProse>{content}</MarkdownProse>
         <Group>

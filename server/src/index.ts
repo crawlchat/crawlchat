@@ -25,15 +25,14 @@ import { getRoomIds } from "./socket-room";
 import { authenticate, verifyToken } from "./jwt";
 import { getMetaTitle } from "./scrape/parse";
 import { splitMarkdown } from "./scrape/markdown-splitter";
-import {
-  AnswerAgent,
-  QueryPlannerAgent,
-  QuestionSplitterAgent,
-} from "./llm/agentic";
+import { QueryPlannerAgent } from "./llm/agentic";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
 import { Message, MessageSourceLink } from "@prisma/client";
-import { RecordMetadata } from "@pinecone-database/pinecone";
+import {
+  RecordMetadata,
+  ScoredPineconeRecord,
+} from "@pinecone-database/pinecone";
 import { QueryResponse } from "@pinecone-database/pinecone";
 
 const app: Express = express();
@@ -71,13 +70,19 @@ async function betterSearch(
   query: string,
   scrapeId: string,
   messages: Message[]
-): Promise<QueryResponse<RecordMetadata>> {
+): Promise<{
+  result: QueryResponse<RecordMetadata>;
+  matches: ScoredPineconeRecord<RecordMetadata>[];
+}> {
   const queryAgent = new QueryPlannerAgent();
   const triedQueries: string[] = [query];
   let bestResult: [number, QueryResponse<RecordMetadata> | null] = [0, null];
+  const bestMatches: ScoredPineconeRecord<RecordMetadata>[] = [];
 
   for (let i = 0; i < 4; i++) {
-    const result = await search(scrapeId, await makeEmbedding(query));
+    const result = await search(scrapeId, await makeEmbedding(query), {
+      excludeIds: bestMatches.map((match) => match.id),
+    });
 
     const maxScore = result.matches.reduce((max, match) => {
       return Math.max(max, match.score ?? 0);
@@ -88,15 +93,28 @@ async function betterSearch(
         return sum + (match.score ?? 0);
       }, 0) / result.matches.length;
 
-    if (avgScore > 0.3 && maxScore > 0.3) {
-      return result;
+    for (const match of result.matches) {
+      if (match.score && match.score > 0.3) {
+        bestMatches.push(match);
+      }
     }
 
     if (maxScore > bestResult[0]) {
       bestResult = [maxScore, result];
     }
 
-    console.log({ query, maxScore, avgScore });
+    console.log("query round", {
+      i,
+      query,
+      maxScore,
+      avgScore,
+      bestMatches: bestMatches.length,
+    });
+
+    if (avgScore > 0.3 && maxScore > 0.3) {
+      break;
+    }
+
     const triedQueryMessages: Message[] = triedQueries.map((query) => ({
       llmMessage: {
         role: "user",
@@ -120,7 +138,7 @@ async function betterSearch(
     throw new Error("bestResult is null. Should never happen.");
   }
 
-  return bestResult[1];
+  return { result: bestResult[1], matches: bestMatches };
 }
 
 app.get("/", function (req: Request, res: Response) {
@@ -395,13 +413,19 @@ expressWs.app.ws("/", (ws: any, req) => {
           .map((match) => match.content)
           .join("\n\n");
 
-        const response = await askLLM(message.data.query, thread.messages, {
-          url: scrape.url,
-          context: contextContent,
-          systemPrompt: scrape.chatPrompt ?? undefined,
-        });
-
-        const { content, role } = await streamLLMResponse(ws, response);
+        let content = "No context found";
+        let role = "assistant";
+        if (contextContent.length > 0) {
+          const response = await askLLM(message.data.query, thread.messages, {
+            url: scrape.url,
+            context: contextContent,
+            systemPrompt: scrape.chatPrompt ?? undefined,
+          });
+  
+          const streamResponse = await streamLLMResponse(ws, response);
+          content = streamResponse.content;
+          role = streamResponse.role;
+        }
 
         const links: MessageSourceLink[] = [];
         for (const match of matches) {

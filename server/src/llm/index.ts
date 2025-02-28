@@ -33,6 +33,10 @@ export async function askLLM(
       ...messages.map((message) => message.llmMessage as any),
       {
         role: "system",
+        content: `If context is not provided, don't answer the question. Don't hallucinate. Don't make the answers too long.`,
+      },
+      {
+        role: "system",
         content: options?.systemPrompt ?? "You are a helpful assistant.",
       },
       {
