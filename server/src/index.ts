@@ -32,6 +32,7 @@ import {
 } from "./llm/agentic";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
+import { Message, MessageSourceLink } from "@prisma/client";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -318,7 +319,7 @@ expressWs.app.ws("/", (ws: any, req) => {
           where: { id: thread.scrapeId },
         });
 
-        const newQueryMessage = {
+        const newQueryMessage: Message = {
           uuid: uuidv4(),
           llmMessage: { role: "user", content: message.data.query },
           links: [],
@@ -340,42 +341,38 @@ expressWs.app.ws("/", (ws: any, req) => {
         const matches = result.matches.map((match) => ({
           content: match.metadata!.content as string,
           url: match.metadata!.url as string,
+          score: match.score,
         }));
-        const context = {
-          content: matches.map((match) => match.content).join("\n\n"),
-          links: getUniqueLinks(matches).map((match) => ({
-            url: match.url,
-          })),
-        };
+        const contextContent = matches
+          .map((match) => match.content)
+          .join("\n\n");
 
         const response = await askLLM(message.data.query, thread.messages, {
           url: scrape.url,
-          context: context?.content,
+          context: contextContent,
           systemPrompt: scrape.chatPrompt ?? undefined,
         });
-        if (context?.links) {
-          ws.send(
-            makeMessage("links", {
-              links: context.links,
-            })
-          );
-        }
+
         const { content, role } = await streamLLMResponse(ws, response);
 
-        const linksWithTitle: { url: string; title: string | null }[] = [];
-        for (const link of context?.links ?? []) {
+        const links: MessageSourceLink[] = [];
+        for (const match of matches) {
           const item = await prisma.scrapeItem.findFirst({
-            where: { url: link.url },
+            where: { url: match.url },
           });
           if (item) {
-            linksWithTitle.push({ ...link, title: item.title });
+            links.push({
+              url: match.url,
+              title: item.title,
+              score: match.score ?? null,
+            });
           }
         }
 
-        const newAnswerMessage = {
+        const newAnswerMessage: Message = {
           uuid: uuidv4(),
           llmMessage: { role, content },
-          links: linksWithTitle,
+          links,
           createdAt: new Date(),
           pinnedAt: null,
         };
@@ -385,7 +382,7 @@ expressWs.app.ws("/", (ws: any, req) => {
             end: true,
             content,
             role,
-            links: linksWithTitle,
+            links,
             uuid: newAnswerMessage.uuid,
           })
         );

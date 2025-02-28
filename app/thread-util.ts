@@ -1,4 +1,4 @@
-import type { Message, ScrapeLink } from "@prisma/client";
+import type { Message, MessageSourceLink } from "@prisma/client";
 
 export function getThreadName(messages: Message[], maxLength = 500) {
   const title =
@@ -9,6 +9,6 @@ export function getThreadName(messages: Message[], maxLength = 500) {
   return title.charAt(0).toUpperCase() + title.slice(1);
 }
 
-export function getLinkTitle(link: ScrapeLink) {
+export function getLinkTitle(link: MessageSourceLink) {
   return link.title ?? link.url;
 }

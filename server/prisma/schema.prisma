@@ -64,15 +64,16 @@ model Scrape {
   items           ScrapeItem[]
 }
 
-type ScrapeLink {
+type MessageSourceLink {
   url             String
   title           String?
+  score           Float?
 }
 
 type Message {
   uuid            String
   llmMessage      Json
-  links           ScrapeLink[]
+  links           MessageSourceLink[]
   createdAt       DateTime? @default(now())
   pinnedAt        DateTime?
 }
