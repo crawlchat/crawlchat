@@ -37,6 +37,18 @@ export async function makeEmbedding(text: string) {
   return new Float32Array(output.data);
 }
 
+export async function getSparseEmbedding(text: string) {
+  const embeddings = await pc.inference.embed(
+    "pinecone-sparse-english-v0",
+    [text],
+    {
+      inputType: "passage",
+      returnTokens: "true",
+    }
+  );
+  return new Float32Array(embeddings.data[0].values!);
+}
+
 export async function chunkText(
   text: string,
   modelName = "Xenova/all-MiniLM-L6-v2",
@@ -140,4 +152,12 @@ export async function deleteByIds(ids: string[]) {
   }
   const index = pc.index(makeIndexName());
   await index.deleteMany(ids);
+}
+
+export async function makePcEmbedding(text: string) {
+  const embeddings = await pc.inference.embed("multilingual-e5-large", [text], {
+    inputType: "passage",
+    truncate: "END",
+  });
+  return new Float32Array(embeddings.data[0].values!);
 }
