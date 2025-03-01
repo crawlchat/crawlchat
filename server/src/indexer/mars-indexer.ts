@@ -23,6 +23,10 @@ export class MarsIndexer implements Indexer {
     return this.indexName;
   }
 
+  getMinBestScore(): number {
+    return 10;
+  }
+
   async upsert(scrapeId: string, documents: IndexDocument[]): Promise<void> {
     if (documents.length === 0) {
       return;

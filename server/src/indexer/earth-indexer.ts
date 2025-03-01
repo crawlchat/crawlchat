@@ -21,6 +21,10 @@ export class EarthIndexer implements Indexer {
     return this.indexName;
   }
 
+  getMinBestScore(): number {
+    return 0.3;
+  }
+
   async upsert(scrapeId: string, documents: IndexDocument[]): Promise<void> {
     if (documents.length === 0) {
       return;

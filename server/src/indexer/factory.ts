@@ -2,8 +2,9 @@ import { EarthIndexer } from "./earth-indexer";
 import { Indexer } from "./indexer";
 import { MarsIndexer } from "./mars-indexer";
 
-export function makeIndexer({ key }: { key?: string }): Indexer {
-  const indexers = [new EarthIndexer(), new MarsIndexer()];
+export function makeIndexer({ key }: { key: string | null }): Indexer {
+  const defaultIndexer = new EarthIndexer();
+  const indexers = [defaultIndexer, new MarsIndexer()];
   const indexMap = new Map<string, Indexer>();
   for (const indexer of indexers) {
     indexMap.set(indexer.getKey(), indexer);
@@ -12,5 +13,5 @@ export function makeIndexer({ key }: { key?: string }): Indexer {
     return indexMap.get(key)!;
   }
 
-  return indexers[0];
+  return defaultIndexer;
 }

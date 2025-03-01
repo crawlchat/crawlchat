@@ -17,7 +17,6 @@ import {
   deleteScrape,
   makeEmbedding,
   makeRecordId,
-  saveEmbedding,
   search,
 } from "./scrape/pinecone";
 import { joinRoom, broadcast } from "./socket-room";
@@ -71,22 +70,19 @@ async function streamLLMResponse(
 async function betterSearch(
   query: string,
   scrapeId: string,
-  messages: Message[]
+  messages: Message[],
+  indexerKey: string | null
 ): Promise<{
   result: QueryResponse<RecordMetadata>;
   matches: ScoredPineconeRecord<RecordMetadata>[];
 }> {
-  const queryAgent = new QueryPlannerAgent();
   const triedQueries: string[] = [query];
   let bestResult: [number, QueryResponse<RecordMetadata> | null] = [0, null];
   const bestMatches: ScoredPineconeRecord<RecordMetadata>[] = [];
 
-  const indexer = makeIndexer({ key: "mars" });
+  const indexer = makeIndexer({ key: indexerKey });
 
   for (let i = 0; i < 4; i++) {
-    // const result = await search(scrapeId, await makeEmbedding(query), {
-    //   excludeIds: bestMatches.map((match) => match.id),
-    // });
     const result = await indexer.search(scrapeId, query, {
       excludeIds: bestMatches.map((match) => match.id),
     });
@@ -101,7 +97,7 @@ async function betterSearch(
       }, 0) / result.matches.length;
 
     for (const match of result.matches) {
-      if (match.score && match.score > 30) {
+      if (match.score && match.score >= indexer.getMinBestScore()) {
         bestMatches.push(match);
       }
     }
@@ -132,6 +128,7 @@ async function betterSearch(
       pinnedAt: null,
       links: [],
     }));
+    const queryAgent = new QueryPlannerAgent(query);
     const queryResult = await queryAgent.run([
       ...messages,
       ...triedQueryMessages,
@@ -167,13 +164,6 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const dynamicFallbackContentLength = req.body.dynamicFallbackContentLength;
   const roomId = req.body.roomId;
   const includeMarkdown = req.body.includeMarkdown;
-
-  const scraping = await prisma.scrape.count({
-    where: {
-      userId,
-      status: "scraping",
-    },
-  });
 
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: scrapeId, userId },
@@ -241,16 +231,8 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
             : actualRemainingUrlCount;
 
           const chunks = await splitMarkdown(markdown);
-          // const chunkDocs = await Promise.all(
-          //   chunks.map(async (chunk) => ({
-          //     id: makeRecordId(scrape.id, uuidv4()),
-          //     embedding: await makeEmbedding(chunk),
-          //     metadata: { content: chunk, url },
-          //   }))
-          // );
-          // await saveEmbedding(scrape.id, chunkDocs);
 
-          const indexer = makeIndexer({ key: "mars" });
+          const indexer = makeIndexer({ key: scrape.indexer });
           const documents = chunks.map((chunk) => ({
             id: makeRecordId(scrape.id, uuidv4()),
             text: chunk,
@@ -422,7 +404,8 @@ expressWs.app.ws("/", (ws: any, req) => {
         const result = await betterSearch(
           message.data.query,
           scrape.id,
-          thread.messages
+          thread.messages,
+          scrape.indexer
         );
         const matches = result.matches.map((match) => ({
           content: match.metadata!.content as string,

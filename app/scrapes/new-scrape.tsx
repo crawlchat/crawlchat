@@ -82,6 +82,7 @@ export async function action({ request }: { request: Request }) {
           url: url as string,
           userId: user!.id,
           status: "pending",
+          indexer: "mars",
         },
       });
     } else {
@@ -313,7 +314,9 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
               {stage === "saved" && (
                 <Group justifyContent={"flex-end"}>
                   <Button colorPalette={"brand"} asChild>
-                    <Link to={`/collections/${scrapeFetcher.data.scrapeId}/settings`}>
+                    <Link
+                      to={`/collections/${scrapeFetcher.data.scrapeId}/settings`}
+                    >
                       Go to collection
                       <TbArrowRight />
                     </Link>

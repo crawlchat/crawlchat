@@ -58,6 +58,7 @@ model Scrape {
   chatPrompt      String?
   mcpToolName     String?
   widgetConfig    WidgetConfig?
+  indexer         String?
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   threads         Thread[]

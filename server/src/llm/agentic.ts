@@ -44,12 +44,19 @@ const QueryPlanSchema = z.object({
 });
 
 export class QueryPlannerAgent extends Agent<typeof QueryPlanSchema> {
+  private query: string;
+
+  constructor(query: string) {
+    super();
+    this.query = query;
+  }
+
   async getResponseSchema(): Promise<typeof QueryPlanSchema> {
     return QueryPlanSchema;
   }
 
   async makePrompt(messages: Message[]): Promise<string> {
-    return `You are a helpful assistant that plans the queries to be run on the vector database for the given above conversation.
+    return `You are a helpful assistant that refines the query to be run on the vector database. Query to refine: "${this.query}".
 `;
   }
 }
