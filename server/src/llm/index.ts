@@ -27,7 +27,6 @@ export async function askLLM(
     systemPrompt?: string;
   }
 ) {
-  console.log("query", { query });
   return await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
