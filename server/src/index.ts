@@ -12,13 +12,7 @@ import { askLLM } from "./llm";
 import { Stream } from "openai/streaming";
 import { addMessage } from "./thread/store";
 import { prisma } from "./prisma";
-import {
-  deleteByIds,
-  deleteScrape,
-  makeEmbedding,
-  makeRecordId,
-  search,
-} from "./scrape/pinecone";
+import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
 import { joinRoom, broadcast } from "./socket-room";
 import { getRoomIds } from "./socket-room";
 import { authenticate, verifyToken } from "./jwt";
@@ -252,6 +246,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
           });
           if (existingItem) {
             await deleteByIds(
+              indexer.getKey(),
               existingItem.embeddings.map((embedding) => embedding.id)
             );
           }
@@ -345,7 +340,11 @@ app.delete(
   async function (req: Request, res: Response) {
     const scrapeId = req.body.scrapeId;
     try {
-      await deleteScrape(scrapeId);
+      const scrape = await prisma.scrape.findFirstOrThrow({
+        where: { id: scrapeId },
+      });
+      const indexer = makeIndexer({ key: scrape.indexer });
+      await deleteScrape(indexer.getKey(), scrapeId);
     } catch (error) {}
     res.json({ message: "ok" });
   }
@@ -481,7 +480,8 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 
   const query = req.query.query as string;
 
-  const result = await search(scrape.id, await makeEmbedding(query));
+  const indexer = makeIndexer({ key: scrape.indexer });
+  const result = await indexer.search(scrape.id, query);
 
   res.json(result.matches.map((match) => match.metadata));
 });
