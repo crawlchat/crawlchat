@@ -18,7 +18,6 @@ import { getRoomIds } from "./socket-room";
 import { authenticate, verifyToken } from "./jwt";
 import { getMetaTitle } from "./scrape/parse";
 import { splitMarkdown } from "./scrape/markdown-splitter";
-import { QueryPlannerAgent } from "./llm/agentic";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
 import { Message, MessageSourceLink } from "@prisma/client";
@@ -28,16 +27,12 @@ import {
 } from "@pinecone-database/pinecone";
 import { QueryResponse } from "@pinecone-database/pinecone";
 import { makeIndexer } from "./indexer/factory";
-import { MarsIndexer } from "./indexer/mars-indexer";
 import {
-  CandidateAgent,
-  DAgent,
   FlowState,
   handleStream,
-  InterviewerAgent,
   LlmMessage,
-  runTool,
-} from "./llm/dd";
+  QueryPlannerAgent,
+} from "./llm/agentic";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -131,13 +126,26 @@ async function betterSearch(
       pinnedAt: null,
       links: [],
     }));
-    const queryAgent = new QueryPlannerAgent(query);
-    const queryResult = await queryAgent.run([
-      ...messages,
-      ...triedQueryMessages,
-    ]);
 
-    query = queryResult.query;
+    const state: FlowState<{ query: string }> = {
+      query,
+      messages: [
+        ...messages.map((m) => ({
+          llmMessage: m.llmMessage as unknown as LlmMessage,
+          agentId: "query-planner",
+        })),
+      ],
+    };
+
+    const agent = new QueryPlannerAgent();
+    const queryResult = await handleStream(
+      await agent.stream(state),
+      "query-planner",
+      state,
+      { "query-planner": agent }
+    );
+
+    query = JSON.parse(queryResult.content).query;
     triedQueries.push(query);
   }
 
@@ -153,30 +161,7 @@ app.get("/", function (req: Request, res: Response) {
 });
 
 app.get("/test", async function (req: Request, res: Response) {
-  const state: FlowState = {
-    messages: [
-      {
-        role: "user",
-        content: "Hello, what is your name?",
-      },
-    ],
-  };
-
-  const interviewer = new InterviewerAgent("interviewer");
-  const candidate = new CandidateAgent("candidate");
-
-  for (let i = 0; i < 10; i++) {
-    const agent = i % 2 === 0 ? candidate : interviewer;
-
-    const result = await handleStream(await agent.stream(state.messages), {
-      state,
-      onTool: ({ name, args }) => runTool([agent], name, args),
-    });
-
-    console.log(agent.getId(), ":", result.content);
-  }
-
-  res.json({ state });
+  res.json({ ok: true });
 });
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {

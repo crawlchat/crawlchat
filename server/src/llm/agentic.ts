@@ -1,110 +1,216 @@
-import { Message } from "@prisma/client";
 import OpenAI from "openai";
-import { z } from "zod";
+import { z, ZodSchema } from "zod";
+import { Stream } from "openai/streaming";
+import {
+  ChatCompletionAssistantMessageParam,
+  ChatCompletionMessageParam,
+} from "openai/resources";
 import { zodResponseFormat } from "openai/helpers/zod";
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { zodToJsonSchema } from "zod-to-json-schema";
 
-abstract class AgentInterface<T extends z.ZodTypeAny> {
-  abstract makePrompt(messages: Message[]): Promise<string>;
-  abstract getResponseSchema(): Promise<T>;
+export type LlmMessage = ChatCompletionMessageParam;
+export type LlmTool<T extends ZodSchema<any>> = {
+  description: string;
+  schema: T;
+  execute: (input: z.infer<T>) => Promise<string>;
+};
+export type LlmRole = "developer" | "system" | "user" | "assistant" | "tool";
 
-  abstract run(messages: Message[]): Promise<z.infer<T>>;
-}
+export type FlowState<CustomState> = CustomState & {
+  messages: {
+    llmMessage: LlmMessage;
+    agentId: string;
+  }[];
+};
 
-abstract class Agent<T extends z.ZodTypeAny> implements AgentInterface<T> {
-  abstract makePrompt(messages: Message[]): Promise<string>;
-  abstract getResponseSchema(): Promise<T>;
-
-  async run(messages: Message[]): Promise<z.infer<T>> {
-    const completion = await openai.beta.chat.completions.parse({
-      model: "gpt-4o-mini",
-      messages: [
-        ...messages.map((message) => message.llmMessage as any),
-        {
-          role: "system",
-          content: await this.makePrompt(messages),
-        },
-      ],
-      response_format: zodResponseFormat(
-        await this.getResponseSchema(),
-        "json_schema"
-      ),
+export class Agent<CustomState> {
+  private openai: OpenAI;
+  private model: string;
+  constructor() {
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
     });
-    return completion.choices[0].message.parsed!;
+    this.model = "gpt-4o-mini";
+  }
+
+  async stream(
+    state: FlowState<CustomState>
+  ): Promise<Stream<OpenAI.Chat.Completions.ChatCompletionChunk>> {
+    const systemPromptMessage: ChatCompletionMessageParam = {
+      role: "system",
+      content: await this.getSystemPrompt(state),
+    };
+
+    return this.openai.chat.completions.create({
+      messages: [
+        ...state.messages.map((m) => m.llmMessage),
+        systemPromptMessage,
+      ],
+      model: this.model,
+      stream: true,
+      response_format: this.getResponseSchema()
+        ? zodResponseFormat(this.getResponseSchema()!, "json_object")
+        : undefined,
+      tools: Object.entries(this.getTools()).map(([name, tool]) => ({
+        type: "function",
+        function: {
+          name,
+          description: tool.description,
+          parameters: zodToJsonSchema(tool.schema),
+        },
+      })),
+    });
+  }
+
+  getTools(): Record<string, LlmTool<any>> {
+    return {};
+  }
+
+  async getSystemPrompt(state: FlowState<CustomState>): Promise<string> {
+    return "You are a helpful assistant.";
+  }
+
+  getResponseSchema(): ZodSchema<any> | null {
+    return null;
+  }
+
+  onMessage(message: LlmMessage): LlmMessage {
+    return message;
   }
 }
 
-const QueryPlanSchema = z.object({
-  query: z.string({
-    description:
-      "The query to be run on the vector database to fetch the context. Keep it short with keywords.",
-  }),
-});
+export async function handleStream<CustomState>(
+  stream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>,
+  agentId: string,
+  state: FlowState<CustomState>,
+  agents: Record<string, Agent<CustomState>>,
+  options?: {
+    onTool?: (options: {
+      name: string;
+      id: string;
+      rawArguments: string;
+      args: Record<string, any>;
+    }) => Promise<string>;
+    onDelta?: (content: string) => void;
+  }
+) {
+  const toolCalls: Record<
+    string,
+    {
+      id: string;
+      name: string;
+      rawArguments: string;
+      llmToolCall: ChatCompletionMessageParam;
+    }
+  > = {};
+  let content = "";
+  let isTool = false;
+  let role: LlmRole = "user";
+  const messages: LlmMessage[] = [];
 
-export class QueryPlannerAgent extends Agent<typeof QueryPlanSchema> {
-  private query: string;
+  for await (const chunk of stream) {
+    if (chunk.choices[0].delta.role) {
+      role = chunk.choices[0].delta.role;
+    }
 
-  constructor(query: string) {
-    super();
-    this.query = query;
+    if (chunk.choices[0].delta.content) {
+      content += chunk.choices[0].delta.content;
+    }
+
+    if (chunk.choices[0].delta.tool_calls) {
+      isTool = true;
+
+      for (const toolCall of chunk.choices[0].delta.tool_calls) {
+        if (!toolCall.function) {
+          continue;
+        }
+        if (!toolCalls[toolCall.index]) {
+          toolCalls[toolCall.index] = {
+            id: toolCall.id!,
+            name: toolCall.function.name!,
+            rawArguments: "",
+            llmToolCall: chunk.choices[0].delta as any,
+          };
+        }
+        toolCalls[toolCall.index].rawArguments += toolCall.function.arguments;
+      }
+    }
+
+    if (!isTool) {
+      options?.onDelta?.(content);
+    }
   }
 
-  async getResponseSchema(): Promise<typeof QueryPlanSchema> {
-    return QueryPlanSchema;
+  if (isTool) {
+    if (!options?.onTool) {
+      throw new Error("tool call received but no onTool callback provided");
+    }
+
+    for (const toolCall of Object.values(toolCalls)) {
+      messages.push(toolCall.llmToolCall);
+      const result = await options.onTool({
+        name: toolCall.name,
+        id: toolCall.id,
+        rawArguments: toolCall.rawArguments,
+        args: JSON.parse(toolCall.rawArguments),
+      });
+      messages.push({
+        role: "tool",
+        content: result,
+        tool_call_id: toolCall.id,
+      });
+    }
+  } else {
+    messages.push({
+      role,
+      content,
+    } as ChatCompletionAssistantMessageParam);
   }
 
-  async makePrompt(messages: Message[]): Promise<string> {
-    return `You are a helpful assistant that refines the query to be run on the vector database. Query to refine: "${this.query}".
-`;
+  for (let i = 0; i < messages.length; i++) {
+    messages[i] = agents[agentId].onMessage(messages[i]);
   }
+
+  state.messages = [
+    ...state.messages,
+    ...messages.map((message) => ({
+      llmMessage: message,
+      agentId,
+    })),
+  ];
+
+  return { content, messages, state };
 }
 
-const QuestionSplitSchema = z.object({
-  questions: z.array(
-    z.object({
-      question: z.string(),
-      hasAnswer: z.boolean({
+export async function runTool<CustomState>(
+  agents: Agent<CustomState>[],
+  toolName: string,
+  args: Record<string, any>
+) {
+  for (const agent of agents) {
+    const tools = agent.getTools();
+    if (tools[toolName]) {
+      return tools[toolName].execute(args);
+    }
+  }
+  throw new Error(`Tool ${toolName} not found`);
+}
+
+export class QueryPlannerAgent extends Agent<{ query: string }> {
+  getTools() {
+    return {};
+  }
+
+  async getSystemPrompt({ query }: { query: string }) {
+    return `You are a helpful assistant that refines the query to be run on the vector database. Query to refine: "${query}"`;
+  }
+
+  getResponseSchema() {
+    return z.object({
+      query: z.string({
         description:
-          "Whether the conversation already has answer for the question",
+          "The query to be run on the vector database to fetch the context. Keep it short with keywords.",
       }),
-      isContextualQuestion: z.boolean({
-        description:
-          "Whether the question is contextual to the conversation. Generic conversation questions should be false. Ex: How are you? What is your name? etc. should be false.",
-      }),
-    })
-  ),
-});
-
-export class QuestionSplitterAgent extends Agent<typeof QuestionSplitSchema> {
-  async getResponseSchema(): Promise<typeof QuestionSplitSchema> {
-    return QuestionSplitSchema;
-  }
-
-  async makePrompt(messages: Message[]): Promise<string> {
-    return `You are a helpful assistant that splits a complex query into multiple questions. 
-Each question should be independent and not related to the other questions.
-Fill the hasAnswer field with true if you think the question has already been answered in the conversation.
-Don't hallicunate. Don't ask new questions other than breaking down the query.
-
-Question to be split: ${
-      (messages[messages.length - 1].llmMessage as any)?.content
-    }`;
+    });
   }
 }
-
-const AnswerSchema = z.object({
-  answer: z.string(),
-});
-
-export class AnswerAgent extends Agent<typeof AnswerSchema> {
-  async getResponseSchema(): Promise<typeof AnswerSchema> {
-    return AnswerSchema;
-  }
-
-  async makePrompt(messages: Message[]): Promise<string> {
-    return `You are a helpful assistant that answers the question based on the given above conversation.`;
-  }
-}
-
