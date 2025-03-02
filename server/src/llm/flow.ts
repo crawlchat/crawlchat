@@ -5,7 +5,7 @@ import {
 } from "openai/resources/chat/completions";
 import { FlowMessage, LlmMessage, State } from "./agentic";
 import { Agent } from "./agentic";
-import { handleStream } from "./stream";
+import { handleStream, HandleStreamOptions } from "./stream";
 
 type FlowState<CustomState, CustomMessage> = {
   state: State<CustomState, CustomMessage>;
@@ -80,9 +80,9 @@ export class Flow<CustomState, CustomMessage> {
     return message.llmMessage && "tool_calls" in message.llmMessage;
   }
 
-  async stream(options?: {
-    onDelta?: (content: string) => void;
-  }): Promise<null | { messages: FlowMessage<CustomMessage>[] }> {
+  async stream(
+    options?: HandleStreamOptions
+  ): Promise<null | { messages: FlowMessage<CustomMessage>[] }> {
     if (!this.hasStarted()) {
       this.flowState.startedAt = Date.now();
     }
@@ -109,9 +109,7 @@ export class Flow<CustomState, CustomMessage> {
 
     const result = await handleStream(
       await this.getAgent(agentId).stream(this.flowState.state),
-      {
-        onDelta: options?.onDelta,
-      }
+      options
     );
 
     const newMessages = result.messages.map((message) => ({

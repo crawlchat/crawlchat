@@ -7,9 +7,6 @@ import ws from "express-ws";
 import { scrapeLoop, type ScrapeStore } from "./scrape/crawl";
 import { OrderedSet } from "./scrape/ordered-set";
 import cors from "cors";
-import OpenAI from "openai";
-import { askLLM } from "./llm";
-import { Stream } from "openai/streaming";
 import { addMessage } from "./thread/store";
 import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
@@ -21,11 +18,6 @@ import { splitMarkdown } from "./scrape/markdown-splitter";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
 import { Message, MessageSourceLink } from "@prisma/client";
-import {
-  RecordMetadata,
-  ScoredPineconeRecord,
-} from "@pinecone-database/pinecone";
-import { QueryResponse } from "@pinecone-database/pinecone";
 import { makeIndexer } from "./indexer/factory";
 
 const app: Express = express();
@@ -39,63 +31,6 @@ app.use(cors());
 
 function makeMessage(type: string, data: any) {
   return JSON.stringify({ type, data });
-}
-
-async function streamLLMResponse(
-  ws: any,
-  response: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>
-) {
-  let content = "";
-  let role: "developer" | "system" | "user" | "assistant" | "tool" = "user";
-  for await (const chunk of response) {
-    if (chunk.choices[0]?.delta?.content) {
-      content += chunk.choices[0].delta.content;
-      ws.send(
-        makeMessage("llm-chunk", { content: chunk.choices[0].delta.content })
-      );
-    }
-    if (chunk.choices[0]?.delta?.role) {
-      role = chunk.choices[0].delta.role;
-    }
-  }
-  return { content, role };
-}
-
-async function betterSearch(
-  query: string,
-  scrapeId: string,
-  messages: Message[],
-  indexerKey: string | null
-): Promise<{ results: QueryResponse<RecordMetadata>[]; content: string }> {
-  const indexer = makeIndexer({ key: indexerKey });
-  const flow = new Flow<{}, RAGAgentCustomMessage>(
-    {
-      "rag-agent": new RAGAgent(indexer, scrapeId),
-    },
-    {
-      messages: [
-        ...messages.map((message) => ({
-          llmMessage: message.llmMessage as any,
-        })),
-        {
-          llmMessage: {
-            role: "user",
-            content: query,
-          },
-        },
-      ],
-    }
-  );
-  flow.addNextAgents(["rag-agent"]);
-
-  while (await flow.stream()) {}
-
-  return {
-    results: flow.flowState.state.messages
-      .map((m) => m.custom?.result)
-      .filter((r) => r !== undefined),
-    content: (flow.getLastMessage().llmMessage.content as string) ?? "",
-  };
 }
 
 app.get("/", function (req: Request, res: Response) {
@@ -355,13 +290,41 @@ expressWs.app.ws("/", (ws: any, req) => {
         addMessage(threadId, newQueryMessage);
         ws.send(makeMessage("query-message", newQueryMessage));
 
-        const { results, content } = await betterSearch(
-          message.data.query,
-          scrape.id,
-          thread.messages,
-          scrape.indexer
+        const indexer = makeIndexer({ key: scrape.indexer });
+        const flow = new Flow<{}, RAGAgentCustomMessage>(
+          {
+            "rag-agent": new RAGAgent(indexer, scrape.id),
+          },
+          {
+            messages: [
+              ...thread.messages.map((message) => ({
+                llmMessage: message.llmMessage as any,
+              })),
+              {
+                llmMessage: {
+                  role: "user",
+                  content: message.data.query,
+                },
+              },
+            ],
+          }
         );
-        const matches = results
+        flow.addNextAgents(["rag-agent"]);
+
+        while (
+          await flow.stream({
+            onDelta: ({ delta }) => {
+              ws.send(makeMessage("llm-chunk", { content: delta }));
+            },
+          })
+        ) {}
+
+        const content =
+          (flow.getLastMessage().llmMessage.content as string) ?? "";
+
+        const matches = flow.flowState.state.messages
+          .map((m) => m.custom?.result)
+          .filter((r) => r !== undefined)
           .map((result) => result.matches)
           .flat()
           .map((match) => ({
