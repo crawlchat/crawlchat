@@ -6,7 +6,7 @@ import { Flow } from "./llm/flow";
 import { z } from "zod";
 import { prisma } from "./prisma";
 import { makeIndexer } from "./indexer/factory";
-import { RAGAgent } from "./llm/rag-agent";
+import { ContextCheckerAgent, RAGAgent } from "./llm/rag-agent";
 
 async function main() {
   const scrapeId = "67c1d700cb1ec09c237bab8a";
@@ -21,37 +21,25 @@ async function main() {
   const flow = new Flow(
     {
       "rag-agent": new RAGAgent(indexer, scrapeId),
+      "context-checker-agent": new ContextCheckerAgent(),
     },
     {
       messages: [
         {
           llmMessage: {
             role: "user",
-            content: "How to find duration of a video?",
+            content: "How to increase the lambda concurrency?",
           },
         },
       ],
     }
   );
 
-  while (!flow.hasStarted() || flow.isToolPending()) {
-    await flow.stream("rag-agent");
-    logMessage(flow.getLastMessage());
+  flow.addNextAgents(["rag-agent"]);
+
+  while (await flow.stream()) {
+    logMessage(flow.getLastMessage().llmMessage);
   }
-
-  flow.addMessage({
-    llmMessage: {
-      role: "user",
-      content: "How to wait the render till it is done?",
-    },
-  });
-
-  while (!flow.hasStarted() || flow.isToolPending()) {
-    await flow.stream("rag-agent");
-    logMessage(flow.getLastMessage());
-  }
-
-  console.log(flow.flowState.state.messages.map((m) => m.custom));
 }
 
 console.log("Starting...");

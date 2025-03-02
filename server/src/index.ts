@@ -29,6 +29,8 @@ import { QueryResponse } from "@pinecone-database/pinecone";
 import { makeIndexer } from "./indexer/factory";
 
 const app: Express = express();
+import { Flow } from "./llm/flow";
+import { RAGAgent, RAGAgentCustomMessage } from "./llm/rag-agent";
 const expressWs = ws(app);
 const port = process.env.PORT || 3000;
 
@@ -64,58 +66,36 @@ async function betterSearch(
   scrapeId: string,
   messages: Message[],
   indexerKey: string | null
-): Promise<{
-  result: QueryResponse<RecordMetadata>;
-  matches: ScoredPineconeRecord<RecordMetadata>[];
-}> {
-  const triedQueries: string[] = [query];
-  let bestResult: [number, QueryResponse<RecordMetadata> | null] = [0, null];
-  const bestMatches: ScoredPineconeRecord<RecordMetadata>[] = [];
-
+): Promise<{ results: QueryResponse<RecordMetadata>[]; content: string }> {
   const indexer = makeIndexer({ key: indexerKey });
-
-  for (let i = 0; i < 1; i++) {
-    const result = await indexer.search(scrapeId, query, {
-      excludeIds: bestMatches.map((match) => match.id),
-    });
-
-    const maxScore = result.matches.reduce((max, match) => {
-      return Math.max(max, match.score ?? 0);
-    }, 0);
-
-    const avgScore =
-      result.matches.reduce((sum, match) => {
-        return sum + (match.score ?? 0);
-      }, 0) / result.matches.length;
-
-    for (const match of result.matches) {
-      if (match.score && match.score >= indexer.getMinBestScore()) {
-        bestMatches.push(match);
-      }
+  const flow = new Flow<{}, RAGAgentCustomMessage>(
+    {
+      "rag-agent": new RAGAgent(indexer, scrapeId),
+    },
+    {
+      messages: [
+        ...messages.map((message) => ({
+          llmMessage: message.llmMessage as any,
+        })),
+        {
+          llmMessage: {
+            role: "user",
+            content: query,
+          },
+        },
+      ],
     }
+  );
+  flow.addNextAgents(["rag-agent"]);
 
-    if (maxScore > bestResult[0]) {
-      bestResult = [maxScore, result];
-    }
+  while (await flow.stream()) {}
 
-    console.log("query round", {
-      i,
-      query,
-      maxScore,
-      avgScore,
-      bestMatches: bestMatches.length,
-    });
-
-    if (bestMatches.length >= 3) {
-      break;
-    }
-  }
-
-  if (!bestResult[1]) {
-    throw new Error("bestResult is null. Should never happen.");
-  }
-
-  return { result: bestResult[1], matches: bestMatches };
+  return {
+    results: flow.flowState.state.messages
+      .map((m) => m.custom?.result)
+      .filter((r) => r !== undefined),
+    content: (flow.getLastMessage().llmMessage.content as string) ?? "",
+  };
 }
 
 app.get("/", function (req: Request, res: Response) {
@@ -375,34 +355,20 @@ expressWs.app.ws("/", (ws: any, req) => {
         addMessage(threadId, newQueryMessage);
         ws.send(makeMessage("query-message", newQueryMessage));
 
-        const result = await betterSearch(
+        const { results, content } = await betterSearch(
           message.data.query,
           scrape.id,
           thread.messages,
           scrape.indexer
         );
-        const matches = result.matches.map((match) => ({
-          content: match.metadata!.content as string,
-          url: match.metadata!.url as string,
-          score: match.score,
-        }));
-        const contextContent = matches
-          .map((match) => match.content)
-          .join("\n\n");
-
-        let content = "No context found";
-        let role = "assistant";
-        if (contextContent.length > 0) {
-          const response = await askLLM(message.data.query, thread.messages, {
-            url: scrape.url,
-            context: contextContent,
-            systemPrompt: scrape.chatPrompt ?? undefined,
-          });
-
-          const streamResponse = await streamLLMResponse(ws, response);
-          content = streamResponse.content;
-          role = streamResponse.role;
-        }
+        const matches = results
+          .map((result) => result.matches)
+          .flat()
+          .map((match) => ({
+            content: match.metadata!.content as string,
+            url: match.metadata!.url as string,
+            score: match.score,
+          }));
 
         const links: MessageSourceLink[] = [];
         for (const match of matches) {
@@ -420,7 +386,7 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         const newAnswerMessage: Message = {
           uuid: uuidv4(),
-          llmMessage: { role, content },
+          llmMessage: { role: "assistant", content },
           links,
           createdAt: new Date(),
           pinnedAt: null,

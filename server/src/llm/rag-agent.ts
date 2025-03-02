@@ -1,14 +1,13 @@
-import { z } from "zod";
+import { z, ZodSchema } from "zod";
 import { Agent } from "./agentic";
 import { multiLinePrompt } from "./agentic";
 import { Indexer } from "../indexer/indexer";
 import { QueryResponse } from "@pinecone-database/pinecone";
 import { RecordMetadata } from "@pinecone-database/pinecone";
 
-export class RAGAgent extends Agent<
-  {},
-  { results: Record<string, QueryResponse<RecordMetadata>> }
-> {
+export type RAGAgentCustomMessage = { result?: QueryResponse<RecordMetadata> };
+
+export class RAGAgent extends Agent<{}, RAGAgentCustomMessage> {
   private indexer: Indexer;
   private scrapeId: string;
 
@@ -38,34 +37,41 @@ export class RAGAgent extends Agent<
           "Example: If the topic is about a tool called 'Remotion', turn the query 'What is it?' into 'What is Remotion?'",
           "These queries are for a vector database. Don't use extra words that do not add any value in vectorisation.",
           "Example: If the query is 'How to make a composition?', better you use 'make a composition'",
+          "The query should not be more than 3 words. Keep only the most important words.",
         ]),
         schema: z.object({
-          queries: z.array(
-            z.string({
-              description: "The query to search the vector database with",
-            })
-          ),
+          query: z.string({
+            description: "The query to search the vector database with",
+          }),
         }),
-        execute: async ({ queries }: { queries: string[] }) => {
-          const results: Record<string, QueryResponse<RecordMetadata>> = {};
-          for (const query of queries) {
-            console.log("Searching RAG for", query);
-            const result = await this.indexer.search(this.scrapeId, query, {
-              topK: 2,
-            });
-            results[query] = result;
-          }
-
-          const content = Object.values(results)
-            .map((r) => r.matches.map((m) => m.metadata!.content))
-            .join("\n\n");
+        execute: async ({ query }: { query: string }) => {
+          console.log("Searching RAG for", query);
+          const result = await this.indexer.search(this.scrapeId, query, {
+            topK: 2,
+          });
 
           return {
-            content,
-            customMessage: { results },
+            content: result.matches
+              .map((m) => m.metadata!.content)
+              .join("\n\n"),
+            customMessage: { result },
           };
         },
       },
     };
+  }
+}
+
+export class ContextCheckerAgent extends Agent<{}, RAGAgentCustomMessage> {
+  async getSystemPrompt() {
+    return multiLinePrompt([
+      "You need to check if the context provided is relavent and enough to answer the above query.",
+    ]);
+  }
+
+  getResponseSchema() {
+    return z.object({
+      enough: z.boolean(),
+    });
   }
 }
