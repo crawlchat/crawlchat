@@ -46,10 +46,7 @@ async function main() {
   await flow.stream("capital-finder");
   await flow.stream("capital-finder");
 
-  console.log(
-    flow.flowState.state.messages[flow.flowState.state.messages.length - 1]
-      .llmMessage.content
-  );
+  console.log(flow.getLastMessage().llmMessage.content);
 }
 
 console.log("Starting...");

@@ -27,8 +27,6 @@ import {
 } from "@pinecone-database/pinecone";
 import { QueryResponse } from "@pinecone-database/pinecone";
 import { makeIndexer } from "./indexer/factory";
-import { State, LlmMessage, QueryPlannerAgent } from "./llm/agentic";
-import { handleStream } from "./llm/stream";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -76,7 +74,7 @@ async function betterSearch(
 
   const indexer = makeIndexer({ key: indexerKey });
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 1; i++) {
     const result = await indexer.search(scrapeId, query, {
       excludeIds: bestMatches.map((match) => match.id),
     });
@@ -111,27 +109,6 @@ async function betterSearch(
     if (bestMatches.length >= 3) {
       break;
     }
-
-    const state: State<{ query: string }> = {
-      query,
-      messages: [
-        ...messages.map((m) => ({
-          llmMessage: m.llmMessage as unknown as LlmMessage,
-          agentId: "query-planner",
-        })),
-      ],
-    };
-
-    const agent = new QueryPlannerAgent();
-    const queryResult = await handleStream(
-      await agent.stream(state),
-      "query-planner",
-      state,
-      { "query-planner": agent }
-    );
-
-    query = JSON.parse(queryResult.content).query;
-    triedQueries.push(query);
   }
 
   if (!bestResult[1]) {

@@ -74,15 +74,23 @@ export class Flow<CustomState> {
       }
     }
 
-    return handleStream(
-      await this.agents[agentId].stream(this.flowState.state),
-      agentId,
-      this.flowState.state,
-      this.agents,
+    const result = await handleStream(
+      await this.getAgent(agentId).stream(this.flowState.state),
       {
         onDelta: options?.onDelta,
       }
     );
+
+    for (const message of result.messages) {
+      this.getAgent(agentId).onMessage(message);
+    }
+
+    this.flowState.state.messages = [
+      ...this.flowState.state.messages,
+      ...result.messages.map((message) => ({
+        llmMessage: message,
+        agentId,
+      })),
+    ];
   }
 }
-

@@ -3,18 +3,9 @@ import { Stream } from "openai/streaming";
 import { ChatCompletionAssistantMessageParam } from "openai/resources";
 import { Agent, LlmMessage, LlmRole, State } from "./agentic";
 
-export async function handleStream<CustomState>(
+export async function handleStream(
   stream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>,
-  agentId: string,
-  state: State<CustomState>,
-  agents: Record<string, Agent<CustomState>>,
   options?: {
-    onTool?: (options: {
-      name: string;
-      id: string;
-      rawArguments: string;
-      args: Record<string, any>;
-    }) => Promise<string>;
     onDelta?: (content: string) => void;
   }
 ) {
@@ -65,17 +56,5 @@ export async function handleStream<CustomState>(
     } as ChatCompletionAssistantMessageParam);
   }
 
-  for (let i = 0; i < messages.length; i++) {
-    messages[i] = agents[agentId].onMessage(messages[i]);
-  }
-
-  state.messages = [
-    ...state.messages,
-    ...messages.map((message) => ({
-      llmMessage: message,
-      agentId,
-    })),
-  ];
-
-  return { content, messages, state };
+  return { content, messages };
 }

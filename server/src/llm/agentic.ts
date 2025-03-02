@@ -19,7 +19,7 @@ export type LlmRole = "developer" | "system" | "user" | "assistant" | "tool";
 export type State<CustomState> = CustomState & {
   messages: {
     llmMessage: LlmMessage;
-    agentId: string;
+    agentId?: string;
   }[];
 };
 
