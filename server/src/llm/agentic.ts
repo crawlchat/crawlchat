@@ -16,7 +16,7 @@ export type LlmTool<T extends ZodSchema<any>> = {
 };
 export type LlmRole = "developer" | "system" | "user" | "assistant" | "tool";
 
-export type FlowState<CustomState> = CustomState & {
+export type State<CustomState> = CustomState & {
   messages: {
     llmMessage: LlmMessage;
     agentId: string;
@@ -34,7 +34,7 @@ export class Agent<CustomState> {
   }
 
   async stream(
-    state: FlowState<CustomState>
+    state: State<CustomState>
   ): Promise<Stream<OpenAI.Chat.Completions.ChatCompletionChunk>> {
     const systemPromptMessage: ChatCompletionMessageParam = {
       role: "system",
@@ -66,7 +66,7 @@ export class Agent<CustomState> {
     return {};
   }
 
-  async getSystemPrompt(state: FlowState<CustomState>): Promise<string> {
+  async getSystemPrompt(state: State<CustomState>): Promise<string> {
     return "You are a helpful assistant.";
   }
 
@@ -82,7 +82,7 @@ export class Agent<CustomState> {
 export async function handleStream<CustomState>(
   stream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>,
   agentId: string,
-  state: FlowState<CustomState>,
+  state: State<CustomState>,
   agents: Record<string, Agent<CustomState>>,
   options?: {
     onTool?: (options: {

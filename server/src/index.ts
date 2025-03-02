@@ -28,7 +28,7 @@ import {
 import { QueryResponse } from "@pinecone-database/pinecone";
 import { makeIndexer } from "./indexer/factory";
 import {
-  FlowState,
+  State,
   handleStream,
   LlmMessage,
   QueryPlannerAgent,
@@ -116,18 +116,7 @@ async function betterSearch(
       break;
     }
 
-    const triedQueryMessages: Message[] = triedQueries.map((query) => ({
-      llmMessage: {
-        role: "user",
-        content: `Tried query: ${query} but got a low score. Please try again.`,
-      },
-      uuid: uuidv4(),
-      createdAt: new Date(),
-      pinnedAt: null,
-      links: [],
-    }));
-
-    const state: FlowState<{ query: string }> = {
+    const state: State<{ query: string }> = {
       query,
       messages: [
         ...messages.map((m) => ({
