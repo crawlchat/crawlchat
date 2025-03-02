@@ -314,7 +314,9 @@ expressWs.app.ws("/", (ws: any, req) => {
         while (
           await flow.stream({
             onDelta: ({ delta }) => {
-              ws.send(makeMessage("llm-chunk", { content: delta }));
+              if (delta !== undefined && delta !== null) {
+                ws.send(makeMessage("llm-chunk", { content: delta }));
+              }
             },
           })
         ) {}

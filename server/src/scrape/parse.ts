@@ -141,6 +141,8 @@ export function parseHtml(
   });
 
   $("meta").remove();
+  $("colgroup").remove();
+  $("*").removeAttr("style");
 
   if ($("main").length === 0) {
     cleanHtml($);
@@ -148,6 +150,13 @@ export function parseHtml(
   cleanA($);
   cleanScriptStyles($);
   safeClean($);
+
+  $('table tr:first-child td').each((_, cell) => {
+    const $cell = $(cell);
+    const content = $cell.html();
+    const $th = $('<th></th>').html(content ?? '');
+    $cell.replaceWith($th);
+  });
 
   if (options?.removeHtmlTags) {
     const removeHtmlTags = options.removeHtmlTags.split(",");

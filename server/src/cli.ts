@@ -7,6 +7,8 @@ import { z } from "zod";
 import { prisma } from "./prisma";
 import { makeIndexer } from "./indexer/factory";
 import { ContextCheckerAgent, RAGAgent } from "./llm/rag-agent";
+import { scrapeFetch } from "./scrape/crawl";
+import { parseHtml } from "./scrape/parse";
 
 async function main() {
   const scrapeId = "67c1d700cb1ec09c237bab8a";
@@ -42,5 +44,12 @@ async function main() {
   }
 }
 
+async function parse() {
+  const html = await scrapeFetch("https://docs.pinecone.io/models/overview");
+  const parsed = parseHtml(html);
+  console.log(parsed.markdown);
+}
+
 console.log("Starting...");
-main();
+// main();
+parse();
