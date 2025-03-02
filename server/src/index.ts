@@ -23,6 +23,7 @@ import { makeIndexer } from "./indexer/factory";
 const app: Express = express();
 import { Flow } from "./llm/flow";
 import { RAGAgent, RAGAgentCustomMessage } from "./llm/rag-agent";
+import { ChatCompletionAssistantMessageParam } from "openai/resources/chat/completions";
 const expressWs = ws(app);
 const port = process.env.PORT || 3000;
 
@@ -319,7 +320,21 @@ expressWs.app.ws("/", (ws: any, req) => {
               }
             },
           })
-        ) {}
+        ) {
+          const message = flow.getLastMessage();
+          if (flow.isToolCall(message)) {
+            ws.send(
+              makeMessage("stage", {
+                stage: "tool-call",
+                queries: (
+                  message.llmMessage as ChatCompletionAssistantMessageParam
+                ).tool_calls?.map(
+                  (toolCall) => JSON.parse(toolCall.function.arguments).query
+                ),
+              })
+            );
+          }
+        }
 
         const content =
           (flow.getLastMessage().llmMessage.content as string) ?? "";

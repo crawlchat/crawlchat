@@ -5,7 +5,7 @@ import { AppContext } from "~/dashboard/context";
 import { makeMessage } from "~/dashboard/socket-util";
 import { getThreadName } from "~/thread-util";
 
-export type AskStage = "idle" | "asked" | "answering";
+export type AskStage = "idle" | "asked" | "answering" | "searching";
 
 export function useScrapeChat({
   token,
@@ -23,6 +23,7 @@ export function useScrapeChat({
   const [messages, setMessages] = useState<Message[]>(defaultMessages);
   const [content, setContent] = useState("");
   const [askStage, setAskStage] = useState<AskStage>("idle");
+  const [searchQuery, setSearchQuery] = useState<string>();
 
   const allMessages = useMemo(() => {
     const allMessages = [
@@ -72,6 +73,8 @@ export function useScrapeChat({
         handleError(message.data.message);
       } else if (message.type === "query-message") {
         handleQueryMessage(message.data);
+      } else if (message.type === "stage") {
+        handleStage(message.data);
       }
     };
   }
@@ -105,6 +108,19 @@ export function useScrapeChat({
     });
   }
 
+  function handleStage({
+    stage,
+    queries,
+  }: {
+    stage: string;
+    queries?: string[];
+  }) {
+    if (stage === "tool-call") {
+      setAskStage("searching");
+      setSearchQuery(queries?.[0]);
+    }
+  }
+
   function handleLlmChunk({
     end,
     content,
@@ -122,6 +138,7 @@ export function useScrapeChat({
     }
     setAskStage("answering");
     setContent((prev) => prev + content);
+    setSearchQuery(undefined);
   }
 
   function handleError(message: string) {
@@ -206,5 +223,6 @@ export function useScrapeChat({
     unpinMessage,
     erase,
     deleteMessage,
+    searchQuery,
   };
 }

@@ -40,9 +40,11 @@ import {
 function ChatInput({
   onAsk,
   stage,
+  searchQuery,
 }: {
   onAsk: (query: string) => void;
   stage: AskStage;
+  searchQuery?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
@@ -83,6 +85,8 @@ function ChatInput({
         return "😇 Thinking...";
       case "answering":
         return "🤓 Answering...";
+      case "searching":
+        return `🔍 Searching for "${searchQuery ?? "answer"}"`;
     }
     return "Ask your question";
   }
@@ -519,7 +523,7 @@ export default function ScrapeWidget({
                   }
                 />
               )}
-              {chat.askStage === "asked" &&
+              {(chat.askStage === "asked" || chat.askStage === "searching") &&
                 index === chat.allMessages.length - 1 && <LoadingMessage />}
               {chat.askStage !== "idle" &&
                 index === chat.allMessages.length - 1 && (
@@ -528,7 +532,11 @@ export default function ScrapeWidget({
             </Stack>
           ))}
         </Stack>
-        <ChatInput onAsk={handleAsk} stage={chat.askStage} />
+        <ChatInput
+          onAsk={handleAsk}
+          stage={chat.askStage}
+          searchQuery={chat.searchQuery}
+        />
       </Stack>
     </Center>
   );
