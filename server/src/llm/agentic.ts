@@ -6,30 +6,31 @@ import { zodResponseFormat } from "openai/helpers/zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 export type LlmMessage = ChatCompletionMessageParam;
-export type LlmTool<T extends ZodSchema<any>> = {
+export type LlmTool<T extends ZodSchema<any>, CustomMessage> = {
   description: string;
   schema: T;
-  execute: (input: z.infer<T>) => Promise<string>;
+  execute: (input: z.infer<T>) => Promise<{content: string, customMessage?: CustomMessage}>;
 };
 export type LlmRole = "developer" | "system" | "user" | "assistant" | "tool";
-export type FlowMessage = {
+export type FlowMessage<CustomMessage> = {
   llmMessage: LlmMessage;
   agentId?: string;
+  custom?: CustomMessage;
 };
 
-export type State<CustomState> = CustomState & {
-  messages: FlowMessage[];
+export type State<CustomState, CustomMessage> = CustomState & {
+  messages: FlowMessage<CustomMessage>[];
 };
 
 export function multiLinePrompt(prompt: string[]) {
   return prompt.join("\n");
 }
 
-export function logMessage(message: FlowMessage) {
+export function logMessage(message: FlowMessage<any>) {
   console.log(JSON.stringify(message, null, 2));
 }
 
-export class Agent<CustomState> {
+export class Agent<CustomState = {}, CustomMessage = {}> {
   private openai: OpenAI;
   private model: string;
   constructor() {
@@ -40,7 +41,7 @@ export class Agent<CustomState> {
   }
 
   async stream(
-    state: State<CustomState>
+    state: State<CustomState, CustomMessage>
   ): Promise<Stream<OpenAI.Chat.Completions.ChatCompletionChunk>> {
     const systemPromptMessage: ChatCompletionMessageParam = {
       role: "system",
@@ -70,38 +71,16 @@ export class Agent<CustomState> {
     });
   }
 
-  getTools(): Record<string, LlmTool<any>> {
+  getTools(): Record<string, LlmTool<any, CustomMessage>> {
     return {};
   }
 
-  async getSystemPrompt(state: State<CustomState>): Promise<string> {
+  async getSystemPrompt(state: State<CustomState, CustomMessage>): Promise<string> {
     return "You are a helpful assistant.";
   }
 
   getResponseSchema(): ZodSchema<any> | null {
     return null;
   }
-
-  onMessage(message: LlmMessage): LlmMessage {
-    return message;
-  }
 }
 
-export class QueryPlannerAgent extends Agent<{ query: string }> {
-  getTools() {
-    return {};
-  }
-
-  async getSystemPrompt({ query }: { query: string }) {
-    return `You are a helpful assistant that refines the query to be run on the vector database. Query to refine: "${query}"`;
-  }
-
-  getResponseSchema() {
-    return z.object({
-      query: z.string({
-        description:
-          "The query to be run on the vector database to fetch the context. Keep it short with keywords.",
-      }),
-    });
-  }
-}

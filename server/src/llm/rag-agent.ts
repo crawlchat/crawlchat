@@ -1,10 +1,14 @@
 import { z } from "zod";
-import { LlmTool } from "./agentic";
 import { Agent } from "./agentic";
 import { multiLinePrompt } from "./agentic";
 import { Indexer } from "../indexer/indexer";
+import { QueryResponse } from "@pinecone-database/pinecone";
+import { RecordMetadata } from "@pinecone-database/pinecone";
 
-export class RAGAgent extends Agent<{}> {
+export class RAGAgent extends Agent<
+  {},
+  { results: Record<string, QueryResponse<RecordMetadata>> }
+> {
   private indexer: Indexer;
   private scrapeId: string;
 
@@ -23,7 +27,7 @@ export class RAGAgent extends Agent<{}> {
     ]);
   }
 
-  getTools(): Record<string, LlmTool<any>> {
+  getTools() {
     return {
       search_data: {
         description: multiLinePrompt([
@@ -43,17 +47,23 @@ export class RAGAgent extends Agent<{}> {
           ),
         }),
         execute: async ({ queries }: { queries: string[] }) => {
-          const results: Record<string, string> = {};
+          const results: Record<string, QueryResponse<RecordMetadata>> = {};
           for (const query of queries) {
             console.log("Searching RAG for", query);
             const result = await this.indexer.search(this.scrapeId, query, {
               topK: 2,
             });
-            results[query] = result.matches
-              .map((match) => match.metadata!.content as string)
-              .join("\n\n");
+            results[query] = result;
           }
-          return JSON.stringify(results);
+
+          const content = Object.values(results)
+            .map((r) => r.matches.map((m) => m.metadata!.content))
+            .join("\n\n");
+
+          return {
+            content,
+            customMessage: { results },
+          };
         },
       },
     };

@@ -1,18 +1,21 @@
 import { ChatCompletionAssistantMessageParam } from "openai/resources/chat/completions";
-import { State } from "./agentic";
+import { FlowMessage, State } from "./agentic";
 import { Agent } from "./agentic";
 import { handleStream } from "./stream";
 
-type FlowState<CustomState> = {
-  state: State<CustomState>;
+type FlowState<CustomState, CustomMessage> = {
+  state: State<CustomState, CustomMessage>;
   startedAt?: number;
 };
 
-export class Flow<CustomState> {
-  private agents: Record<string, Agent<CustomState>>;
-  public flowState: FlowState<CustomState>;
+export class Flow<CustomState, CustomMessage> {
+  private agents: Record<string, Agent<CustomState, CustomMessage>>;
+  public flowState: FlowState<CustomState, CustomMessage>;
 
-  constructor(agents: Record<string, Agent<any>>, state: State<CustomState>) {
+  constructor(
+    agents: Record<string, Agent<CustomState, CustomMessage>>,
+    state: State<CustomState, CustomMessage>
+  ) {
     this.agents = agents;
     this.flowState = {
       state,
@@ -34,16 +37,17 @@ export class Flow<CustomState> {
       const tools = agent.getTools();
       for (const [name, tool] of Object.entries(tools)) {
         if (name === toolName) {
-          const result = await tool.execute(args);
+          const { content, customMessage } = await tool.execute(args);
           this.flowState.state.messages.push({
             llmMessage: {
               role: "tool",
-              content: result,
+              content,
               tool_call_id: id,
             },
             agentId,
+            custom: customMessage,
           });
-          return result;
+          return content;
         }
       }
     }
@@ -90,10 +94,6 @@ export class Flow<CustomState> {
       }
     );
 
-    for (const message of result.messages) {
-      this.getAgent(agentId).onMessage(message);
-    }
-
     this.flowState.state.messages = [
       ...this.flowState.state.messages,
       ...result.messages.map((message) => ({
@@ -103,5 +103,9 @@ export class Flow<CustomState> {
     ];
 
     return result;
+  }
+
+  addMessage(message: FlowMessage<CustomMessage>) {
+    this.flowState.state.messages.push(message);
   }
 }
