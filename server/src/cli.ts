@@ -47,7 +47,7 @@ async function main() {
         {
           llmMessage: {
             role: "user",
-            content: "How to use renderStillOnLambda? and how to export to low quality image",
+            content: "How to find duration of a video?",
           },
         },
       ],

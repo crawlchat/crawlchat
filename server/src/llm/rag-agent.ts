@@ -32,6 +32,8 @@ export class RAGAgent extends Agent<{}> {
           "Break the complex queries into smaller queries.",
           "Example: If the query is 'How to build a site and deploy it on Vercel?', break it into 'How to build a site' and 'Deploy it on Vercel'.",
           "Example: If the topic is about a tool called 'Remotion', turn the query 'What is it?' into 'What is Remotion?'",
+          "These queries are for a vector database. Don't use extra words that do not add any value in vectorisation.",
+          "Example: If the query is 'How to make a composition?', better you use 'make a composition'",
         ]),
         schema: z.object({
           queries: z.array(

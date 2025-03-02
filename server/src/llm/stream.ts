@@ -38,6 +38,11 @@ export async function handleStream(
         const argChunk =
           chunk.choices[0].delta.tool_calls[i].function!.arguments;
         const index = chunk.choices[0].delta.tool_calls[i].index;
+
+        if (!toolCall.tool_calls[index]) {
+          toolCall.tool_calls[index] = chunk.choices[0].delta.tool_calls[i] as any;
+          toolCall.tool_calls[index].function.arguments = "";
+        }
         toolCall.tool_calls[index].function.arguments += argChunk;
       }
     }
