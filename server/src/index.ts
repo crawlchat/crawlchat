@@ -27,12 +27,8 @@ import {
 } from "@pinecone-database/pinecone";
 import { QueryResponse } from "@pinecone-database/pinecone";
 import { makeIndexer } from "./indexer/factory";
-import {
-  State,
-  handleStream,
-  LlmMessage,
-  QueryPlannerAgent,
-} from "./llm/agentic";
+import { State, LlmMessage, QueryPlannerAgent } from "./llm/agentic";
+import { handleStream } from "./llm/stream";
 
 const app: Express = express();
 const expressWs = ws(app);

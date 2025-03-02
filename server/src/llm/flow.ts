@@ -1,5 +1,7 @@
-import { State, handleStream } from "./agentic";
+import { ChatCompletionAssistantMessageParam } from "openai/resources/chat/completions";
+import { State } from "./agentic";
 import { Agent } from "./agentic";
+import { handleStream } from "./stream";
 
 type FlowState<CustomState> = {
   state: State<CustomState>;
@@ -20,29 +22,67 @@ export class Flow<CustomState> {
     return this.agents[id];
   }
 
+  getLastMessage() {
+    return this.flowState.state.messages[
+      this.flowState.state.messages.length - 1
+    ];
+  }
+
+  async runTool(id: string, toolName: string, args: Record<string, any>) {
+    for (const [agentId, agent] of Object.entries(this.agents)) {
+      const tools = agent.getTools();
+      for (const [name, tool] of Object.entries(tools)) {
+        if (name === toolName) {
+          const result = await tool.execute(args);
+          this.flowState.state.messages.push({
+            llmMessage: {
+              role: "tool",
+              content: result,
+              tool_call_id: id,
+            },
+            agentId,
+          });
+          return result;
+        }
+      }
+    }
+    throw new Error(`Tool ${toolName} not found`);
+  }
+
+  async isToolPending() {
+    const lastMessage = this.getLastMessage();
+    if (lastMessage.llmMessage && "tool_calls" in lastMessage.llmMessage) {
+      return true;
+    }
+    return false;
+  }
+
   async stream(
     agentId: string,
     options?: { onDelta?: (content: string) => void }
   ) {
+    const lastMessage = this.getLastMessage();
+    if (lastMessage.llmMessage && "tool_calls" in lastMessage.llmMessage) {
+      const message =
+        lastMessage.llmMessage as ChatCompletionAssistantMessageParam;
+      for (const toolCall of message.tool_calls!) {
+        await this.runTool(
+          toolCall.id,
+          toolCall.function.name,
+          JSON.parse(toolCall.function.arguments)
+        );
+      }
+    }
+
     return handleStream(
       await this.agents[agentId].stream(this.flowState.state),
       agentId,
       this.flowState.state,
       this.agents,
       {
-        onTool: async (options) => {
-          for (const agent of Object.values(this.agents)) {
-            const tools = agent.getTools();
-            for (const [name, tool] of Object.entries(tools)) {
-              if (name === options.name) {
-                return tool.execute(options.args);
-              }
-            }
-          }
-          throw new Error(`No agent found for tool ${options.name}`);
-        },
         onDelta: options?.onDelta,
       }
     );
   }
 }
+

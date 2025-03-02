@@ -1,23 +1,55 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { QueryPlannerAgent } from "./llm/agentic";
+import { Agent, QueryPlannerAgent } from "./llm/agentic";
 import { Flow } from "./llm/flow";
+import { z } from "zod";
+
+class CapitalFinder extends Agent<{ country: string }> {
+  getTools() {
+    return {
+      find_capital: {
+        schema: z.object({
+          country: z.string(),
+        }),
+        description: "Find the capital of a country",
+        execute: async ({ country }: { country: string }) => {
+          return `The capital of ${country} is New Delhi`;
+        },
+      },
+    };
+  }
+
+  async getSystemPrompt() {
+    return "You are a helpful assistant that can find the capital of a country.";
+  }
+}
 
 async function main() {
   const flow = new Flow(
     {
-      "query-planner": new QueryPlannerAgent(),
+      "capital-finder": new CapitalFinder(),
     },
     {
-      query: "What is the capital of the moon?",
-      messages: [],
+      messages: [
+        {
+          llmMessage: {
+            role: "user",
+            content: "What is the capital of India?",
+          },
+          agentId: "capital-finder",
+        },
+      ],
     }
   );
 
-  const result = await flow.stream("query-planner");
+  await flow.stream("capital-finder");
+  await flow.stream("capital-finder");
 
-  console.log(result);
+  console.log(
+    flow.flowState.state.messages[flow.flowState.state.messages.length - 1]
+      .llmMessage.content
+  );
 }
 
 console.log("Starting...");
