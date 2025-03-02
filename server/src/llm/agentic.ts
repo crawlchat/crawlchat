@@ -1,10 +1,7 @@
 import OpenAI from "openai";
 import { z, ZodSchema } from "zod";
 import { Stream } from "openai/streaming";
-import {
-  ChatCompletionAssistantMessageParam,
-  ChatCompletionMessageParam,
-} from "openai/resources";
+import { ChatCompletionMessageParam } from "openai/resources";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
@@ -15,13 +12,22 @@ export type LlmTool<T extends ZodSchema<any>> = {
   execute: (input: z.infer<T>) => Promise<string>;
 };
 export type LlmRole = "developer" | "system" | "user" | "assistant" | "tool";
+export type FlowMessage = {
+  llmMessage: LlmMessage;
+  agentId?: string;
+};
 
 export type State<CustomState> = CustomState & {
-  messages: {
-    llmMessage: LlmMessage;
-    agentId?: string;
-  }[];
+  messages: FlowMessage[];
 };
+
+export function multiLinePrompt(prompt: string[]) {
+  return prompt.join("\n");
+}
+
+export function logMessage(message: FlowMessage) {
+  console.log(JSON.stringify(message, null, 2));
+}
 
 export class Agent<CustomState> {
   private openai: OpenAI;
@@ -41,11 +47,13 @@ export class Agent<CustomState> {
       content: await this.getSystemPrompt(state),
     };
 
+    const messages = [
+      ...state.messages.map((m) => m.llmMessage),
+      systemPromptMessage,
+    ];
+
     return this.openai.chat.completions.create({
-      messages: [
-        ...state.messages.map((m) => m.llmMessage),
-        systemPromptMessage,
-      ],
+      messages,
       model: this.model,
       stream: true,
       response_format: this.getResponseSchema()

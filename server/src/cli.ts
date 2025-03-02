@@ -1,9 +1,12 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { Agent, QueryPlannerAgent } from "./llm/agentic";
+import { Agent, logMessage, QueryPlannerAgent } from "./llm/agentic";
 import { Flow } from "./llm/flow";
 import { z } from "zod";
+import { prisma } from "./prisma";
+import { makeIndexer } from "./indexer/factory";
+import { RAGAgent } from "./llm/rag-agent";
 
 class CapitalFinder extends Agent<{ country: string }> {
   getTools() {
@@ -26,27 +29,35 @@ class CapitalFinder extends Agent<{ country: string }> {
 }
 
 async function main() {
+  const scrapeId = "67c1d700cb1ec09c237bab8a";
+
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: {
+      id: scrapeId,
+    },
+  });
+  const indexer = makeIndexer({ key: scrape.indexer });
+
   const flow = new Flow(
     {
-      "capital-finder": new CapitalFinder(),
+      "rag-agent": new RAGAgent(indexer, scrapeId),
     },
     {
       messages: [
         {
           llmMessage: {
             role: "user",
-            content: "What is the capital of India?",
+            content: "How to use renderStillOnLambda? and how to export to low quality image",
           },
-          agentId: "capital-finder",
         },
       ],
     }
   );
 
-  await flow.stream("capital-finder");
-  await flow.stream("capital-finder");
-
-  console.log(flow.getLastMessage().llmMessage.content);
+  while (!flow.hasStarted() || flow.isToolPending()) {
+    await flow.stream("rag-agent");
+    logMessage(flow.getLastMessage());
+  }
 }
 
 console.log("Starting...");

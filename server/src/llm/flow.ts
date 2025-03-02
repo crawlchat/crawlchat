@@ -5,6 +5,7 @@ import { handleStream } from "./stream";
 
 type FlowState<CustomState> = {
   state: State<CustomState>;
+  startedAt?: number;
 };
 
 export class Flow<CustomState> {
@@ -49,7 +50,7 @@ export class Flow<CustomState> {
     throw new Error(`Tool ${toolName} not found`);
   }
 
-  async isToolPending() {
+  isToolPending() {
     const lastMessage = this.getLastMessage();
     if (lastMessage.llmMessage && "tool_calls" in lastMessage.llmMessage) {
       return true;
@@ -57,10 +58,18 @@ export class Flow<CustomState> {
     return false;
   }
 
+  hasStarted() {
+    return this.flowState.startedAt !== undefined;
+  }
+
   async stream(
     agentId: string,
     options?: { onDelta?: (content: string) => void }
   ) {
+    if (!this.hasStarted()) {
+      this.flowState.startedAt = Date.now();
+    }
+
     const lastMessage = this.getLastMessage();
     if (lastMessage.llmMessage && "tool_calls" in lastMessage.llmMessage) {
       const message =
@@ -92,5 +101,7 @@ export class Flow<CustomState> {
         agentId,
       })),
     ];
+
+    return result;
   }
 }

@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { Stream } from "openai/streaming";
 import { ChatCompletionAssistantMessageParam } from "openai/resources";
-import { Agent, LlmMessage, LlmRole, State } from "./agentic";
+import { LlmMessage, LlmRole } from "./agentic";
 
 export async function handleStream(
   stream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>,
@@ -48,7 +48,7 @@ export async function handleStream(
   }
 
   if (toolCall) {
-    messages.push(toolCall);
+    messages.push({ ...toolCall, role: "assistant" });
   } else {
     messages.push({
       role,
