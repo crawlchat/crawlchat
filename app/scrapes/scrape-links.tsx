@@ -72,11 +72,20 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
               <Table.Cell className="group">
                 <Group>
                   <Text>
-                    <ChakraLink href={item.url} target="_blank">
-                      {new URL(item.url).pathname}
-                    </ChakraLink>
+                    {item.url ? (
+                      <ChakraLink href={item.url} target="_blank">
+                        {new URL(item.url).pathname}
+                      </ChakraLink>
+                    ) : (
+                      item.id
+                    )}
                   </Text>
-                  <LinkRefresh scrapeId={loaderData.scrape.id} url={item.url} />
+                  {item.url && (
+                    <LinkRefresh
+                      scrapeId={loaderData.scrape.id}
+                      url={item.url}
+                    />
+                  )}
                 </Group>
               </Table.Cell>
               <Table.Cell>

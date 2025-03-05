@@ -136,6 +136,7 @@ export class MarsIndexer implements Indexer {
         id: m.id,
         text: m.metadata!.content as string,
         url: m.metadata!.url as string,
+        scrapeItemId: m.metadata!.scrapeItemId as string,
       })),
       {
         topN: 4,
@@ -150,6 +151,7 @@ export class MarsIndexer implements Indexer {
       content: r.document!.text,
       url: r.document!.url,
       score: r.score,
+      scrapeItemId: r.document!.scrapeItemId,
     }));
   }
 }

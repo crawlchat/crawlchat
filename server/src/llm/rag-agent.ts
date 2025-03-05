@@ -2,10 +2,14 @@ import { z } from "zod";
 import { Agent } from "./agentic";
 import { multiLinePrompt } from "./agentic";
 import { Indexer } from "../indexer/indexer";
-import { Pinecone } from "@pinecone-database/pinecone";
 
 export type RAGAgentCustomMessage = {
-  result?: { content: string; url: string; score: number }[];
+  result?: {
+    content: string;
+    url?: string;
+    score: number;
+    scrapeItemId?: string;
+  }[];
 };
 
 export class RAGAgent extends Agent<{}, RAGAgentCustomMessage> {

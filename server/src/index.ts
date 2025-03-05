@@ -347,11 +347,13 @@ expressWs.app.ws("/", (ws: any, req) => {
         const links: MessageSourceLink[] = [];
         for (const match of matches) {
           const item = await prisma.scrapeItem.findFirst({
-            where: { url: match.url },
+            where: {
+              OR: [{ url: match.url }, { id: match.scrapeItemId }],
+            },
           });
           if (item) {
             links.push({
-              url: match.url,
+              url: match.url ?? null,
               title: item.title,
               score: match.score ?? null,
             });
@@ -423,6 +425,54 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   });
 
   res.json(processed);
+});
+
+app.post("/resource", authenticate, async (req, res) => {
+  const userId = req.user!.id;
+  const scrapeId = req.body.scrapeId;
+  const markdown = req.body.markdown;
+  const title = req.body.title;
+
+  if (!scrapeId || !markdown || !title) {
+    res.status(400).json({ message: "Missing scrapeId or markdown or title" });
+    return;
+  }
+
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId, userId },
+  });
+
+  const indexer = makeIndexer({ key: scrape.indexer });
+  const chunks = await splitMarkdown(markdown);
+
+  let scrapeItem = await prisma.scrapeItem.create({
+    data: {
+      userId,
+      scrapeId: scrape.id,
+      markdown,
+      title,
+      metaTags: [],
+      embeddings: [],
+      status: "completed",
+    },
+  });
+
+  const documents = chunks.map((chunk) => ({
+    id: makeRecordId(scrape.id, uuidv4()),
+    text: chunk,
+    metadata: { content: chunk, scrapeItemId: scrapeItem.id },
+  }));
+  await indexer.upsert(scrape.id, documents);
+  scrapeItem = await prisma.scrapeItem.update({
+    where: { id: scrapeItem.id },
+    data: {
+      embeddings: documents.map((doc) => ({
+        id: doc.id,
+      })),
+    },
+  });
+
+  res.json({ scrapeItem });
 });
 
 app.listen(port, async () => {
