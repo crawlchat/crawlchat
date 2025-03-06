@@ -23,6 +23,7 @@ import {
   TbWorld,
   TbRobotFace,
   TbCode,
+  TbPlug,
 } from "react-icons/tb";
 import moment from "moment";
 import { Link, Outlet, redirect, useFetcher, useNavigate } from "react-router";
@@ -236,6 +237,15 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
                   <HStack>
                     <TbCode />
                     Embed
+                  </HStack>
+                ),
+              },
+              {
+                value: "integrations",
+                label: (
+                  <HStack>
+                    <TbPlug />
+                    Integrations
                   </HStack>
                 ),
               },

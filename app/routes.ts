@@ -33,6 +33,7 @@ export default [
       ]),
       route("mcp", "scrapes/scrape-mcp.tsx"),
       route("embed", "scrapes/scrape-embed.tsx"),
+      route("integrations", "scrapes/scrape-integrations.tsx"),
     ]),
 
     route("data-gaps", "analyse/data-gaps.tsx"),

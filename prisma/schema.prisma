@@ -59,6 +59,7 @@ model Scrape {
   mcpToolName     String?
   widgetConfig    WidgetConfig?
   indexer         String?
+  discordServerId String?
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   threads         Thread[]

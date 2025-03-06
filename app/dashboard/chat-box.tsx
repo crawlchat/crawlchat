@@ -149,7 +149,7 @@ function SourceLink({ link }: { link: MessageSourceLink }) {
       }}
       transition={"background-color 100ms ease-in-out"}
       variant={"plain"}
-      href={link.url}
+      href={link.url ?? undefined}
       target="_blank"
       textDecoration={"none"}
       outline={"none"}
