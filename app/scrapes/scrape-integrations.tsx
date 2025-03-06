@@ -66,7 +66,7 @@ export default function ScrapeIntegrations({
     <Stack>
       <Box>
         <Button asChild variant={"outline"}>
-          <a href="https://discord.com/oauth2/authorize?client_id=1346845279692918804">
+          <a href="https://discord.com/oauth2/authorize?client_id=1346845279692918804" target="_blank">
             <TbBrandDiscord />
             Install Discord App
             <TbArrowRight />
