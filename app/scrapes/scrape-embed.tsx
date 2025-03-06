@@ -75,7 +75,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const sizeFetcher = useFetcher();
 
   return (
-    <Stack maxW={"700px"} gap={6}>
+    <Stack gap={6}>
       <Stack>
         <Heading>1. Script</Heading>
         <Text>
