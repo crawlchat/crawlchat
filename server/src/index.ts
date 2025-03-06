@@ -572,11 +572,14 @@ app.get("/answer/:scrapeId", async (req, res) => {
 });
 
 app.get("/discord/:channelId", async (req, res) => {
-  console.log(`Discord request for ${req.params.channelId}`);
-
-  const scrape = await prisma.scrape.findFirstOrThrow({
+  const scrape = await prisma.scrape.findFirst({
     where: { discordServerId: req.params.channelId },
   });
+
+  if (!scrape) {
+    res.status(404).json({ scrapeId: null, userId: null });
+    return;
+  }
 
   res.json({ scrapeId: scrape.id, userId: scrape.userId });
 });

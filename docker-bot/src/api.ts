@@ -31,7 +31,7 @@ export async function learn(scrapeId: string, content: string, token: string) {
   return result.json();
 }
 
-export async function getUserId(channelId: string) {
+export async function getDiscordDetails(channelId: string) {
   const result = await fetch(`${process.env.SERVER_HOST}/discord/${channelId}`);
   const { scrapeId, userId } = await result.json();
 

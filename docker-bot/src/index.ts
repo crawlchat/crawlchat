@@ -8,7 +8,7 @@ import {
   Message,
   Snowflake,
 } from "discord.js";
-import { getUserId, learn, query } from "./api";
+import { getDiscordDetails, learn, query } from "./api";
 import { createToken } from "./jwt";
 
 type DiscordMessage = Message<boolean>;
@@ -48,6 +48,10 @@ const cleanContent = (content: string) => {
   return content.replace(/\n/g, "\n\n");
 };
 
+const discordPrompt = (query: string) => {
+  return `Query: ${query}\n\nKeep the response very short and concise. It should be under 1500 charecters.`;
+};
+
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
@@ -63,36 +67,38 @@ client.on(Events.MessageCreate, async (message) => {
         .map(cleanContent)
         .join("\n\n");
 
-      const { scrapeId, userId } = await getUserId(message.guildId!);
+      const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
 
       await learn(scrapeId, content, createToken(userId));
 
       message.reply("Added to collection!");
-    } else if (message.content.includes("answer")) {
+      return;
+    }
+
+    let rawQuery = message.content;
+
+    if (message.reference?.messageId) {
       const parentMessage = await message.channel.messages.fetch(
         message.reference?.messageId as Snowflake
       );
 
-      const { scrapeId, userId } = await getUserId(message.guildId!);
-
-      const { answer } = await query(
-        scrapeId,
-        parentMessage.content,
-        createToken(userId)
-      );
-
-      message.reply(answer);
-    } else {
-      const { scrapeId, userId } = await getUserId(message.guildId!);
-
-      const { answer } = await query(
-        scrapeId,
-        message.content.replace(`<@${process.env.BOT_USER_ID}>`, "").trim(),
-        createToken(userId)
-      );
-
-      message.reply(answer);
+      rawQuery = parentMessage.content;
     }
+
+    const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
+
+    if (!scrapeId || !userId) {
+      message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+      return;
+    }
+
+    const { answer } = await query(
+      scrapeId,
+      discordPrompt(rawQuery),
+      createToken(userId)
+    );
+
+    message.reply(answer);
   }
 });
 
