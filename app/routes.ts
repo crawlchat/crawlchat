@@ -18,9 +18,9 @@ export default [
   route("terms", "landing/terms.tsx"),
   route("policy", "landing/policy.tsx"),
   route("embed-demo", "landing/embed-demo.tsx"),
-  route("embed", "landing/embed.tsx"),
-  route("mcp", "landing/mcp.tsx"),
-  route("discord-bot", "landing/discord-bot.tsx"),
+  route("use-case/embed", "landing/use-case/embed.tsx"),
+  route("use-case/mcp", "landing/use-case/mcp.tsx"),
+  route("use-case/discord-bot", "landing/use-case/discord-bot.tsx"),
 
   route("/logout", "auth/logout.tsx"),
   layout("dashboard/layout.tsx", [

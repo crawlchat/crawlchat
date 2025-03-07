@@ -389,7 +389,7 @@ function UseCases() {
         { text: "Embed or share URLs", highlight: ["Embed", "URLs"] },
         { text: "No hallucinations" },
       ],
-      link: "/embed",
+      link: "/use-case/embed",
     },
     {
       icon: <TbRobotFace />,
@@ -404,7 +404,7 @@ function UseCases() {
           highlight: ["Cursor", "Windsurf", "Claude"],
         },
       ],
-      link: "/mcp",
+      link: "/use-case/mcp",
     },
     {
       icon: <TbBrandDiscord />,
@@ -417,7 +417,7 @@ function UseCases() {
         { text: "Answers repeated questions", highlight: ["Answers"] },
         { text: "Learns from the conversations", highlight: ["Learns"] },
       ],
-      link: "/discord-bot",
+      link: "/use-case/discord-bot",
     },
   ];
 

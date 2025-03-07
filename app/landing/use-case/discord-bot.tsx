@@ -10,7 +10,7 @@ import {
   List,
   Center,
 } from "@chakra-ui/react";
-import { Container, CTA, Footer, Navbar, Pricing } from "./page";
+import { Container, CTA, Footer, Navbar, Pricing } from "../page";
 import { TbCircleCheck } from "react-icons/tb";
 import { CustomListItem } from "./embed";
 
@@ -29,9 +29,13 @@ export default function Embed() {
       <Navbar />
       <Stack w={"full"} px={8} py={12} id="pricing">
         <Container>
-          <Flex w={"full"} gap={12}>
+          <Flex
+            w={"full"}
+            gap={12}
+            direction={["column", "column", "column", "row"]}
+          >
             <Stack flex={1} gap={8}>
-              <Heading size={"7xl"} as="h1">
+              <Heading size={["5xl", "7xl"]} as="h1">
                 <Text>
                   <Highlight
                     query={["Discord bot"]}

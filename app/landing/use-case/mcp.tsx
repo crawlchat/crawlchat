@@ -10,27 +10,17 @@ import {
   List,
   Center,
 } from "@chakra-ui/react";
-import { Container, CTA, Footer, Navbar, Pricing } from "./page";
+import { Container, CTA, Footer, Navbar, Pricing } from "../page";
 import { TbCircleCheck } from "react-icons/tb";
+import { CustomListItem } from "./embed";
 
 export function meta() {
   return [
     {
-      title: "Embed CrawlChat on your website",
+      title: "MCP server for your documentation - CrawlChat",
       description: "Chat with Any Website using AI",
     },
   ];
-}
-
-export function CustomListItem({ children }: { children: React.ReactNode }) {
-  return (
-    <List.Item alignItems={"start"}>
-      <List.Indicator asChild color="green.500">
-        <TbCircleCheck />
-      </List.Indicator>
-      <Text opacity={0.6}>{children}</Text>
-    </List.Item>
-  );
 }
 
 export default function Embed() {
@@ -39,35 +29,36 @@ export default function Embed() {
       <Navbar />
       <Stack w={"full"} px={8} py={12} id="pricing">
         <Container>
-          <Flex w={"full"} gap={12}>
+          <Flex
+            w={"full"}
+            gap={12}
+            direction={["column", "column", "column", "row"]}
+          >
             <Stack flex={1} gap={8}>
-              <Heading size={"7xl"} as="h1">
+              <Heading size={["5xl", "7xl"]} as="h1">
                 <Text>
                   <Highlight
-                    query={["Ask AI"]}
+                    query={["MCP server"]}
                     styles={{ bg: "brand.fg", color: "brand.white", px: 2 }}
                   >
-                    Effortlessly add Ask AI to your website!
+                    MCP server for your documentation!
                   </Highlight>
                 </Text>
               </Heading>
               <Text as="h2" fontSize={"xl"} opacity={0.6}>
-                As the world is adopting AI, it is important to make your
-                content to be accessible through AI to your customers. CrawlChat
-                lets you embed the chat box on your website and let your
-                customers ask questions against your own documentation or
-                content.
+                MCP has been the standard protocol for interacting with AI
+                applications such as Claude, Cursor or Windsurf. Lot of people
+                and developers around the world are adopting MCP servers
+                quickly. You can host MCP server for your documentation without
+                any efforts!
               </Text>
               <List.Root gap="2" variant="plain" align="center" fontSize={"xl"}>
                 <CustomListItem>
                   Scrape your own documentation or content
                 </CustomListItem>
+                <CustomListItem>Get the MCP server command</CustomListItem>
                 <CustomListItem>
-                  Get the embed code and paste it on your website
-                </CustomListItem>
-                <CustomListItem>
-                  Let your customers ask questions against your own
-                  documentation or content
+                  Share the MCP command with your customers
                 </CustomListItem>
               </List.Root>
             </Stack>
@@ -80,8 +71,8 @@ export default function Embed() {
                 p={8}
               >
                 <Image
-                  src="/embed-box.png"
-                  alt="Embed"
+                  src="/mcp.png"
+                  alt="MCP server"
                   rounded={"xl"}
                   maxW={"90%"}
                   objectFit={"contain"}
