@@ -476,11 +476,9 @@ function UseCases() {
                           <Highlight
                             query={point.highlight ?? []}
                             styles={{
-                              color: "brand.white",
                               px: 1,
                               mx: 1,
-                              fontWeight: "bold",
-                              bg: "brand.fg",
+                              bg: "brand.muted",
                               display: "inline",
                             }}
                           >
