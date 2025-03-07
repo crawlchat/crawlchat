@@ -62,8 +62,9 @@ export function LogoText() {
       gradientTo={"brand.300"}
       bgClip="text"
       color={"transparent"}
+      asChild
     >
-      CrawlChat
+      <Link to="/">CrawlChat</Link>
     </Text>
   );
 }
@@ -388,6 +389,7 @@ function UseCases() {
         { text: "Embed or share URLs", highlight: ["Embed", "URLs"] },
         { text: "No hallucinations" },
       ],
+      link: "/embed",
     },
     {
       icon: <TbRobotFace />,
@@ -402,6 +404,7 @@ function UseCases() {
           highlight: ["Cursor", "Windsurf", "Claude"],
         },
       ],
+      link: "/mcp",
     },
     {
       icon: <TbBrandDiscord />,
@@ -414,6 +417,7 @@ function UseCases() {
         { text: "Answers repeated questions", highlight: ["Answers"] },
         { text: "Learns from the conversations", highlight: ["Learns"] },
       ],
+      link: "/discord-bot",
     },
   ];
 
@@ -494,9 +498,12 @@ function UseCases() {
                       colorPalette={"brand"}
                       size={"xl"}
                       variant={"outline"}
+                      asChild
                     >
-                      Learn more
-                      <TbArrowRight />
+                      <Link to={useCase.link}>
+                        Learn more
+                        <TbArrowRight />
+                      </Link>
                     </Button>
                   </Group>
                 </Stack>
@@ -605,7 +612,7 @@ function PriceBox({
   );
 }
 
-function Pricing() {
+export function Pricing() {
   return (
     <Stack w={"full"} px={8} py={12} id="pricing">
       <Container>
