@@ -1,11 +1,9 @@
 import {
   Flex,
-  Group,
   Heading,
   Stack,
   Text,
   Highlight,
-  Box,
   Image,
   List,
   Center,

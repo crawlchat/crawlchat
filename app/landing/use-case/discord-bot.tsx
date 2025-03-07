@@ -1,17 +1,14 @@
 import {
   Flex,
-  Group,
   Heading,
   Stack,
   Text,
   Highlight,
-  Box,
   Image,
   List,
   Center,
 } from "@chakra-ui/react";
 import { Container, CTA, Footer, Navbar, Pricing } from "../page";
-import { TbCircleCheck } from "react-icons/tb";
 import { CustomListItem } from "./embed";
 
 export function meta() {
