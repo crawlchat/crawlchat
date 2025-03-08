@@ -1,3 +1,5 @@
+import { faker } from "@faker-js/faker";
+
 export function name() {
-  return "libs";
+  return faker.person.firstName();
 }
