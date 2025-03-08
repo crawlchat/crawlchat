@@ -1,4 +1,4 @@
-import { MetaTag } from "@prisma/client";
+import { MetaTag } from "libs/prisma";
 import { OrderedSet } from "./ordered-set";
 import { parseHtml, ParseOutput } from "./parse";
 import { scrapePw } from "./playwright";

@@ -1,7 +1,7 @@
 import { verify, JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "./prisma";
-import { User } from "@prisma/client";
+import { User } from "libs/prisma";
 
 interface UserPayload extends JwtPayload {
   userId: string;

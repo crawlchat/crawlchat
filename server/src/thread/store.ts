@@ -1,5 +1,5 @@
 import { prisma } from "../prisma";
-import type { Message } from "@prisma/client";
+import type { Message } from "libs/prisma";
 
 export async function addMessage(threadId: string, message: Message) {
   return await prisma.thread.update({

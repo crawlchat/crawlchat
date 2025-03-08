@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import TurndownService from "turndown";
 import { removeConsecutiveLinks, markdownToText } from "./markdown";
-import type { MetaTag } from "@prisma/client";
+import type { MetaTag } from "libs/prisma";
 // @ts-ignore
 import * as turndownPluginGfm from "turndown-plugin-gfm";
 

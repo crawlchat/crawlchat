@@ -17,7 +17,7 @@ import { getMetaTitle } from "./scrape/parse";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
-import { Message, MessageSourceLink } from "@prisma/client";
+import { Message, MessageSourceLink } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 
 const app: Express = express();

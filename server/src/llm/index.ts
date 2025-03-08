@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { Message } from "@prisma/client";
+import type { Message } from "libs/prisma";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

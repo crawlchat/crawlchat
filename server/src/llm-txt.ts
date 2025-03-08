@@ -1,4 +1,4 @@
-import { ScrapeItem } from "@prisma/client";
+import { ScrapeItem } from "libs/prisma";
 
 export function makeLLMTxt(scrapeItems: ScrapeItem[]) {
   const scrapeTxts = scrapeItems.map((scrapeItem) => {
