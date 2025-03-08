@@ -5,7 +5,7 @@ import { SettingsSection } from "~/dashboard/settings";
 import type { Route } from "./+types/scrape-mcp";
 import { prisma } from "~/prisma";
 import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "libs/prisma";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

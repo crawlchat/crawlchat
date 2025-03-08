@@ -1,7 +1,6 @@
 FROM node:20-bullseye
 
 COPY server /app
-
 COPY libs /libs
 
 WORKDIR /app

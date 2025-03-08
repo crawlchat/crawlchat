@@ -5,7 +5,7 @@ import { useFetcher, type FetcherWithComponents } from "react-router";
 import { Button } from "~/components/ui/button";
 import type { Route } from "./+types/settings";
 import { getAuthUser } from "~/auth/middleware";
-import type { UserSettings } from "@prisma/client";
+import type { UserSettings } from "libs/prisma";
 import { prisma } from "~/prisma";
 
 export async function loader({ request }: Route.LoaderArgs) {

@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { User } from "libs/prisma";
 import { redirect } from "react-router";
 import { prisma } from "~/prisma";
 import { getSession } from "~/session";

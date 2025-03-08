@@ -22,7 +22,7 @@ import {
   MenuRoot,
   MenuTrigger,
 } from "~/components/ui/menu";
-import type { User } from "@prisma/client";
+import type { User } from "libs/prisma";
 import { useContext } from "react";
 import { AppContext } from "./context";
 import { LogoText } from "~/landing/page";

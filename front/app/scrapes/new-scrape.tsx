@@ -38,7 +38,7 @@ import { createToken } from "~/jwt";
 import type { Route } from "./+types/new-scrape";
 import { useEffect, useMemo } from "react";
 import { prisma } from "~/prisma";
-import type { Scrape } from "@prisma/client";
+import type { Scrape } from "libs/prisma";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

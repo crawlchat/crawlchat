@@ -1,7 +1,7 @@
 import { Badge, Link as ChakraLink, Image } from "@chakra-ui/react";
 import { Group, Text } from "@chakra-ui/react";
 import { Stack } from "@chakra-ui/react";
-import type { Scrape } from "@prisma/client";
+import type { Scrape } from "libs/prisma";
 import { useEffect, useState } from "react";
 import { TbWorld } from "react-icons/tb";
 import { Link } from "react-router";

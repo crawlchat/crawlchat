@@ -3,7 +3,7 @@ import { TbAlertTriangle, TbFileX } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { prisma } from "~/prisma";
-import type { Message } from "@prisma/client";
+import type { Message } from "libs/prisma";
 import { useMemo } from "react";
 import moment from "moment";
 import { StatCard } from "~/dashboard/page";

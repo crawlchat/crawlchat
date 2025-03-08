@@ -7,7 +7,7 @@ import ChatBox from "~/dashboard/chat-box";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, useFetcher } from "react-router";
 import { useEffect, useState } from "react";
-import type { Thread } from "@prisma/client";
+import type { Thread } from "libs/prisma";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findUnique({

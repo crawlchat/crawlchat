@@ -1,4 +1,4 @@
-import type { Message, MessageSourceLink } from "@prisma/client";
+import type { Message, MessageSourceLink } from "libs/prisma";
 
 export function getThreadName(messages: Message[], maxLength = 500) {
   const title =

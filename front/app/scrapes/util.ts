@@ -1,4 +1,4 @@
-import type { Scrape } from "@prisma/client";
+import type { Scrape } from "libs/prisma";
 
 export function getScrapeTitle(scrape: Scrape) {
   return scrape.title ?? scrape.url;

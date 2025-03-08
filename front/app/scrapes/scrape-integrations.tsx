@@ -10,7 +10,7 @@ import {
 import { useFetcher } from "react-router";
 import { SettingsSection } from "~/dashboard/settings";
 import type { Route } from "./+types/scrape-integrations";
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "libs/prisma";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { TbArrowRight, TbBrandDiscord, TbInfoCircle } from "react-icons/tb";

@@ -1,4 +1,4 @@
-import type { Message } from "@prisma/client";
+import type { Message } from "libs/prisma";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { toaster } from "~/components/ui/toaster";
 import { AppContext } from "~/dashboard/context";

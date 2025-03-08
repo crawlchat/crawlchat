@@ -1,4 +1,4 @@
-import type { User } from "@prisma/client";
+import type { User } from "libs/prisma";
 import { Authenticator } from "remix-auth";
 import { prisma } from "~/prisma";
 import { sessionStorage } from "~/session";

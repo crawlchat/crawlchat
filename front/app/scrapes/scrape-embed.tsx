@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "~/components/ui/select";
-import type { Prisma, WidgetSize } from "@prisma/client";
+import type { WidgetSize } from "libs/prisma";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
