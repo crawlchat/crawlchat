@@ -8,6 +8,8 @@ WORKDIR /app
 RUN npm install
 RUN npm run build
 
+RUN cp -r /libs/node_modules/.prisma /app/node_modules/.prisma
+
 EXPOSE 3000
 
 CMD ["npm", "run", "start"]
