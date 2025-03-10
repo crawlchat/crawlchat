@@ -271,12 +271,18 @@ function AssistantMessage({
   );
 }
 
-function NoMessages({ scrape }: { scrape: Scrape }) {
+function NoMessages({
+  scrape,
+  onQuestionClick,
+}: {
+  scrape: Scrape;
+  onQuestionClick: (question: string) => void;
+}) {
   const shouldShowDefaultTitle = !scrape.widgetConfig?.welcomeMessage;
   return (
     <Stack
       p={4}
-      justify={shouldShowDefaultTitle ? "center" : "flex-start"}
+      justify={"center"}
       align={"center"}
       h="full"
       gap={4}
@@ -319,6 +325,7 @@ function NoMessages({ scrape }: { scrape: Scrape }) {
                 transition={"background-color 200ms ease-in-out"}
                 cursor={"pointer"}
                 alignItems={"flex-start"}
+                onClick={() => onQuestionClick(question.text)}
               >
                 <Box mt={1}>
                   <TbHelp />
@@ -595,7 +602,12 @@ export default function ScrapeWidget({
           onPinSelect={handlePinSelect}
         />
         <Stack flex="1" overflow={"auto"} gap={0}>
-          {chat.allMessages.length === 0 && <NoMessages scrape={scrape} />}
+          {chat.allMessages.length === 0 && (
+            <NoMessages
+              scrape={scrape}
+              onQuestionClick={handleAsk}
+            />
+          )}
           {chat.allMessages.map((message, index) => (
             <Stack key={index} id={`message-${message.uuid}`}>
               {message.role === "user" ? (
