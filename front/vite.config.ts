@@ -15,4 +15,7 @@ export default defineConfig({
   build: {
     watch: null,
   },
+  server: {
+    allowedHosts: ["3ebd-2405-201-d005-c0da-48e2-c3b9-81ad-a596.ngrok-free.app"],
+  }
 });

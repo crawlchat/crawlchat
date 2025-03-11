@@ -24,6 +24,8 @@ export default [
 
   route("test", "landing/test.tsx"),
 
+  route("payment/lemonsqueezy-webhook", "payment/lemonsqueezy-webhook.ts"),
+
   route("/logout", "auth/logout.tsx"),
   layout("dashboard/layout.tsx", [
     route("app", "dashboard/page.tsx"),
