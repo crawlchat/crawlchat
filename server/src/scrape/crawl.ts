@@ -43,6 +43,7 @@ export async function scrapeFetch(url: string): Promise<string> {
   const response = await fetch(url, {
     headers,
     credentials: "same-origin",
+    signal: AbortSignal.timeout(10000),
   });
   return await response.text();
 }

@@ -36,6 +36,13 @@ function makeMessage(type: string, data: any) {
   return JSON.stringify({ type, data });
 }
 
+function cleanUrl(url: string) {
+  if (!url.startsWith("http")) {
+    url = "https://" + url;
+  }
+  return url;
+}
+
 app.get("/", function (req: Request, res: Response) {
   res.json({ message: "ok" });
 });
@@ -46,7 +53,7 @@ app.get("/test", async function (req: Request, res: Response) {
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const userId = req.user!.id;
-  const url = req.body.url;
+  const url = cleanUrl(req.body.url);
   const scrapeId = req.body.scrapeId!;
   const dynamicFallbackContentLength = req.body.dynamicFallbackContentLength;
   const roomId = req.body.roomId;
@@ -88,7 +95,8 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     };
     store.urlSet.add(url ?? scrape.url);
 
-    await scrapeLoop(store, req.body.url ?? scrape.url, {
+    const urlToScrape = cleanUrl(req.body.url ?? scrape.url);
+    await scrapeLoop(store, urlToScrape, {
       removeHtmlTags: req.body.removeHtmlTags,
       dynamicFallbackContentLength,
       limit: getLimit(),
@@ -184,6 +192,10 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
           );
         } catch (error: any) {
           console.error(error);
+          store.urls[url] = {
+            metaTags: [],
+            text: "ERROR",
+          };
           await prisma.scrapeItem.upsert({
             where: { scrapeId_url: { scrapeId: scrape.id, url } },
             update: {
