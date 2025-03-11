@@ -12,6 +12,7 @@ import {
   Highlight,
   Center,
   List,
+  Badge,
 } from "@chakra-ui/react";
 import type { PropsWithChildren } from "react";
 import {
@@ -25,6 +26,7 @@ import {
   TbMessage,
   TbRobotFace,
   TbSettings,
+  TbStarFilled,
   TbWorld,
   TbX,
 } from "react-icons/tb";
@@ -519,6 +521,7 @@ function UseCases() {
 type Feature = {
   label: string;
   excluded?: boolean;
+  new?: boolean;
 };
 
 function PriceBox({
@@ -591,6 +594,12 @@ function PriceBox({
               {feature.excluded ? <TbX /> : <TbCheck />}
             </Box>
             <Text>{feature.label}</Text>
+            {feature.new && (
+              <Badge colorPalette={"black"} variant={"solid"} fontSize={"xs"}>
+                <TbStarFilled />
+                New
+              </Badge>
+            )}
           </Group>
         ))}
       </Stack>
@@ -628,7 +637,23 @@ export function Pricing() {
                 { label: "200 messages per month" },
                 { label: "API not available", excluded: true },
                 { label: "MCP not available", excluded: true },
+                { label: "Discord bot", excluded: true },
               ]}
+              href="/login"
+            />
+            <PriceBox
+              price={29}
+              title="Starter"
+              description="Start your journey with CrawlChat"
+              features={[
+                { label: "3000 site scrapes per month" },
+                { label: "15,000 messages per month" },
+                { label: "API available" },
+                { label: "MCP available" },
+                { label: "Discord bot", new: true },
+              ]}
+              popular
+              disabled
               href="/login"
             />
             <PriceBox
@@ -640,6 +665,7 @@ export function Pricing() {
                 { label: "50,000 messages per month" },
                 { label: "API available" },
                 { label: "MCP available" },
+                { label: "Discord bot", new: true },
               ]}
               popular
               disabled
