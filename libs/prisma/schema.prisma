@@ -59,7 +59,7 @@ model Scrape {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   userId          String   @db.ObjectId
 
-  url             String
+  url             String?
   status          ScrapeStatus
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

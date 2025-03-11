@@ -156,22 +156,12 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
       <Stack>
         <DataList.Root orientation={"horizontal"}>
           <DataList.Item>
-            <DataList.ItemLabel>Root URL</DataList.ItemLabel>
-            <DataList.ItemValue>{loaderData.scrape.url}</DataList.ItemValue>
-          </DataList.Item>
-          <DataList.Item>
             <DataList.ItemLabel>Links scraped</DataList.ItemLabel>
             <DataList.ItemValue>
               <Badge variant={"surface"} colorPalette={"brand"}>
                 <TbWorld />
                 {loaderData.items.length}
               </Badge>
-            </DataList.ItemValue>
-          </DataList.Item>
-          <DataList.Item>
-            <DataList.ItemLabel>Created</DataList.ItemLabel>
-            <DataList.ItemValue>
-              {moment(loaderData.scrape.createdAt).fromNow()}
             </DataList.ItemValue>
           </DataList.Item>
           <DataList.Item>
@@ -195,6 +185,18 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
                   Error
                 </Badge>
               )}
+            </DataList.ItemValue>
+          </DataList.Item>
+          <DataList.Item>
+            <DataList.ItemLabel>Created</DataList.ItemLabel>
+            <DataList.ItemValue>
+              {moment(loaderData.scrape.createdAt).fromNow()}
+            </DataList.ItemValue>
+          </DataList.Item>
+          <DataList.Item>
+            <DataList.ItemLabel>Root URL</DataList.ItemLabel>
+            <DataList.ItemValue>
+              {loaderData.scrape.url || "-"}
             </DataList.ItemValue>
           </DataList.Item>
         </DataList.Root>
