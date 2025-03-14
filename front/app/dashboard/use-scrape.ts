@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { makeMessage } from "./socket-util";
 import { toaster } from "~/components/ui/toaster";
-import type { FetcherWithComponents } from "react-router";
 
 export function useScrape() {
   const socket = useRef<WebSocket>(null);
@@ -16,7 +15,7 @@ export function useScrape() {
   }>();
 
   function connect(token: string) {
-    socket.current = new WebSocket(import.meta.env.VITE_SERVER_WS_URL);
+    socket.current = new WebSocket(window.ENV.VITE_SERVER_WS_URL);
     socket.current.onopen = () => {
       socket.current?.send(
         makeMessage("join-room", {
