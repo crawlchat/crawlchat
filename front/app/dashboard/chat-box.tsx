@@ -24,6 +24,7 @@ import {
   TbHelp,
   TbMessage,
   TbPin,
+  TbRefresh,
   TbTrash,
 } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
@@ -197,6 +198,7 @@ function AssistantMessage({
   onPin,
   onUnpin,
   onDelete,
+  onRefresh,
 }: {
   content: string;
   links: MessageSourceLink[];
@@ -204,6 +206,7 @@ function AssistantMessage({
   onPin: () => void;
   onUnpin: () => void;
   onDelete: () => void;
+  onRefresh: () => void;
 }) {
   const [more, setMore] = useState(false);
   const [uniqueLinks, moreLinks, hasMore] = useMemo(() => {
@@ -227,22 +230,36 @@ function AssistantMessage({
       <Stack px={4} gap={0}>
         <MarkdownProse>{content}</MarkdownProse>
         <Group>
-          <IconButton
-            size={"xs"}
-            rounded={"full"}
-            variant={pinned ? "solid" : "subtle"}
-            onClick={pinned ? onUnpin : onPin}
-          >
-            <TbPin />
-          </IconButton>
-          <IconButton
-            size={"xs"}
-            rounded={"full"}
-            variant={"subtle"}
-            onClick={onDelete}
-          >
-            <TbTrash />
-          </IconButton>
+          <Tooltip content="Pin message" showArrow>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={pinned ? "solid" : "subtle"}
+              onClick={pinned ? onUnpin : onPin}
+            >
+              <TbPin />
+            </IconButton>
+          </Tooltip>
+          <Tooltip content="Delete message" showArrow>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={"subtle"}
+              onClick={onDelete}
+            >
+              <TbTrash />
+            </IconButton>
+          </Tooltip>
+          <Tooltip content="Regenerate message" showArrow>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={"subtle"}
+              onClick={onRefresh}
+            >
+              <TbRefresh />
+            </IconButton>
+          </Tooltip>
         </Group>
       </Stack>
       {uniqueLinks.length > 0 && (
@@ -574,6 +591,16 @@ export default function ScrapeWidget({
     chat.deleteMessage(uuids);
   }
 
+  async function handleRefresh(questionUuid: string, answerUuid: string) {
+    const message = chat.getMessage(questionUuid);
+    if (!message) return;
+
+    onDelete([questionUuid, answerUuid]);
+    chat.deleteMessage([questionUuid, answerUuid]);
+    chat.ask((message.llmMessage as any).content as string);
+    await scroll();
+  }
+
   const { width, height } = getSize();
 
   return (
@@ -616,6 +643,12 @@ export default function ScrapeWidget({
                       chat.allMessages[index - 1]?.uuid,
                       message.uuid,
                     ])
+                  }
+                  onRefresh={() =>
+                    handleRefresh(
+                      chat.allMessages[index - 1]?.uuid,
+                      message.uuid
+                    )
                   }
                 />
               )}

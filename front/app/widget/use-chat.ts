@@ -208,6 +208,10 @@ export function useScrapeChat({
     );
   }
 
+  function getMessage(uuid: string) {
+    return messages.find((message) => message.uuid === uuid);
+  }
+
   return {
     connect,
     disconnect,
@@ -223,5 +227,6 @@ export function useScrapeChat({
     erase,
     deleteMessage,
     searchQuery,
+    getMessage,
   };
 }
