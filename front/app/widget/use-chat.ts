@@ -34,7 +34,7 @@ export function useScrapeChat({
               llmMessage: { role: "assistant", content },
               links: [],
               pinnedAt: null,
-              uuid: "new-answer",
+              id: "new-answer",
               createdAt: new Date(),
             },
           ]
@@ -45,7 +45,7 @@ export function useScrapeChat({
       content: (message.llmMessage as any).content,
       links: message.links,
       pinned: message.pinnedAt !== null,
-      uuid: message.uuid,
+      id: message.id,
     }));
   }, [messages, content]);
 
@@ -89,10 +89,10 @@ export function useScrapeChat({
     );
   }
 
-  function handleQueryMessage({ uuid }: { uuid: string }) {
+  function handleQueryMessage({ id }: { id: string }) {
     setMessages((prev) => {
       const queryIndex = prev.findIndex(
-        (message) => message.uuid === "new-query"
+        (message) => message.id === "new-query"
       );
       if (queryIndex === -1) {
         return prev;
@@ -101,7 +101,7 @@ export function useScrapeChat({
         ...prev.slice(0, queryIndex),
         {
           ...prev[queryIndex],
-          uuid,
+          id,
         },
         ...prev.slice(queryIndex + 1),
       ];
@@ -162,17 +162,19 @@ export function useScrapeChat({
         llmMessage: { role: "user", content: query },
         links: [],
         pinnedAt: null,
-        uuid: "new-query",
+        id: "new-query",
         createdAt: new Date(),
+        threadId,
+        updatedAt: new Date(),
       },
     ]);
     setAskStage("asked");
     return messagesCount + 1;
   }
 
-  function pinMessage(uuid: string) {
+  function pinMessage(id: string) {
     setMessages((prev) => {
-      const index = prev.findIndex((message) => message.uuid === uuid);
+      const index = prev.findIndex((message) => message.id === id);
       if (index === -1) {
         return prev;
       }
@@ -184,9 +186,9 @@ export function useScrapeChat({
     });
   }
 
-  function unpinMessage(uuid: string) {
+  function unpinMessage(id: string) {
     setMessages((prev) => {
-      const index = prev.findIndex((message) => message.uuid === uuid);
+      const index = prev.findIndex((message) => message.id === id);
       if (index === -1) {
         return prev;
       }
@@ -202,10 +204,14 @@ export function useScrapeChat({
     setMessages([]);
   }
 
-  function deleteMessage(uuids: string[]) {
+  function deleteMessage(ids: string[]) {
     setMessages((prev) =>
-      prev.filter((message) => !uuids.includes(message.uuid))
+      prev.filter((message) => !ids.includes(message.id))
     );
+  }
+
+  function getMessage(id: string) {
+    return messages.find((message) => message.id === id);
   }
 
   return {
@@ -223,5 +229,6 @@ export function useScrapeChat({
     erase,
     deleteMessage,
     searchQuery,
+    getMessage,
   };
 }

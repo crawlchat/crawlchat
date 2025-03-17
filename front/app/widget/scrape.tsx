@@ -45,11 +45,17 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       openedAt: new Date(),
     },
   });
+
+  const messages = await prisma.message.findMany({
+    where: { threadId: thread.id },
+  });
+
   return data(
     {
       scrape,
       userToken,
       thread,
+      messages,
       embed: new URL(request.url).searchParams.get("embed") === "true",
     },
     {
@@ -82,58 +88,38 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   if (intent === "pin") {
-    const uuid = formData.get("uuid") as string;
+    const id = formData.get("id") as string;
 
-    await prisma.thread.update({
-      where: { id: threadId },
+    await prisma.message.update({
+      where: { id },
       data: {
-        messages: {
-          updateMany: {
-            where: { uuid },
-            data: { pinnedAt: new Date() },
-          },
-        },
+        pinnedAt: new Date(),
       },
     });
   }
 
   if (intent === "unpin") {
-    const uuid = formData.get("uuid") as string;
+    const id = formData.get("id") as string;
 
-    await prisma.thread.update({
-      where: { id: threadId },
+    await prisma.message.update({
+      where: { id },
       data: {
-        messages: {
-          updateMany: {
-            where: { uuid },
-            data: { pinnedAt: null },
-          },
-        },
+        pinnedAt: null,
       },
     });
   }
 
   if (intent === "erase") {
-    await prisma.thread.update({
-      where: { id: threadId },
-      data: {
-        messages: [],
-      },
+    await prisma.message.deleteMany({
+      where: { threadId },
     });
   }
 
   if (intent === "delete") {
-    const uuids = (formData.get("uuids") as string).split(",");
+    const ids = (formData.get("ids") as string).split(",");
 
-    await prisma.thread.update({
-      where: { id: threadId },
-      data: {
-        messages: {
-          deleteMany: {
-            where: { uuid: { in: uuids } },
-          },
-        },
-      },
+    await prisma.message.deleteMany({
+      where: { id: { in: ids } },
     });
   }
 }
@@ -156,20 +142,20 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
     }
   }
 
-  function handlePin(uuid: string) {
-    pinFetcher.submit({ intent: "pin", uuid }, { method: "post" });
+  function handlePin(id: string) {
+    pinFetcher.submit({ intent: "pin", id }, { method: "post" });
   }
 
-  function handleUnpin(uuid: string) {
-    unpinFetcher.submit({ intent: "unpin", uuid }, { method: "post" });
+  function handleUnpin(id: string) {
+    unpinFetcher.submit({ intent: "unpin", id }, { method: "post" });
   }
 
   function handleErase() {
     eraseFetcher.submit({ intent: "erase" }, { method: "post" });
   }
 
-  function handleDelete(uuids: string[]) {
-    deleteFetcher.submit({ intent: "delete", uuids }, { method: "post" });
+  function handleDelete(ids: string[]) {
+    deleteFetcher.submit({ intent: "delete", ids }, { method: "post" });
   }
 
   return (
@@ -187,6 +173,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         onUnpin={handleUnpin}
         onErase={handleErase}
         onDelete={handleDelete}
+        messages={loaderData.messages}
       />
     </Stack>
   );

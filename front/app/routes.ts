@@ -42,8 +42,8 @@ export default [
       route("embed", "scrapes/scrape-embed.tsx"),
       route("integrations", "scrapes/scrape-integrations.tsx"),
     ]),
-
-    route("data-gaps", "analyse/data-gaps.tsx"),
+    
+    route("messages", "analyse/messages.tsx"),
   ]),
 
   route("w/:id", "widget/scrape.tsx"),

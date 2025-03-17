@@ -83,6 +83,12 @@ export class Flow<CustomState, CustomMessage> {
   async stream(
     options?: HandleStreamOptions
   ): Promise<null | { messages: FlowMessage<CustomMessage>[] }> {
+    const agentId = this.popNextAgent();
+
+    if (!agentId) {
+      return null;
+    }
+
     if (!this.hasStarted()) {
       this.flowState.startedAt = Date.now();
     }
@@ -90,21 +96,17 @@ export class Flow<CustomState, CustomMessage> {
     const pendingToolCalls = this.getPendingToolCalls();
     if (pendingToolCalls.length > 0) {
       const call = pendingToolCalls[0];
+      const message = await this.runTool(
+        call.toolCall.id,
+        call.toolCall.function.name,
+        JSON.parse(call.toolCall.function.arguments)
+      );
+      if (pendingToolCalls.length > 1) {
+        this.flowState.nextAgentIds = [agentId, ...this.flowState.nextAgentIds];
+      }
       return {
-        messages: [
-          await this.runTool(
-            call.toolCall.id,
-            call.toolCall.function.name,
-            JSON.parse(call.toolCall.function.arguments)
-          ),
-        ],
+        messages: [message],
       };
-    }
-
-    const agentId = this.popNextAgent();
-
-    if (!agentId) {
-      return null;
     }
 
     const result = await handleStream(
@@ -133,6 +135,9 @@ export class Flow<CustomState, CustomMessage> {
   }
 
   addNextAgents(agentIds: string[]) {
+    if (this.isToolPending() || this.getPendingToolCalls().length !== 0) {
+      throw new Error("Cannot add next agents while tool is pending");
+    }
     this.flowState.nextAgentIds = [...this.flowState.nextAgentIds, ...agentIds];
   }
 

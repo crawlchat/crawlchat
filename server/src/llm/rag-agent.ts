@@ -12,7 +12,9 @@ export type RAGAgentCustomMessage = {
   }[];
 };
 
-export class RAGAgent extends Agent<{}, RAGAgentCustomMessage> {
+export type RAGState = {};
+
+export class RAGAgent extends Agent<RAGState, RAGAgentCustomMessage> {
   private indexer: Indexer;
   private scrapeId: string;
 
@@ -28,6 +30,14 @@ export class RAGAgent extends Agent<{}, RAGAgentCustomMessage> {
       "Use the search_data tool to search the vector database for the relavent information.",
       "You can run search_data tool multiple times to get more information.",
       "Don't hallucinate. You cannot add new topics to the query. It should be inside the context of the query.",
+      "The query should be very short and should not be complex.",
+      "Break the complex queries into smaller queries.",
+      "Example: If the query is 'How to build a site and deploy it on Vercel?', break it into 'How to build a site' and 'Deploy it on Vercel'.",
+      "Example: If the topic is about a tool called 'Remotion', turn the query 'What is it?' into 'What is Remotion?'",
+      "These queries are for a vector database. Don't use extra words that do not add any value in vectorisation.",
+      "Example: If the query is 'How to make a composition?', better you use 'make a composition'",
+      "The query should not be more than 3 words. Keep only the most important words.",
+      "Don't repeat the same or similar queries.",
     ]);
   }
 
@@ -36,13 +46,6 @@ export class RAGAgent extends Agent<{}, RAGAgentCustomMessage> {
       search_data: {
         description: multiLinePrompt([
           "Search the vector database for the most relevant documents.",
-          "The query should be very short and should not be complex.",
-          "Break the complex queries into smaller queries.",
-          "Example: If the query is 'How to build a site and deploy it on Vercel?', break it into 'How to build a site' and 'Deploy it on Vercel'.",
-          "Example: If the topic is about a tool called 'Remotion', turn the query 'What is it?' into 'What is Remotion?'",
-          "These queries are for a vector database. Don't use extra words that do not add any value in vectorisation.",
-          "Example: If the query is 'How to make a composition?', better you use 'make a composition'",
-          "The query should not be more than 3 words. Keep only the most important words.",
         ]),
         schema: z.object({
           query: z.string({
@@ -50,12 +53,13 @@ export class RAGAgent extends Agent<{}, RAGAgentCustomMessage> {
           }),
         }),
         execute: async ({ query }: { query: string }) => {
-          console.log("Searching RAG for", query);
+          console.log("Searching RAG for -", query);
           const result = await this.indexer.search(this.scrapeId, query, {
             topK: 20,
           });
 
-          const processed = await this.indexer.process(query, result);
+          let processed = await this.indexer.process(query, result);
+          processed = processed.filter((r) => r.score >= 0.1);
 
           return {
             content: processed.map((r) => r.content).join("\n\n"),
@@ -69,16 +73,18 @@ export class RAGAgent extends Agent<{}, RAGAgentCustomMessage> {
   }
 }
 
-export class ContextCheckerAgent extends Agent<{}, RAGAgentCustomMessage> {
-  async getSystemPrompt() {
-    return multiLinePrompt([
-      "You need to check if the context provided is relavent and enough to answer the above query.",
-    ]);
+export class Answerer extends Agent<{}, RAGAgentCustomMessage> {
+  private query: string;
+
+  constructor(query: string) {
+    super();
+    this.query = query;
   }
 
-  getResponseSchema() {
-    return z.object({
-      enough: z.boolean(),
-    });
+  async getSystemPrompt() {
+    console.log("Answering", this.query);
+    return multiLinePrompt([
+      `Given above context, answer the query "${this.query}".`,
+    ]);
   }
 }

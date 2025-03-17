@@ -16,6 +16,9 @@ export async function cleanupThreads() {
         lt: oneWeekAgo,
       },
     },
+    include: {
+      messages: true,
+    },
   });
 
   threads = threads.filter((thread) => thread.messages.length === 0);

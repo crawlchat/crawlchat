@@ -24,6 +24,7 @@ import {
   TbHelp,
   TbMessage,
   TbPin,
+  TbRefresh,
   TbTrash,
 } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
@@ -197,6 +198,7 @@ function AssistantMessage({
   onPin,
   onUnpin,
   onDelete,
+  onRefresh,
 }: {
   content: string;
   links: MessageSourceLink[];
@@ -204,6 +206,7 @@ function AssistantMessage({
   onPin: () => void;
   onUnpin: () => void;
   onDelete: () => void;
+  onRefresh: () => void;
 }) {
   const [more, setMore] = useState(false);
   const [uniqueLinks, moreLinks, hasMore] = useMemo(() => {
@@ -223,26 +226,40 @@ function AssistantMessage({
   }, [links, more]);
 
   return (
-    <Stack>
+    <Stack pb={4}>
       <Stack px={4} gap={0}>
         <MarkdownProse>{content}</MarkdownProse>
         <Group>
-          <IconButton
-            size={"xs"}
-            rounded={"full"}
-            variant={pinned ? "solid" : "subtle"}
-            onClick={pinned ? onUnpin : onPin}
-          >
-            <TbPin />
-          </IconButton>
-          <IconButton
-            size={"xs"}
-            rounded={"full"}
-            variant={"subtle"}
-            onClick={onDelete}
-          >
-            <TbTrash />
-          </IconButton>
+          <Tooltip content="Pin message" showArrow>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={pinned ? "solid" : "subtle"}
+              onClick={pinned ? onUnpin : onPin}
+            >
+              <TbPin />
+            </IconButton>
+          </Tooltip>
+          <Tooltip content="Delete message" showArrow>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={"subtle"}
+              onClick={onDelete}
+            >
+              <TbTrash />
+            </IconButton>
+          </Tooltip>
+          <Tooltip content="Regenerate message" showArrow>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={"subtle"}
+              onClick={onRefresh}
+            >
+              <TbRefresh />
+            </IconButton>
+          </Tooltip>
         </Group>
       </Stack>
       {uniqueLinks.length > 0 && (
@@ -352,7 +369,7 @@ function Toolbar({
 }: {
   messages: Message[];
   onErase: () => void;
-  onPinSelect: (uuid: string) => void;
+  onPinSelect: (id: string) => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const pinnedCount = useMemo(() => {
@@ -379,8 +396,8 @@ function Toolbar({
     onErase();
   }
 
-  function handlePinSelect(uuid: string) {
-    onPinSelect(uuid);
+  function handlePinSelect(id: string) {
+    onPinSelect(id);
   }
 
   return (
@@ -434,7 +451,7 @@ function Toolbar({
                 {messages
                   .filter((m) => m.pinnedAt)
                   .map((message) => (
-                    <MenuItem value={message.uuid}>
+                    <MenuItem value={message.id}>
                       {(message.llmMessage as any)?.content}
                     </MenuItem>
                   ))}
@@ -465,6 +482,7 @@ function Toolbar({
 
 export default function ScrapeWidget({
   thread,
+  messages,
   scrape,
   userToken,
   onBgClick,
@@ -474,18 +492,19 @@ export default function ScrapeWidget({
   onDelete,
 }: {
   thread: Thread;
+  messages: Message[];
   scrape: Scrape;
   userToken: string;
   onBgClick?: () => void;
-  onPin: (uuid: string) => void;
-  onUnpin: (uuid: string) => void;
+  onPin: (id: string) => void;
+  onUnpin: (id: string) => void;
   onErase: () => void;
-  onDelete: (uuids: string[]) => void;
+  onDelete: (ids: string[]) => void;
 }) {
   const chat = useScrapeChat({
     token: userToken,
     scrapeId: scrape.id,
-    defaultMessages: thread.messages,
+    defaultMessages: messages,
     threadId: thread.id,
   });
 
@@ -550,14 +569,14 @@ export default function ScrapeWidget({
     }
   }
 
-  function handlePin(uuid: string) {
-    onPin(uuid);
-    chat.pinMessage(uuid);
+  function handlePin(id: string) {
+    onPin(id);
+    chat.pinMessage(id);
   }
 
-  function handleUnpin(uuid: string) {
-    onUnpin(uuid);
-    chat.unpinMessage(uuid);
+  function handleUnpin(id: string) {
+    onUnpin(id);
+    chat.unpinMessage(id);
   }
 
   function handleErase() {
@@ -565,13 +584,23 @@ export default function ScrapeWidget({
     chat.erase();
   }
 
-  function handlePinSelect(uuid: string) {
-    scroll(`#message-${uuid}`);
+  function handlePinSelect(id: string) {
+    scroll(`#message-${id}`);
   }
 
-  function handleDelete(uuids: string[]) {
-    onDelete(uuids);
-    chat.deleteMessage(uuids);
+  function handleDelete(ids: string[]) {
+    onDelete(ids);
+    chat.deleteMessage(ids);
+  }
+
+  async function handleRefresh(questionId: string, answerId: string) {
+    const message = chat.getMessage(questionId);
+    if (!message) return;
+
+    onDelete([questionId, answerId]);
+    chat.deleteMessage([questionId, answerId]);
+    chat.ask((message.llmMessage as any).content as string);
+    await scroll();
   }
 
   const { width, height } = getSize();
@@ -601,7 +630,7 @@ export default function ScrapeWidget({
             <NoMessages scrape={scrape} onQuestionClick={handleAsk} />
           )}
           {chat.allMessages.map((message, index) => (
-            <Stack key={index} id={`message-${message.uuid}`}>
+            <Stack key={index} id={`message-${message.id}`}>
               {message.role === "user" ? (
                 <UserMessage content={message.content} />
               ) : (
@@ -609,13 +638,19 @@ export default function ScrapeWidget({
                   content={message.content}
                   links={message.links}
                   pinned={chat.allMessages[index - 1]?.pinned}
-                  onPin={() => handlePin(chat.allMessages[index - 1]?.uuid)}
-                  onUnpin={() => handleUnpin(chat.allMessages[index - 1]?.uuid)}
+                  onPin={() => handlePin(chat.allMessages[index - 1]?.id)}
+                  onUnpin={() => handleUnpin(chat.allMessages[index - 1]?.id)}
                   onDelete={() =>
                     handleDelete([
-                      chat.allMessages[index - 1]?.uuid,
-                      message.uuid,
+                      chat.allMessages[index - 1]?.id,
+                      message.id,
                     ])
+                  }
+                  onRefresh={() =>
+                    handleRefresh(
+                      chat.allMessages[index - 1]?.id,
+                      message.id
+                    )
                   }
                 />
               )}

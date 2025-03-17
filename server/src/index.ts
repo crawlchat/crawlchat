@@ -7,7 +7,6 @@ import ws from "express-ws";
 import { scrapeLoop, type ScrapeStore } from "./scrape/crawl";
 import { OrderedSet } from "./scrape/ordered-set";
 import cors from "cors";
-import { addMessage } from "./thread/store";
 import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
 import { joinRoom, broadcast } from "./socket-room";
@@ -20,7 +19,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Message, MessageSourceLink } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { Flow } from "./llm/flow";
-import { RAGAgent, RAGAgentCustomMessage } from "./llm/rag-agent";
+import { Answerer, RAGAgent, RAGAgentCustomMessage } from "./llm/rag-agent";
 import { ChatCompletionAssistantMessageParam } from "openai/resources/chat/completions";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
@@ -291,6 +290,9 @@ expressWs.app.ws("/", (ws: any, req) => {
         const threadId = message.data.threadId;
         const thread = await prisma.thread.findFirstOrThrow({
           where: { id: threadId },
+          include: {
+            messages: true,
+          },
         });
 
         const scrape = await prisma.scrape.findFirstOrThrow({
@@ -307,20 +309,21 @@ expressWs.app.ws("/", (ws: any, req) => {
           return;
         }
 
-        const newQueryMessage: Message = {
-          uuid: uuidv4(),
-          llmMessage: { role: "user", content: message.data.query },
-          links: [],
-          createdAt: new Date(),
-          pinnedAt: null,
-        };
-        addMessage(threadId, newQueryMessage);
+        const newQueryMessage = await prisma.message.create({
+          data: {
+            threadId,
+            llmMessage: { role: "user", content: message.data.query },
+            ownerUserId: scrape.userId,
+          },
+        });
+
         ws.send(makeMessage("query-message", newQueryMessage));
 
         const indexer = makeIndexer({ key: scrape.indexer });
         const flow = new Flow<{}, RAGAgentCustomMessage>(
           {
             "rag-agent": new RAGAgent(indexer, scrape.id),
+            answerer: new Answerer(message.data.query),
           },
           {
             messages: [
@@ -336,7 +339,7 @@ expressWs.app.ws("/", (ws: any, req) => {
             ],
           }
         );
-        flow.addNextAgents(["rag-agent"]);
+        flow.addNextAgents(["rag-agent", "answerer"]);
 
         while (
           await flow.stream({
@@ -381,20 +384,21 @@ expressWs.app.ws("/", (ws: any, req) => {
             links.push({
               url: match.url ?? null,
               title: item.title,
-              score: match.score ?? null,
+              score: match.score,
+              scrapeItemId: item.id,
             });
           }
         }
 
-        const newAnswerMessage: Message = {
-          uuid: uuidv4(),
-          llmMessage: { role: "assistant", content },
-          links,
-          createdAt: new Date(),
-          pinnedAt: null,
-        };
         await consumeCredits(scrape.userId, "messages", 1);
-        addMessage(threadId, newAnswerMessage);
+        const newAnswerMessage = await prisma.message.create({
+          data: {
+            threadId,
+            llmMessage: { role: "assistant", content },
+            links,
+            ownerUserId: scrape.userId,
+          },
+        });
         ws.send(
           makeMessage("llm-chunk", {
             end: true,
@@ -445,16 +449,18 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   const processed = await indexer.process(query, result);
 
   await consumeCredits(scrape.userId, "messages", 1);
-  await addMessage(thread.id, {
-    uuid: uuidv4(),
-    llmMessage: { role: "user", content: query },
-    links: processed.map((p) => ({
-      url: p.url,
-      title: null,
-      score: p.score,
-    })),
-    createdAt: new Date(),
-    pinnedAt: null,
+
+  await prisma.message.create({
+    data: {
+      threadId: thread.id,
+      llmMessage: { role: "user", content: query },
+      links: processed.map((p) => ({
+        url: p.url,
+        title: null,
+        score: p.score,
+      })),
+      ownerUserId: scrape.userId,
+    },
   });
 
   res.json(processed);
@@ -537,17 +543,18 @@ app.post("/answer/:scrapeId", async (req, res) => {
 
   const indexer = makeIndexer({ key: scrape.indexer });
 
-  await addMessage(thread.id, {
-    uuid: uuidv4(),
-    llmMessage: { role: "user", content: query },
-    links: [],
-    createdAt: new Date(),
-    pinnedAt: null,
+  await prisma.message.create({
+    data: {
+      threadId: thread.id,
+      llmMessage: { role: "user", content: query },
+      ownerUserId: scrape.userId,
+    },
   });
 
   const flow = new Flow<{}, RAGAgentCustomMessage>(
     {
       "rag-agent": new RAGAgent(indexer, scrape.id),
+      answerer: new Answerer(query),
     },
     {
       messages: [
@@ -566,7 +573,7 @@ app.post("/answer/:scrapeId", async (req, res) => {
       ],
     }
   );
-  flow.addNextAgents(["rag-agent"]);
+  flow.addNextAgents(["rag-agent", "answerer"]);
 
   while (await flow.stream()) {}
 
@@ -588,28 +595,30 @@ app.post("/answer/:scrapeId", async (req, res) => {
       links.push({
         url: match.url ?? null,
         title: item.title,
-        score: match.score ?? null,
+        score: match.score,
+        scrapeItemId: item.id,
       });
     }
   }
 
-  await addMessage(thread.id, {
-    uuid: uuidv4(),
-    llmMessage: { role: "user", content: query },
-    links,
-    createdAt: new Date(),
-    pinnedAt: null,
+  await prisma.message.create({
+    data: {
+      threadId: thread.id,
+      llmMessage: { role: "user", content: query },
+      links,
+      ownerUserId: scrape.userId,
+    },
   });
 
-  const newAnswerMessage: Message = {
-    uuid: uuidv4(),
-    llmMessage: { role: "assistant", content },
-    links,
-    createdAt: new Date(),
-    pinnedAt: null,
-  };
   await consumeCredits(scrape.userId, "messages", 1);
-  addMessage(thread.id, newAnswerMessage);
+  const newAnswerMessage = await prisma.message.create({
+    data: {
+      threadId: thread.id,
+      llmMessage: { role: "assistant", content },
+      links,
+      ownerUserId: scrape.userId,
+    },
+  });
 
   res.json({ message: newAnswerMessage });
 });

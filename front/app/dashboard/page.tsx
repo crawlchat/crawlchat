@@ -13,18 +13,13 @@ import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import { Page } from "~/components/page";
 import {
-  LineChart,
-  Line,
   XAxis,
-  YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   AreaChart,
   Area,
 } from "recharts";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTheme } from "next-themes";
 import { numberToKMB } from "~/number-util";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -53,34 +48,37 @@ export async function loader({ request }: Route.LoaderArgs) {
       scrapeId: {
         in: scrapes.map((scrape) => scrape.id),
       },
+    },
+    select: {
+      id: true,
+      createdAt: true,
+    },
+  });
+
+  const messages = await prisma.message.findMany({
+    where: {
+      threadId: {
+        in: threads.map((thread) => thread.id),
+      },
       createdAt: {
         gte: new Date(Date.now() - ONE_WEEK),
       },
     },
-    select: {
-      messages: {
-        select: {
-          uuid: true,
-          createdAt: true,
-        },
-      },
-      createdAt: true,
-    },
   });
+
   const dailyThreads: Record<string, number> = {};
   for (const thread of threads) {
     const date = new Date(thread.createdAt);
     const key = date.toISOString().split("T")[0];
-    dailyThreads[key] = (dailyThreads[key] ?? 0) + thread.messages.length;
+    dailyThreads[key] = (dailyThreads[key] ?? 0) + messages.length;
   }
   const dailyMessages: Record<string, number> = {};
-  for (const thread of threads) {
-    for (const message of thread.messages) {
-      if (!message.createdAt) continue;
-      const date = new Date(message.createdAt);
-      const key = date.toISOString().split("T")[0];
-      dailyMessages[key] = (dailyMessages[key] ?? 0) + 1;
-    }
+
+  for (const message of messages) {
+    if (!message.createdAt) continue;
+    const date = new Date(message.createdAt);
+    const key = date.toISOString().split("T")[0];
+    dailyMessages[key] = (dailyMessages[key] ?? 0) + 1;
   }
 
   const today = new Date();

@@ -23,8 +23,8 @@ model User {
   topups          TopupPlan[]
 
   scrapes         Scrape[]
-  threads         Thread[]
   scrapeItems     ScrapeItem[]
+  ownedMessages   Message[]
 }
 
 enum ScrapeStatus {
@@ -79,14 +79,23 @@ type MessageSourceLink {
   url             String?
   title           String?
   score           Float?
+  scrapeItemId    String?   @db.ObjectId
 }
 
-type Message {
-  uuid            String
+model Message {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  threadId        String   @db.ObjectId
+  ownerUserId     String   @db.ObjectId
+
   llmMessage      Json
   links           MessageSourceLink[]
-  createdAt       DateTime? @default(now())
   pinnedAt        DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  thread          Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  ownerUser       User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
 }
 
 enum ResponseType {
@@ -100,10 +109,7 @@ model Thread {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId        String   @db.ObjectId
 
-  messages        Message[]
   responseType    ResponseType?
-
-  userId          String?   @db.ObjectId
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -111,9 +117,8 @@ model Thread {
   isDefault       Boolean?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
-  user            User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([messages.uuid])
+  
+  messages        Message[]
 }
 
 type Embedding {
