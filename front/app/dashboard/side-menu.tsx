@@ -14,6 +14,7 @@ import {
   TbFolder,
   TbHome,
   TbLogout,
+  TbMessage,
   TbRoad,
   TbScan,
 } from "react-icons/tb";
@@ -34,6 +35,7 @@ const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
   { label: "Scrape", to: "/scrape", icon: <TbScan /> },
   { label: "Collections", to: "/collections", icon: <TbFolder /> },
+  { label: "Messages", to: "/messages", icon: <TbMessage /> },
   { label: "Data gaps", to: "/data-gaps", icon: <TbFileX /> },
 ];
 

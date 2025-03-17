@@ -44,6 +44,7 @@ export default [
     ]),
 
     route("data-gaps", "analyse/data-gaps.tsx"),
+    route("messages", "analyse/messages.tsx"),
   ]),
 
   route("w/:id", "widget/scrape.tsx"),
