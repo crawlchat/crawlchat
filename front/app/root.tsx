@@ -69,6 +69,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
             src="/embed.js"
             id="crawlchat-script"
             data-id="67bca5b7b57f15a3a6f8eac6"
+            data-ask-ai-text="💬 Ask AI"
+            data-ask-ai-background-color="#000000"
+            data-ask-ai-color="white"
+            data-ask-ai-position="br"
+            data-ask-ai-margin-x="30px"
+            data-ask-ai-margin-y="20px"
+            data-ask-ai-radius="30px"
+            data-ask-ai="true"
           />
         )}
       </body>

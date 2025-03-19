@@ -3,7 +3,7 @@ import fs from "fs";
 let content: string;
 
 function getContent() {
-  if (!content) {
+  if (!content || process.env.NODE_ENV === "development") {
     const path =
       process.env.NODE_ENV === "development"
         ? "public/embed-script.js"
