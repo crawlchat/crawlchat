@@ -19,7 +19,7 @@ type ScrapeResult = {
 function isSameHost(base: string, url: string) {
   const baseUrl = new URL(base);
   const urlObj = new URL(url);
-  const normalizeHost = (host: string) => host.replace(/^www\./, '');
+  const normalizeHost = (host: string) => host.replace(/^www\./, "");
   return normalizeHost(baseUrl.host) === normalizeHost(urlObj.host);
 }
 
@@ -87,6 +87,7 @@ export async function scrapeWithLinks(
     skipRegex?: RegExp[];
     onPreScrape?: (url: string, store: ScrapeStore) => Promise<void>;
     dynamicFallbackContentLength?: number;
+    allowOnlyRegex?: RegExp;
   }
 ) {
   if (options?.onPreScrape) {
@@ -115,6 +116,10 @@ export async function scrapeWithLinks(
       continue;
     }
 
+    if (options?.allowOnlyRegex && !options.allowOnlyRegex.test(linkUrlStr)) {
+      continue;
+    }
+
     store.urlSet.add(linkUrlStr);
   }
 
@@ -131,6 +136,7 @@ export async function scrapeLoop(
   options?: {
     limit?: number;
     skipRegex?: RegExp[];
+    allowOnlyRegex?: RegExp;
     onPreScrape?: (url: string, store: ScrapeStore) => Promise<void>;
     onComplete?: () => Promise<void>;
     afterScrape?: (

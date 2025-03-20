@@ -103,6 +103,9 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
             .split(",")
             .map((regex: string) => new RegExp(regex))
         : undefined,
+      allowOnlyRegex: req.body.allowOnlyRegex
+        ? new RegExp(req.body.allowOnlyRegex)
+        : undefined,
       onComplete: async () => {
         roomIds.forEach((roomId) =>
           broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
