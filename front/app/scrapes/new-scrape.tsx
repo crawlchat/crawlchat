@@ -36,7 +36,7 @@ import { Tooltip } from "~/components/ui/tooltip";
 import { useScrape } from "~/dashboard/use-scrape";
 import { createToken } from "~/jwt";
 import type { Route } from "./+types/new-scrape";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { prisma } from "~/prisma";
 import type { Scrape } from "libs/prisma";
 
@@ -60,15 +60,38 @@ export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
 
   if (request.method === "POST") {
-    const url = formData.get("url");
-    const maxLinks = formData.get("maxLinks");
-    const skipRegex = formData.get("skipRegex");
-    const dynamicFallbackContentLength = formData.get(
+    let url = formData.get("url");
+    let maxLinks = formData.get("maxLinks");
+    let skipRegex = formData.get("skipRegex");
+    let allowOnlyRegex = formData.get("allowOnlyRegex");
+    let dynamicFallbackContentLength = formData.get(
       "dynamicFallbackContentLength"
     );
-    const removeHtmlTags = formData.get("removeHtmlTags");
-    const includeHtmlTags = formData.get("includeHtmlTags");
-    const scrapeId = formData.get("scrapeId");
+    let removeHtmlTags = formData.get("removeHtmlTags");
+    let includeHtmlTags = formData.get("includeHtmlTags");
+    let scrapeId = formData.get("scrapeId");
+    let type = formData.get("type");
+    let githubRepoUrl = formData.get("githubRepoUrl");
+    let githubBranch = formData.get("githubBranch");  
+
+    if (type === "github-repo") {
+      if (!githubRepoUrl) {
+        return { error: "GitHub Repo URL is required" };
+      }
+
+      if (!githubBranch) {
+        return { error: "Branch name is required" };
+      }
+
+      url = `${githubRepoUrl}/tree/${githubBranch}`;
+      allowOnlyRegex = "https:\/\/github.com\/[^\/]+\/[^\/]+\/(tree|blob)\/main.*";
+      const removeSelectors = [
+        ".react-line-number",
+        "#repos-file-tree",
+      ]
+      removeHtmlTags = removeSelectors.join(",");
+      maxLinks = "1000";
+    }
 
     if (!url) {
       return { error: "URL is required" };
@@ -98,6 +121,7 @@ export async function action({ request }: { request: Request }) {
       body: JSON.stringify({
         maxLinks,
         skipRegex,
+        allowOnlyRegex,
         scrapeId: scrape.id,
         dynamicFallbackContentLength,
         removeHtmlTags,
@@ -150,6 +174,19 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
     [loaderData.scrapes]
   );
 
+  const typeCollection = useMemo(
+    function () {
+      return createListCollection({
+        items: [
+          { label: "Web", value: "web" },
+          { label: "GitHub Repo", value: "github-repo" },
+        ],
+      });
+    },
+    [loaderData.scrapes]
+  );
+  const [type, setType] = useState<string>("web");
+
   useEffect(() => {
     connect(loaderData.token);
   }, []);
@@ -170,14 +207,24 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                   to scrape it for better results.
                 </Text>
 
-                <Field label="URL" required>
-                  <Input
-                    placeholder="https://example.com"
-                    name="url"
-                    disabled={loading}
-                    defaultValue={searchParams.get("url") ?? ""}
-                  />
-                </Field>
+                <SelectRoot
+                  name="type"
+                  collection={typeCollection}
+                  defaultValue={["web"]}
+                  onValueChange={(value) => setType(value.value[0])}
+                >
+                  <SelectLabel>Type</SelectLabel>
+                  <SelectTrigger>
+                    <SelectValueText placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {typeCollection.items.map((item) => (
+                      <SelectItem item={item} key={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectRoot>
 
                 <SelectRoot
                   name="scrapeId"
@@ -197,76 +244,110 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                   </SelectContent>
                 </SelectRoot>
 
-                <Field label="Skip URLs">
-                  <Input name="skipRegex" placeholder="Ex: /blog or /docs/v1" />
-                </Field>
+                {type === "web" && (
+                  <>
+                    <Field label="URL" required>
+                      <Input
+                        placeholder="https://example.com"
+                        name="url"
+                        disabled={loading}
+                        defaultValue={searchParams.get("url") ?? ""}
+                      />
+                    </Field>
 
-                <Field
-                  label={
-                    <Group>
-                      <Text>Remove HTML tags</Text>
-                      <Tooltip
-                        content="It is highly recommended to remove all unnecessary content from the page. App already removes most of the junk content like navigations, ads, etc. You can also specify specific tags to remove. Garbage in, garbage out!"
-                        positioning={{ placement: "top" }}
-                        showArrow
-                      >
-                        <Text>
-                          <TbInfoCircle />
-                        </Text>
-                      </Tooltip>
-                    </Group>
-                  }
-                >
-                  <Input
-                    name="removeHtmlTags"
-                    placeholder="Ex: aside,header,#ad,.link"
-                  />
-                </Field>
+                    <Field label="Skip URLs">
+                      <Input
+                        name="skipRegex"
+                        placeholder="Ex: /blog or /docs/v1"
+                      />
+                    </Field>
 
-                <Stack direction={["column", "row"]} gap={4}>
-                  <SelectRoot
-                    name="maxLinks"
-                    collection={maxLinks}
-                    defaultValue={[searchParams.get("links") ?? "300"]}
-                  >
-                    <SelectLabel>Select max pages</SelectLabel>
-                    <SelectTrigger>
-                      <SelectValueText placeholder="Select max links" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {maxLinks.items.map((maxLink) => (
-                        <SelectItem item={maxLink} key={maxLink.value}>
-                          {maxLink.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </SelectRoot>
-
-                  <Field
-                    label={
-                      <Group>
-                        <Text>Dynamic fallback content length</Text>
-                        <Tooltip
-                          content="If the content length is less than this number, the content will be fetched dynamically (for client side rendered content)"
-                          positioning={{ placement: "top" }}
-                          showArrow
-                        >
-                          <Text>
-                            <TbInfoCircle />
-                          </Text>
-                        </Tooltip>
-                      </Group>
-                    }
-                  >
-                    <NumberInputRoot
-                      name="dynamicFallbackContentLength"
-                      defaultValue="100"
-                      w="full"
+                    <Field
+                      label={
+                        <Group>
+                          <Text>Remove HTML tags</Text>
+                          <Tooltip
+                            content="It is highly recommended to remove all unnecessary content from the page. App already removes most of the junk content like navigations, ads, etc. You can also specify specific tags to remove. Garbage in, garbage out!"
+                            positioning={{ placement: "top" }}
+                            showArrow
+                          >
+                            <Text>
+                              <TbInfoCircle />
+                            </Text>
+                          </Tooltip>
+                        </Group>
+                      }
                     >
-                      <NumberInputField />
-                    </NumberInputRoot>
-                  </Field>
-                </Stack>
+                      <Input
+                        name="removeHtmlTags"
+                        placeholder="Ex: aside,header,#ad,.link"
+                      />
+                    </Field>
+
+                    <Stack direction={["column", "row"]} gap={4}>
+                      <SelectRoot
+                        name="maxLinks"
+                        collection={maxLinks}
+                        defaultValue={[searchParams.get("links") ?? "300"]}
+                      >
+                        <SelectLabel>Select max pages</SelectLabel>
+                        <SelectTrigger>
+                          <SelectValueText placeholder="Select max links" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {maxLinks.items.map((maxLink) => (
+                            <SelectItem item={maxLink} key={maxLink.value}>
+                              {maxLink.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </SelectRoot>
+
+                      <Field
+                        label={
+                          <Group>
+                            <Text>Dynamic fallback content length</Text>
+                            <Tooltip
+                              content="If the content length is less than this number, the content will be fetched dynamically (for client side rendered content)"
+                              positioning={{ placement: "top" }}
+                              showArrow
+                            >
+                              <Text>
+                                <TbInfoCircle />
+                              </Text>
+                            </Tooltip>
+                          </Group>
+                        }
+                      >
+                        <NumberInputRoot
+                          name="dynamicFallbackContentLength"
+                          defaultValue="100"
+                          w="full"
+                        >
+                          <NumberInputField />
+                        </NumberInputRoot>
+                      </Field>
+                    </Stack>
+                  </>
+                )}
+
+                {type === "github-repo" && (
+                  <>
+                    <Field label="GitHub Repo URL" required>
+                      <Input
+                        name="githubRepoUrl"
+                        placeholder="https://github.com/user/repo"
+                      />
+                    </Field>
+
+                    <Field label="Branch name" required defaultValue={"main"}>
+                      <Input
+                        name="githubBranch"
+                        placeholder="main"
+                      />
+                    </Field>
+                  </>
+                )}
 
                 <Button type="submit" loading={loading} colorPalette={"brand"}>
                   Scrape
