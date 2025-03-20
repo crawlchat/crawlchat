@@ -753,32 +753,48 @@ export function Footer() {
 
 function UsedBy() {
   const { colorMode } = useColorMode();
-  const companies = [
-    {
-      name: "Remotion",
-      image:
-        colorMode === "dark"
-          ? "/used-by/remotion-white.png"
-          : "/used-by/remotion.png",
-    },
-  ];
+  const [updatedAt, setUpdatedAt] = useState(new Date());
+  const companies = useMemo(() => {
+    return [
+      {
+        name: "Remotion",
+        image:
+          colorMode === "dark"
+            ? "/used-by/remotion-white.png"
+            : "/used-by/remotion.png",
+      },
+      {
+        name: "Konvajs",
+        image: "/used-by/konvajs.png",
+        text: "Konvajs",
+      },
+    ];
+  }, [colorMode, updatedAt]);
+
+  useEffect(() => {
+    setUpdatedAt(new Date());
+  }, []);
 
   return (
-    <Stack w={"full"} px={8} py={12}>
+    <Stack w={"full"} px={8} py={12} key={updatedAt.getTime()}>
       <Container>
         <Stack alignItems={"center"} w="full" gap={6}>
           <Text textAlign={"center"}>
             Already being used by awesome companies!
           </Text>
-          <Flex gap={4}>
+          <Flex gap={10} alignItems={"center"}>
             {companies.map((company) => (
-              <Image
-                key={company.name}
-                src={company.image}
-                alt={company.name}
-                maxW={"180px"}
-                maxH={"90px"}
-              />
+              <Group key={company.image}>
+                <img
+                  src={company.image}
+                  alt={company.name}
+                  style={{
+                    maxWidth: "180px",
+                    maxHeight: "40px",
+                  }}
+                />
+                <Text fontWeight={"medium"}>{company.text}</Text>
+              </Group>
             ))}
           </Flex>
         </Stack>
