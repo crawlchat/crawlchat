@@ -36,8 +36,12 @@ export async function sendWeeklyForAllUsers() {
   const users = await prisma.user.findMany();
   for (const user of users) {
     if (user.settings?.weeklyUpdates === false) {
+      console.log(
+        `Skipping ${user.email} because they have weekly updates disabled`
+      );
       continue;
     }
+    console.log(`Sending weekly report to ${user.email}`);
     await sendWeeklyForUser(user);
   }
 }
