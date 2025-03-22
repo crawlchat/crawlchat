@@ -1,9 +1,7 @@
 import {
   Badge,
   Box,
-  Button,
   Center,
-  Flex,
   Group,
   Heading,
   IconButton,
@@ -17,9 +15,7 @@ import type { Message, MessageSourceLink, Scrape, Thread } from "libs/prisma";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TbArrowUp,
-  TbChevronDown,
   TbChevronRight,
-  TbChevronUp,
   TbEraser,
   TbHelp,
   TbMessage,
@@ -218,30 +214,7 @@ function AssistantMessage({
 }) {
   const [cleanedLinks, cleanedContent] = useMemo(() => {
     const citation = extractCitations(content, links);
-
     return [citation.citedLinks, citation.content];
-
-    // function getLinkIndex(fetchUniqueId: string) {
-    //   return links.findIndex((l) => l.fetchUniqueId === fetchUniqueId);
-    // }
-
-    // const cited = content.match(/!!([0-9]+)!!/g);
-    // let cleanedContent = content;
-    // const cleanedLinks: Record<number, MessageSourceLink> = {};
-    // if (cited) {
-    //   const keys = cited
-    //     .map((c) => c.replaceAll("!", ""))
-    //     .filter((v, i, arr) => arr.indexOf(v) === i);
-    //   for (let i = 0; i < keys.length; i++) {
-    //     cleanedContent = cleanedContent.replaceAll(
-    //       `!!${keys[i]}!!`,
-    //       `!!${i}!!`
-    //     );
-    //     cleanedLinks[i] = links[getLinkIndex(keys[i])];
-    //   }
-    // }
-
-    // return [cleanedLinks, cleanedContent];
   }, [links]);
 
   return (
