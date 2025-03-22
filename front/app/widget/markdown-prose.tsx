@@ -3,18 +3,26 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import hljs from "highlight.js";
 import "highlight.js/styles/vs.css";
-import { Box, Image } from "@chakra-ui/react";
+import { Box, Image, Link, Popover, Portal, Text } from "@chakra-ui/react";
 import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
 import type { PropsWithChildren } from "react";
+import { Tooltip } from "~/components/ui/tooltip";
+// Using require instead of import to avoid TypeScript errors
+const linkifyRegex = require("remark-linkify-regex");
 
+// No need for the declare module since we're using require
 export function MarkdownProse({
   children,
   noMarginCode,
-}: PropsWithChildren<{ noMarginCode?: boolean }>) {
+  sources,
+}: PropsWithChildren<{
+  noMarginCode?: boolean;
+  sources?: Array<{ title: string }>;
+}>) {
   return (
     <Prose maxW="full">
       <Markdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, linkifyRegex(/\!\![0-9]!!/)]}
         components={{
           code: ({ node, ...props }) => {
             const { children, className, ...rest } = props;
@@ -67,6 +75,37 @@ export function MarkdownProse({
               >
                 {children}
               </pre>
+            );
+          },
+          a: ({ node, ...props }) => {
+            const { children, ...rest } = props;
+
+            const defaultNode = <a {...rest}>{children}</a>;
+            if (!sources || typeof children !== "string") {
+              return defaultNode;
+            }
+
+            const match = children.match(/\!\!([0-9]*)!!/);
+            if (!match) {
+              return defaultNode;
+            }
+
+            const index = parseInt(match[1]);
+
+            return (
+              <Tooltip content={sources[index].title} showArrow>
+                <Text
+                  as="span"
+                  bg="brand.fg"
+                  color="brand.white"
+                  fontSize={"xs"}
+                  px={1}
+                  py={0.6}
+                  rounded={"md"}
+                >
+                  {index + 1}
+                </Text>
+              </Tooltip>
             );
           },
         }}

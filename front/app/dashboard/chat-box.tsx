@@ -228,7 +228,13 @@ function AssistantMessage({
   return (
     <Stack>
       <Stack px={4} gap={0}>
-        <MarkdownProse>{content}</MarkdownProse>
+        <MarkdownProse
+          sources={links.map((link) => ({
+            title: link.title ?? link.url ?? "Source",
+          }))}
+        >
+          {content}
+        </MarkdownProse>
         <Group pb={uniqueLinks.length === 0 ? 4 : 0}>
           <Tooltip content="Pin message" showArrow>
             <IconButton
@@ -311,7 +317,9 @@ function NoMessages({
 
       {scrape.widgetConfig?.welcomeMessage && (
         <Stack w="full" maxW={"400px"}>
-          <MarkdownProse>{scrape.widgetConfig?.welcomeMessage}</MarkdownProse>
+          <MarkdownProse>
+            {scrape.widgetConfig?.welcomeMessage}
+          </MarkdownProse>
         </Stack>
       )}
 
