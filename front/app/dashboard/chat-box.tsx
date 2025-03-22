@@ -40,6 +40,7 @@ import {
 } from "~/components/ui/menu";
 import { track } from "~/pirsch";
 import { Link as RouterLink } from "react-router";
+import { extractCitations } from "libs/citation";
 
 function ChatInput({
   onAsk,
@@ -141,7 +142,13 @@ function ChatInput({
   );
 }
 
-function SourceLink({ link }: { link: MessageSourceLink }) {
+function SourceLink({
+  link,
+  index,
+}: {
+  link: MessageSourceLink;
+  index: number;
+}) {
   return (
     <Link
       borderBottom={"1px solid"}
@@ -166,9 +173,10 @@ function SourceLink({ link }: { link: MessageSourceLink }) {
               {link.url}
             </Text>
           </Stack>
-          <Box>
+          <Group>
+            <Badge colorPalette={"brand"}>{index + 1}</Badge>
             <TbChevronRight />
-          </Box>
+          </Group>
         </Group>
       </Stack>
     </Link>
@@ -208,41 +216,46 @@ function AssistantMessage({
   onDelete: () => void;
   onRefresh: () => void;
 }) {
-  const [more, setMore] = useState(false);
-  const [uniqueLinks, moreLinks, hasMore] = useMemo(() => {
-    let updatedLinks = links.filter(
-      (link, index, self) => index === self.findIndex((t) => t.url === link.url)
-    );
-    updatedLinks.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  const [cleanedLinks, cleanedContent] = useMemo(() => {
+    const citation = extractCitations(content, links);
 
-    const cited = content.match(/\!\!([0-9]*)!!/g);
-    if (cited) {
-      const indexes = cited.map((c) => parseInt(c.replace(/\!\!|!!/g, "")));
-      updatedLinks = updatedLinks.filter((_, index) => indexes.includes(index));
-    }
+    return [citation.citedLinks, citation.content];
 
-    const minLinks = 4;
-    const linksToShow = more ? updatedLinks.length : minLinks;
+    // function getLinkIndex(fetchUniqueId: string) {
+    //   return links.findIndex((l) => l.fetchUniqueId === fetchUniqueId);
+    // }
 
-    return [
-      updatedLinks.slice(0, linksToShow),
-      updatedLinks.slice(linksToShow),
-      updatedLinks.length > minLinks,
-    ];
-  }, [links, more]);
+    // const cited = content.match(/!!([0-9]+)!!/g);
+    // let cleanedContent = content;
+    // const cleanedLinks: Record<number, MessageSourceLink> = {};
+    // if (cited) {
+    //   const keys = cited
+    //     .map((c) => c.replaceAll("!", ""))
+    //     .filter((v, i, arr) => arr.indexOf(v) === i);
+    //   for (let i = 0; i < keys.length; i++) {
+    //     cleanedContent = cleanedContent.replaceAll(
+    //       `!!${keys[i]}!!`,
+    //       `!!${i}!!`
+    //     );
+    //     cleanedLinks[i] = links[getLinkIndex(keys[i])];
+    //   }
+    // }
+
+    // return [cleanedLinks, cleanedContent];
+  }, [links]);
 
   return (
     <Stack>
       <Stack px={4} gap={0}>
         <MarkdownProse
-          sources={links.map((link) => ({
+          sources={Object.values(cleanedLinks).map((link) => ({
             title: link?.title ?? link?.url ?? "Source",
             url: link?.url ?? undefined,
           }))}
         >
-          {content}
+          {cleanedContent}
         </MarkdownProse>
-        <Group pb={uniqueLinks.length === 0 ? 4 : 0}>
+        <Group pb={Object.keys(cleanedLinks).length === 0 ? 4 : 0}>
           <Tooltip content="Pin message" showArrow>
             <IconButton
               size={"xs"}
@@ -275,26 +288,15 @@ function AssistantMessage({
           </Tooltip>
         </Group>
       </Stack>
-      {uniqueLinks.length > 0 && (
+      {Object.keys(cleanedLinks).length > 0 && (
         <Stack gap={0}>
           <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
-            {uniqueLinks.map((link, index) => (
-              <SourceLink key={index} link={link} />
-            ))}
+            {Object.entries(cleanedLinks)
+              .filter(([_, link]) => link)
+              .map(([index, link]) => (
+                <SourceLink key={index} link={link} index={Number(index)} />
+              ))}
           </Stack>
-
-          {hasMore && (
-            <Flex px={4} py={2}>
-              <Button
-                variant={"subtle"}
-                size={"xs"}
-                onClick={() => setMore(!more)}
-              >
-                {more ? <TbChevronUp /> : <TbChevronDown />}
-                {more ? "Show less" : moreLinks.length + " more"}
-              </Button>
-            </Flex>
-          )}
         </Stack>
       )}
     </Stack>

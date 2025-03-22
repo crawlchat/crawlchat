@@ -22,6 +22,7 @@ import { ChatCompletionAssistantMessageParam } from "openai/resources/chat/compl
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
 import { makeFlow } from "./llm/flow-jasmine";
+import { extractCitations } from "libs/citation";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -376,6 +377,7 @@ expressWs.app.ws("/", (ws: any, req) => {
               title: item.title,
               score: match.score,
               scrapeItemId: item.id,
+              fetchUniqueId: match.fetchUniqueId ?? null,
             });
           }
         }
@@ -574,6 +576,7 @@ app.post("/answer/:scrapeId", async (req, res) => {
         title: item.title,
         score: match.score,
         scrapeItemId: item.id,
+        fetchUniqueId: match.fetchUniqueId ?? null,
       });
     }
   }
@@ -597,20 +600,16 @@ app.post("/answer/:scrapeId", async (req, res) => {
     },
   });
 
-  const citationMatches = content.match(/\!\!([0-9]*)!!/g);
-  let citedUrls: string[] = [];
-  if (citationMatches) {
-    const citationIndexes = citationMatches.map((match) =>
-      parseInt(match.replace(/\!\!|!!/g, ""))
-    );
-    citedUrls = citationIndexes
-      .map((index) => matches[index].url)
-      .filter((url) => url) as string[];
-  }
+  const citation = extractCitations(content, links, { cleanCitations: true });
 
   let updatedContent = content;
-  updatedContent = updatedContent.replace(/\!\!([0-9]*)!!/g, "");
-  updatedContent += "\n\nSources:\n" + citedUrls.join("\n");
+  if (Object.keys(citation.citedLinks).length > 0) {
+    updatedContent +=
+      "\n\nSources:\n" +
+      Object.values(citation.citedLinks)
+        .map((l) => l.url)
+        .join("\n");
+  }
 
   res.json({ message: newAnswerMessage, content: updatedContent });
 });

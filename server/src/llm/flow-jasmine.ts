@@ -14,6 +14,7 @@ type RAGAgentCustomMessage = {
     url?: string;
     score: number;
     scrapeItemId?: string;
+    fetchUniqueId?: string;
   }[];
 };
 
@@ -45,7 +46,7 @@ export function makeRagTool(scrapeId: string, indexerKey: string | null) {
                 processed.map((r, i) => ({
                   url: r.url,
                   content: r.content,
-                  index: i,
+                  fetchUniqueId: r.fetchUniqueId,
                 }))
               )
             : "No relevant information found. Don't answer the query. Inform that you don't know the answer.",
@@ -89,7 +90,8 @@ export function makeFlow(
     id: "answerer",
     prompt: multiLinePrompt([
       `Given above context, answer the query "${query}".`,
-      "Cite the sources in the format of !!<index>!! at the end of the sentance or paragraph. Example: !!0!!",
+      "Cite the sources in the format of !!<fetchUniqueId>!! at the end of the sentance or paragraph. Example: !!123!!",
+      "<fetchUniqueId> should be the 'fetchUniqueId' mentioned above context json.",
       "Cite only for the sources that are used to answer the query.",
       "Pick most relevant sources and cite them.",
       systemPrompt,

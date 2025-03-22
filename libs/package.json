@@ -17,6 +17,10 @@
     "./user-plan": {
       "default": "./dist/user-plan.js",
       "types": "./dist/user-plan.d.ts"
+    },
+    "./citation": {
+      "default": "./dist/citation.js",
+      "types": "./dist/citation.d.ts"
     }
   },
   "typesVersions": {
@@ -26,6 +30,9 @@
       ],
       "user-plan": [
         "./dist/user-plan.d.ts"
+      ],
+      "citation": [
+        "./dist/citation.d.ts"
       ]
     }
   },

@@ -4,7 +4,7 @@ import {
   RecordMetadata,
   QueryResponse,
 } from "@pinecone-database/pinecone";
-import { Indexer } from "./indexer";
+import { Indexer, randomFetchId } from "./indexer";
 import { IndexDocument } from "./indexer";
 
 export class EarthIndexer implements Indexer {
@@ -101,17 +101,12 @@ export class EarthIndexer implements Indexer {
     });
   }
 
-  async process(query: string, result: QueryResponse<RecordMetadata>): Promise<
-    {
-      content: string;
-      url: string;
-      score: number;
-    }[]
-  > {
+  async process(query: string, result: QueryResponse<RecordMetadata>) {
     return result.matches.map((m) => ({
       content: m.metadata!.content as string,
       url: m.metadata!.url as string,
       score: m.score ?? 0,
+      fetchUniqueId: randomFetchId(),
     }));
   }
 }

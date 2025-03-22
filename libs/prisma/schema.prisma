@@ -80,6 +80,7 @@ type MessageSourceLink {
   title           String?
   score           Float?
   scrapeItemId    String?   @db.ObjectId
+  fetchUniqueId   String?
 }
 
 model Message {

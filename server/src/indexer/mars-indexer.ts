@@ -3,7 +3,7 @@ import {
   RecordMetadata,
   QueryResponse,
 } from "@pinecone-database/pinecone";
-import { Indexer } from "./indexer";
+import { Indexer, randomFetchId } from "./indexer";
 import { IndexDocument } from "./indexer";
 
 export class MarsIndexer implements Indexer {
@@ -152,6 +152,7 @@ export class MarsIndexer implements Indexer {
       url: r.document!.url,
       score: r.score,
       scrapeItemId: r.document!.scrapeItemId,
+      fetchUniqueId: randomFetchId(),
     }));
   }
 }

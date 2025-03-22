@@ -15,11 +15,24 @@ export interface Indexer {
     options?: { topK?: number; excludeIds?: string[] }
   ): Promise<QueryResponse<RecordMetadata>>;
   getMinBestScore(): number;
-  process(query: string, result: QueryResponse<RecordMetadata>): Promise<
+  process(
+    query: string,
+    result: QueryResponse<RecordMetadata>
+  ): Promise<
     {
       content: string;
       url: string;
       score: number;
+      fetchUniqueId: string;
     }[]
   >;
+}
+
+export function randomFetchId() {
+  const chars = "01234567890";
+  let result = "";
+  for (let i = 0; i < 10; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
 }

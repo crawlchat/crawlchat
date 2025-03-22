@@ -20,7 +20,7 @@ export function MarkdownProse({
   return (
     <Prose maxW="full">
       <Markdown
-        remarkPlugins={[remarkGfm, linkifyRegex(/\!\![0-9]!!/)]}
+        remarkPlugins={[remarkGfm, linkifyRegex(/\!\![0-9]+!!/)]}
         components={{
           code: ({ node, ...props }) => {
             const { children, className, ...rest } = props;
@@ -98,7 +98,7 @@ export function MarkdownProse({
                     variant={"plain"}
                     href={source?.url ?? "#"}
                     target="_blank"
-                    bg="brand.fg"
+                    bg="brand.emphasized"
                     color="brand.white"
                     fontSize={"10px"}
                     height={"16px"}
