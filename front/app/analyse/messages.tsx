@@ -12,16 +12,9 @@ import {
   Box,
   Center,
   createListCollection,
-  Select,
-  Portal,
+  CheckboxCard,
 } from "@chakra-ui/react";
-import {
-  TbAlertTriangle,
-  TbBox,
-  TbCheck,
-  TbLink,
-  TbMessage,
-} from "react-icons/tb";
+import { TbBox, TbLink, TbMessage } from "react-icons/tb";
 import { Page } from "~/components/page";
 import type { Route } from "./+types/messages";
 import { getAuthUser } from "~/auth/middleware";
@@ -43,7 +36,6 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "~/components/ui/select";
-import { StatCard } from "~/dashboard/page";
 import { makeMessagePairs } from "./analyse";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -72,25 +64,44 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { messagePairs: makeMessagePairs(messages), scrapes };
 }
 
-const frameworks = createListCollection({
-  items: [
-    { label: "Best", value: "best" },
-    { label: "Good", value: "good" },
-    { label: "Bad", value: "bad" },
-    { label: "Worst", value: "worst" },
-  ],
-});
+const MetricCheckbox = ({
+  label,
+  value,
+  onToggle,
+}: {
+  label: string;
+  value: number;
+  onToggle: (checked: boolean) => void;
+}) => {
+  return (
+    <CheckboxCard.Root onCheckedChange={(e) => onToggle(!!e.checked)}>
+      <CheckboxCard.HiddenInput />
+      <CheckboxCard.Control>
+        <CheckboxCard.Content>
+          <Text opacity={0.5}>{label}</Text>
+          <Text fontSize={"2xl"} fontWeight={"bold"}>
+            {value}
+          </Text>
+        </CheckboxCard.Content>
+        <CheckboxCard.Indicator />
+      </CheckboxCard.Control>
+    </CheckboxCard.Root>
+  );
+};
 
 export default function Messages({ loaderData }: Route.ComponentProps) {
   const [pairs, setPairs] = useState(loaderData.messagePairs);
   const [scrapeId, setScrapeId] = useState<string>();
-  const [metrics, setMetrics] = useState<{
-    poorResponses: number;
-    bestResponses: number;
-  }>({
-    poorResponses: 0,
-    bestResponses: 0,
-  });
+  const metrics = useMemo(
+    () => ({
+      worst: loaderData.messagePairs.filter((p) => p.averageScore < 0.25)
+        .length,
+      bad: loaderData.messagePairs.filter((p) => p.averageScore < 0.5).length,
+      good: loaderData.messagePairs.filter((p) => p.averageScore < 0.75).length,
+      best: loaderData.messagePairs.filter((p) => p.averageScore > 0.75).length,
+    }),
+    [loaderData.messagePairs]
+  );
   const scrapesCollection = useMemo(
     () =>
       createListCollection({
@@ -101,7 +112,12 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
       }),
     [loaderData.scrapes]
   );
-  const [filters, setFilters] = useState<string[]>([]);
+  const [filters, setFilters] = useState<{
+    worst?: boolean;
+    bad?: boolean;
+    good?: boolean;
+    best?: boolean;
+  }>({});
 
   useEffect(() => {
     let pairs = loaderData.messagePairs;
@@ -111,7 +127,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
     }
 
     let scores = [[-10, 10]];
-    if (filters.length > 0) {
+    if (Object.values(filters).filter(Boolean).length > 0) {
       scores = [];
 
       const filterToScore: Record<string, number[]> = {
@@ -121,8 +137,10 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
         worst: [-10, 0.25],
       };
 
-      for (const filter of filters) {
-        scores.push(filterToScore[filter]);
+      for (const filter of Object.keys(filters)) {
+        if (filters[filter as keyof typeof filters]) {
+          scores.push(filterToScore[filter]);
+        }
       }
     }
 
@@ -136,10 +154,6 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
       }
     }
     setPairs(filteredPairs);
-    setMetrics({
-      poorResponses: filteredPairs.filter((p) => p.averageScore < 0.3).length,
-      bestResponses: filteredPairs.filter((p) => p.averageScore > 0.7).length,
-    });
   }, [scrapeId, loaderData.messagePairs, filters]);
 
   function getScoreColor(score: number) {
@@ -196,51 +210,34 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                   </SelectContent>
                 </SelectRoot>
               </Box>
-              <Select.Root
-                collection={frameworks}
-                w="160px"
-                multiple
-                onValueChange={(e) => setFilters(e.value)}
-              >
-                <Select.HiddenSelect />
-                <Select.Control>
-                  <Select.Trigger>
-                    <Select.ValueText placeholder="Filter" />
-                  </Select.Trigger>
-                  <Select.IndicatorGroup>
-                    <Select.Indicator />
-                  </Select.IndicatorGroup>
-                </Select.Control>
-                <Portal>
-                  <Select.Positioner>
-                    <Select.Content w="160px">
-                      {frameworks.items.map((framework) => (
-                        <Select.Item item={framework} key={framework.value}>
-                          {framework.label}
-                          <Select.ItemIndicator />
-                        </Select.Item>
-                      ))}
-                    </Select.Content>
-                  </Select.Positioner>
-                </Portal>
-              </Select.Root>
             </Flex>
 
             <Flex gap={2}>
-              <StatCard
-                label="Conversations"
-                value={pairs.length}
-                icon={<TbAlertTriangle />}
+              <MetricCheckbox
+                label="Worst"
+                value={metrics.worst}
+                onToggle={(checked) =>
+                  setFilters({ ...filters, worst: checked })
+                }
               />
-              <StatCard
-                label="Poor responses"
-                value={metrics.poorResponses}
-                icon={<TbAlertTriangle />}
+              <MetricCheckbox
+                label="Bad"
+                value={metrics.bad}
+                onToggle={(checked) => setFilters({ ...filters, bad: checked })}
               />
-              <StatCard
-                label="Best responses"
-                value={metrics.bestResponses}
-                icon={<TbCheck />}
+              <MetricCheckbox
+                label="Good"
+                value={metrics.good}
+                onToggle={(checked) =>
+                  setFilters({ ...filters, good: checked })
+                }
+              />
+              <MetricCheckbox
+                label="Best"
+                value={metrics.best}
+                onToggle={(checked) =>
+                  setFilters({ ...filters, best: checked })
+                }
               />
             </Flex>
 
