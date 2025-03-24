@@ -13,8 +13,13 @@ import {
   Center,
   createListCollection,
   CheckboxCard,
+  IconButton,
+  Popover,
+  Portal,
+  Highlight,
+  Icon,
 } from "@chakra-ui/react";
-import { TbBox, TbLink, TbMessage } from "react-icons/tb";
+import { TbBox, TbHelp, TbLink, TbMessage } from "react-icons/tb";
 import { Page } from "~/components/page";
 import type { Route } from "./+types/messages";
 import { getAuthUser } from "~/auth/middleware";
@@ -37,6 +42,7 @@ import {
   SelectValueText,
 } from "~/components/ui/select";
 import { makeMessagePairs } from "./analyse";
+import { Tooltip } from "~/components/ui/tooltip";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -68,17 +74,30 @@ const MetricCheckbox = ({
   label,
   value,
   onToggle,
+  tooltip,
 }: {
   label: string;
   value: number;
   onToggle: (checked: boolean) => void;
+  tooltip?: string;
 }) => {
   return (
     <CheckboxCard.Root onCheckedChange={(e) => onToggle(!!e.checked)}>
       <CheckboxCard.HiddenInput />
       <CheckboxCard.Control>
         <CheckboxCard.Content>
-          <Text opacity={0.5}>{label}</Text>
+          <Group>
+            <Text opacity={0.5}>{label}</Text>
+            <Tooltip
+              content={tooltip}
+              showArrow
+              positioning={{ placement: "top" }}
+            >
+              <Icon opacity={0.5}>
+                <TbHelp />
+              </Icon>
+            </Tooltip>
+          </Group>
           <Text fontSize={"2xl"} fontWeight={"bold"}>
             {value}
           </Text>
@@ -191,6 +210,50 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
         {loaderData.messagePairs.length > 0 && (
           <Stack>
             <Flex justifyContent={"flex-end"} gap={2}>
+              <Popover.Root>
+                <Popover.Trigger asChild>
+                  <IconButton variant={"ghost"}>
+                    <TbHelp />
+                  </IconButton>
+                </Popover.Trigger>
+                <Portal>
+                  <Popover.Positioner>
+                    <Popover.Content>
+                      <Popover.Arrow>
+                        <Popover.ArrowTip />
+                      </Popover.Arrow>
+                      <Popover.Body>
+                        <Stack>
+                          <Text>
+                            <Highlight
+                              query={["0 and 1", "0 is worst", "1 is best"]}
+                              styles={{ color: "brand.fg", fontWeight: "bold" }}
+                            >
+                              When the AI tries to answer a question, it fetches
+                              relavent records from the collection. Each record
+                              is given a score between 0 and 1 dependending on
+                              the relavence of the record to the query. 0 is
+                              worst and 1 is best.
+                            </Highlight>
+                          </Text>
+                          <Text>
+                            <Highlight
+                              query={["average"]}
+                              styles={{ color: "brand.fg", fontWeight: "bold" }}
+                            >
+                              Each query can have multiple such records fetched
+                              to answer the query. The score shown next to the
+                              question is the average of all the scores of the
+                              records fetched.
+                            </Highlight>
+                          </Text>
+                        </Stack>
+                      </Popover.Body>
+                    </Popover.Content>
+                  </Popover.Positioner>
+                </Portal>
+              </Popover.Root>
+
               <Box>
                 <SelectRoot
                   collection={scrapesCollection}
@@ -219,11 +282,13 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                 onToggle={(checked) =>
                   setFilters({ ...filters, worst: checked })
                 }
+                tooltip="0 - 0.25"
               />
               <MetricCheckbox
                 label="Bad"
                 value={metrics.bad}
                 onToggle={(checked) => setFilters({ ...filters, bad: checked })}
+                tooltip="0.25 - 0.5"
               />
               <MetricCheckbox
                 label="Good"
@@ -231,6 +296,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                 onToggle={(checked) =>
                   setFilters({ ...filters, good: checked })
                 }
+                tooltip="0.5 - 0.75"
               />
               <MetricCheckbox
                 label="Best"
@@ -238,6 +304,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                 onToggle={(checked) =>
                   setFilters({ ...filters, best: checked })
                 }
+                tooltip="0.75 - 1"
               />
             </Flex>
 
