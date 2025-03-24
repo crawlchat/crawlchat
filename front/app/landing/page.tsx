@@ -45,6 +45,8 @@ import { Button } from "~/components/ui/button";
 import { useOpenScrape } from "./use-open-scrape";
 import { Toaster } from "~/components/ui/toaster";
 import { useColorMode } from "~/components/ui/color-mode";
+import { prisma } from "~/prisma";
+import type { Route } from "./+types/page";
 
 const maxW = "1200px";
 
@@ -750,7 +752,31 @@ export function Footer() {
   );
 }
 
-function UsedBy() {
+function MessagesCount({
+  title,
+  children,
+}: PropsWithChildren<{ title: string }>) {
+  return (
+    <Stack alignItems={"center"} gap={2}>
+      <Text fontSize={"7xl"} fontWeight={"bold"} lineHeight={1}>
+        {children}
+      </Text>
+      <Text opacity={0.3} maxW={160} textAlign={"center"}>
+        {title}
+      </Text>
+    </Stack>
+  );
+}
+
+function UsedBy({
+  messagesThisWeek,
+  messagesDay,
+  messagesMonth,
+}: {
+  messagesThisWeek: number;
+  messagesDay: number;
+  messagesMonth: number;
+}) {
   const { colorMode } = useColorMode();
   const [updatedAt, setUpdatedAt] = useState(new Date());
   const companies = useMemo(() => {
@@ -777,25 +803,40 @@ function UsedBy() {
   return (
     <Stack w={"full"} px={8} py={12} key={updatedAt.getTime()}>
       <Container>
-        <Stack alignItems={"center"} w="full" gap={6}>
-          <Text textAlign={"center"}>
-            Already being used by awesome companies!
-          </Text>
-          <Flex gap={10} alignItems={"center"}>
-            {companies.map((company) => (
-              <Group key={company.image}>
-                <img
-                  src={company.image}
-                  alt={company.name}
-                  style={{
-                    maxWidth: "180px",
-                    maxHeight: "40px",
-                  }}
-                />
-                <Text fontWeight={"medium"}>{company.text}</Text>
-              </Group>
-            ))}
-          </Flex>
+        <Stack alignItems={"center"} w="full" gap={20}>
+          <Stack alignItems={"center"} w="full" gap={6}>
+            <Text textAlign={"center"}>
+              Already being used by awesome companies!
+            </Text>
+            <Flex gap={10} alignItems={"center"}>
+              {companies.map((company) => (
+                <Group key={company.image}>
+                  <img
+                    src={company.image}
+                    alt={company.name}
+                    style={{
+                      maxWidth: "180px",
+                      maxHeight: "40px",
+                    }}
+                  />
+                  <Text fontWeight={"medium"}>{company.text}</Text>
+                </Group>
+              ))}
+            </Flex>
+          </Stack>
+
+          <Stack>
+            <Text textAlign={"center"}>Answering questions continuously</Text>
+            <Flex direction={["column", "row"]} gap={20}>
+              <MessagesCount title="Today">{messagesDay}</MessagesCount>
+              <MessagesCount title="In the last week">
+                {messagesThisWeek}
+              </MessagesCount>
+              <MessagesCount title="In the last month">
+                {messagesMonth}
+              </MessagesCount>
+            </Flex>
+          </Stack>
         </Stack>
       </Container>
     </Stack>
@@ -1001,13 +1042,68 @@ function Features() {
   );
 }
 
-export default function LandingPage() {
+const cache = {
+  messagesThisWeek: 0,
+  messagesDay: 0,
+  messagesMonth: 0,
+  updatedAt: 0,
+};
+
+export async function loader() {
+  const MINS_5 = 5 * 60 * 1000;
+  const DAY = 24 * 60 * 60 * 1000;
+  const WEEK = 7 * DAY;
+  const MONTH = 30 * DAY;
+
+  const now = new Date();
+  const startOfWeek = new Date(now.getTime() - WEEK);
+  const startOfDay = new Date(now.getTime() - DAY);
+  const startOfMonth = new Date(now.getTime() - MONTH);
+
+  if (cache.updatedAt < now.getTime() - MINS_5) {
+    cache.messagesThisWeek = await prisma.message.count({
+      where: {
+        createdAt: {
+          gte: startOfWeek,
+        },
+      },
+    });
+
+    cache.messagesDay = await prisma.message.count({
+      where: {
+        createdAt: {
+          gte: startOfDay,
+        },
+      },
+    });
+
+    cache.messagesMonth = await prisma.message.count({
+      where: {
+        createdAt: {
+          gte: startOfMonth,
+        },
+      },
+    });
+  }
+
+  return {
+    messagesThisWeek: cache.messagesThisWeek,
+    messagesDay: cache.messagesDay,
+    messagesMonth: cache.messagesMonth,
+  };
+}
+
+export default function LandingPage({ loaderData }: Route.ComponentProps) {
   return (
     <Stack gap={0} w="full">
       <Navbar />
       <Hero />
       <Demo />
-      <UsedBy />
+      <UsedBy
+        messagesThisWeek={loaderData.messagesThisWeek}
+        messagesDay={loaderData.messagesDay}
+        messagesMonth={loaderData.messagesMonth}
+      />
       <HowItWorks />
       <UseCases />
       <Features />
