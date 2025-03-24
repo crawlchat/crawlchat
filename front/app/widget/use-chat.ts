@@ -108,16 +108,10 @@ export function useScrapeChat({
     });
   }
 
-  function handleStage({
-    stage,
-    queries,
-  }: {
-    stage: string;
-    queries?: string[];
-  }) {
+  function handleStage({ stage, query }: { stage: string; query?: string }) {
     if (stage === "tool-call") {
       setAskStage("searching");
-      setSearchQuery(queries?.[0]);
+      setSearchQuery(query);
     }
   }
 
@@ -166,6 +160,7 @@ export function useScrapeChat({
         createdAt: new Date(),
         threadId,
         updatedAt: new Date(),
+        ownerUserId: "",
       },
     ]);
     setAskStage("asked");
@@ -205,9 +200,7 @@ export function useScrapeChat({
   }
 
   function deleteMessage(ids: string[]) {
-    setMessages((prev) =>
-      prev.filter((message) => !ids.includes(message.id))
-    );
+    setMessages((prev) => prev.filter((message) => !ids.includes(message.id)));
   }
 
   function getMessage(id: string) {

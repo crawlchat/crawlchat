@@ -329,7 +329,17 @@ expressWs.app.ws("/", (ws: any, req) => {
           thread.messages.map((message) => ({
             llmMessage: message.llmMessage as any,
           })),
-          scrape.indexer
+          scrape.indexer,
+          {
+            onPreSearch: async (query) => {
+              ws.send(
+                makeMessage("stage", {
+                  stage: "tool-call",
+                  query,
+                })
+              );
+            },
+          }
         );
 
         while (
@@ -340,21 +350,7 @@ expressWs.app.ws("/", (ws: any, req) => {
               }
             },
           })
-        ) {
-          const message = flow.getLastMessage();
-          if (flow.isToolCall(message)) {
-            ws.send(
-              makeMessage("stage", {
-                stage: "tool-call",
-                queries: (
-                  message.llmMessage as ChatCompletionAssistantMessageParam
-                ).tool_calls?.map(
-                  (toolCall) => JSON.parse(toolCall.function.arguments).query
-                ),
-              })
-            );
-          }
-        }
+        ) {}
 
         const content =
           (flow.getLastMessage().llmMessage.content as string) ?? "";

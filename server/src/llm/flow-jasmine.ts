@@ -18,7 +18,11 @@ type RAGAgentCustomMessage = {
   }[];
 };
 
-export function makeRagTool(scrapeId: string, indexerKey: string | null) {
+export function makeRagTool(
+  scrapeId: string,
+  indexerKey: string | null,
+  options?: { onPreSearch?: (query: string) => Promise<void> }
+) {
   const indexer = makeIndexer({ key: indexerKey });
 
   return new SimpleTool({
@@ -32,6 +36,10 @@ export function makeRagTool(scrapeId: string, indexerKey: string | null) {
       }),
     }),
     execute: async ({ query }: { query: string }) => {
+      if (options?.onPreSearch) {
+        await options.onPreSearch(query);
+      }
+
       console.log("Searching RAG for -", query);
       const result = await indexer.search(scrapeId, query, {
         topK: 20,
@@ -63,9 +71,10 @@ export function makeFlow(
   systemPrompt: string,
   query: string,
   messages: FlowMessage<RAGAgentCustomMessage>[],
-  indexerKey: string | null
+  indexerKey: string | null,
+  options?: { onPreSearch?: (query: string) => Promise<void> }
 ) {
-  const ragTool = makeRagTool(scrapeId, indexerKey);
+  const ragTool = makeRagTool(scrapeId, indexerKey, options);
 
   const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
     id: "rag-agent",

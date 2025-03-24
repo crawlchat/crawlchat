@@ -69,7 +69,11 @@ export class Flow<CustomState, CustomMessage> {
 
   isToolPending() {
     const lastMessage = this.getLastMessage();
-    if (lastMessage.llmMessage && "tool_calls" in lastMessage.llmMessage) {
+    if (
+      lastMessage.llmMessage &&
+      ("tool_calls" in lastMessage.llmMessage ||
+        lastMessage.llmMessage.role === "tool")
+    ) {
       return true;
     }
     return false;
