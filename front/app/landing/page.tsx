@@ -306,7 +306,14 @@ function Demo() {
   return (
     <Stack w={"full"} px={8} py={12}>
       <Container>
-        <Box rounded={"2xl"} overflow={"hidden"} w={"full"} h={"full"}>
+        <Box
+          rounded={"2xl"}
+          overflow={"hidden"}
+          w={"full"}
+          h={"full"}
+          border="1px solid"
+          borderColor={"brand.outline"}
+        >
           <video
             style={{
               width: "100%",
