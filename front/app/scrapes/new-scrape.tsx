@@ -160,6 +160,8 @@ const maxLinks = createListCollection({
     { label: "300 pages", value: "300" },
     { label: "500 pages", value: "500" },
     { label: "1000 pages", value: "1000" },
+    { label: "2000 pages", value: "2000" },
+    { label: "5000 pages", value: "5000" },
   ],
 });
 
