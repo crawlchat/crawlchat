@@ -69,18 +69,21 @@ export function Container({ children }: PropsWithChildren) {
 
 export function LogoText() {
   return (
-    <Text
-      fontSize={"xl"}
-      fontWeight={"bold"}
-      bgGradient={"to-r"}
-      gradientFrom={"brand.500"}
-      gradientTo={"brand.300"}
-      bgClip="text"
-      color={"transparent"}
-      asChild
-    >
-      <Link to="/">CrawlChat</Link>
-    </Text>
+    <Group>
+      <Image src="/logo.png" alt="CrawlChat" w={8} h={8} />
+      <Text
+        fontSize={"xl"}
+        fontWeight={"bold"}
+        bgGradient={"to-r"}
+        gradientFrom={"brand.500"}
+        gradientTo={"brand.300"}
+        bgClip="text"
+        color={"transparent"}
+        asChild
+      >
+        <Link to="/">CrawlChat</Link>
+      </Text>
+    </Group>
   );
 }
 
