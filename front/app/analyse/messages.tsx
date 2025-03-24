@@ -8,11 +8,12 @@ import {
   Heading,
   List,
   Link,
-  NativeSelect,
   Flex,
   Box,
   Center,
   createListCollection,
+  Select,
+  Portal,
 } from "@chakra-ui/react";
 import {
   TbAlertTriangle,
@@ -34,10 +35,6 @@ import {
 } from "~/components/ui/accordion";
 import moment from "moment";
 import { truncate } from "~/util";
-import {
-  NumberInputField,
-  NumberInputRoot,
-} from "~/components/ui/number-input";
 import { useEffect, useMemo, useState } from "react";
 import {
   SelectContent,
@@ -75,10 +72,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { messagePairs: makeMessagePairs(messages), scrapes };
 }
 
+const frameworks = createListCollection({
+  items: [
+    { label: "Best", value: "best" },
+    { label: "Good", value: "good" },
+    { label: "Bad", value: "bad" },
+    { label: "Worst", value: "worst" },
+  ],
+});
+
 export default function Messages({ loaderData }: Route.ComponentProps) {
   const [pairs, setPairs] = useState(loaderData.messagePairs);
-  const [filter, setFilter] = useState<"gt" | "lt">("gt");
-  const [score, setScore] = useState<number>();
   const [scrapeId, setScrapeId] = useState<string>();
   const [metrics, setMetrics] = useState<{
     poorResponses: number;
@@ -97,35 +101,56 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
       }),
     [loaderData.scrapes]
   );
+  const [filters, setFilters] = useState<string[]>([]);
 
   useEffect(() => {
     let pairs = loaderData.messagePairs;
-
-    if (filter && score !== undefined) {
-      if (filter === "gt") {
-        pairs = pairs.filter((p) => p.averageScore > score);
-      } else {
-        pairs = pairs.filter((p) => p.averageScore < score);
-      }
-    }
 
     if (scrapeId) {
       pairs = pairs.filter((p) => p.scrapeId === scrapeId);
     }
 
-    setPairs(pairs);
+    let scores = [[-10, 10]];
+    if (filters.length > 0) {
+      scores = [];
+
+      const filterToScore: Record<string, number[]> = {
+        best: [0.75, 10],
+        good: [0.5, 0.75],
+        bad: [0.25, 0.5],
+        worst: [-10, 0.25],
+      };
+
+      for (const filter of filters) {
+        scores.push(filterToScore[filter]);
+      }
+    }
+
+    let filteredPairs = [];
+    for (const pair of pairs) {
+      const score = pair.averageScore;
+      for (const [min, max] of scores) {
+        if (score >= min && score < max) {
+          filteredPairs.push(pair);
+        }
+      }
+    }
+    setPairs(filteredPairs);
     setMetrics({
-      poorResponses: pairs.filter((p) => p.averageScore < 0.3).length,
-      bestResponses: pairs.filter((p) => p.averageScore > 0.7).length,
+      poorResponses: filteredPairs.filter((p) => p.averageScore < 0.3).length,
+      bestResponses: filteredPairs.filter((p) => p.averageScore > 0.7).length,
     });
-  }, [filter, score, scrapeId, loaderData.messagePairs]);
+  }, [scrapeId, loaderData.messagePairs, filters]);
 
   function getScoreColor(score: number) {
-    if (score < 0.2) {
+    if (score < 0.25) {
       return "red";
     }
-    if (score < 0.6) {
+    if (score < 0.5) {
       return "orange";
+    }
+    if (score < 0.75) {
+      return "blue";
     }
     return "brand";
   }
@@ -171,31 +196,34 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                   </SelectContent>
                 </SelectRoot>
               </Box>
-              <Box>
-                <NativeSelect.Root>
-                  <NativeSelect.Field
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value as "gt" | "lt")}
-                  >
-                    <option value="gt">Greater than</option>
-                    <option value="lt">Less than</option>
-                  </NativeSelect.Field>
-                  <NativeSelect.Indicator />
-                </NativeSelect.Root>
-              </Box>
-              <Box>
-                <NumberInputRoot w="80px">
-                  <NumberInputField
-                    placeholder="Ex 1"
-                    value={score !== undefined ? score.toString() : ""}
-                    onChange={(e) =>
-                      setScore(
-                        e.target.value ? Number(e.target.value) : undefined
-                      )
-                    }
-                  />
-                </NumberInputRoot>
-              </Box>
+              <Select.Root
+                collection={frameworks}
+                w="160px"
+                multiple
+                onValueChange={(e) => setFilters(e.value)}
+              >
+                <Select.HiddenSelect />
+                <Select.Control>
+                  <Select.Trigger>
+                    <Select.ValueText placeholder="Filter" />
+                  </Select.Trigger>
+                  <Select.IndicatorGroup>
+                    <Select.Indicator />
+                  </Select.IndicatorGroup>
+                </Select.Control>
+                <Portal>
+                  <Select.Positioner>
+                    <Select.Content w="160px">
+                      {frameworks.items.map((framework) => (
+                        <Select.Item item={framework} key={framework.value}>
+                          {framework.label}
+                          <Select.ItemIndicator />
+                        </Select.Item>
+                      ))}
+                    </Select.Content>
+                  </Select.Positioner>
+                </Portal>
+              </Select.Root>
             </Flex>
 
             <Flex gap={2}>
@@ -248,7 +276,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                         </Group>
                         <Group>
                           <Badge
-                            colorPalette={getScoreColor(pair.maxScore)}
+                            colorPalette={getScoreColor(pair.averageScore)}
                             variant={"surface"}
                           >
                             {pair.averageScore.toFixed(2)}
@@ -278,7 +306,11 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                                     target="_blank"
                                   >
                                     {link.title}{" "}
-                                    <Badge colorPalette={"brand"}>
+                                    <Badge
+                                      colorPalette={getScoreColor(
+                                        link.score ?? 0
+                                      )}
+                                    >
                                       {link.score?.toFixed(2)}
                                     </Badge>
                                   </Link>
