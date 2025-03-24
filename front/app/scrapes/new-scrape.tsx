@@ -7,13 +7,19 @@ import {
   createListCollection,
   Center,
   Spinner,
+  RadioCard,
+  HStack,
+  Icon,
+  Checkbox,
 } from "@chakra-ui/react";
 import {
   TbArrowRight,
+  TbBrandGithub,
   TbCheck,
   TbCircleCheckFilled,
   TbInfoCircle,
   TbScan,
+  TbWorld,
 } from "react-icons/tb";
 import { Link, redirect, useFetcher, useSearchParams } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
@@ -60,7 +66,7 @@ export async function action({ request }: { request: Request }) {
   const formData = await request.formData();
 
   if (request.method === "POST") {
-    let url = formData.get("url");
+    let url = formData.get("url") as string;
     let maxLinks = formData.get("maxLinks");
     let skipRegex = formData.get("skipRegex");
     let allowOnlyRegex = formData.get("allowOnlyRegex");
@@ -72,7 +78,8 @@ export async function action({ request }: { request: Request }) {
     let scrapeId = formData.get("scrapeId");
     let type = formData.get("type");
     let githubRepoUrl = formData.get("githubRepoUrl");
-    let githubBranch = formData.get("githubBranch");  
+    let githubBranch = formData.get("githubBranch");
+    let prefix = formData.get("prefix");
 
     if (type === "github-repo") {
       if (!githubRepoUrl) {
@@ -84,17 +91,18 @@ export async function action({ request }: { request: Request }) {
       }
 
       url = `${githubRepoUrl}/tree/${githubBranch}`;
-      allowOnlyRegex = "https:\/\/github.com\/[^\/]+\/[^\/]+\/(tree|blob)\/main.*";
-      const removeSelectors = [
-        ".react-line-number",
-        "#repos-file-tree",
-      ]
+      allowOnlyRegex = "https://github.com/[^/]+/[^/]+/(tree|blob)/main.*";
+      const removeSelectors = [".react-line-number", "#repos-file-tree"];
       removeHtmlTags = removeSelectors.join(",");
       maxLinks = "100";
     }
 
     if (!url) {
       return { error: "URL is required" };
+    }
+
+    if (prefix === "on") {
+      allowOnlyRegex = `^${url.replace(/\/$/, "")}.*`;
     }
 
     let scrape: Scrape;
@@ -174,14 +182,22 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
     [loaderData.scrapes]
   );
 
-  const typeCollection = useMemo(
+  const types = useMemo(
     function () {
-      return createListCollection({
-        items: [
-          { label: "Web", value: "web" },
-          { label: "GitHub Repo", value: "github-repo" },
-        ],
-      });
+      return [
+        {
+          title: "Web",
+          value: "web",
+          description: "Scrape a website",
+          icon: <TbWorld />,
+        },
+        {
+          title: "GitHub Repo",
+          value: "github-repo",
+          description: "Scrape a GitHub repository",
+          icon: <TbBrandGithub />,
+        },
+      ];
     },
     [loaderData.scrapes]
   );
@@ -201,30 +217,34 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
           {stage === "idle" && (
             <scrapeFetcher.Form method="post">
               <Stack gap={4}>
-                <Text opacity={0.5} mb={2}>
-                  First step in making your content LLM ready is to scrape it
-                  from your website. Give your content URL and set how you want
-                  to scrape it for better results.
-                </Text>
-
-                <SelectRoot
+                <RadioCard.Root
                   name="type"
-                  collection={typeCollection}
-                  defaultValue={["web"]}
-                  onValueChange={(value) => setType(value.value[0])}
+                  defaultValue={"web"}
+                  onValueChange={(value) => setType(value.value)}
                 >
-                  <SelectLabel>Type</SelectLabel>
-                  <SelectTrigger>
-                    <SelectValueText placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typeCollection.items.map((item) => (
-                      <SelectItem item={item} key={item.value}>
-                        {item.label}
-                      </SelectItem>
+                  <RadioCard.Label>Select type</RadioCard.Label>
+                  <HStack align="stretch">
+                    {types.map((item) => (
+                      <RadioCard.Item key={item.value} value={item.value}>
+                        <RadioCard.ItemHiddenInput />
+                        <RadioCard.ItemControl>
+                          <RadioCard.ItemContent>
+                            <Icon fontSize="2xl" color="fg.muted" mb="2">
+                              {item.icon}
+                            </Icon>
+                            <RadioCard.ItemText>
+                              {item.title}
+                            </RadioCard.ItemText>
+                            <RadioCard.ItemDescription>
+                              {item.description}
+                            </RadioCard.ItemDescription>
+                          </RadioCard.ItemContent>
+                          <RadioCard.ItemIndicator />
+                        </RadioCard.ItemControl>
+                      </RadioCard.Item>
                     ))}
-                  </SelectContent>
-                </SelectRoot>
+                  </HStack>
+                </RadioCard.Root>
 
                 <SelectRoot
                   name="scrapeId"
@@ -255,34 +275,44 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                       />
                     </Field>
 
-                    <Field label="Skip URLs">
-                      <Input
-                        name="skipRegex"
-                        placeholder="Ex: /blog or /docs/v1"
-                      />
-                    </Field>
+                    <Checkbox.Root name="prefix">
+                      <Checkbox.HiddenInput />
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <Checkbox.Label>Match exact prefix</Checkbox.Label>
+                    </Checkbox.Root>
 
-                    <Field
-                      label={
-                        <Group>
-                          <Text>Remove HTML tags</Text>
-                          <Tooltip
-                            content="It is highly recommended to remove all unnecessary content from the page. App already removes most of the junk content like navigations, ads, etc. You can also specify specific tags to remove. Garbage in, garbage out!"
-                            positioning={{ placement: "top" }}
-                            showArrow
-                          >
-                            <Text>
-                              <TbInfoCircle />
-                            </Text>
-                          </Tooltip>
-                        </Group>
-                      }
-                    >
-                      <Input
-                        name="removeHtmlTags"
-                        placeholder="Ex: aside,header,#ad,.link"
-                      />
-                    </Field>
+                    <Group gap={4}>
+                      <Field label="Skip URLs">
+                        <Input
+                          name="skipRegex"
+                          placeholder="Ex: /blog or /docs/v1"
+                        />
+                      </Field>
+
+                      <Field
+                        label={
+                          <Group>
+                            <Text>Remove HTML tags</Text>
+                            <Tooltip
+                              content="It is highly recommended to remove all unnecessary content from the page. App already removes most of the junk content like navigations, ads, etc. You can also specify specific tags to remove. Garbage in, garbage out!"
+                              positioning={{ placement: "top" }}
+                              showArrow
+                            >
+                              <Text>
+                                <TbInfoCircle />
+                              </Text>
+                            </Tooltip>
+                          </Group>
+                        }
+                      >
+                        <Input
+                          name="removeHtmlTags"
+                          placeholder="Ex: aside,header,#ad,.link"
+                        />
+                      </Field>
+                    </Group>
 
                     <Stack direction={["column", "row"]} gap={4}>
                       <SelectRoot
@@ -333,19 +363,18 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
 
                 {type === "github-repo" && (
                   <>
-                    <Field label="GitHub Repo URL" required>
-                      <Input
-                        name="githubRepoUrl"
-                        placeholder="https://github.com/user/repo"
-                      />
-                    </Field>
+                    <Group gap={4}>
+                      <Field label="GitHub Repo URL" required>
+                        <Input
+                          name="githubRepoUrl"
+                          placeholder="https://github.com/user/repo"
+                        />
+                      </Field>
 
-                    <Field label="Branch name" required defaultValue={"main"}>
-                      <Input
-                        name="githubBranch"
-                        placeholder="main"
-                      />
-                    </Field>
+                      <Field label="Branch name" required defaultValue={"main"}>
+                        <Input name="githubBranch" placeholder="main" />
+                      </Field>
+                    </Group>
                   </>
                 )}
 

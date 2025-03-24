@@ -146,9 +146,14 @@ export async function scrapeLoop(
     beforeScrape?: (url: string) => Promise<void>;
     dynamicFallbackContentLength?: number;
     removeHtmlTags?: string;
+    shouldScrape?: (url?: string) => Promise<boolean>;
   }
 ) {
   const { limit = 300 } = options ?? {};
+
+  if (options?.shouldScrape && !(await options.shouldScrape())) {
+    return;
+  }
 
   while (urlsNotFetched(store).length > 0) {
     const url = urlsNotFetched(store)[0];
@@ -174,6 +179,10 @@ export async function scrapeLoop(
 
     if (Object.keys(store.urls).length >= limit) {
       console.log("Reached limit", limit);
+      break;
+    }
+
+    if (options?.shouldScrape && !(await options.shouldScrape(url))) {
       break;
     }
   }

@@ -112,6 +112,12 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
           broadcast(roomId, makeMessage("scrape-complete", { scrapeId }))
         );
       },
+      shouldScrape: async () => {
+        const user = await prisma.user.findFirstOrThrow({
+          where: { id: userId },
+        });
+        return (user.plan?.credits?.scrapes ?? 0) > 0;
+      },
       afterScrape: async (url, { markdown, error }) => {
         try {
           if (error) {
