@@ -3,14 +3,13 @@ import {
   DataList,
   Group,
   Heading,
-  IconButton,
   Input,
   Spinner,
   Stack,
   Text,
   Textarea,
 } from "@chakra-ui/react";
-import { Link, redirect, useFetcher } from "react-router";
+import { redirect, useFetcher } from "react-router";
 import { SettingsSection } from "~/dashboard/profile";
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/settings";
@@ -20,8 +19,6 @@ import { getSession } from "~/session";
 import {
   TbAlertCircle,
   TbCheck,
-  TbLink,
-  TbRefresh,
   TbSettings,
   TbTrash,
   TbWorld,
@@ -29,7 +26,6 @@ import {
 import { Page } from "~/components/page";
 import moment from "moment";
 import { Button } from "~/components/ui/button";
-import { toaster } from "~/components/ui/toaster";
 import { useEffect, useState } from "react";
 import { getSessionScrapeId } from "./util";
 import { createToken } from "~/jwt";
@@ -113,16 +109,6 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
     }
   }, [deleteConfirm]);
 
-  function copyUrl() {
-    const url = new URL(window.location.origin);
-    url.pathname = `/w/${loaderData.scrape.id}`;
-    navigator.clipboard.writeText(url.toString());
-    toaster.success({
-      title: "Copied to clipboard",
-      description: "URL copied to clipboard",
-    });
-  }
-
   function handleDelete() {
     if (!deleteConfirm) {
       setDeleteConfirm(true);
@@ -135,26 +121,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <Page
-      title="Settings"
-      icon={<TbSettings />}
-      right={
-        <Group>
-          <IconButton variant={"subtle"} onClick={copyUrl}>
-            <TbLink />
-          </IconButton>
-
-          <Button variant={"subtle"} asChild>
-            <Link
-              to={`/scrape?url=${loaderData.scrape.url}&collection=${loaderData.scrape.id}&links=300`}
-            >
-              <TbRefresh />
-              Re-crawl
-            </Link>
-          </Button>
-        </Group>
-      }
-    >
+    <Page title="Settings" icon={<TbSettings />}>
       <Stack gap={4}>
         <DataList.Root orientation={"horizontal"}>
           <DataList.Item>

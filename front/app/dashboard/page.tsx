@@ -221,11 +221,16 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         <Group>
           <Button
             variant={"subtle"}
-            colorPalette={"brand"}
             onClick={() => setNewCollectionDialogOpen(true)}
           >
             <TbPlus />
             New collection
+          </Button>
+          <Button variant={"subtle"} colorPalette={"brand"} asChild>
+            <a href={`/w/${loaderData.scrapeId}`} target="_blank">
+              <TbMessage />
+              Chat
+            </a>
           </Button>
         </Group>
       }
