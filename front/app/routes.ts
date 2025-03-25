@@ -41,9 +41,9 @@ export default [
       route("discord", "integrations/discord.tsx"),
     ]),
 
-    route("knowledge/scrape", "scrapes/new-scrape.tsx"),
-    route("knowledge", "scrapes/links.tsx", [
-      route("link/:itemId", "scrapes/link-item.tsx"),
+    route("knowledge/scrape", "knowledge/new-scrape.tsx"),
+    route("knowledge", "knowledge/links.tsx", [
+      route("link/:itemId", "knowledge/link-item.tsx"),
     ]),
   ]),
 

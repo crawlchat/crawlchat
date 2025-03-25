@@ -13,7 +13,7 @@ import moment from "moment";
 import { TbBook, TbCheck, TbPlus, TbRefresh, TbX } from "react-icons/tb";
 import { Tooltip } from "~/components/ui/tooltip";
 import { Link, Outlet } from "react-router";
-import { getSessionScrapeId } from "./util";
+import { getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 

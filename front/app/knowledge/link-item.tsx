@@ -18,7 +18,7 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { TbTrash, TbX } from "react-icons/tb";
 import { IconButton, Spinner } from "@chakra-ui/react";
 import { Tooltip } from "~/components/ui/tooltip";
-import { getSessionScrapeId } from "./util";
+import { getSessionScrapeId } from "~/scrapes/util";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
