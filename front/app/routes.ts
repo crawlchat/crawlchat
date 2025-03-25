@@ -32,7 +32,6 @@ export default [
   layout("dashboard/layout.tsx", [
     route("app", "dashboard/page.tsx"),
     route("profile", "dashboard/profile.tsx"),
-    route("scrape", "scrapes/new-scrape.tsx"),
     route("messages", "analyse/messages.tsx"),
     route("settings", "scrapes/settings.tsx"),
 
@@ -42,8 +41,9 @@ export default [
       route("discord", "integrations/discord.tsx"),
     ]),
 
+    route("knowledge/scrape", "scrapes/new-scrape.tsx"),
     route("knowledge", "scrapes/links.tsx", [
-      route(":itemId", "scrapes/link-item.tsx"),
+      route("link/:itemId", "scrapes/link-item.tsx"),
     ]),
   ]),
 

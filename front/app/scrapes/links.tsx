@@ -10,11 +10,12 @@ import type { Route } from "./+types/links";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import moment from "moment";
-import { TbBook, TbCheck, TbRefresh, TbX } from "react-icons/tb";
+import { TbBook, TbCheck, TbPlus, TbRefresh, TbX } from "react-icons/tb";
 import { Tooltip } from "~/components/ui/tooltip";
 import { Link, Outlet } from "react-router";
 import { getSessionScrapeId } from "./util";
 import { Page } from "~/components/page";
+import { Button } from "~/components/ui/button";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -60,7 +61,20 @@ function LinkRefresh({ scrapeId, url }: { scrapeId: string; url: string }) {
 
 export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
   return (
-    <Page title="Knowledge" icon={<TbBook />}>
+    <Page
+      title="Knowledge"
+      icon={<TbBook />}
+      right={
+        <Group>
+          <Button variant={"subtle"} colorPalette={"brand"} asChild>
+            <Link to="/knowledge/scrape">
+              <TbPlus />
+              Add
+            </Link>
+          </Button>
+        </Group>
+      }
+    >
       <Stack>
         <Table.Root size="sm">
           <Table.Header>
