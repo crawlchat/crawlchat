@@ -1,14 +1,14 @@
 import { Page } from "~/components/page";
 import { Box, HStack, Stack } from "@chakra-ui/react";
-import type { Route } from "./+types/integrations";
 import { prisma } from "~/prisma";
-import { getSessionScrapeId } from "./util";
+import { getSessionScrapeId } from "~/scrapes/util";
 import { getAuthUser } from "~/auth/middleware";
 import { TbRobotFace, TbCode, TbBrandDiscord, TbPlug } from "react-icons/tb";
 import { Outlet, redirect, useLocation, useNavigate } from "react-router";
 import { SegmentedControl } from "~/components/ui/segmented-control";
 import { useMemo } from "react";
 import { createToken } from "~/jwt";
+import type { Route } from "./+types/page";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

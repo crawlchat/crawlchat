@@ -14,7 +14,7 @@ import type { Prisma } from "libs/prisma";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { TbHelp } from "react-icons/tb";
 import type { Route } from "./+types/mcp";
-import { getSessionScrapeId } from "./util";
+import { getSessionScrapeId } from "~/scrapes/util";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

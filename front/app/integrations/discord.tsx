@@ -23,7 +23,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
-import { getSessionScrapeId } from "./util";
+import { getSessionScrapeId } from "~/scrapes/util";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

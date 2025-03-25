@@ -52,7 +52,7 @@ import {
 import { Field } from "~/components/ui/field";
 import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
 import type { Route } from "./+types/embed";
-import { getSessionScrapeId } from "./util";
+import { getSessionScrapeId } from "../scrapes/util";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

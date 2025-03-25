@@ -48,7 +48,6 @@ const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
   { label: "Knowledge", to: "/knowledge", icon: <TbBook /> },
   { label: "Scrape", to: "/scrape", icon: <TbScan /> },
-  { label: "Collections", to: "/collections", icon: <TbFolder /> },
   { label: "Messages", to: "/messages", icon: <TbMessage /> },
   { label: "Settings", to: "/settings", icon: <TbSettings /> },
   { label: "Integrations", to: "/integrations", icon: <TbPlug /> },
