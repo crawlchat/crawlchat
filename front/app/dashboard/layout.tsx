@@ -1,5 +1,5 @@
 import { Group, Stack } from "@chakra-ui/react";
-import { Outlet } from "react-router";
+import { Outlet, useFetcher } from "react-router";
 import type { Route } from "./+types/layout";
 import { AppContext, useApp } from "./context";
 import { getAuthUser } from "~/auth/middleware";
@@ -13,6 +13,8 @@ import {
 import { useRef } from "react";
 import { PLAN_FREE } from "libs/user-plan";
 import { planMap } from "libs/user-plan";
+import { prisma } from "libs/prisma";
+import { commitSession, getSession } from "~/session";
 
 export function meta() {
   return [
@@ -25,17 +27,31 @@ export function meta() {
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request, { redirectTo: "/login" });
 
+  const session = await getSession(request.headers.get("cookie"));
+  const scrapeId = session.get("scrapeId");
+
   const plan = user!.plan?.planId ? planMap[user!.plan.planId] : PLAN_FREE;
 
-  return { user: user!, plan };
+  const scrapes = await prisma.scrape.findMany({
+    where: {
+      userId: user!.id,
+    },
+    select: {
+      id: true,
+      title: true,
+    },
+  });
+
+  return { user: user!, plan, scrapes: [], scrapeId };
 }
 
 const drawerWidth = 260;
 
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
-  const app = useApp(user);
+  const app = useApp({ user, scrapeId: loaderData.scrapeId });
   const contentRef = useRef<HTMLDivElement>(null);
+  const scrapeIdFetcher = useFetcher();
 
   return (
     <AppContext.Provider value={app}>
@@ -45,6 +61,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           user={user}
           fixed={true}
           plan={loaderData.plan}
+          scrapes={loaderData.scrapes}
+          scrapeId={loaderData.scrapeId}
+          scrapeIdFetcher={scrapeIdFetcher}
         />
 
         <DrawerRoot
@@ -61,6 +80,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               fixed={false}
               contentRef={contentRef}
               plan={loaderData.plan}
+              scrapes={loaderData.scrapes}
+              scrapeIdFetcher={scrapeIdFetcher}
             />
           </DrawerContent>
         </DrawerRoot>

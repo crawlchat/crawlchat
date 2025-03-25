@@ -12,15 +12,12 @@ import { TbHelp, TbHome, TbMessage } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import { Page } from "~/components/page";
-import {
-  XAxis,
-  CartesianGrid,
-  Tooltip,
-  AreaChart,
-  Area,
-} from "recharts";
+import { XAxis, CartesianGrid, Tooltip, AreaChart, Area } from "recharts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
+import { commitSession } from "~/session";
+import { getSession } from "~/session";
+import { redirect } from "react-router";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -81,6 +78,25 @@ export function meta() {
       description: "Chat with any website!",
     },
   ];
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  const user = await getAuthUser(request, { redirectTo: "/login" });
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "set-scrape-id") {
+    const scrapeId = formData.get("scrapeId");
+    const session = await getSession(request.headers.get("cookie"));
+    session.set("scrapeId", scrapeId as string);
+
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
 }
 
 export function StatCard({
