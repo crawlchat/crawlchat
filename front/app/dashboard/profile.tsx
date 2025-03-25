@@ -1,9 +1,9 @@
 import { Page } from "~/components/page";
 import { TbCheck, TbSettings } from "react-icons/tb";
-import { Group, Heading, Input, Stack, Text } from "@chakra-ui/react";
+import { Group, Heading, Stack, Text } from "@chakra-ui/react";
 import { useFetcher, type FetcherWithComponents } from "react-router";
 import { Button } from "~/components/ui/button";
-import type { Route } from "./+types/settings";
+import type { Route } from "./+types/profile";
 import { getAuthUser } from "~/auth/middleware";
 import type { UserSettings } from "libs/prisma";
 import { prisma } from "~/prisma";
@@ -91,10 +91,9 @@ export function SettingsSection({
 
 export default function SettingsPage({ loaderData }: Route.ComponentProps) {
   const openaiApiKeyFetcher = useFetcher();
-  const systemPromptFetcher = useFetcher();
 
   return (
-    <Page title="Settings" icon={<TbSettings />}>
+    <Page title="Profile" icon={<TbSettings />}>
       <Stack maxW={"1000px"} gap={8}>
         <SettingsSection
           fetcher={openaiApiKeyFetcher}

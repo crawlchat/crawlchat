@@ -34,7 +34,7 @@ export default [
   layout("dashboard/layout.tsx", [
     route("app", "dashboard/page.tsx"),
     route("collections", "scrapes/page.tsx"),
-    route("settings", "dashboard/settings.tsx"),
+    route("profile", "dashboard/profile.tsx"),
     route("scrape", "scrapes/new-scrape.tsx"),
 
     route("collections/:id", "scrapes/scrape-page.tsx", [

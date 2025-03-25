@@ -23,6 +23,7 @@ import {
   TbRoad,
   TbScan,
   TbSettings,
+  TbUser,
 } from "react-icons/tb";
 import {
   Link,
@@ -56,7 +57,7 @@ const links = [
   { label: "Scrape", to: "/scrape", icon: <TbScan /> },
   { label: "Collections", to: "/collections", icon: <TbFolder /> },
   { label: "Messages", to: "/messages", icon: <TbMessage /> },
-  { label: "Settings", to: "/settings", icon: <TbSettings /> },
+  { label: "Profile", to: "/profile", icon: <TbUser /> },
 ];
 
 function SideMenuItem({

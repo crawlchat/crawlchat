@@ -18,7 +18,7 @@ import {
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/scrape-embed";
 import { getAuthUser } from "~/auth/middleware";
-import { SettingsSection } from "~/dashboard/settings";
+import { SettingsSection } from "~/dashboard/profile";
 import { useFetcher } from "react-router";
 import {
   SelectContent,

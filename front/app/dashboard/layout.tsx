@@ -36,13 +36,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     where: {
       userId: user!.id,
     },
-    select: {
-      id: true,
-      title: true,
-    },
   });
 
-  return { user: user!, plan, scrapes: [], scrapeId };
+  return { user: user!, plan, scrapes, scrapeId };
 }
 
 const drawerWidth = 260;

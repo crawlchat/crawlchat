@@ -1,6 +1,6 @@
 import { Input, Stack, Text, Textarea } from "@chakra-ui/react";
 import { useFetcher } from "react-router";
-import { SettingsSection } from "~/dashboard/settings";
+import { SettingsSection } from "~/dashboard/profile";
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/scrape-settings";
 import { getAuthUser } from "~/auth/middleware";
