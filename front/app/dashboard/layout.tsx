@@ -77,6 +77,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               contentRef={contentRef}
               plan={loaderData.plan}
               scrapes={loaderData.scrapes}
+              scrapeId={loaderData.scrapeId}
               scrapeIdFetcher={scrapeIdFetcher}
             />
           </DrawerContent>
