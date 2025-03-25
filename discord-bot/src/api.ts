@@ -8,7 +8,11 @@ export async function query(
 ) {
   const result = await fetch(`${process.env.SERVER_HOST}/answer/${scrapeId}`, {
     method: "POST",
-    body: JSON.stringify({ messages, prompt: options?.prompt }),
+    body: JSON.stringify({
+      messages,
+      prompt: options?.prompt,
+      channel: "discord",
+    }),
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,

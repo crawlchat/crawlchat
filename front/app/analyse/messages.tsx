@@ -19,7 +19,13 @@ import {
   Highlight,
   Icon,
 } from "@chakra-ui/react";
-import { TbBox, TbHelp, TbLink, TbMessage } from "react-icons/tb";
+import {
+  TbBox,
+  TbBrandDiscord,
+  TbHelp,
+  TbLink,
+  TbMessage,
+} from "react-icons/tb";
 import { Page } from "~/components/page";
 import type { Route } from "./+types/messages";
 import { getAuthUser } from "~/auth/middleware";
@@ -347,6 +353,9 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                           </Text>
                         </Group>
                         <Group>
+                          {pair.queryMessage?.channel === "discord" && (
+                            <Icon as={TbBrandDiscord} />
+                          )}
                           <Badge
                             colorPalette={getScoreColor(pair.averageScore)}
                             variant={"surface"}

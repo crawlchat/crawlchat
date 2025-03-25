@@ -84,6 +84,11 @@ type MessageSourceLink {
   fetchUniqueId   String?
 }
 
+enum MessageChannel {
+  mcp
+  discord
+}
+
 model Message {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId        String   @db.ObjectId
@@ -93,6 +98,7 @@ model Message {
   llmMessage      Json
   links           MessageSourceLink[]
   pinnedAt        DateTime?
+  channel         MessageChannel?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
