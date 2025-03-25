@@ -129,6 +129,10 @@ export class MarsIndexer implements Indexer {
   }
 
   async process(query: string, result: QueryResponse<RecordMetadata>) {
+    if (result.matches.length === 0) {
+      return [];
+    }
+
     const rerank = await this.pinecone.inference.rerank(
       "bge-reranker-v2-m3",
       query,

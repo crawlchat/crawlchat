@@ -6,24 +6,48 @@ import {
   Stat,
   Heading,
   Text,
+  DialogHeader,
+  Input,
+  DialogCloseTrigger,
+  Center,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/page";
-import { TbHelp, TbHome, TbMessage } from "react-icons/tb";
+import {
+  TbCheck,
+  TbDatabase,
+  TbHelp,
+  TbHome,
+  TbMessage,
+  TbPlus,
+} from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import { Page } from "~/components/page";
-import {
-  XAxis,
-  CartesianGrid,
-  Tooltip,
-  AreaChart,
-  Area,
-} from "recharts";
+import { XAxis, CartesianGrid, Tooltip, AreaChart, Area } from "recharts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
+import { commitSession } from "~/session";
+import { getSession } from "~/session";
+import { redirect, useFetcher } from "react-router";
+import { Button } from "~/components/ui/button";
+import {
+  DialogBackdrop,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogRoot,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+import { Field } from "~/components/ui/field";
+import { getSessionScrapeId } from "~/scrapes/util";
+import { EmptyState } from "~/components/ui/empty-state";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
+  const session = await getSession(request.headers.get("cookie"));
+  let scrapeId = session.get("scrapeId");
+
   const scrapes = await prisma.scrape.findMany({
     where: {
       userId: user?.id,
@@ -46,6 +70,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const messages = await prisma.message.findMany({
     where: {
       ownerUserId: user!.id,
+      scrapeId,
       createdAt: {
         gte: new Date(Date.now() - ONE_WEEK),
       },
@@ -65,12 +90,38 @@ export async function loader({ request }: Route.LoaderArgs) {
   const todayKey = today.toISOString().split("T")[0];
   const messagesToday = dailyMessages[todayKey] ?? 0;
 
+  // Check and set the scrapeId
+  const scrape = await prisma.scrape.findUnique({
+    where: { id: scrapeId, userId: user!.id },
+  });
+  if (!scrape) {
+    if (scrapes.length > 0) {
+      session.set("scrapeId", scrapes[0].id);
+    } else {
+      session.unset("scrapeId");
+    }
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
+  if (!scrapeId && scrapes.length > 0) {
+    session.set("scrapeId", scrapes[0].id);
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
+
   return {
     user,
     scrapes,
     itemsCount,
     dailyMessages,
     messagesToday,
+    scrapeId,
   };
 }
 
@@ -81,6 +132,43 @@ export function meta() {
       description: "Chat with any website!",
     },
   ];
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  const user = await getAuthUser(request, { redirectTo: "/login" });
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "set-scrape-id") {
+    const scrapeId = formData.get("scrapeId");
+    const session = await getSession(request.headers.get("cookie"));
+    session.set("scrapeId", scrapeId as string);
+
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  } else if (intent === "create-collection") {
+    const name = formData.get("name");
+    const scrape = await prisma.scrape.create({
+      data: {
+        title: name as string,
+        userId: user!.id,
+        status: "done",
+        indexer: "mars",
+      },
+    });
+    const session = await getSession(request.headers.get("cookie"));
+    session.set("scrapeId", scrape.id);
+
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
 }
 
 export function StatCard({
@@ -106,6 +194,8 @@ export function StatCard({
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const newCollectionFetcher = useFetcher();
+  const [newCollectionDialogOpen, setNewCollectionDialogOpen] = useState(false);
   const chartData = useMemo(() => {
     const data = [];
     const today = new Date();
@@ -126,47 +216,136 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     if (containerRef.current) {
       setWidth(containerRef.current.clientWidth);
     }
-  }, [containerRef]);
+  }, [containerRef, loaderData.scrapes]);
+
+  useEffect(() => {
+    if (loaderData.scrapes.length > 0) {
+      setNewCollectionDialogOpen(false);
+    }
+  }, [loaderData.scrapes]);
 
   return (
-    <Page title="Home" icon={<TbHome />}>
-      <Stack height={"100%"} gap={8} ref={containerRef}>
+    <Page
+      title="Home"
+      icon={<TbHome />}
+      right={
         <Group>
-          <StatCard
-            label="Messages today"
-            value={loaderData.messagesToday}
-            icon={<TbMessage />}
-          />
-          <StatCard
-            label="Messages this week"
-            value={Object.values(loaderData.dailyMessages).reduce(
-              (acc, curr) => acc + curr,
-              0
-            )}
-            icon={<TbMessage />}
-          />
-        </Group>
-
-        <Stack>
-          <Heading>
-            <Group>
+          <Button
+            variant={"subtle"}
+            onClick={() => setNewCollectionDialogOpen(true)}
+          >
+            <TbPlus />
+            New collection
+          </Button>
+          <Button variant={"subtle"} colorPalette={"brand"} asChild>
+            <a href={`/w/${loaderData.scrapeId}`} target="_blank">
               <TbMessage />
-              <Text>Messages</Text>
-            </Group>
-          </Heading>
-          <AreaChart width={width - 10} height={200} data={chartData}>
-            <XAxis dataKey="name" />
-            <Tooltip />
-            <CartesianGrid strokeDasharray="3 3" />
-            <Area
-              type="monotone"
-              dataKey="Messages"
-              stroke={"var(--chakra-colors-brand-emphasized)"}
-              fill={"var(--chakra-colors-brand-muted)"}
+              Chat
+            </a>
+          </Button>
+        </Group>
+      }
+    >
+      {loaderData.scrapes.length === 0 && (
+        <Center w="full" h="full">
+          <EmptyState
+            icon={<TbDatabase />}
+            title="No collections"
+            description="Create a new collection to get started"
+          >
+            <Button
+              colorPalette={"brand"}
+              onClick={() => setNewCollectionDialogOpen(true)}
+            >
+              <TbPlus />
+              New collection
+            </Button>
+          </EmptyState>
+        </Center>
+      )}
+
+      {loaderData.scrapes.length > 0 && (
+        <Stack height={"100%"} gap={8} ref={containerRef}>
+          <Group>
+            <StatCard
+              label="Messages today"
+              value={loaderData.messagesToday}
+              icon={<TbMessage />}
             />
-          </AreaChart>
+            <StatCard
+              label="Messages this week"
+              value={Object.values(loaderData.dailyMessages).reduce(
+                (acc, curr) => acc + curr,
+                0
+              )}
+              icon={<TbMessage />}
+            />
+          </Group>
+
+          <Stack>
+            <Heading>
+              <Group>
+                <TbMessage />
+                <Text>Messages</Text>
+              </Group>
+            </Heading>
+            <AreaChart width={width - 10} height={200} data={chartData}>
+              <XAxis dataKey="name" />
+              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" />
+              <Area
+                type="monotone"
+                dataKey="Messages"
+                stroke={"var(--chakra-colors-brand-emphasized)"}
+                fill={"var(--chakra-colors-brand-muted)"}
+              />
+            </AreaChart>
+          </Stack>
         </Stack>
-      </Stack>
+      )}
+
+      <DialogRoot
+        open={newCollectionDialogOpen}
+        onOpenChange={(e) => setNewCollectionDialogOpen(e.open)}
+      >
+        <DialogBackdrop />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <Group>
+                <TbPlus />
+                <Text>New collection</Text>
+              </Group>
+            </DialogTitle>
+          </DialogHeader>
+          <newCollectionFetcher.Form method="post">
+            <DialogBody>
+              <input type="hidden" name="intent" value="create-collection" />
+              <Field label="Give it a name">
+                <Input name="name" placeholder="Collection name" required />
+              </Field>
+            </DialogBody>
+            <DialogFooter>
+              <Group>
+                <DialogCloseTrigger
+                  asChild
+                  disabled={newCollectionFetcher.state !== "idle"}
+                >
+                  <Button variant={"outline"}>Cancel</Button>
+                </DialogCloseTrigger>
+                <Button
+                  type="submit"
+                  colorPalette={"brand"}
+                  disabled={newCollectionFetcher.state !== "idle"}
+                >
+                  Create
+                  <TbCheck />
+                </Button>
+              </Group>
+            </DialogFooter>
+          </newCollectionFetcher.Form>
+        </DialogContent>
+      </DialogRoot>
     </Page>
   );
 }

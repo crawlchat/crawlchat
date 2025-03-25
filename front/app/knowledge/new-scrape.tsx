@@ -44,7 +44,7 @@ import { createToken } from "~/jwt";
 import type { Route } from "./+types/new-scrape";
 import { useEffect, useMemo, useState } from "react";
 import { prisma } from "~/prisma";
-import type { Scrape } from "libs/prisma";
+import { getSessionScrapeId } from "~/scrapes/util";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -63,6 +63,12 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: { request: Request }) {
   const user = await getAuthUser(request);
+  const scrapeId = await getSessionScrapeId(request);
+
+  const scrape = await prisma.scrape.findUniqueOrThrow({
+    where: { id: scrapeId as string, userId: user!.id },
+  });
+
   const formData = await request.formData();
 
   if (request.method === "POST") {
@@ -75,7 +81,7 @@ export async function action({ request }: { request: Request }) {
     );
     let removeHtmlTags = formData.get("removeHtmlTags");
     let includeHtmlTags = formData.get("includeHtmlTags");
-    let scrapeId = formData.get("scrapeId");
+
     let type = formData.get("type");
     let githubRepoUrl = formData.get("githubRepoUrl");
     let githubBranch = formData.get("githubBranch");
@@ -105,25 +111,7 @@ export async function action({ request }: { request: Request }) {
       allowOnlyRegex = `^${url.replace(/\/$/, "")}.*`;
     }
 
-    let scrape: Scrape;
-
-    if (scrapeId === "new") {
-      scrape = await prisma.scrape.create({
-        data: {
-          url: url as string,
-          userId: user!.id,
-          status: "pending",
-          indexer: "mars",
-        },
-      });
-    } else {
-      scrape = await prisma.scrape.findUniqueOrThrow({
-        where: { id: scrapeId as string },
-      });
-    }
-
     const token = createToken(user!.id);
-
     const response = await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
       method: "POST",
       body: JSON.stringify({
@@ -169,20 +157,6 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
   const [searchParams] = useSearchParams();
   const { connect, stage, scraping } = useScrape();
   const scrapeFetcher = useFetcher();
-  const scrapesCollection = useMemo(
-    function () {
-      return createListCollection({
-        items: [
-          { title: "New collection", id: "new" },
-          ...loaderData.scrapes,
-        ].map((scrape) => ({
-          label: scrape.title,
-          value: scrape.id,
-        })),
-      });
-    },
-    [loaderData.scrapes]
-  );
 
   const types = useMemo(
     function () {
@@ -213,7 +187,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
     scrapeFetcher.state !== "idle" || ["scraping", "scraped"].includes(stage);
 
   return (
-    <Page title="New Scrape" icon={<TbScan />}>
+    <Page title="Scrape content" icon={<TbScan />}>
       <Center w="full" h="full">
         <Stack maxW={"500px"} w={"full"}>
           {stage === "idle" && (
@@ -247,24 +221,6 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                     ))}
                   </HStack>
                 </RadioCard.Root>
-
-                <SelectRoot
-                  name="scrapeId"
-                  collection={scrapesCollection}
-                  defaultValue={[searchParams.get("collection") ?? "new"]}
-                >
-                  <SelectLabel>Collection</SelectLabel>
-                  <SelectTrigger>
-                    <SelectValueText placeholder="Select collection" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {scrapesCollection.items.map((item) => (
-                      <SelectItem item={item} key={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectRoot>
 
                 {type === "web" && (
                   <>
@@ -426,10 +382,8 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
               {stage === "saved" && (
                 <Group justifyContent={"flex-end"}>
                   <Button colorPalette={"brand"} asChild>
-                    <Link
-                      to={`/collections/${scrapeFetcher.data.scrapeId}/settings`}
-                    >
-                      Go to collection
+                    <Link to={`/knowledge`}>
+                      Go to knowledge base
                       <TbArrowRight />
                     </Link>
                   </Button>

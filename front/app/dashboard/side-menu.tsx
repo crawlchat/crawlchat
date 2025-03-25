@@ -1,4 +1,6 @@
 import {
+  Box,
+  createListCollection,
   Group,
   Heading,
   IconButton,
@@ -11,16 +13,16 @@ import {
 import {
   TbBook,
   TbChevronRight,
-  TbFileX,
-  TbFolder,
   TbHome,
   TbLogout,
   TbMessage,
+  TbPlug,
   TbRoad,
   TbScan,
   TbSettings,
+  TbUser,
 } from "react-icons/tb";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, type FetcherWithComponents } from "react-router";
 import { Avatar } from "~/components/ui/avatar";
 import {
   MenuContent,
@@ -28,17 +30,31 @@ import {
   MenuRoot,
   MenuTrigger,
 } from "~/components/ui/menu";
-import type { User } from "libs/prisma";
+import type { Scrape, User } from "libs/prisma";
 import { LogoText } from "~/landing/page";
 import type { Plan } from "libs/user-plan";
 import { numberToKMB } from "~/number-util";
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "~/components/ui/select";
+import { useMemo, useRef } from "react";
 
 const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
-  { label: "Scrape", to: "/scrape", icon: <TbScan /> },
-  { label: "Collections", to: "/collections", icon: <TbFolder /> },
-  { label: "Messages", to: "/messages", icon: <TbMessage /> },
-  { label: "Settings", to: "/settings", icon: <TbSettings /> },
+  { label: "Knowledge", to: "/knowledge", icon: <TbBook />, forScrape: true },
+  { label: "Messages", to: "/messages", icon: <TbMessage />, forScrape: true },
+  { label: "Settings", to: "/settings", icon: <TbSettings />, forScrape: true },
+  {
+    label: "Integrations",
+    to: "/integrations",
+    icon: <TbPlug />,
+    forScrape: true,
+  },
+  { label: "Profile", to: "/profile", icon: <TbUser /> },
 ];
 
 function SideMenuItem({
@@ -86,10 +102,7 @@ function CreditProgress({
     if (used < 50) {
       return "brand";
     }
-    if (used < 75) {
-      return "black";
-    }
-    return "red";
+    return "black";
   }
 
   const value = Math.max(0, Math.min(used, total));
@@ -123,13 +136,31 @@ export function SideMenu({
   user,
   contentRef,
   plan,
+  scrapes,
+  scrapeId,
+  scrapeIdFetcher,
 }: {
   fixed: boolean;
   width: number;
   user: User;
   contentRef?: React.RefObject<HTMLDivElement | null>;
   plan: Plan;
+  scrapes: Scrape[];
+  scrapeId?: string;
+  scrapeIdFetcher: FetcherWithComponents<any>;
 }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const collections = useMemo(
+    () =>
+      createListCollection({
+        items: scrapes.map((scrape) => ({
+          label: scrape.title ?? "Untitled",
+          value: scrape.id,
+        })),
+      }),
+    [scrapes]
+  );
+
   const totalMessages = plan.credits.messages;
   const totalScrapes = plan.credits.scrapes;
 
@@ -169,10 +200,38 @@ export function SideMenu({
           </Heading>
         </Stack>
 
+        <Box px={3}>
+          <scrapeIdFetcher.Form ref={formRef} method="post" action="/app">
+            <input type="hidden" name="intent" value="set-scrape-id" />
+            <SelectRoot
+              value={scrapeId ? [scrapeId] : []}
+              collection={collections}
+              name="scrapeId"
+              onValueChange={(e) => {
+                formRef.current?.submit();
+              }}
+              disabled={collections.items.length === 0}
+            >
+              <SelectTrigger bg="brand.white">
+                <SelectValueText placeholder="Select collection" />
+              </SelectTrigger>
+              <SelectContent>
+                {collections.items.map((item) => (
+                  <SelectItem item={item} key={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </SelectRoot>
+          </scrapeIdFetcher.Form>
+        </Box>
+
         <Stack gap={1} w="full" px={3}>
-          {links.map((link, index) => (
-            <SideMenuItem key={index} link={link} />
-          ))}
+          {links
+            .filter((link) => !link.forScrape || scrapeId)
+            .map((link, index) => (
+              <SideMenuItem key={index} link={link} />
+            ))}
         </Stack>
 
         <Separator />

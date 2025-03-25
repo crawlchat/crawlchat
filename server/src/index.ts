@@ -321,6 +321,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         const newQueryMessage = await prisma.message.create({
           data: {
             threadId,
+            scrapeId: scrape.id,
             llmMessage: { role: "user", content: message.data.query },
             ownerUserId: scrape.userId,
           },
@@ -388,6 +389,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         const newAnswerMessage = await prisma.message.create({
           data: {
             threadId,
+            scrapeId: scrape.id,
             llmMessage: { role: "assistant", content },
             links,
             ownerUserId: scrape.userId,
@@ -447,6 +449,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   await prisma.message.create({
     data: {
       threadId: thread.id,
+      scrapeId: scrape.id,
       llmMessage: { role: "user", content: query },
       links: processed.map((p) => ({
         url: p.url,
@@ -454,6 +457,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
         score: p.score,
       })),
       ownerUserId: scrape.userId,
+      channel: "mcp",
     },
   });
 
@@ -530,22 +534,32 @@ app.post("/answer/:scrapeId", async (req, res) => {
     });
   }
   let query = req.body.query as string;
+  const reqPrompt = req.body.prompt as string;
+  const channel = req.body.channel;
   const messages = req.body.messages as { role: string; content: string }[];
   if (messages && messages.length > 0) {
     query = messages[messages.length - 1].content;
   }
 
+  console.log({ channel });
+
   await prisma.message.create({
     data: {
       threadId: thread.id,
+      scrapeId: scrape.id,
       llmMessage: { role: "user", content: query },
       ownerUserId: scrape.userId,
+      channel,
     },
   });
 
+  const prompt = [scrape.chatPrompt ?? "", reqPrompt ?? ""]
+    .filter(Boolean)
+    .join("\n\n");
+
   const flow = makeFlow(
     scrape.id,
-    scrape.chatPrompt ?? "",
+    prompt,
     query,
     messages.map((m) => ({
       llmMessage: {
@@ -583,19 +597,11 @@ app.post("/answer/:scrapeId", async (req, res) => {
     }
   }
 
-  await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      llmMessage: { role: "user", content: query },
-      links,
-      ownerUserId: scrape.userId,
-    },
-  });
-
   await consumeCredits(scrape.userId, "messages", 1);
   const newAnswerMessage = await prisma.message.create({
     data: {
       threadId: thread.id,
+      scrapeId: scrape.id,
       llmMessage: { role: "assistant", content },
       links,
       ownerUserId: scrape.userId,

@@ -8,18 +8,21 @@ import {
 } from "@chakra-ui/react";
 import { useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
-import { SettingsSection } from "~/dashboard/settings";
-import type { Route } from "./+types/scrape-mcp";
+import { SettingsSection } from "~/dashboard/profile";
 import { prisma } from "~/prisma";
 import type { Prisma } from "libs/prisma";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { TbHelp } from "react-icons/tb";
+import type { Route } from "./+types/mcp";
+import { getSessionScrapeId } from "~/scrapes/util";
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
+  const scrapeId = await getSessionScrapeId(request);
+
   const scrape = await prisma.scrape.findUnique({
-    where: { id: params.id, userId: user!.id },
+    where: { id: scrapeId, userId: user!.id },
   });
 
   if (!scrape) {
@@ -29,8 +32,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { scrape };
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
+
+  const scrapeId = await getSessionScrapeId(request);
   const formData = await request.formData();
 
   const mcpToolName = formData.get("mcpToolName") as string | null;
@@ -41,7 +46,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const scrape = await prisma.scrape.update({
-    where: { id: params.id, userId: user!.id },
+    where: { id: scrapeId, userId: user!.id },
     data: update,
   });
 

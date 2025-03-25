@@ -7,6 +7,7 @@ type SessionData = {
   email: string;
   user: User;
   chatSessionKeys: Record<string, string>;
+  scrapeId: string;
   __flash_error__: string;
 };
 

@@ -1,5 +1,5 @@
 import { prisma } from "~/prisma";
-import type { Route } from "./+types/scrape-item";
+import type { Route } from "./+types/link-item";
 import { getAuthUser } from "~/auth/middleware";
 import {
   DrawerBackdrop,
@@ -18,14 +18,17 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { TbTrash, TbX } from "react-icons/tb";
 import { IconButton, Spinner } from "@chakra-ui/react";
 import { Tooltip } from "~/components/ui/tooltip";
+import { getSessionScrapeId } from "~/scrapes/util";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
+  const scrapeId = await getSessionScrapeId(request);
+
   const item = await prisma.scrapeItem.findUnique({
     where: { id: params.itemId, userId: user!.id },
   });
-  return { item, scrapeId: params.id };
+  return { item, scrapeId };
 }
 
 export async function action({ params, request }: Route.ActionArgs) {
@@ -34,7 +37,7 @@ export async function action({ params, request }: Route.ActionArgs) {
     await prisma.scrapeItem.delete({
       where: { id: params.itemId, userId: user!.id },
     });
-    return redirect(`/collections/${params.id}/links`);
+    return redirect("/knowledge");
   }
 }
 
@@ -51,7 +54,7 @@ export default function ScrapeItem({ loaderData }: Route.ComponentProps) {
   function close() {
     setOpen(false);
     setTimeout(() => {
-      navigate(`/collections/${loaderData.scrapeId}/links`);
+      navigate("/knowledge");
     }, 100);
   }
 

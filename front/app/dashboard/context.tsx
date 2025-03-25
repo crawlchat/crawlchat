@@ -1,18 +1,23 @@
+import type { User } from "libs/prisma";
 import { createContext, useState } from "react";
 
-export const useApp = (user: { id: string }) => {
+export const useApp = ({
+  user,
+  scrapeId,
+}: {
+  user: User;
+  scrapeId?: string;
+}) => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [threadTitle, setThreadTitle] = useState<Record<string, string>>({});
   const [containerWidth, setContainerWidth] = useState<number>();
 
   return {
     user,
     menuOpen,
     setMenuOpen,
-    threadTitle,
-    setThreadTitle,
     containerWidth,
     setContainerWidth,
+    scrapeId,
   };
 };
 
