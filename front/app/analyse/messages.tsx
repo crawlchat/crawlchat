@@ -43,6 +43,7 @@ import {
 } from "~/components/ui/select";
 import { makeMessagePairs } from "./analyse";
 import { Tooltip } from "~/components/ui/tooltip";
+import type { Message } from "libs/prisma";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -68,6 +69,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   return { messagePairs: makeMessagePairs(messages), scrapes };
+}
+
+function getMessageContent(message?: Message) {
+  return (message?.llmMessage as any)?.content ?? "-";
 }
 
 const MetricCheckbox = ({
@@ -329,10 +334,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                       <Group justifyContent={"space-between"} flex={1}>
                         <Group>
                           <Text maxW={"50vw"} truncate>
-                            {truncate(
-                              (pair.queryMessage?.llmMessage as any).content,
-                              10000
-                            )}
+                            {truncate(getMessageContent(pair.queryMessage), 10000)}
                           </Text>
                           <Text opacity={0.2} hideBelow={"md"}>
                             {moment(pair.queryMessage?.createdAt).fromNow()}
@@ -351,10 +353,10 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                     <AccordionItemContent>
                       <Stack gap={4}>
                         <Heading>
-                          {(pair.queryMessage?.llmMessage as any).content}
+                          {getMessageContent(pair.queryMessage)}
                         </Heading>
                         <MarkdownProse>
-                          {(pair.responseMessage.llmMessage as any).content}
+                          {getMessageContent(pair.responseMessage)}
                         </MarkdownProse>
                         {pair.uniqueLinks.length > 0 && (
                           <Stack>
