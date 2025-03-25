@@ -204,7 +204,7 @@ export function SideMenu({
           <scrapeIdFetcher.Form ref={formRef} method="post" action="/app">
             <input type="hidden" name="intent" value="set-scrape-id" />
             <SelectRoot
-              defaultValue={scrapeId ? [scrapeId] : []}
+              value={scrapeId ? [scrapeId] : []}
               collection={collections}
               name="scrapeId"
               onValueChange={(e) => {

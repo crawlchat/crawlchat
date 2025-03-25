@@ -214,6 +214,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
               colorPalette={"red"}
               onClick={handleDelete}
               loading={deleteFetcher.state !== "idle"}
+              variant={deleteConfirm ? "solid" : "outline"}
             >
               {deleteConfirm ? "Sure to delete?" : "Delete"}
               <TbTrash />

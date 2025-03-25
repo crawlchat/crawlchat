@@ -457,7 +457,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
             name="welcomeMessage"
             defaultValue={loaderData.scrape?.widgetConfig?.welcomeMessage ?? ""}
             placeholder="Hi, I'm the CrawlChat bot. How can I help you today?"
-            rows={8}
+            rows={4}
           />
         </SettingsSection>
 
