@@ -2,6 +2,7 @@ import {
   Badge,
   DataList,
   Group,
+  Heading,
   IconButton,
   Input,
   Spinner,
@@ -27,7 +28,6 @@ import {
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import moment from "moment";
-import { Tooltip } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { toaster } from "~/components/ui/toaster";
 import { useEffect, useState } from "react";
@@ -140,24 +140,6 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
       icon={<TbSettings />}
       right={
         <Group>
-          <Tooltip
-            content={deleteConfirm ? "Sure to delete?" : "Delete"}
-            showArrow
-            open={deleteConfirm}
-          >
-            <IconButton
-              colorPalette={"red"}
-              variant={deleteConfirm ? "solid" : "subtle"}
-              onClick={handleDelete}
-              disabled={deleteFetcher.state !== "idle"}
-            >
-              {deleteFetcher.state !== "idle" ? (
-                <Spinner size="sm" />
-              ) : (
-                <TbTrash />
-              )}
-            </IconButton>
-          </Tooltip>
           <IconButton variant={"subtle"} onClick={copyUrl}>
             <TbLink />
           </IconButton>
@@ -243,6 +225,34 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             placeholder="Enter a custom chat prompt for this scrape."
           />
         </SettingsSection>
+
+        <Stack
+          border={"1px solid"}
+          borderColor={"red.300"}
+          bg="red.50"
+          rounded={"lg"}
+          p={4}
+          gap={4}
+        >
+          <Stack>
+            <Heading>Delete collection</Heading>
+            <Text fontSize={"sm"} opacity={0.5}>
+              This will delete the collection and all the messages, knowledge
+              base, and the other data that is associated with it. This is not
+              reversible.
+            </Text>
+          </Stack>
+          <Group>
+            <Button
+              colorPalette={"red"}
+              onClick={handleDelete}
+              loading={deleteFetcher.state !== "idle"}
+            >
+              {deleteConfirm ? "Sure to delete?" : "Delete"}
+              <TbTrash />
+            </Button>
+          </Group>
+        </Stack>
       </Stack>
     </Page>
   );
