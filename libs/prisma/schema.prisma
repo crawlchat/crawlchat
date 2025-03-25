@@ -100,6 +100,8 @@ model Message {
   thread          Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   ownerUser       User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
   scrape          Scrape? @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+
+  @@index([ownerUserId, scrapeId, createdAt])
 }
 
 enum ResponseType {
