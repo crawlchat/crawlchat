@@ -64,12 +64,6 @@ const cleanContent = (content: string) => {
   return content.replace(/\n/g, "\n\n");
 };
 
-const discordPrompt = (query: string) => {
-  return `Query: ${query}
-Keep the response very short and very concised.
-It should be under 1000 charecters.`;
-};
-
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
@@ -123,7 +117,7 @@ client.on(Events.MessageCreate, async (message) => {
 
     messages.push({
       role: "user",
-      content: discordPrompt(cleanContent(rawQuery)),
+      content: cleanContent(rawQuery),
     });
 
     const { stopTyping } = await sendTyping(message.channel as TextChannel);
@@ -132,7 +126,11 @@ client.on(Events.MessageCreate, async (message) => {
     const { answer, error } = await query(
       scrapeId,
       messages,
-      createToken(userId)
+      createToken(userId),
+      {
+        prompt: `Keep the response very short and very concised.
+It should be under 1000 charecters.`,
+      }
     );
 
     if (error) {

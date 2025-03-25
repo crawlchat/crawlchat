@@ -1,19 +1,19 @@
 export async function query(
   scrapeId: string,
   messages: { role: string; content: string }[],
-  token: string
+  token: string,
+  options?: {
+    prompt?: string;
+  }
 ) {
-  const result = await fetch(
-    `${process.env.SERVER_HOST}/answer/${scrapeId}`,
-    {
-      method: "POST",
-      body: JSON.stringify({ messages }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const result = await fetch(`${process.env.SERVER_HOST}/answer/${scrapeId}`, {
+    method: "POST",
+    body: JSON.stringify({ messages, prompt: options?.prompt }),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   let answer = null;
   let answerJson: any = {};

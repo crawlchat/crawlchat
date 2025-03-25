@@ -533,6 +533,7 @@ app.post("/answer/:scrapeId", async (req, res) => {
     });
   }
   let query = req.body.query as string;
+  let reqPrompt = req.body.prompt as string;
   const messages = req.body.messages as { role: string; content: string }[];
   if (messages && messages.length > 0) {
     query = messages[messages.length - 1].content;
@@ -547,9 +548,13 @@ app.post("/answer/:scrapeId", async (req, res) => {
     },
   });
 
+  const prompt = [scrape.chatPrompt ?? "", reqPrompt ?? ""]
+    .filter(Boolean)
+    .join("\n\n");
+
   const flow = makeFlow(
     scrape.id,
-    scrape.chatPrompt ?? "",
+    prompt,
     query,
     messages.map((m) => ({
       llmMessage: {
