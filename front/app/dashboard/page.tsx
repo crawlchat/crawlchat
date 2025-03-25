@@ -45,6 +45,9 @@ import { EmptyState } from "~/components/ui/empty-state";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
+  const session = await getSession(request.headers.get("cookie"));
+  let scrapeId = session.get("scrapeId");
+
   const scrapes = await prisma.scrape.findMany({
     where: {
       userId: user?.id,
@@ -67,6 +70,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const messages = await prisma.message.findMany({
     where: {
       ownerUserId: user!.id,
+      scrapeId,
       createdAt: {
         gte: new Date(Date.now() - ONE_WEEK),
       },
@@ -86,16 +90,16 @@ export async function loader({ request }: Route.LoaderArgs) {
   const todayKey = today.toISOString().split("T")[0];
   const messagesToday = dailyMessages[todayKey] ?? 0;
 
-  const session = await getSession(request.headers.get("cookie"));
-  let scrapeId = session.get("scrapeId");
-
   if (scrapeId) {
     const scrape = await prisma.scrape.findUnique({
       where: { id: scrapeId, userId: user!.id },
     });
     if (!scrape) {
-      scrapeId = undefined;
-      session.unset("scrapeId");
+      if (scrapes.length > 0) {
+        session.set("scrapeId", scrapes[0].id);
+      } else {
+        session.unset("scrapeId");
+      }
       throw redirect("/app", {
         headers: {
           "Set-Cookie": await commitSession(session),

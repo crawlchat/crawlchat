@@ -109,7 +109,9 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                 </Table.Cell>
                 <Table.Cell>
                   <ChakraLink asChild>
-                    <Link to={item.id}>{item.title ?? "-"}</Link>
+                    <Link to={`/knowledge/item/${item.id}`}>
+                      {item.title ?? "-"}
+                    </Link>
                   </ChakraLink>
                 </Table.Cell>
                 <Table.Cell>

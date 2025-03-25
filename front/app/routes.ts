@@ -43,7 +43,7 @@ export default [
 
     route("knowledge/scrape", "knowledge/new-scrape.tsx"),
     route("knowledge", "knowledge/links.tsx", [
-      route("link/:itemId", "knowledge/link-item.tsx"),
+      route("item/:itemId", "knowledge/link-item.tsx"),
     ]),
   ]),
 

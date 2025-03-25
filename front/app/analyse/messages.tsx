@@ -43,15 +43,18 @@ import {
 } from "~/components/ui/select";
 import { makeMessagePairs } from "./analyse";
 import { Tooltip } from "~/components/ui/tooltip";
+import { getSessionScrapeId } from "~/scrapes/util";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
+  const scrapeId = await getSessionScrapeId(request);
 
   const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
 
   const messages = await prisma.message.findMany({
     where: {
       ownerUserId: user!.id,
+      scrapeId,
       createdAt: {
         gte: ONE_WEEK_AGO,
       },
@@ -115,9 +118,14 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
     () => ({
       worst: loaderData.messagePairs.filter((p) => p.averageScore < 0.25)
         .length,
-      bad: loaderData.messagePairs.filter((p) => p.averageScore < 0.5).length,
-      good: loaderData.messagePairs.filter((p) => p.averageScore < 0.75).length,
-      best: loaderData.messagePairs.filter((p) => p.averageScore > 0.75).length,
+      bad: loaderData.messagePairs.filter(
+        (p) => p.averageScore >= 0.25 && p.averageScore < 0.5
+      ).length,
+      good: loaderData.messagePairs.filter(
+        (p) => p.averageScore >= 0.5 && p.averageScore < 0.75
+      ).length,
+      best: loaderData.messagePairs.filter((p) => p.averageScore >= 0.75)
+        .length,
     }),
     [loaderData.messagePairs]
   );
@@ -366,7 +374,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                                     <TbLink />
                                   </List.Indicator>
                                   <Link
-                                    href={`/knowledge/links/${link.scrapeItemId}`}
+                                    href={`/knowledge/item/${link.scrapeItemId}`}
                                     target="_blank"
                                   >
                                     {link.title}{" "}
