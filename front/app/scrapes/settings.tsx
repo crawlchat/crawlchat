@@ -31,6 +31,8 @@ import { Tooltip } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { toaster } from "~/components/ui/toaster";
 import { useEffect, useState } from "react";
+import { getSessionScrapeId } from "./util";
+import { createToken } from "~/jwt";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -57,9 +59,26 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { scrape, itemsCount };
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   const formData = await request.formData();
+
+  const scrapeId = await getSessionScrapeId(request);
+
+  if (request.method === "DELETE") {
+    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+      method: "DELETE",
+      body: JSON.stringify({ scrapeId }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${createToken(user!.id)}`,
+      },
+    });
+    await prisma.scrape.delete({
+      where: { id: scrapeId },
+    });
+    throw redirect("/collections");
+  }
 
   const chatPrompt = formData.get("chatPrompt") as string | null;
   const title = formData.get("title") as string | null;
@@ -73,7 +92,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const scrape = await prisma.scrape.update({
-    where: { id: params.id, userId: user!.id },
+    where: { id: scrapeId, userId: user!.id },
     data: update,
   });
 

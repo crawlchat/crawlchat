@@ -6,9 +6,12 @@ import {
   Stat,
   Heading,
   Text,
+  DialogHeader,
+  Input,
+  DialogCloseTrigger,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/page";
-import { TbHelp, TbHome, TbMessage } from "react-icons/tb";
+import { TbCheck, TbHelp, TbHome, TbMessage, TbPlus } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import { Page } from "~/components/page";
@@ -17,7 +20,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
-import { redirect } from "react-router";
+import { redirect, useFetcher } from "react-router";
+import { Button } from "~/components/ui/button";
+import {
+  DialogBackdrop,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogRoot,
+  DialogTitle,
+  DialogTrigger,
+} from "~/components/ui/dialog";
+import { Field } from "~/components/ui/field";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -96,6 +110,24 @@ export async function action({ request }: Route.ActionArgs) {
         "Set-Cookie": await commitSession(session),
       },
     });
+  } else if (intent === "create-collection") {
+    const name = formData.get("name");
+    const scrape = await prisma.scrape.create({
+      data: {
+        title: name as string,
+        userId: user!.id,
+        status: "done",
+        indexer: "mars",
+      },
+    });
+    const session = await getSession(request.headers.get("cookie"));
+    session.set("scrapeId", scrape.id);
+
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
   }
 }
 
@@ -122,6 +154,7 @@ export function StatCard({
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const newCollectionFetcher = useFetcher();
   const chartData = useMemo(() => {
     const data = [];
     const today = new Date();
@@ -145,7 +178,63 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   }, [containerRef]);
 
   return (
-    <Page title="Home" icon={<TbHome />}>
+    <Page
+      title="Home"
+      icon={<TbHome />}
+      right={
+        <Group>
+          <DialogRoot>
+            <DialogBackdrop />
+            <DialogTrigger asChild>
+              <Button variant={"subtle"} colorPalette={"brand"}>
+                <TbPlus />
+                New collection
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  <Group>
+                    <TbPlus />
+                    <Text>New collection</Text>
+                  </Group>
+                </DialogTitle>
+              </DialogHeader>
+              <newCollectionFetcher.Form method="post">
+                <DialogBody>
+                  <input
+                    type="hidden"
+                    name="intent"
+                    value="create-collection"
+                  />
+                  <Field label="Give it a name">
+                    <Input name="name" placeholder="Collection name" required />
+                  </Field>
+                </DialogBody>
+                <DialogFooter>
+                  <Group>
+                    <DialogCloseTrigger
+                      asChild
+                      disabled={newCollectionFetcher.state !== "idle"}
+                    >
+                      <Button variant={"outline"}>Cancel</Button>
+                    </DialogCloseTrigger>
+                    <Button
+                      type="submit"
+                      colorPalette={"brand"}
+                      disabled={newCollectionFetcher.state !== "idle"}
+                    >
+                      Create
+                      <TbCheck />
+                    </Button>
+                  </Group>
+                </DialogFooter>
+              </newCollectionFetcher.Form>
+            </DialogContent>
+          </DialogRoot>
+        </Group>
+      }
+    >
       <Stack height={"100%"} gap={8} ref={containerRef}>
         <Group>
           <StatCard

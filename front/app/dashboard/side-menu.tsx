@@ -205,6 +205,7 @@ export function SideMenu({
               onValueChange={(e) => {
                 formRef.current?.submit();
               }}
+              disabled={collections.items.length === 0}
             >
               <SelectTrigger bg="brand.white">
                 <SelectValueText placeholder="Select collection" />
