@@ -366,7 +366,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                                     <TbLink />
                                   </List.Indicator>
                                   <Link
-                                    href={`/collections/${pair.scrapeId}/links/${link.scrapeItemId}`}
+                                    href={`/knowledge/links/${link.scrapeItemId}`}
                                     target="_blank"
                                   >
                                     {link.title}{" "}

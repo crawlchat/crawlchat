@@ -4,9 +4,7 @@ import {
   Group,
   Heading,
   IconButton,
-  Portal,
   Progress,
-  Select,
   Separator,
   Spinner,
   Stack,
@@ -15,22 +13,17 @@ import {
 import {
   TbBook,
   TbChevronRight,
-  TbFileX,
   TbFolder,
   TbHome,
   TbLogout,
   TbMessage,
+  TbPlug,
   TbRoad,
   TbScan,
   TbSettings,
   TbUser,
 } from "react-icons/tb";
-import {
-  Link,
-  NavLink,
-  type Fetcher,
-  type FetcherWithComponents,
-} from "react-router";
+import { Link, NavLink, type FetcherWithComponents } from "react-router";
 import { Avatar } from "~/components/ui/avatar";
 import {
   MenuContent,
@@ -49,14 +42,16 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "~/components/ui/select";
-import { useContext, useMemo, useRef } from "react";
-import { AppContext } from "./context";
+import { useMemo, useRef } from "react";
 
 const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
+  { label: "Knowledge", to: "/knowledge", icon: <TbBook /> },
   { label: "Scrape", to: "/scrape", icon: <TbScan /> },
   { label: "Collections", to: "/collections", icon: <TbFolder /> },
   { label: "Messages", to: "/messages", icon: <TbMessage /> },
+  { label: "Settings", to: "/settings", icon: <TbSettings /> },
+  { label: "Integrations", to: "/integrations", icon: <TbPlug /> },
   { label: "Profile", to: "/profile", icon: <TbUser /> },
 ];
 
@@ -105,10 +100,7 @@ function CreditProgress({
     if (used < 50) {
       return "brand";
     }
-    if (used < 75) {
-      return "black";
-    }
-    return "red";
+    return "black";
   }
 
   const value = Math.max(0, Math.min(used, total));

@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import { useFetcher } from "react-router";
 import { SettingsSection } from "~/dashboard/profile";
-import type { Route } from "./+types/scrape-integrations";
+import type { Route } from "./+types/discord";
 import type { Prisma } from "libs/prisma";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
@@ -23,12 +23,15 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
+import { getSessionScrapeId } from "./util";
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
+  const scrapeId = await getSessionScrapeId(request);
+
   const scrape = await prisma.scrape.findUnique({
-    where: { id: params.id, userId: user!.id },
+    where: { id: scrapeId, userId: user!.id },
   });
 
   if (!scrape) {
@@ -38,8 +41,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { scrape };
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
+
+  const scrapeId = await getSessionScrapeId(request);
 
   const formData = await request.formData();
   const discordServerId = formData.get("discordServerId") as string;
@@ -51,7 +56,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const scrape = await prisma.scrape.update({
-    where: { id: params.id },
+    where: { id: scrapeId },
     data: update,
   });
 

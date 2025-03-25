@@ -94,7 +94,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page title="Profile" icon={<TbSettings />}>
-      <Stack maxW={"1000px"} gap={8}>
+      <Stack gap={8}>
         <SettingsSection
           fetcher={openaiApiKeyFetcher}
           title="Weekly Updates"

@@ -1,10 +1,8 @@
 import {
   Box,
-  Clipboard,
   Code,
   createListCollection,
   Group,
-  Heading,
   HStack,
   IconButton,
   Input,
@@ -16,7 +14,6 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { prisma } from "~/prisma";
-import type { Route } from "./+types/scrape-embed";
 import { getAuthUser } from "~/auth/middleware";
 import { SettingsSection } from "~/dashboard/profile";
 import { useFetcher } from "react-router";
@@ -28,7 +25,6 @@ import {
   SelectValueText,
 } from "~/components/ui/select";
 import type {
-  Prisma,
   WidgetConfig,
   WidgetQuestion,
   WidgetSize,
@@ -55,12 +51,16 @@ import {
 } from "~/components/ui/color-picker";
 import { Field } from "~/components/ui/field";
 import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
+import type { Route } from "./+types/embed";
+import { getSessionScrapeId } from "./util";
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
+  const scrapeId = await getSessionScrapeId(request);
+
   const scrape = await prisma.scrape.findUnique({
     where: {
-      id: params.id,
+      id: scrapeId,
       userId: user!.id,
     },
   });
@@ -68,11 +68,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { scrape };
 }
 
-export async function action({ request, params }: Route.ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
+  const scrapeId = await getSessionScrapeId(request);
+
   const scrape = await prisma.scrape.findUnique({
     where: {
-      id: params.id,
+      id: scrapeId,
       userId: user!.id,
     },
   });
@@ -273,15 +275,6 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
               </AccordionItemTrigger>
               <AccordionItemContent>
                 <Stack gap={6}>
-                  {/* <Switch
-                    checked={embedProps.button}
-                    onCheckedChange={(e) =>
-                      setEmbedProps({ ...embedProps, button: e.checked })
-                    }
-                  >
-                    Ask AI button
-                  </Switch> */}
-
                   <ColorPickerRoot
                     maxW="200px"
                     value={parseColor(embedProps.buttonColor ?? "")}

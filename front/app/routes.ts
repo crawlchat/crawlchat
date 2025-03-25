@@ -26,9 +26,7 @@ export default [
 
   route("payment/lemonsqueezy-webhook", "payment/lemonsqueezy-webhook.ts"),
 
-  ...prefix("triggers", [
-    route("weekly", "triggers/weekly.tsx"),
-  ]),
+  ...prefix("triggers", [route("weekly", "triggers/weekly.tsx")]),
 
   route("/logout", "auth/logout.tsx"),
   layout("dashboard/layout.tsx", [
@@ -37,17 +35,27 @@ export default [
     route("profile", "dashboard/profile.tsx"),
     route("scrape", "scrapes/new-scrape.tsx"),
 
-    route("collections/:id", "scrapes/scrape-page.tsx", [
-      route("settings", "scrapes/scrape-settings.tsx"),
-      route("links", "scrapes/scrape-links.tsx", [
-        route(":itemId", "scrapes/scrape-item.tsx"),
-      ]),
-      route("mcp", "scrapes/scrape-mcp.tsx"),
-      route("embed", "scrapes/scrape-embed.tsx"),
-      route("integrations", "scrapes/scrape-integrations.tsx"),
-    ]),
-    
+    // route("collections/:id", "scrapes/scrape-page.tsx", [
+    // route("settings", "scrapes/scrape-settings.tsx"),
+    // route("links", "scrapes/scrape-links.tsx", [
+    //   route(":itemId", "scrapes/scrape-item.tsx"),
+    // ]),
+    // route("mcp", "scrapes/scrape-mcp.tsx"),
+    // route("embed", "scrapes/scrape-embed.tsx"),
+    // route("integrations", "scrapes/scrape-integrations.tsx"),
+    // ]),
+
     route("messages", "analyse/messages.tsx"),
+
+    route("settings", "scrapes/settings.tsx"),
+    route("integrations", "scrapes/integrations.tsx", [
+      index("scrapes/embed.tsx"),
+      route("mcp", "scrapes/mcp.tsx"),
+      route("discord", "scrapes/discord.tsx"),
+    ]),
+    route("knowledge", "scrapes/links.tsx", [
+      route(":itemId", "scrapes/link-item.tsx"),
+    ]),
   ]),
 
   route("w/:id", "widget/scrape.tsx"),

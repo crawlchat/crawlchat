@@ -1,18 +1,21 @@
-import { Page } from "~/components/page";
 import {
   Badge,
-  Box,
   DataList,
   Group,
-  HStack,
   IconButton,
+  Input,
   Spinner,
   Stack,
+  Text,
+  Textarea,
 } from "@chakra-ui/react";
-import type { Route } from "./+types/scrape-page";
+import { Link, redirect, useFetcher } from "react-router";
+import { SettingsSection } from "~/dashboard/profile";
 import { prisma } from "~/prisma";
-import { getScrapeTitle } from "./util";
+import type { Route } from "./+types/settings";
 import { getAuthUser } from "~/auth/middleware";
+import type { Prisma } from "libs/prisma";
+import { getSession } from "~/session";
 import {
   TbAlertCircle,
   TbCheck,
@@ -21,62 +24,65 @@ import {
   TbSettings,
   TbTrash,
   TbWorld,
-  TbRobotFace,
-  TbCode,
-  TbPlug,
 } from "react-icons/tb";
+import { Page } from "~/components/page";
 import moment from "moment";
-import { Link, Outlet, redirect, useFetcher, useNavigate } from "react-router";
-import { SegmentedControl } from "~/components/ui/segmented-control";
-import { useEffect, useState } from "react";
-import { Button } from "~/components/ui/button";
-import { createToken } from "~/jwt";
-import { toaster } from "~/components/ui/toaster";
 import { Tooltip } from "~/components/ui/tooltip";
+import { Button } from "~/components/ui/button";
+import { toaster } from "~/components/ui/toaster";
+import { useEffect, useState } from "react";
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
+  const session = await getSession(request.headers.get("cookie"));
+  const scrapeId = session.get("scrapeId");
+
+  if (!scrapeId) {
+    throw redirect("/app");
+  }
+
   const scrape = await prisma.scrape.findUnique({
-    where: { id: params.id, userId: user!.id },
+    where: { id: scrapeId, userId: user!.id },
   });
 
   if (!scrape) {
     throw new Response("Not found", { status: 404 });
   }
 
-  const items = await prisma.scrapeItem.findMany({
+  const itemsCount = await prisma.scrapeItem.count({
     where: { scrapeId: scrape.id },
-    select: { id: true, url: true },
   });
 
-  const tab = request.url.split(scrape.id)[1].substring(1);
-
-  return { scrape, items, tab };
+  return { scrape, itemsCount };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await getAuthUser(request);
+  const formData = await request.formData();
 
-  if (request.method === "DELETE") {
-    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
-      method: "DELETE",
-      body: JSON.stringify({ scrapeId: params.id }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${createToken(user!.id)}`,
-      },
-    });
-    await prisma.scrape.delete({
-      where: { id: params.id },
-    });
-    throw redirect("/collections");
+  const chatPrompt = formData.get("chatPrompt") as string | null;
+  const title = formData.get("title") as string | null;
+
+  const update: Prisma.ScrapeUpdateInput = {};
+  if (chatPrompt) {
+    update.chatPrompt = chatPrompt;
   }
+  if (title) {
+    update.title = title;
+  }
+
+  const scrape = await prisma.scrape.update({
+    where: { id: params.id, userId: user!.id },
+    data: update,
+  });
+
+  return { scrape };
 }
 
-export default function ScrapePage({ loaderData }: Route.ComponentProps) {
-  const [tab, setTab] = useState<string>(loaderData.tab);
-  const navigate = useNavigate();
+export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
+  const promptFetcher = useFetcher();
+  const nameFetcher = useFetcher();
   const deleteFetcher = useFetcher();
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
@@ -87,11 +93,6 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
       }, 5000);
     }
   }, [deleteConfirm]);
-
-  function handleTabChange(value: string) {
-    setTab(value);
-    navigate(`/collections/${loaderData.scrape.id}/${value}`);
-  }
 
   function copyUrl() {
     const url = new URL(window.location.origin);
@@ -116,8 +117,8 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page
-      title={getScrapeTitle(loaderData.scrape)}
-      icon={<TbWorld />}
+      title="Settings"
+      icon={<TbSettings />}
       right={
         <Group>
           <Tooltip
@@ -153,14 +154,14 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
         </Group>
       }
     >
-      <Stack>
+      <Stack gap={4}>
         <DataList.Root orientation={"horizontal"}>
           <DataList.Item>
             <DataList.ItemLabel>Links scraped</DataList.ItemLabel>
             <DataList.ItemValue>
               <Badge variant={"surface"} colorPalette={"brand"}>
                 <TbWorld />
-                {loaderData.items.length}
+                {loaderData.itemsCount}
               </Badge>
             </DataList.ItemValue>
           </DataList.Item>
@@ -201,63 +202,28 @@ export default function ScrapePage({ loaderData }: Route.ComponentProps) {
           </DataList.Item>
         </DataList.Root>
 
-        <Box mt={6}>
-          <SegmentedControl
-            value={tab || "settings"}
-            onValueChange={(e) => handleTabChange(e.value)}
-            items={[
-              {
-                value: "settings",
-                label: (
-                  <HStack>
-                    <TbSettings />
-                    Settings
-                  </HStack>
-                ),
-              },
-              {
-                value: "links",
-                label: (
-                  <HStack>
-                    <TbWorld />
-                    Links
-                  </HStack>
-                ),
-              },
-              {
-                value: "mcp",
-                label: (
-                  <HStack>
-                    <TbRobotFace />
-                    MCP
-                  </HStack>
-                ),
-              },
-              {
-                value: "embed",
-                label: (
-                  <HStack>
-                    <TbCode />
-                    Embed
-                  </HStack>
-                ),
-              },
-              {
-                value: "integrations",
-                label: (
-                  <HStack>
-                    <TbPlug />
-                    Integrations
-                  </HStack>
-                ),
-              },
-            ]}
+        <SettingsSection
+          title="Name"
+          description="Give it a name. It will be shown on chat screen."
+          fetcher={nameFetcher}
+        >
+          <Input
+            name="title"
+            defaultValue={loaderData.scrape.title ?? ""}
+            placeholder="Enter a name for this scrape."
           />
-        </Box>
-
-        <Stack mt={6}>
-          <Outlet />
-        </Stack>
+        </SettingsSection>
+        <SettingsSection
+          title="Chat Prompt"
+          description="Customize the chat prompt for this scrape."
+          fetcher={promptFetcher}
+        >
+          <Textarea
+            name="chatPrompt"
+            defaultValue={loaderData.scrape.chatPrompt ?? ""}
+            placeholder="Enter a custom chat prompt for this scrape."
+          />
+        </SettingsSection>
       </Stack>
     </Page>
   );
