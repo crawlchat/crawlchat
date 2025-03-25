@@ -77,7 +77,7 @@ export async function action({ request }: Route.ActionArgs) {
     await prisma.scrape.delete({
       where: { id: scrapeId },
     });
-    throw redirect("/collections");
+    throw redirect("/app");
   }
 
   const chatPrompt = formData.get("chatPrompt") as string | null;

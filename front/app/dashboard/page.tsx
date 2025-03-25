@@ -9,9 +9,17 @@ import {
   DialogHeader,
   Input,
   DialogCloseTrigger,
+  Center,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/page";
-import { TbCheck, TbHelp, TbHome, TbMessage, TbPlus } from "react-icons/tb";
+import {
+  TbCheck,
+  TbDatabase,
+  TbHelp,
+  TbHome,
+  TbMessage,
+  TbPlus,
+} from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import { Page } from "~/components/page";
@@ -32,6 +40,8 @@ import {
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { Field } from "~/components/ui/field";
+import { getSessionScrapeId } from "~/scrapes/util";
+import { EmptyState } from "~/components/ui/empty-state";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -76,12 +86,31 @@ export async function loader({ request }: Route.LoaderArgs) {
   const todayKey = today.toISOString().split("T")[0];
   const messagesToday = dailyMessages[todayKey] ?? 0;
 
+  const session = await getSession(request.headers.get("cookie"));
+  let scrapeId = session.get("scrapeId");
+
+  if (scrapeId) {
+    const scrape = await prisma.scrape.findUnique({
+      where: { id: scrapeId, userId: user!.id },
+    });
+    if (!scrape) {
+      scrapeId = undefined;
+      session.unset("scrapeId");
+      throw redirect("/app", {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+      });
+    }
+  }
+
   return {
     user,
     scrapes,
     itemsCount,
     dailyMessages,
     messagesToday,
+    scrapeId,
   };
 }
 
@@ -155,6 +184,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const newCollectionFetcher = useFetcher();
+  const [newCollectionDialogOpen, setNewCollectionDialogOpen] = useState(false);
   const chartData = useMemo(() => {
     const data = [];
     const today = new Date();
@@ -175,7 +205,13 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     if (containerRef.current) {
       setWidth(containerRef.current.clientWidth);
     }
-  }, [containerRef]);
+  }, [containerRef, loaderData.scrapes]);
+
+  useEffect(() => {
+    if (loaderData.scrapes.length > 0) {
+      setNewCollectionDialogOpen(false);
+    }
+  }, [loaderData.scrapes]);
 
   return (
     <Page
@@ -183,95 +219,117 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       icon={<TbHome />}
       right={
         <Group>
-          <DialogRoot>
-            <DialogBackdrop />
-            <DialogTrigger asChild>
-              <Button variant={"subtle"} colorPalette={"brand"}>
-                <TbPlus />
-                New collection
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  <Group>
-                    <TbPlus />
-                    <Text>New collection</Text>
-                  </Group>
-                </DialogTitle>
-              </DialogHeader>
-              <newCollectionFetcher.Form method="post">
-                <DialogBody>
-                  <input
-                    type="hidden"
-                    name="intent"
-                    value="create-collection"
-                  />
-                  <Field label="Give it a name">
-                    <Input name="name" placeholder="Collection name" required />
-                  </Field>
-                </DialogBody>
-                <DialogFooter>
-                  <Group>
-                    <DialogCloseTrigger
-                      asChild
-                      disabled={newCollectionFetcher.state !== "idle"}
-                    >
-                      <Button variant={"outline"}>Cancel</Button>
-                    </DialogCloseTrigger>
-                    <Button
-                      type="submit"
-                      colorPalette={"brand"}
-                      disabled={newCollectionFetcher.state !== "idle"}
-                    >
-                      Create
-                      <TbCheck />
-                    </Button>
-                  </Group>
-                </DialogFooter>
-              </newCollectionFetcher.Form>
-            </DialogContent>
-          </DialogRoot>
+          <Button
+            variant={"subtle"}
+            colorPalette={"brand"}
+            onClick={() => setNewCollectionDialogOpen(true)}
+          >
+            <TbPlus />
+            New collection
+          </Button>
         </Group>
       }
     >
-      <Stack height={"100%"} gap={8} ref={containerRef}>
-        <Group>
-          <StatCard
-            label="Messages today"
-            value={loaderData.messagesToday}
-            icon={<TbMessage />}
-          />
-          <StatCard
-            label="Messages this week"
-            value={Object.values(loaderData.dailyMessages).reduce(
-              (acc, curr) => acc + curr,
-              0
-            )}
-            icon={<TbMessage />}
-          />
-        </Group>
+      {loaderData.scrapes.length === 0 && (
+        <Center w="full" h="full">
+          <EmptyState
+            icon={<TbDatabase />}
+            title="No collections"
+            description="Create a new collection to get started"
+          >
+            <Button
+              colorPalette={"brand"}
+              onClick={() => setNewCollectionDialogOpen(true)}
+            >
+              <TbPlus />
+              New collection
+            </Button>
+          </EmptyState>
+        </Center>
+      )}
 
-        <Stack>
-          <Heading>
-            <Group>
-              <TbMessage />
-              <Text>Messages</Text>
-            </Group>
-          </Heading>
-          <AreaChart width={width - 10} height={200} data={chartData}>
-            <XAxis dataKey="name" />
-            <Tooltip />
-            <CartesianGrid strokeDasharray="3 3" />
-            <Area
-              type="monotone"
-              dataKey="Messages"
-              stroke={"var(--chakra-colors-brand-emphasized)"}
-              fill={"var(--chakra-colors-brand-muted)"}
+      {loaderData.scrapes.length > 0 && (
+        <Stack height={"100%"} gap={8} ref={containerRef}>
+          <Group>
+            <StatCard
+              label="Messages today"
+              value={loaderData.messagesToday}
+              icon={<TbMessage />}
             />
-          </AreaChart>
+            <StatCard
+              label="Messages this week"
+              value={Object.values(loaderData.dailyMessages).reduce(
+                (acc, curr) => acc + curr,
+                0
+              )}
+              icon={<TbMessage />}
+            />
+          </Group>
+
+          <Stack>
+            <Heading>
+              <Group>
+                <TbMessage />
+                <Text>Messages</Text>
+              </Group>
+            </Heading>
+            <AreaChart width={width - 10} height={200} data={chartData}>
+              <XAxis dataKey="name" />
+              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" />
+              <Area
+                type="monotone"
+                dataKey="Messages"
+                stroke={"var(--chakra-colors-brand-emphasized)"}
+                fill={"var(--chakra-colors-brand-muted)"}
+              />
+            </AreaChart>
+          </Stack>
         </Stack>
-      </Stack>
+      )}
+
+      <DialogRoot
+        open={newCollectionDialogOpen}
+        onOpenChange={(e) => setNewCollectionDialogOpen(e.open)}
+      >
+        <DialogBackdrop />
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              <Group>
+                <TbPlus />
+                <Text>New collection</Text>
+              </Group>
+            </DialogTitle>
+          </DialogHeader>
+          <newCollectionFetcher.Form method="post">
+            <DialogBody>
+              <input type="hidden" name="intent" value="create-collection" />
+              <Field label="Give it a name">
+                <Input name="name" placeholder="Collection name" required />
+              </Field>
+            </DialogBody>
+            <DialogFooter>
+              <Group>
+                <DialogCloseTrigger
+                  asChild
+                  disabled={newCollectionFetcher.state !== "idle"}
+                >
+                  <Button variant={"outline"}>Cancel</Button>
+                </DialogCloseTrigger>
+                <Button
+                  type="submit"
+                  colorPalette={"brand"}
+                  disabled={newCollectionFetcher.state !== "idle"}
+                >
+                  Create
+                  <TbCheck />
+                </Button>
+              </Group>
+            </DialogFooter>
+          </newCollectionFetcher.Form>
+        </DialogContent>
+      </DialogRoot>
     </Page>
   );
 }

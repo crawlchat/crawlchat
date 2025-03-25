@@ -45,10 +45,15 @@ import { useMemo, useRef } from "react";
 
 const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
-  { label: "Knowledge", to: "/knowledge", icon: <TbBook /> },
-  { label: "Messages", to: "/messages", icon: <TbMessage /> },
-  { label: "Settings", to: "/settings", icon: <TbSettings /> },
-  { label: "Integrations", to: "/integrations", icon: <TbPlug /> },
+  { label: "Knowledge", to: "/knowledge", icon: <TbBook />, forScrape: true },
+  { label: "Messages", to: "/messages", icon: <TbMessage />, forScrape: true },
+  { label: "Settings", to: "/settings", icon: <TbSettings />, forScrape: true },
+  {
+    label: "Integrations",
+    to: "/integrations",
+    icon: <TbPlug />,
+    forScrape: true,
+  },
   { label: "Profile", to: "/profile", icon: <TbUser /> },
 ];
 
@@ -222,9 +227,11 @@ export function SideMenu({
         </Box>
 
         <Stack gap={1} w="full" px={3}>
-          {links.map((link, index) => (
-            <SideMenuItem key={index} link={link} />
-          ))}
+          {links
+            .filter((link) => !link.forScrape || scrapeId)
+            .map((link, index) => (
+              <SideMenuItem key={index} link={link} />
+            ))}
         </Stack>
 
         <Separator />

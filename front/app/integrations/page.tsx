@@ -1,39 +1,15 @@
 import { Page } from "~/components/page";
 import { Box, HStack, Stack } from "@chakra-ui/react";
-import { prisma } from "~/prisma";
-import { getSessionScrapeId } from "~/scrapes/util";
 import { getAuthUser } from "~/auth/middleware";
 import { TbRobotFace, TbCode, TbBrandDiscord, TbPlug } from "react-icons/tb";
-import { Outlet, redirect, useLocation, useNavigate } from "react-router";
+import { Outlet, useLocation, useNavigate } from "react-router";
 import { SegmentedControl } from "~/components/ui/segmented-control";
 import { useMemo } from "react";
-import { createToken } from "~/jwt";
 import type { Route } from "./+types/page";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   return { user };
-}
-
-export async function action({ request }: Route.ActionArgs) {
-  const user = await getAuthUser(request);
-
-  const scrapeId = await getSessionScrapeId(request);
-
-  if (request.method === "DELETE") {
-    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
-      method: "DELETE",
-      body: JSON.stringify({ scrapeId }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${createToken(user!.id)}`,
-      },
-    });
-    await prisma.scrape.delete({
-      where: { id: scrapeId },
-    });
-    throw redirect("/collections");
-  }
 }
 
 export default function ScrapePage() {
