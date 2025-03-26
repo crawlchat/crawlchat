@@ -15,8 +15,23 @@ export class BaseKbProcesserListener implements KbProcesserListener {
     }
   ) {}
 
+  async onBeforeStart() {
+    this.broadcast("scrape-start", { scrapeId: this.scrape.id });
+    await prisma.scrape.update({
+      where: { id: this.scrape.id },
+      data: { status: "scraping" },
+    });
+  }
+
   async onComplete() {
     this.broadcast("scrape-complete", { scrapeId: this.scrape.id });
+    await prisma.scrape.update({
+      where: { id: this.scrape.id },
+      data: {
+        status: "done",
+      },
+    });
+    this.broadcast("saved", { scrapeId: this.scrape.id });
   }
 
   async onError(path: string, error: any) {

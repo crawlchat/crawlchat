@@ -8,6 +8,7 @@ export type KbContent = {
 };
 
 export interface KbProcesserListener {
+  onBeforeStart: () => void;
   onComplete: () => void;
   onError: (path: string, error: unknown) => void;
   onContentAvailable: (path: string, content: KbContent) => Promise<void>;
