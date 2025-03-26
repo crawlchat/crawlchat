@@ -37,6 +37,10 @@ export abstract class BaseKbProcesser implements KbProcesser {
     this.listener.onComplete();
   }
 
+  async onBeforeStart() {
+    this.listener.onBeforeStart();
+  }
+
   async onError(path: string, error: unknown) {
     this.listener.onError(path, error);
   }
@@ -65,6 +69,7 @@ export abstract class BaseKbProcesser implements KbProcesser {
 
   async start() {
     await this.assertCreditsAvailable();
+    await this.onBeforeStart();
     await this.process();
     await this.onComplete();
   }

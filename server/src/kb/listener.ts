@@ -25,9 +25,9 @@ export class BaseKbProcesserListener implements KbProcesserListener {
       scrapeId: this.scrape.id,
       knowledgeGroupId: this.knowledgeGroup.id,
     });
-    await prisma.scrape.update({
-      where: { id: this.scrape.id },
-      data: { status: "scraping" },
+    await prisma.knowledgeGroup.update({
+      where: { id: this.knowledgeGroup.id },
+      data: { status: "processing" },
     });
   }
 
@@ -36,8 +36,8 @@ export class BaseKbProcesserListener implements KbProcesserListener {
       scrapeId: this.scrape.id,
       knowledgeGroupId: this.knowledgeGroup.id,
     });
-    await prisma.scrape.update({
-      where: { id: this.scrape.id },
+    await prisma.knowledgeGroup.update({
+      where: { id: this.knowledgeGroup.id },
       data: {
         status: "done",
       },
@@ -104,6 +104,7 @@ export class BaseKbProcesserListener implements KbProcesserListener {
       create: {
         userId: this.scrape.userId,
         scrapeId: this.scrape.id,
+        knowledgeGroupId: this.knowledgeGroup.id,
         url: path,
         markdown: content.text,
         title: content.title,

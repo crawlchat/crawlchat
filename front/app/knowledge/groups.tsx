@@ -7,6 +7,7 @@ import {
   Text,
   Center,
   IconButton,
+  Icon,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
@@ -16,19 +17,25 @@ import {
   TbBook,
   TbBrandGithub,
   TbCheck,
+  TbLoader,
+  TbPlayerPause,
+  TbPlayerPauseFilled,
+  TbPlayerPlay,
+  TbPlayerPlayFilled,
   TbPlus,
   TbRefresh,
   TbWorld,
   TbX,
 } from "react-icons/tb";
-import { Tooltip } from "~/components/ui/tooltip";
-import { Link, Outlet } from "react-router";
+import { Link, Outlet, useFetcher } from "react-router";
 import { getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
-import type { KnowledgeGroupStatus, KnowledgeGroupType } from "libs/prisma";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
+import type { KnowledgeGroup } from "libs/prisma";
+import { createToken } from "~/jwt";
+import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -48,29 +55,112 @@ export async function loader({ request }: Route.LoaderArgs) {
     orderBy: { createdAt: "desc" },
   });
 
-  return { scrape, knowledgeGroups };
+  const counts: Record<string, number> = {};
+  for (const group of knowledgeGroups) {
+    counts[group.id] = await prisma.scrapeItem.count({
+      where: { knowledgeGroupId: group.id },
+    });
+  }
+
+  return { scrape, knowledgeGroups, counts };
 }
 
-export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
+export async function action({ request }: Route.ActionArgs) {
+  const user = await getAuthUser(request);
+
+  const scrapeId = await getSessionScrapeId(request);
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+  if (intent === "refresh") {
+    const knowledgeGroupId = formData.get("knowledgeGroupId") as string;
+
+    if (!knowledgeGroupId) {
+      return { error: "Knowledge group ID is required" };
+    }
+
+    const token = createToken(user!.id);
+    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+      method: "POST",
+      body: JSON.stringify({
+        scrapeId,
+        knowledgeGroupId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    await prisma.knowledgeGroup.update({
+      where: { id: knowledgeGroupId, userId: user!.id },
+      data: { status: "processing" },
+    });
+
+    return { success: true };
+  }
+}
+
+function RefreshButton({ knowledgeGroupId }: { knowledgeGroupId: string }) {
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      toaster.success({
+        title: "Group refresh initiated!",
+        description: "This may take a while.",
+      });
+    }
+  }, [fetcher.data]);
+
+  return (
+    <fetcher.Form method="post">
+      <input type="hidden" name="intent" value="refresh" />
+      <input type="hidden" name="knowledgeGroupId" value={knowledgeGroupId} />
+      <IconButton
+        size={"xs"}
+        variant={"subtle"}
+        type="submit"
+        disabled={fetcher.state !== "idle"}
+      >
+        <TbRefresh />
+      </IconButton>
+    </fetcher.Form>
+  );
+}
+
+export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
   const groups = useMemo(() => {
     return loaderData.knowledgeGroups.map((group) => {
       let icon = <TbBook />;
       let statusText = "Unknown";
+      let statusColor: string | undefined = undefined;
+      let statusIcon = <TbBook />;
+      let typeText = "Unknown";
 
       if (group.type === "scrape_web") {
         icon = <TbWorld />;
+        typeText = "Web";
       } else if (group.type === "scrape_github") {
         icon = <TbBrandGithub />;
+        typeText = "GitHub";
       }
 
       if (group.status === "pending") {
         statusText = "To be processed";
+        statusIcon = <TbPlayerPauseFilled />;
       } else if (group.status === "done") {
         statusText = "Up to date";
+        statusColor = "brand";
+        statusIcon = <TbCheck />;
       } else if (group.status === "error") {
         statusText = "Error";
+        statusColor = "red";
+        statusIcon = <TbX />;
       } else if (group.status === "processing") {
-        statusText = "Updating...";
+        statusText = "Updating";
+        statusColor = "blue";
+        statusIcon = <TbLoader />;
       }
 
       return {
@@ -80,6 +170,10 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
         type: group.type,
         updatedAt: group.updatedAt,
         id: group.id,
+        statusColor,
+        statusIcon,
+        status: group.status,
+        typeText,
       };
     });
   }, [loaderData.knowledgeGroups]);
@@ -119,11 +213,12 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
           <Table.Root size="lg">
             <Table.Header>
               <Table.Row>
-                <Table.ColumnHeader>Type</Table.ColumnHeader>
+                <Table.ColumnHeader w="16%">Type</Table.ColumnHeader>
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
-                <Table.ColumnHeader>Status</Table.ColumnHeader>
-                <Table.ColumnHeader>Updated</Table.ColumnHeader>
-                <Table.ColumnHeader>Actions</Table.ColumnHeader>
+                <Table.ColumnHeader w="6%"># Items</Table.ColumnHeader>
+                <Table.ColumnHeader w="10%">Status</Table.ColumnHeader>
+                <Table.ColumnHeader w="16%">Updated</Table.ColumnHeader>
+                <Table.ColumnHeader w="10%">Actions</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -131,8 +226,8 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                 <Table.Row key={item.id}>
                   <Table.Cell className="group">
                     <Group>
-                      {item.icon}
-                      <Text>{item.type}</Text>
+                      <Text fontSize={"xl"}>{item.icon}</Text>
+                      <Text>{item.typeText}</Text>
                     </Group>
                   </Table.Cell>
                   <Table.Cell>
@@ -143,13 +238,21 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                     </ChakraLink>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge variant={"surface"}>{item.statusText}</Badge>
+                    <Badge variant={"subtle"} colorPalette={item.statusColor}>
+                      {loaderData.counts[item.id] ?? 0}
+                    </Badge>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Badge variant={"surface"} colorPalette={item.statusColor}>
+                      {item.statusIcon}
+                      {item.statusText}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>{moment(item.updatedAt).fromNow()}</Table.Cell>
                   <Table.Cell>
-                    <IconButton size={"xs"} variant={"subtle"}>
-                      <TbRefresh />
-                    </IconButton>
+                    {["pending", "error", "done"].includes(item.status) && (
+                      <RefreshButton knowledgeGroupId={item.id} />
+                    )}
                   </Table.Cell>
                 </Table.Row>
               ))}
