@@ -1,10 +1,30 @@
 import { Scrape } from "libs/prisma";
-import { BaseKbProcesser, KbProcesserListener } from "./kb-processer";
+import {
+  BaseKbProcesser,
+  KbProcesserListener,
+  KbProcessProgress,
+} from "./kb-processer";
 import { scrapeLoop, ScrapeStore } from "../scrape/crawl";
 import { OrderedSet } from "../scrape/ordered-set";
 import { getMetaTitle } from "../scrape/parse";
 
+function calculateProgress(
+  store: ScrapeStore,
+  allowedMaxLinks?: number
+): KbProcessProgress {
+  const scrapedUrlCount = Object.values(store.urls).length;
+  const maxLinks = allowedMaxLinks ? allowedMaxLinks : undefined;
+  const actualRemainingUrlCount = store.urlSet.size() - scrapedUrlCount;
+  const remainingUrlCount = maxLinks
+    ? Math.min(maxLinks, actualRemainingUrlCount)
+    : actualRemainingUrlCount;
+
+  return { remaining: remainingUrlCount, completed: scrapedUrlCount };
+}
+
 export class WebKbProcesser extends BaseKbProcesser {
+  private readonly store: ScrapeStore;
+
   constructor(
     protected listener: KbProcesserListener,
     private readonly scrape: Scrape,
@@ -19,6 +39,10 @@ export class WebKbProcesser extends BaseKbProcesser {
     }
   ) {
     super(listener, options);
+    this.store = {
+      urls: {},
+      urlSet: new OrderedSet(),
+    };
   }
 
   cleanUrl(url: string) {
@@ -28,6 +52,14 @@ export class WebKbProcesser extends BaseKbProcesser {
     return url.toLowerCase();
   }
 
+  async onError(path: string, error: any) {
+    super.onError(path, error);
+    this.store.urls[path] = {
+      metaTags: [],
+      text: "ERROR",
+    };
+  }
+
   async process() {
     const url = this.url || this.scrape.url;
     if (!url) {
@@ -35,15 +67,9 @@ export class WebKbProcesser extends BaseKbProcesser {
     }
 
     const urlToScrape = this.cleanUrl(url);
-    this.pathSet.add(urlToScrape);
+    this.store.urlSet.add(urlToScrape);
 
-    const store: ScrapeStore = {
-      urls: {},
-      urlSet: new OrderedSet(),
-    };
-    store.urlSet.add(urlToScrape);
-
-    await scrapeLoop(store, urlToScrape, {
+    await scrapeLoop(this.store, urlToScrape, {
       removeHtmlTags: this.options.removeHtmlTags,
       dynamicFallbackContentLength: this.options.dynamicFallbackContentLength,
       limit: this.options.limit,
@@ -52,13 +78,18 @@ export class WebKbProcesser extends BaseKbProcesser {
       onComplete: () => this.onComplete(),
       shouldScrape: () => this.options.hasCredits(),
       afterScrape: async (url, { markdown, error }) => {
-        const metaTags = store.urls[url]?.metaTags ?? [];
-        await this.onContentAvailable(url, {
-          text: markdown,
-          error,
-          metaTags,
-          title: getMetaTitle(metaTags),
-        });
+        const progress = calculateProgress(this.store, this.options.limit);
+        const metaTags = this.store.urls[url]?.metaTags ?? [];
+        await this.onContentAvailable(
+          url,
+          {
+            text: markdown,
+            error,
+            metaTags,
+            title: getMetaTitle(metaTags),
+          },
+          progress
+        );
       },
     });
   }

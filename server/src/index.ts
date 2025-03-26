@@ -80,13 +80,13 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       return undefined;
     }
 
-    const broadcast = (type: string, data: any) => {
+    const broadcastRoom = (type: string, data: any) => {
       getRoomIds({ userKey: userId, roomId }).forEach((roomId) =>
         broadcast(roomId, makeMessage(type, data))
       );
     };
 
-    const listener = new BaseKbProcesserListener(scrape, broadcast, {
+    const listener = new BaseKbProcesserListener(scrape, broadcastRoom, {
       includeMarkdown,
     });
 

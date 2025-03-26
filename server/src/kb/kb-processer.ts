@@ -1,5 +1,3 @@
-import { OrderedSet } from "../scrape/ordered-set";
-
 export type KbContent = {
   text: string;
   title?: string;
@@ -7,11 +5,20 @@ export type KbContent = {
   error?: string;
 };
 
+export type KbProcessProgress = {
+  remaining: number;
+  completed: number;
+};
+
 export interface KbProcesserListener {
   onBeforeStart: () => void;
   onComplete: () => void;
   onError: (path: string, error: unknown) => void;
-  onContentAvailable: (path: string, content: KbContent) => Promise<void>;
+  onContentAvailable: (
+    path: string,
+    content: KbContent,
+    progress: KbProcessProgress
+  ) => Promise<void>;
 }
 
 export interface KbProcesser {
@@ -19,18 +26,12 @@ export interface KbProcesser {
 }
 
 export abstract class BaseKbProcesser implements KbProcesser {
-  protected readonly pathSet: OrderedSet<string>;
-  protected readonly contents: Record<string, KbContent>;
-
   constructor(
     protected readonly listener: KbProcesserListener,
     protected readonly options: {
       hasCredits: () => Promise<boolean>;
     }
-  ) {
-    this.contents = {};
-    this.pathSet = new OrderedSet();
-  }
+  ) {}
 
   async onComplete() {
     this.listener.onComplete();
@@ -48,14 +49,14 @@ export abstract class BaseKbProcesser implements KbProcesser {
     throw new Error("No credits");
   }
 
-  async onContentAvailable(path: string, content: KbContent) {
+  async onContentAvailable(
+    path: string,
+    content: KbContent,
+    progress: KbProcessProgress
+  ) {
     try {
-      await this.listener.onContentAvailable(path, content);
+      await this.listener.onContentAvailable(path, content, progress);
     } catch (error) {
-      this.contents[path] = {
-        metaTags: [],
-        text: "ERROR",
-      };
       await this.onError(path, error);
     }
   }
@@ -64,9 +65,7 @@ export abstract class BaseKbProcesser implements KbProcesser {
 
   async start() {
     await this.assertCreditsAvailable();
-
     await this.process();
-
     await this.onComplete();
   }
 }

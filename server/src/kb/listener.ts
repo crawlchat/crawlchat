@@ -1,5 +1,9 @@
 import { prisma, Scrape } from "libs/prisma";
-import { KbContent, KbProcesserListener } from "./kb-processer";
+import {
+  KbContent,
+  KbProcesserListener,
+  KbProcessProgress,
+} from "./kb-processer";
 import { makeIndexer } from "../indexer/factory";
 import { splitMarkdown } from "../scrape/markdown-splitter";
 import { deleteByIds, makeRecordId } from "../scrape/pinecone";
@@ -51,7 +55,11 @@ export class BaseKbProcesserListener implements KbProcesserListener {
     });
   }
 
-  async onContentAvailable(path: string, content: KbContent) {
+  async onContentAvailable(
+    path: string,
+    content: KbContent,
+    progress: KbProcessProgress
+  ) {
     if (content.error) {
       throw new Error(content.error);
     }
@@ -105,6 +113,8 @@ export class BaseKbProcesserListener implements KbProcesserListener {
     this.broadcast("scrape-pre", {
       url: path,
       markdown: this.options?.includeMarkdown ? content.text : undefined,
+      scrapedUrlCount: progress.completed,
+      remainingUrlCount: progress.remaining,
     });
   }
 }
