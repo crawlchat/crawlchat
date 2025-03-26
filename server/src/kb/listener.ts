@@ -1,4 +1,4 @@
-import { prisma, Scrape } from "libs/prisma";
+import { KnowledgeGroup, prisma, Scrape } from "libs/prisma";
 import {
   KbContent,
   KbProcesserListener,
@@ -13,6 +13,7 @@ import { consumeCredits } from "libs/user-plan";
 export class BaseKbProcesserListener implements KbProcesserListener {
   constructor(
     private readonly scrape: Scrape,
+    private readonly knowledgeGroup: KnowledgeGroup,
     private readonly broadcast: (type: string, data: any) => void,
     private readonly options?: {
       includeMarkdown?: boolean;
@@ -20,7 +21,10 @@ export class BaseKbProcesserListener implements KbProcesserListener {
   ) {}
 
   async onBeforeStart() {
-    this.broadcast("scrape-start", { scrapeId: this.scrape.id });
+    this.broadcast("scrape-start", {
+      scrapeId: this.scrape.id,
+      knowledgeGroupId: this.knowledgeGroup.id,
+    });
     await prisma.scrape.update({
       where: { id: this.scrape.id },
       data: { status: "scraping" },
@@ -28,7 +32,10 @@ export class BaseKbProcesserListener implements KbProcesserListener {
   }
 
   async onComplete() {
-    this.broadcast("scrape-complete", { scrapeId: this.scrape.id });
+    this.broadcast("scrape-complete", {
+      scrapeId: this.scrape.id,
+      knowledgeGroupId: this.knowledgeGroup.id,
+    });
     await prisma.scrape.update({
       where: { id: this.scrape.id },
       data: {
@@ -115,6 +122,7 @@ export class BaseKbProcesserListener implements KbProcesserListener {
       markdown: this.options?.includeMarkdown ? content.text : undefined,
       scrapedUrlCount: progress.completed,
       remainingUrlCount: progress.remaining,
+      knowledgeGroupId: this.knowledgeGroup.id,
     });
   }
 }

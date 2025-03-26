@@ -32,11 +32,13 @@ export function getRoomIds({
   scrapeId,
   threadId,
   roomId,
+  knowledgeGroupId,
 }: {
   userKey?: string;
   scrapeId?: string;
   threadId?: string;
   roomId?: string;
+  knowledgeGroupId?: string;
 }) {
   if (roomId) {
     return [roomId];
@@ -51,6 +53,9 @@ export function getRoomIds({
   }
   if (threadId) {
     roomIds.push(`thread-${threadId}`);
+  }
+  if (knowledgeGroupId) {
+    roomIds.push(`knowledge-group-${knowledgeGroupId}`);
   }
   return roomIds;
 }

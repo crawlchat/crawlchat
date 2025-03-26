@@ -6,6 +6,7 @@ import {
   Table,
   Text,
   Center,
+  IconButton,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
@@ -53,12 +54,12 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
   const groups = useMemo(() => {
     return loaderData.knowledgeGroups.map((group) => {
-      let icon = <TbBook/>;
+      let icon = <TbBook />;
       let statusText = "Unknown";
 
       if (group.type === "scrape_web") {
         icon = <TbWorld />;
-      }else if (group.type === "scrape_github") {
+      } else if (group.type === "scrape_github") {
         icon = <TbBrandGithub />;
       }
 
@@ -115,13 +116,14 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
       )}
       {groups.length > 0 && (
         <Stack>
-          <Table.Root size="sm">
+          <Table.Root size="lg">
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Type</Table.ColumnHeader>
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
                 <Table.ColumnHeader>Status</Table.ColumnHeader>
                 <Table.ColumnHeader>Updated</Table.ColumnHeader>
+                <Table.ColumnHeader>Actions</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -144,6 +146,11 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                     <Badge variant={"surface"}>{item.statusText}</Badge>
                   </Table.Cell>
                   <Table.Cell>{moment(item.updatedAt).fromNow()}</Table.Cell>
+                  <Table.Cell>
+                    <IconButton size={"xs"} variant={"subtle"}>
+                      <TbRefresh />
+                    </IconButton>
+                  </Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
