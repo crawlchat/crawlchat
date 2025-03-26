@@ -223,7 +223,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
           <Button variant={"subtle"} colorPalette={"brand"} asChild>
             <Link to="/knowledge/group">
               <TbPlus />
-              Add
+              Add group
             </Link>
           </Button>
         </Group>

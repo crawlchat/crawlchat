@@ -291,6 +291,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         for (const match of matches) {
           const item = await prisma.scrapeItem.findFirst({
             where: {
+              scrapeId: scrape.id,
               OR: [{ url: match.url }, { id: match.scrapeItemId }],
             },
           });
