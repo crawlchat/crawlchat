@@ -158,8 +158,53 @@ async function fillKnowledgeGroup() {
   }
 }
 
+async function fillKnowledgeGroup2() {
+  const scrapes = await prisma.scrape.findMany({
+    where: {},
+  });
+
+  for (const scrape of scrapes) {
+    let group = await prisma.knowledgeGroup.findFirst({
+      where: {
+        scrapeId: scrape.id,
+        title: "Default",
+      },
+    });
+
+    if (!group) {
+      console.log("Creating group", scrape.id);
+      group = await prisma.knowledgeGroup.create({
+        data: {
+          scrapeId: scrape.id,
+          title: "Default",
+          userId: scrape.userId,
+          type: "scrape_web",
+          status: "done",
+          url: scrape.url,
+        }
+      });
+    }
+
+    await prisma.scrapeItem.updateMany({
+      where: { scrapeId: scrape.id },
+      data: { knowledgeGroupId: group!.id },
+    });
+  }
+}
+
+async function testKnowledgeGroup() {
+  const scrapeItems = await prisma.scrapeItem.count({
+    where: {
+      knowledgeGroupId: null,
+    },
+  });
+
+  console.log(scrapeItems);
+}
+
 console.log("Starting...");
 // main();
 // cleanupThreads();
 // citing();
-fillKnowledgeGroup();
+// fillKnowledgeGroup2();
+testKnowledgeGroup();
