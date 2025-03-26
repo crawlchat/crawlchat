@@ -15,6 +15,7 @@ import { prisma } from "~/prisma";
 import moment from "moment";
 import {
   TbBook,
+  TbBrandDiscord,
   TbBrandGithub,
   TbCheck,
   TbLoader,
@@ -25,7 +26,7 @@ import {
   TbWorld,
   TbX,
 } from "react-icons/tb";
-import { Link, useFetcher } from "react-router";
+import { Link, redirect, useFetcher } from "react-router";
 import { getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
@@ -68,8 +69,6 @@ export async function loader({ request }: Route.LoaderArgs) {
       where: { knowledgeGroupId: group.id },
     });
   }
-
-  console.log({ counts });
 
   return { scrape, knowledgeGroups, counts };
 }
@@ -128,7 +127,7 @@ export async function action({ request }: Route.ActionArgs) {
       },
     });
 
-    return { success: true };
+    throw redirect(`/knowledge`);
   }
 }
 
@@ -184,6 +183,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "scrape_github") {
         icon = <TbBrandGithub />;
         typeText = "GitHub";
+      } else if (group.type === "learn_discord") {
+        icon = <TbBrandDiscord />;
+        typeText = "Discord";
       }
 
       if (group.status === "pending") {
@@ -295,14 +297,18 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                   </Table.Cell>
                   <Table.Cell>
                     <Group>
-                      <RefreshButton
-                        knowledgeGroupId={item.group.id}
-                        disabled={
-                          !["pending", "error", "done"].includes(
-                            item.group.status
-                          )
-                        }
-                      />
+                      {["scrape_web", "scrape_github"].includes(
+                        item.group.type
+                      ) && (
+                        <RefreshButton
+                          knowledgeGroupId={item.group.id}
+                          disabled={
+                            !["pending", "error", "done"].includes(
+                              item.group.status
+                            )
+                          }
+                        />
+                      )}
 
                       <IconButton
                         size={"xs"}

@@ -13,7 +13,7 @@ import { authenticate, verifyToken } from "./jwt";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
-import { MessageSourceLink } from "libs/prisma";
+import { MessageSourceLink, Prisma } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
@@ -289,11 +289,17 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         const links: MessageSourceLink[] = [];
         for (const match of matches) {
+          const where: Prisma.ScrapeItemWhereInput = {
+            scrapeId: scrape.id,
+          };
+
+          if (match.scrapeItemId) {
+            where.id = match.scrapeItemId;
+          } else if (match.url) {
+            where.url = match.url;
+          }
           const item = await prisma.scrapeItem.findFirst({
-            where: {
-              scrapeId: scrape.id,
-              OR: [{ url: match.url }, { id: match.scrapeItemId }],
-            },
+            where,
           });
           if (item) {
             links.push({
@@ -390,6 +396,7 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
   const userId = req.user!.id;
   const scrapeId = req.params.scrapeId;
   const knowledgeGroupType = req.body.knowledgeGroupType;
+  const defaultGroupTitle = req.body.defaultGroupTitle;
   const markdown = req.body.markdown;
   const title = req.body.title;
 
@@ -398,9 +405,21 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
-  const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+  let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
     where: { userId, type: knowledgeGroupType },
   });
+
+  if (!knowledgeGroup) {
+    knowledgeGroup = await prisma.knowledgeGroup.create({
+      data: {
+        userId,
+        type: knowledgeGroupType,
+        scrapeId,
+        status: "done",
+        title: defaultGroupTitle ?? "Default",
+      },
+    });
+  }
 
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: scrapeId, userId },
@@ -469,8 +488,6 @@ app.post("/answer/:scrapeId", async (req, res) => {
     query = messages[messages.length - 1].content;
   }
 
-  console.log({ channel });
-
   await prisma.message.create({
     data: {
       threadId: thread.id,
@@ -509,10 +526,18 @@ app.post("/answer/:scrapeId", async (req, res) => {
 
   const links: MessageSourceLink[] = [];
   for (const match of matches) {
+    const where: Prisma.ScrapeItemWhereInput = {
+      scrapeId: scrape.id,
+    };
+
+    if (match.scrapeItemId) {
+      where.id = match.scrapeItemId;
+    } else if (match.url) {
+      where.url = match.url;
+    }
+
     const item = await prisma.scrapeItem.findFirst({
-      where: {
-        OR: [{ url: match.url }, { id: match.scrapeItemId }],
-      },
+      where,
     });
     if (item) {
       links.push({

@@ -102,10 +102,10 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
           <Table.Root size="sm">
             <Table.Header>
               <Table.Row>
-                <Table.ColumnHeader>Url</Table.ColumnHeader>
+                <Table.ColumnHeader w="300px" truncate>Url</Table.ColumnHeader>
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
-                <Table.ColumnHeader>Status</Table.ColumnHeader>
-                <Table.ColumnHeader>Updated</Table.ColumnHeader>
+                <Table.ColumnHeader w="120px">Status</Table.ColumnHeader>
+                <Table.ColumnHeader w="200px">Updated</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -131,7 +131,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                     </Group>
                   </Table.Cell>
                   <Table.Cell>
-                    <ChakraLink asChild>
+                    <ChakraLink asChild variant={"underline"}>
                       <Link to={`/knowledge/item/${item.id}`}>
                         {item.title ?? "-"}
                       </Link>
