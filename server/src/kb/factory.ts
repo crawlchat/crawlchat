@@ -20,6 +20,10 @@ export function makeKbProcesser(
       dynamicFallbackContentLength:
         knowledgeGroup.staticContentThresholdLength ?? undefined,
       limit: options.limit,
+      allowOnlyRegex:
+        knowledgeGroup.matchPrefix && knowledgeGroup.url
+          ? new RegExp(`^${knowledgeGroup.url.replace(/\/$/, "")}.*`)
+          : undefined,
     });
 
     return processer;
@@ -38,7 +42,7 @@ export function makeKbProcesser(
     const allowOnlyRegex = "https://github.com/[^/]+/[^/]+/(tree|blob)/main.*";
     const removeSelectors = [".react-line-number", "#repos-file-tree"];
     const removeHtmlTags = removeSelectors.join(",");
-    
+
     const processer = new WebKbProcesser(listener, scrape, url, {
       hasCredits: options.hasCredits,
       removeHtmlTags,
