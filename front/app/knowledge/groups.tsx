@@ -7,17 +7,27 @@ import {
   Text,
   Center,
 } from "@chakra-ui/react";
-import type { Route } from "./+types/links";
+import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import moment from "moment";
-import { TbBook, TbCheck, TbPlus, TbRefresh, TbX } from "react-icons/tb";
+import {
+  TbBook,
+  TbBrandGithub,
+  TbCheck,
+  TbPlus,
+  TbRefresh,
+  TbWorld,
+  TbX,
+} from "react-icons/tb";
 import { Tooltip } from "~/components/ui/tooltip";
 import { Link, Outlet } from "react-router";
 import { getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
+import type { KnowledgeGroupStatus, KnowledgeGroupType } from "libs/prisma";
+import { useMemo } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -32,36 +42,47 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  const items = await prisma.scrapeItem.findMany({
-    where: { scrapeId: scrape.id },
-    select: {
-      id: true,
-      url: true,
-      title: true,
-      createdAt: true,
-      updatedAt: true,
-      status: true,
-    },
+  const knowledgeGroups = await prisma.knowledgeGroup.findMany({
+    where: { scrapeId: scrape.id, userId: user!.id },
+    orderBy: { createdAt: "desc" },
   });
 
-  return { scrape, items };
-}
-
-function LinkRefresh({ scrapeId, url }: { scrapeId: string; url: string }) {
-  return (
-    <Tooltip
-      content="Refresh content"
-      positioning={{ placement: "top" }}
-      showArrow
-    >
-      <Link to={`/knowledge/scrape?url=${url}&collection=${scrapeId}&links=1`}>
-        <TbRefresh />
-      </Link>
-    </Tooltip>
-  );
+  return { scrape, knowledgeGroups };
 }
 
 export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
+  const groups = useMemo(() => {
+    return loaderData.knowledgeGroups.map((group) => {
+      let icon = <TbBook/>;
+      let statusText = "Unknown";
+
+      if (group.type === "scrape_web") {
+        icon = <TbWorld />;
+      }else if (group.type === "scrape_github") {
+        icon = <TbBrandGithub />;
+      }
+
+      if (group.status === "pending") {
+        statusText = "To be processed";
+      } else if (group.status === "done") {
+        statusText = "Up to date";
+      } else if (group.status === "error") {
+        statusText = "Error";
+      } else if (group.status === "processing") {
+        statusText = "Updating...";
+      }
+
+      return {
+        icon,
+        title: group.title,
+        statusText,
+        type: group.type,
+        updatedAt: group.updatedAt,
+        id: group.id,
+      };
+    });
+  }, [loaderData.knowledgeGroups]);
+
   return (
     <Page
       title="Knowledge"
@@ -77,7 +98,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
         </Group>
       }
     >
-      {loaderData.items.length === 0 && (
+      {groups.length === 0 && (
         <Center w="full" h="full">
           <EmptyState
             title="No knowledge"
@@ -92,37 +113,24 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
           </EmptyState>
         </Center>
       )}
-      {loaderData.items.length > 0 && (
+      {groups.length > 0 && (
         <Stack>
           <Table.Root size="sm">
             <Table.Header>
               <Table.Row>
-                <Table.ColumnHeader>Url</Table.ColumnHeader>
+                <Table.ColumnHeader>Type</Table.ColumnHeader>
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
                 <Table.ColumnHeader>Status</Table.ColumnHeader>
                 <Table.ColumnHeader>Updated</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {loaderData.items.map((item) => (
+              {groups.map((item) => (
                 <Table.Row key={item.id}>
                   <Table.Cell className="group">
                     <Group>
-                      <Text>
-                        {item.url ? (
-                          <ChakraLink href={item.url} target="_blank">
-                            {new URL(item.url).pathname}
-                          </ChakraLink>
-                        ) : (
-                          item.id
-                        )}
-                      </Text>
-                      {item.url && (
-                        <LinkRefresh
-                          scrapeId={loaderData.scrape.id}
-                          url={item.url}
-                        />
-                      )}
+                      {item.icon}
+                      <Text>{item.type}</Text>
                     </Group>
                   </Table.Cell>
                   <Table.Cell>
@@ -133,25 +141,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                     </ChakraLink>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge
-                      variant={"surface"}
-                      colorPalette={
-                        item.status === "completed"
-                          ? "brand"
-                          : item.status === "failed"
-                          ? "red"
-                          : "gray"
-                      }
-                    >
-                      {item.status === "completed" ? (
-                        <TbCheck />
-                      ) : item.status === "failed" ? (
-                        <TbX />
-                      ) : (
-                        <TbRefresh />
-                      )}
-                      {item.status === "completed" ? "Success" : "Failed"}
-                    </Badge>
+                    <Badge variant={"surface"}>{item.statusText}</Badge>
                   </Table.Cell>
                   <Table.Cell>{moment(item.updatedAt).fromNow()}</Table.Cell>
                 </Table.Row>

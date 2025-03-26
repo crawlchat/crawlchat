@@ -42,6 +42,8 @@ export default [
     ]),
 
     route("knowledge/scrape", "knowledge/new-scrape.tsx"),
+    route("knowledge/group", "knowledge/new-group.tsx"),
+    route("knowledge/groups", "knowledge/groups.tsx"),
     route("knowledge", "knowledge/links.tsx", [
       route("item/:itemId", "knowledge/link-item.tsx"),
     ]),

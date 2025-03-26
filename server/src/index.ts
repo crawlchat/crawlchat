@@ -381,6 +381,7 @@ expressWs.app.ws("/", (ws: any, req) => {
               score: match.score,
               scrapeItemId: item.id,
               fetchUniqueId: match.fetchUniqueId ?? null,
+              knowledgeGroupId: item.knowledgeGroupId,
             });
           }
         }
@@ -593,6 +594,7 @@ app.post("/answer/:scrapeId", async (req, res) => {
         score: match.score,
         scrapeItemId: item.id,
         fetchUniqueId: match.fetchUniqueId ?? null,
+        knowledgeGroupId: item.knowledgeGroupId,
       });
     }
   }

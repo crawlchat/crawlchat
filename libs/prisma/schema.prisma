@@ -13,18 +13,19 @@ type UserSettings {
 }
 
 model User {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  email           String   @unique
-  settings        UserSettings?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  email               String   @unique
+  settings            UserSettings?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  plan            UserPlan?
-  topups          TopupPlan[]
+  plan                UserPlan?
+  topups              TopupPlan[]
 
-  scrapes         Scrape[]
-  scrapeItems     ScrapeItem[]
-  ownedMessages   Message[]
+  scrapes             Scrape[]
+  scrapeItems         ScrapeItem[]
+  ownedMessages       Message[]
+  knowoledgeGroups    KnowledgeGroup[]
 }
 
 enum ScrapeStatus {
@@ -56,32 +57,35 @@ type WidgetConfig {
 }
 
 model Scrape {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @db.ObjectId
+  id                    String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId                String   @db.ObjectId
 
-  url             String?
-  status          ScrapeStatus
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  title           String?
-  chatPrompt      String?
-  mcpToolName     String?
-  widgetConfig    WidgetConfig?
-  indexer         String?
-  discordServerId String?
+  url                   String?
+  status                ScrapeStatus
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  title                 String?
+  chatPrompt            String?
+  mcpToolName           String?
+  widgetConfig          WidgetConfig?
+  indexer               String?
+  discordServerId       String?
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  threads         Thread[]
-  items           ScrapeItem[]
-  messages        Message[]
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  threads               Thread[]
+  items                 ScrapeItem[]
+  messages              Message[]
+  knowoledgeGroups      KnowledgeGroup[]
 }
 
 type MessageSourceLink {
-  url             String?
-  title           String?
-  score           Float?
-  scrapeItemId    String?   @db.ObjectId
-  fetchUniqueId   String?
+  url                     String?
+  title                   String?
+  score                   Float?
+  scrapeItemId            String?     @db.ObjectId
+  knowledgeGroupId        String?     @db.ObjectId
+  fetchUniqueId           String?
 }
 
 enum MessageChannel {
@@ -143,23 +147,25 @@ enum ScrapeItemStatus {
 }
 
 model ScrapeItem {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  scrapeId        String   @db.ObjectId
-  userId          String   @db.ObjectId
+  id                      String   @id @default(auto()) @map("_id") @db.ObjectId
+  scrapeId                String   @db.ObjectId
+  userId                  String   @db.ObjectId
+  knowledgeGroupId        String?  @db.ObjectId
 
-  url             String?
-  title           String?
-  markdown        String?
-  metaTags        MetaTag[]
-  embeddings      Embedding[]
-  status          ScrapeItemStatus?
-  error           String?
+  url                     String?
+  title                   String?
+  markdown                String?
+  metaTags                MetaTag[]
+  embeddings              Embedding[]
+  status                  ScrapeItemStatus?
+  error                   String?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
-  scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scrape                  Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  knowledgeGroup          KnowledgeGroup?  @relation(fields: [knowledgeGroupId], references: [id], onDelete: Cascade)
 
   @@unique([scrapeId, url])
 }
@@ -207,4 +213,44 @@ type TopupPlan {
 
   createdAt DateTime
   provider UserPlanProvider?
+}
+
+enum KnowledgeGroupType {
+  scrape_web
+  scrape_github
+}
+
+enum KnowledgeGroupStatus {
+  pending
+  processing
+  done
+  error
+}
+
+model KnowledgeGroup {
+  id                                        String   @id @default(auto()) @map("_id") @db.ObjectId
+  scrapeId                                  String   @db.ObjectId
+  userId                                    String   @db.ObjectId
+
+  type                                      KnowledgeGroupType
+  status                                    KnowledgeGroupStatus
+  
+  title                                     String?
+
+  url                                       String?
+  matchPrefix                               Boolean?
+  removeHtmlTags                            String?
+  maxPages                                  Int?
+  staticContentThresholdLength              Int?
+
+  githubUrl                                 String?
+  githubBranch                              String?
+
+  createdAt                                 DateTime @default(now())
+  updatedAt                                 DateTime @updatedAt
+
+  scrape                                    Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+  user                                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  scrapeItems                               ScrapeItem[]
 }
