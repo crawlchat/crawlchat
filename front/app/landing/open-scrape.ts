@@ -7,7 +7,7 @@ export async function action({ request }: Route.ActionArgs) {
   const intent = formData.get("intent");
 
   if (intent === "scrape") {
-    const url = formData.get("url");
+    const url = formData.get("url") as string;
     const roomId = formData.get("roomId");
 
     if (!url) {
@@ -40,11 +40,23 @@ export async function action({ request }: Route.ActionArgs) {
       },
     });
 
+    const knowledgeGroup = await prisma.knowledgeGroup.create({
+      data: {
+        userId: process.env.OPEN_USER_ID!,
+        title: "Default",
+        type: "scrape_web",
+        scrapeId: scrape.id,
+        status: "pending",
+        url,
+      },
+    });
+
     await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
       method: "POST",
       body: JSON.stringify({
         scrapeId: scrape.id,
         userId: scrape.userId,
+        knowledgeGroupId: knowledgeGroup.id,
         url,
         maxLinks: 1,
         roomId: `user-${roomId}`,

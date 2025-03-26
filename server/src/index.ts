@@ -75,6 +75,9 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       if (req.body.maxLinks) {
         return parseInt(req.body.maxLinks);
       }
+      if (knowledgeGroup.maxPages !== null) {
+        return knowledgeGroup.maxPages;
+      }
       if (url) {
         return 1;
       }
