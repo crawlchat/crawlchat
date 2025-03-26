@@ -47,7 +47,12 @@ export class BaseKbProcesserListener implements KbProcesserListener {
 
   async onError(path: string, error: any) {
     await prisma.scrapeItem.upsert({
-      where: { scrapeId_url: { scrapeId: this.scrape.id, url: path } },
+      where: {
+        knowledgeGroupId_url: {
+          knowledgeGroupId: this.knowledgeGroup.id,
+          url: path,
+        },
+      },
       update: {
         status: "failed",
         error: error.message.toString(),
@@ -55,6 +60,7 @@ export class BaseKbProcesserListener implements KbProcesserListener {
       create: {
         userId: this.scrape.userId,
         scrapeId: this.scrape.id,
+        knowledgeGroupId: this.knowledgeGroup.id,
         url: path,
         status: "failed",
         error: error.message.toString(),
@@ -91,7 +97,12 @@ export class BaseKbProcesserListener implements KbProcesserListener {
     }
 
     await prisma.scrapeItem.upsert({
-      where: { scrapeId_url: { scrapeId: this.scrape.id, url: path } },
+      where: {
+        knowledgeGroupId_url: {
+          knowledgeGroupId: this.knowledgeGroup.id,
+          url: path,
+        },
+      },
       update: {
         markdown: content.text,
         title: content.title,

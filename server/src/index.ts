@@ -6,7 +6,7 @@ import type { Express, Request, Response } from "express";
 import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
-import { deleteScrape, makeRecordId } from "./scrape/pinecone";
+import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
 import { joinRoom, broadcast } from "./socket-room";
 import { getRoomIds } from "./socket-room";
 import { authenticate, verifyToken } from "./jwt";
@@ -38,6 +38,14 @@ function cleanUrl(url: string) {
     url = "https://" + url;
   }
   return url.toLowerCase();
+}
+
+function chunk<T>(array: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
 }
 
 app.get("/", function (req: Request, res: Response) {
@@ -136,6 +144,43 @@ app.delete(
       const indexer = makeIndexer({ key: scrape.indexer });
       await deleteScrape(indexer.getKey(), scrapeId);
     } catch (error) {}
+    res.json({ message: "ok" });
+  }
+);
+
+app.delete(
+  "/knowledge-group",
+  authenticate,
+  async function (req: Request, res: Response) {
+    const knowledgeGroupId = req.body.knowledgeGroupId;
+
+    const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+      where: { id: knowledgeGroupId },
+      include: {
+        scrape: true,
+      },
+    });
+
+    const items = await prisma.scrapeItem.findMany({
+      where: { knowledgeGroupId },
+    });
+
+    const indexer = makeIndexer({ key: knowledgeGroup.scrape.indexer });
+    const ids = items.flatMap((item) => item.embeddings.map((e) => e.id));
+
+    const chunks = chunk(ids, 800);
+    for (const chunk of chunks) {
+      await deleteByIds(indexer.getKey(), chunk);
+    }
+
+    await prisma.scrapeItem.deleteMany({
+      where: { knowledgeGroupId },
+    });
+
+    await prisma.knowledgeGroup.delete({
+      where: { id: knowledgeGroupId },
+    });
+
     res.json({ message: "ok" });
   }
 );
@@ -343,6 +388,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 app.post("/resource/:scrapeId", authenticate, async (req, res) => {
   const userId = req.user!.id;
   const scrapeId = req.params.scrapeId;
+  const knowledgeGroupType = req.body.knowledgeGroupType;
   const markdown = req.body.markdown;
   const title = req.body.title;
 
@@ -350,6 +396,10 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     res.status(400).json({ message: "Missing scrapeId or markdown or title" });
     return;
   }
+
+  const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+    where: { userId, type: knowledgeGroupType },
+  });
 
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: scrapeId, userId },
@@ -362,6 +412,7 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     data: {
       userId,
       scrapeId: scrape.id,
+      knowledgeGroupId: knowledgeGroup.id,
       markdown,
       title,
       metaTags: [],

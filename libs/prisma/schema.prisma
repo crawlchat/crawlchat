@@ -150,7 +150,7 @@ model ScrapeItem {
   id                      String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId                String   @db.ObjectId
   userId                  String   @db.ObjectId
-  knowledgeGroupId        String?  @db.ObjectId
+  knowledgeGroupId        String   @db.ObjectId
 
   url                     String?
   title                   String?
@@ -167,7 +167,7 @@ model ScrapeItem {
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   knowledgeGroup          KnowledgeGroup?  @relation(fields: [knowledgeGroupId], references: [id], onDelete: Cascade)
 
-  @@unique([scrapeId, url])
+  @@unique([knowledgeGroupId, url])
 }
 
 enum UserPlanProvider {
@@ -218,6 +218,7 @@ type TopupPlan {
 enum KnowledgeGroupType {
   scrape_web
   scrape_github
+  learn_discord
 }
 
 enum KnowledgeGroupStatus {

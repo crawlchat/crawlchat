@@ -7,7 +7,7 @@ import {
   Text,
   Center,
   IconButton,
-  Icon,
+  DialogTitle,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
@@ -18,12 +18,10 @@ import {
   TbBrandGithub,
   TbCheck,
   TbLoader,
-  TbPlayerPause,
   TbPlayerPauseFilled,
-  TbPlayerPlay,
-  TbPlayerPlayFilled,
   TbPlus,
   TbRefresh,
+  TbTrash,
   TbWorld,
   TbX,
 } from "react-icons/tb";
@@ -32,10 +30,19 @@ import { getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { KnowledgeGroup } from "libs/prisma";
 import { createToken } from "~/jwt";
 import { toaster } from "~/components/ui/toaster";
+import {
+  DialogBackdrop,
+  DialogBody,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogRoot,
+  DialogTrigger,
+} from "~/components/ui/dialog";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -61,6 +68,8 @@ export async function loader({ request }: Route.LoaderArgs) {
       where: { knowledgeGroupId: group.id },
     });
   }
+
+  console.log({ counts });
 
   return { scrape, knowledgeGroups, counts };
 }
@@ -99,6 +108,28 @@ export async function action({ request }: Route.ActionArgs) {
 
     return { success: true };
   }
+
+  if (intent === "delete") {
+    const knowledgeGroupId = formData.get("knowledgeGroupId") as string;
+
+    if (!knowledgeGroupId) {
+      return { error: "Knowledge group ID is required" };
+    }
+
+    const token = createToken(user!.id);
+    await fetch(`${process.env.VITE_SERVER_URL}/knowledge-group`, {
+      method: "DELETE",
+      body: JSON.stringify({
+        knowledgeGroupId,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return { success: true };
+  }
 }
 
 function RefreshButton({ knowledgeGroupId }: { knowledgeGroupId: string }) {
@@ -130,6 +161,9 @@ function RefreshButton({ knowledgeGroupId }: { knowledgeGroupId: string }) {
 }
 
 export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
+  const deleteFetcher = useFetcher();
+  const [deleteGroup, setDeleteGroup] = useState<KnowledgeGroup>();
+
   const groups = useMemo(() => {
     return loaderData.knowledgeGroups.map((group) => {
       let icon = <TbBook />;
@@ -165,15 +199,11 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
 
       return {
         icon,
-        title: group.title,
         statusText,
-        type: group.type,
-        updatedAt: group.updatedAt,
-        id: group.id,
         statusColor,
         statusIcon,
-        status: group.status,
         typeText,
+        group,
       };
     });
   }, [loaderData.knowledgeGroups]);
@@ -213,17 +243,17 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
           <Table.Root size="lg">
             <Table.Header>
               <Table.Row>
-                <Table.ColumnHeader w="16%">Type</Table.ColumnHeader>
+                <Table.ColumnHeader w="12%">Type</Table.ColumnHeader>
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
-                <Table.ColumnHeader w="6%"># Items</Table.ColumnHeader>
+                <Table.ColumnHeader w="10%"># Items</Table.ColumnHeader>
                 <Table.ColumnHeader w="10%">Status</Table.ColumnHeader>
-                <Table.ColumnHeader w="16%">Updated</Table.ColumnHeader>
+                <Table.ColumnHeader w="20%">Updated</Table.ColumnHeader>
                 <Table.ColumnHeader w="10%">Actions</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {groups.map((item) => (
-                <Table.Row key={item.id}>
+                <Table.Row key={item.group.id}>
                   <Table.Cell className="group">
                     <Group>
                       <Text fontSize={"xl"}>{item.icon}</Text>
@@ -232,14 +262,14 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                   </Table.Cell>
                   <Table.Cell>
                     <ChakraLink asChild>
-                      <Link to={`/knowledge/item/${item.id}`}>
-                        {item.title ?? "-"}
+                      <Link to={`/knowledge/item/${item.group.id}`}>
+                        {item.group.title ?? "Untitled"}
                       </Link>
                     </ChakraLink>
                   </Table.Cell>
                   <Table.Cell>
                     <Badge variant={"subtle"} colorPalette={item.statusColor}>
-                      {loaderData.counts[item.id] ?? 0}
+                      {loaderData.counts[item.group.id] ?? 0}
                     </Badge>
                   </Table.Cell>
                   <Table.Cell>
@@ -248,11 +278,27 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                       {item.statusText}
                     </Badge>
                   </Table.Cell>
-                  <Table.Cell>{moment(item.updatedAt).fromNow()}</Table.Cell>
                   <Table.Cell>
-                    {["pending", "error", "done"].includes(item.status) && (
-                      <RefreshButton knowledgeGroupId={item.id} />
-                    )}
+                    {moment(item.group.updatedAt).fromNow()}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Group>
+                      {["pending", "error", "done"].includes(
+                        item.group.status
+                      ) && <RefreshButton knowledgeGroupId={item.group.id} />}
+                      {["pending", "error", "done"].includes(
+                        item.group.status
+                      ) && (
+                        <IconButton
+                          size={"xs"}
+                          variant={"subtle"}
+                          colorPalette={"red"}
+                          onClick={() => setDeleteGroup(item.group)}
+                        >
+                          <TbTrash />
+                        </IconButton>
+                      )}
+                    </Group>
                   </Table.Cell>
                 </Table.Row>
               ))}
@@ -260,6 +306,48 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
           </Table.Root>
 
           <Outlet />
+
+          <DialogRoot
+            open={deleteGroup !== undefined}
+            onOpenChange={(e) => setDeleteGroup(e.open ? undefined : undefined)}
+          >
+            <DialogBackdrop />
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete knowledge group</DialogTitle>
+              </DialogHeader>
+              <DialogBody>
+                <Stack>
+                  <Text>
+                    Are you sure you want to delete{" "}
+                    <Text as="span" fontWeight={"bold"}>
+                      {deleteGroup?.title ?? "Untitled"}
+                    </Text>{" "}
+                    knowledge group? All the associated data will be deleted.
+                    This action cannot be undone.
+                  </Text>
+                </Stack>
+              </DialogBody>
+              <DialogFooter>
+                <deleteFetcher.Form method="post">
+                  <input type="hidden" name="intent" value="delete" />
+                  <input
+                    type="hidden"
+                    name="knowledgeGroupId"
+                    value={deleteGroup?.id}
+                  />
+                  <Button
+                    colorPalette={"red"}
+                    type="submit"
+                    loading={deleteFetcher.state !== "idle"}
+                  >
+                    Delete
+                    <TbTrash />
+                  </Button>
+                </deleteFetcher.Form>
+              </DialogFooter>
+            </DialogContent>
+          </DialogRoot>
         </Stack>
       )}
     </Page>
