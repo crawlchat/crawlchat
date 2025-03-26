@@ -18,7 +18,6 @@ import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
 import { MessageSourceLink } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
-import { ChatCompletionAssistantMessageParam } from "openai/resources/chat/completions";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
 import { makeFlow } from "./llm/flow-jasmine";
@@ -52,17 +51,18 @@ app.get("/test", async function (req: Request, res: Response) {
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const userId = req.user!.id;
-  const url = req.body.url ? cleanUrl(req.body.url) : req.body.url;
   const scrapeId = req.body.scrapeId!;
-  const dynamicFallbackContentLength = req.body.dynamicFallbackContentLength;
-  const roomId = req.body.roomId;
-  const includeMarkdown = req.body.includeMarkdown;
 
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: scrapeId, userId },
   });
 
   console.log("Scraping for", scrape.id);
+
+  const url = req.body.url ? cleanUrl(req.body.url) : req.body.url;
+  const dynamicFallbackContentLength = req.body.dynamicFallbackContentLength;
+  const roomId = req.body.roomId;
+  const includeMarkdown = req.body.includeMarkdown;
 
   (async function () {
     function getLimit() {
