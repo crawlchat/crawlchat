@@ -132,7 +132,13 @@ export async function action({ request }: Route.ActionArgs) {
   }
 }
 
-function RefreshButton({ knowledgeGroupId }: { knowledgeGroupId: string }) {
+function RefreshButton({
+  knowledgeGroupId,
+  disabled,
+}: {
+  knowledgeGroupId: string;
+  disabled: boolean;
+}) {
   const fetcher = useFetcher();
 
   useEffect(() => {
@@ -152,7 +158,7 @@ function RefreshButton({ knowledgeGroupId }: { knowledgeGroupId: string }) {
         size={"xs"}
         variant={"subtle"}
         type="submit"
-        disabled={fetcher.state !== "idle"}
+        disabled={fetcher.state !== "idle" || disabled}
       >
         <TbRefresh />
       </IconButton>
@@ -215,7 +221,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       right={
         <Group>
           <Button variant={"subtle"} colorPalette={"brand"} asChild>
-            <Link to="/knowledge/scrape">
+            <Link to="/knowledge/group">
               <TbPlus />
               Add
             </Link>
@@ -226,13 +232,13 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       {groups.length === 0 && (
         <Center w="full" h="full">
           <EmptyState
-            title="No knowledge"
-            description="Scrape your documents to get started."
+            title="No knowledge groups"
+            description="Create a new knowledge group to get started."
           >
             <Button asChild colorPalette={"brand"}>
-              <Link to="/knowledge/scrape">
+              <Link to="/knowledge/group">
                 <TbPlus />
-                Add
+                Create a group
               </Link>
             </Button>
           </EmptyState>
@@ -268,7 +274,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                     </ChakraLink>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge variant={"subtle"} colorPalette={item.statusColor}>
+                    <Badge variant={"subtle"}>
                       {loaderData.counts[item.group.id] ?? 0}
                     </Badge>
                   </Table.Cell>
@@ -283,21 +289,24 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                   </Table.Cell>
                   <Table.Cell>
                     <Group>
-                      {["pending", "error", "done"].includes(
-                        item.group.status
-                      ) && <RefreshButton knowledgeGroupId={item.group.id} />}
-                      {["pending", "error", "done"].includes(
-                        item.group.status
-                      ) && (
-                        <IconButton
-                          size={"xs"}
-                          variant={"subtle"}
-                          colorPalette={"red"}
-                          onClick={() => setDeleteGroup(item.group)}
-                        >
-                          <TbTrash />
-                        </IconButton>
-                      )}
+                      <RefreshButton
+                        knowledgeGroupId={item.group.id}
+                        disabled={!["pending", "error", "done"].includes(
+                          item.group.status
+                        )}
+                      />
+
+                      <IconButton
+                        size={"xs"}
+                        variant={"subtle"}
+                        colorPalette={"red"}
+                        onClick={() => setDeleteGroup(item.group)}
+                        disabled={!["pending", "error", "done"].includes(
+                          item.group.status
+                        )}
+                      >
+                        <TbTrash />
+                      </IconButton>
                     </Group>
                   </Table.Cell>
                 </Table.Row>

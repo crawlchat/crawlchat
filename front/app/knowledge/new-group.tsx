@@ -17,7 +17,7 @@ import {
   TbInfoCircle,
   TbWorld,
 } from "react-icons/tb";
-import { useFetcher } from "react-router";
+import { redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
@@ -36,7 +36,7 @@ import {
 } from "~/components/ui/select";
 import { Tooltip } from "~/components/ui/tooltip";
 import { createToken } from "~/jwt";
-import type { Route } from "./+types/new-scrape";
+import type { Route } from "./+types/new-group";
 import { useMemo, useState } from "react";
 import { prisma } from "~/prisma";
 import { getSessionScrapeId } from "~/scrapes/util";
@@ -114,7 +114,7 @@ export async function action({ request }: { request: Request }) {
         userId: user!.id,
         type,
         status: "pending",
-        
+
         title,
 
         url,
@@ -130,7 +130,7 @@ export async function action({ request }: { request: Request }) {
       },
     });
 
-    return { scrapeId: scrape.id, knowledgeGroupId: group.id };
+    throw redirect(`/knowledge`);
   }
 }
 
