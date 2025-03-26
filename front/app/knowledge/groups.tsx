@@ -25,7 +25,7 @@ import {
   TbWorld,
   TbX,
 } from "react-icons/tb";
-import { Link, Outlet, useFetcher } from "react-router";
+import { Link, useFetcher } from "react-router";
 import { getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
@@ -267,8 +267,14 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                     </Group>
                   </Table.Cell>
                   <Table.Cell>
-                    <ChakraLink asChild>
-                      <Link to={`/knowledge/item/${item.group.id}`}>
+                    <ChakraLink
+                      asChild
+                      variant={"underline"}
+                      _hover={{
+                        color: "brand.fg",
+                      }}
+                    >
+                      <Link to={`/knowledge/group/${item.group.id}`}>
                         {item.group.title ?? "Untitled"}
                       </Link>
                     </ChakraLink>
@@ -291,9 +297,11 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                     <Group>
                       <RefreshButton
                         knowledgeGroupId={item.group.id}
-                        disabled={!["pending", "error", "done"].includes(
-                          item.group.status
-                        )}
+                        disabled={
+                          !["pending", "error", "done"].includes(
+                            item.group.status
+                          )
+                        }
                       />
 
                       <IconButton
@@ -301,9 +309,11 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                         variant={"subtle"}
                         colorPalette={"red"}
                         onClick={() => setDeleteGroup(item.group)}
-                        disabled={!["pending", "error", "done"].includes(
-                          item.group.status
-                        )}
+                        disabled={
+                          !["pending", "error", "done"].includes(
+                            item.group.status
+                          )
+                        }
                       >
                         <TbTrash />
                       </IconButton>
@@ -313,8 +323,6 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
               ))}
             </Table.Body>
           </Table.Root>
-
-          <Outlet />
 
           <DialogRoot
             open={deleteGroup !== undefined}

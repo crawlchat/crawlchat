@@ -41,12 +41,10 @@ export default [
       route("discord", "integrations/discord.tsx"),
     ]),
 
-    // route("knowledge/scrape", "knowledge/new-scrape.tsx"),
     route("knowledge/group", "knowledge/new-group.tsx"),
-    // route("knowledge/groups", "knowledge/groups.tsx"),
-    route("knowledge", "knowledge/groups.tsx", [
-      route("item/:itemId", "knowledge/link-item.tsx"),
-    ]),
+    route("knowledge/group/:groupId", "knowledge/links.tsx"),
+    route("knowledge", "knowledge/groups.tsx"),
+    route("knowledge/item/:itemId", "knowledge/link-item.tsx"),
   ]),
 
   route("w/:id", "widget/scrape.tsx"),

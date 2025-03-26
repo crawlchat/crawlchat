@@ -11,7 +11,14 @@ import type { Route } from "./+types/links";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import moment from "moment";
-import { TbBook, TbCheck, TbPlus, TbRefresh, TbX } from "react-icons/tb";
+import {
+  TbArrowLeft,
+  TbBook,
+  TbCheck,
+  TbPlus,
+  TbRefresh,
+  TbX,
+} from "react-icons/tb";
 import { Tooltip } from "~/components/ui/tooltip";
 import { Link, Outlet } from "react-router";
 import { getSessionScrapeId } from "~/scrapes/util";
@@ -19,7 +26,7 @@ import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
   const scrapeId = await getSessionScrapeId(request);
@@ -32,8 +39,16 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
+  const knowledgeGroup = await prisma.knowledgeGroup.findUnique({
+    where: { id: params.groupId, userId: user!.id },
+  });
+
+  if (!knowledgeGroup) {
+    throw new Response("Not found", { status: 404 });
+  }
+
   const items = await prisma.scrapeItem.findMany({
-    where: { scrapeId: scrape.id },
+    where: { scrapeId: scrape.id, knowledgeGroupId: params.groupId },
     select: {
       id: true,
       url: true,
@@ -44,7 +59,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
-  return { scrape, items };
+  return { scrape, items, knowledgeGroup };
 }
 
 function LinkRefresh({ scrapeId, url }: { scrapeId: string; url: string }) {
@@ -64,29 +79,19 @@ function LinkRefresh({ scrapeId, url }: { scrapeId: string; url: string }) {
 export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
   return (
     <Page
-      title="Knowledge"
+      title={loaderData.knowledgeGroup.title ?? "Untitled"}
       icon={<TbBook />}
-      right={
-        <Group>
-          <Button variant={"subtle"} colorPalette={"brand"} asChild>
-            <Link to="/knowledge/scrape">
-              <TbPlus />
-              Add
-            </Link>
-          </Button>
-        </Group>
-      }
     >
       {loaderData.items.length === 0 && (
         <Center w="full" h="full">
           <EmptyState
-            title="No knowledge"
+            title="No items"
             description="Scrape your documents to get started."
           >
-            <Button asChild colorPalette={"brand"}>
-              <Link to="/knowledge/scrape">
-                <TbPlus />
-                Add
+            <Button asChild colorPalette={"brand"} variant={"subtle"}>
+              <Link to="/knowledge">
+                <TbArrowLeft />
+                Go to groups
               </Link>
             </Button>
           </EmptyState>
