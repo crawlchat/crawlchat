@@ -8,8 +8,9 @@ import {
 import { Flow } from "./flow";
 import { z } from "zod";
 
-type RAGAgentCustomMessage = {
+export type RAGAgentCustomMessage = {
   result?: {
+    id: string;
     content: string;
     url?: string;
     score: number;

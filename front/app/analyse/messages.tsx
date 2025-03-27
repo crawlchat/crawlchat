@@ -198,7 +198,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     let pairs = baseFilteredPairs;
-    
+
     let scores = [[-10, 10]];
     if (Object.values(filters).filter(Boolean).length > 0) {
       scores = [];
@@ -424,7 +424,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                                     href={`/knowledge/item/${link.scrapeItemId}`}
                                     target="_blank"
                                   >
-                                    {link.title}{" "}
+                                    {link.title || link.url}{" "}
                                     <Badge
                                       colorPalette={getScoreColor(
                                         link.score ?? 0

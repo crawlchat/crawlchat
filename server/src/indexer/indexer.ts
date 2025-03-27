@@ -24,6 +24,7 @@ export interface Indexer {
       url: string;
       score: number;
       fetchUniqueId: string;
+      id: string;
     }[]
   >;
 }

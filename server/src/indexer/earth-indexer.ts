@@ -107,6 +107,7 @@ export class EarthIndexer implements Indexer {
       url: m.metadata!.url as string,
       score: m.score ?? 0,
       fetchUniqueId: randomFetchId(),
+      id: m.id
     }));
   }
 }

@@ -17,10 +17,11 @@ import { MessageSourceLink, Prisma } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
-import { makeFlow } from "./llm/flow-jasmine";
+import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
 import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
+import { FlowMessage } from "./llm/agentic";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -46,6 +47,51 @@ function chunk<T>(array: T[], size: number) {
     chunks.push(array.slice(i, i + size));
   }
   return chunks;
+}
+
+async function collectSourceLinks(
+  scrapeId: string,
+  messages: FlowMessage<RAGAgentCustomMessage>[]
+) {
+  const matches = messages
+    .map((m) => m.custom?.result)
+    .filter((r) => r !== undefined)
+    .flat();
+
+  const links: MessageSourceLink[] = [];
+  for (const match of matches) {
+    const where: Prisma.ScrapeItemWhereInput = {
+      scrapeId,
+    };
+
+    if (match.scrapeItemId) {
+      where.id = match.scrapeItemId;
+    } else if (match.id) {
+      where.embeddings = {
+        some: {
+          id: match.id,
+        },
+      };
+    } else if (match.url) {
+      where.url = match.url;
+    }
+
+    const item = await prisma.scrapeItem.findFirst({
+      where,
+    });
+    if (item) {
+      links.push({
+        url: match.url ?? null,
+        title: item.title,
+        score: match.score,
+        scrapeItemId: item.id,
+        fetchUniqueId: match.fetchUniqueId ?? null,
+        knowledgeGroupId: item.knowledgeGroupId,
+      });
+    }
+  }
+
+  return links;
 }
 
 app.get("/", function (req: Request, res: Response) {
@@ -282,36 +328,10 @@ expressWs.app.ws("/", (ws: any, req) => {
         const content =
           (flow.getLastMessage().llmMessage.content as string) ?? "";
 
-        const matches = flow.flowState.state.messages
-          .map((m) => m.custom?.result)
-          .filter((r) => r !== undefined)
-          .flat();
-
-        const links: MessageSourceLink[] = [];
-        for (const match of matches) {
-          const where: Prisma.ScrapeItemWhereInput = {
-            scrapeId: scrape.id,
-          };
-
-          if (match.scrapeItemId) {
-            where.id = match.scrapeItemId;
-          } else if (match.url) {
-            where.url = match.url;
-          }
-          const item = await prisma.scrapeItem.findFirst({
-            where,
-          });
-          if (item) {
-            links.push({
-              url: match.url ?? null,
-              title: item.title,
-              score: match.score,
-              scrapeItemId: item.id,
-              fetchUniqueId: match.fetchUniqueId ?? null,
-              knowledgeGroupId: item.knowledgeGroupId,
-            });
-          }
-        }
+        const links = await collectSourceLinks(
+          scrape.id,
+          flow.flowState.state.messages
+        );
 
         await consumeCredits(scrape.userId, "messages", 1);
         const newAnswerMessage = await prisma.message.create({
@@ -384,19 +404,23 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 
   await consumeCredits(scrape.userId, "messages", 1);
 
+  const message: FlowMessage<RAGAgentCustomMessage> = {
+    llmMessage: {
+      role: "assistant",
+      content: "Results are hidden as it is from MCP",
+    },
+    custom: {
+      result: processed,
+    },
+  };
+  const links = await collectSourceLinks(scrape.id, [message]);
+
   await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
-      llmMessage: {
-        role: "assistant",
-        content: "Results are hidden as it is from MCP",
-      },
-      links: processed.map((p) => ({
-        url: p.url,
-        title: null,
-        score: p.score,
-      })),
+      llmMessage: message.llmMessage as any,
+      links,
       ownerUserId: scrape.userId,
       channel: "mcp",
     },
@@ -532,37 +556,10 @@ app.post("/answer/:scrapeId", async (req, res) => {
 
   const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
 
-  const matches = flow.flowState.state.messages
-    .map((m) => m.custom?.result)
-    .filter((r) => r !== undefined)
-    .flat();
-
-  const links: MessageSourceLink[] = [];
-  for (const match of matches) {
-    const where: Prisma.ScrapeItemWhereInput = {
-      scrapeId: scrape.id,
-    };
-
-    if (match.scrapeItemId) {
-      where.id = match.scrapeItemId;
-    } else if (match.url) {
-      where.url = match.url;
-    }
-
-    const item = await prisma.scrapeItem.findFirst({
-      where,
-    });
-    if (item) {
-      links.push({
-        url: match.url ?? null,
-        title: item.title,
-        score: match.score,
-        scrapeItemId: item.id,
-        fetchUniqueId: match.fetchUniqueId ?? null,
-        knowledgeGroupId: item.knowledgeGroupId,
-      });
-    }
-  }
+  const links = await collectSourceLinks(
+    scrape.id,
+    flow.flowState.state.messages
+  );
 
   await consumeCredits(scrape.userId, "messages", 1);
   const newAnswerMessage = await prisma.message.create({

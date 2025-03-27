@@ -157,6 +157,7 @@ export class MarsIndexer implements Indexer {
       score: r.score,
       scrapeItemId: r.document!.scrapeItemId,
       fetchUniqueId: randomFetchId(),
+      id: r.document!.id,
     }));
   }
 }
