@@ -368,6 +368,16 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   }
   const query = req.query.query as string;
 
+  await prisma.message.create({
+    data: {
+      threadId: thread.id,
+      scrapeId: scrape.id,
+      llmMessage: { role: "user", content: query },
+      ownerUserId: scrape.userId,
+      channel: "mcp",
+    },
+  });
+
   const indexer = makeIndexer({ key: scrape.indexer });
   const result = await indexer.search(scrape.id, query);
   const processed = await indexer.process(query, result);
@@ -378,7 +388,10 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
-      llmMessage: { role: "user", content: query },
+      llmMessage: {
+        role: "assistant",
+        content: "Results are hidden as it is from MCP",
+      },
       links: processed.map((p) => ({
         url: p.url,
         title: null,

@@ -25,6 +25,7 @@ import {
   TbHelp,
   TbLink,
   TbMessage,
+  TbRobotFace,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import type { Route } from "./+types/messages";
@@ -50,7 +51,7 @@ import {
 import { makeMessagePairs } from "./analyse";
 import { Tooltip } from "~/components/ui/tooltip";
 import { getSessionScrapeId } from "~/scrapes/util";
-import type { Message } from "libs/prisma";
+import type { Message, MessageChannel } from "libs/prisma";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -122,33 +123,71 @@ const MetricCheckbox = ({
   );
 };
 
+function ChannelIcon({ channel }: { channel?: MessageChannel | null }) {
+  const [text, icon, color] = useMemo(() => {
+    if (channel === "discord") {
+      return ["Discord", TbBrandDiscord, "orange"];
+    }
+    if (channel === "mcp") {
+      return ["MCP", TbRobotFace, "blue"];
+    }
+    return ["Chatbot", TbMessage, "brand"];
+  }, [channel]);
+
+  return (
+    <Badge colorPalette={color}>
+      <Icon as={icon} />
+      {text}
+    </Badge>
+  );
+}
+
 export default function Messages({ loaderData }: Route.ComponentProps) {
   const [pairs, setPairs] = useState(loaderData.messagePairs);
-  const [scrapeId, setScrapeId] = useState<string>();
+  const [channels, setChannels] = useState<string[]>(["all"]);
+  const baseFilteredPairs = useMemo(() => {
+    return loaderData.messagePairs.filter(
+      (pair) =>
+        channels.includes("all") ||
+        channels.includes(pair.queryMessage?.channel ?? "chatbot")
+    );
+  }, [channels, loaderData.messagePairs]);
   const metrics = useMemo(
     () => ({
-      worst: loaderData.messagePairs.filter((p) => p.averageScore < 0.25)
-        .length,
-      bad: loaderData.messagePairs.filter(
+      worst: baseFilteredPairs.filter((p) => p.averageScore < 0.25).length,
+      bad: baseFilteredPairs.filter(
         (p) => p.averageScore >= 0.25 && p.averageScore < 0.5
       ).length,
-      good: loaderData.messagePairs.filter(
+      good: baseFilteredPairs.filter(
         (p) => p.averageScore >= 0.5 && p.averageScore < 0.75
       ).length,
-      best: loaderData.messagePairs.filter((p) => p.averageScore >= 0.75)
-        .length,
+      best: baseFilteredPairs.filter((p) => p.averageScore >= 0.75).length,
     }),
-    [loaderData.messagePairs]
+    [baseFilteredPairs]
   );
-  const scrapesCollection = useMemo(
+  const channelCollection = useMemo(
     () =>
       createListCollection({
-        items: loaderData.scrapes.map((scrape) => ({
-          label: scrape.title ?? scrape.url ?? "Untitled",
-          value: scrape.id,
-        })),
+        items: [
+          {
+            label: "All",
+            value: "all",
+          },
+          {
+            label: "Discord",
+            value: "discord",
+          },
+          {
+            label: "MCP",
+            value: "mcp",
+          },
+          {
+            label: "Chatbot",
+            value: "chatbot",
+          },
+        ],
       }),
-    [loaderData.scrapes]
+    []
   );
   const [filters, setFilters] = useState<{
     worst?: boolean;
@@ -158,12 +197,8 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
   }>({});
 
   useEffect(() => {
-    let pairs = loaderData.messagePairs;
-
-    if (scrapeId) {
-      pairs = pairs.filter((p) => p.scrapeId === scrapeId);
-    }
-
+    let pairs = baseFilteredPairs;
+    
     let scores = [[-10, 10]];
     if (Object.values(filters).filter(Boolean).length > 0) {
       scores = [];
@@ -192,7 +227,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
       }
     }
     setPairs(filteredPairs);
-  }, [scrapeId, loaderData.messagePairs, filters]);
+  }, [channels, baseFilteredPairs, filters]);
 
   function getScoreColor(score: number) {
     if (score < 0.25) {
@@ -275,16 +310,16 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
 
               <Box>
                 <SelectRoot
-                  collection={scrapesCollection}
-                  w="300px"
-                  value={scrapeId ? [scrapeId] : []}
-                  onValueChange={(e) => setScrapeId(e.value[0])}
+                  collection={channelCollection}
+                  w="200px"
+                  value={channels}
+                  onValueChange={(e) => setChannels(e.value)}
                 >
-                  <SelectTrigger clearable>
+                  <SelectTrigger>
                     <SelectValueText placeholder="Select collection" />
                   </SelectTrigger>
                   <SelectContent>
-                    {scrapesCollection.items.map((item) => (
+                    {channelCollection.items.map((item) => (
                       <SelectItem item={item} key={item.value}>
                         {item.label}
                       </SelectItem>
@@ -348,16 +383,17 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                       <Group justifyContent={"space-between"} flex={1}>
                         <Group>
                           <Text maxW={"50vw"} truncate>
-                            {truncate(getMessageContent(pair.queryMessage), 10000)}
+                            {truncate(
+                              getMessageContent(pair.queryMessage),
+                              10000
+                            )}
                           </Text>
                           <Text opacity={0.2} hideBelow={"md"}>
                             {moment(pair.queryMessage?.createdAt).fromNow()}
                           </Text>
                         </Group>
                         <Group>
-                          {pair.queryMessage?.channel === "discord" && (
-                            <Icon as={TbBrandDiscord} />
-                          )}
+                          <ChannelIcon channel={pair.queryMessage?.channel} />
                           <Badge
                             colorPalette={getScoreColor(pair.averageScore)}
                             variant={"surface"}
