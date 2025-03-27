@@ -51,9 +51,10 @@ type WidgetQuestion {
 }
 
 type WidgetConfig {
-  size WidgetSize
-  questions WidgetQuestion[]
-  welcomeMessage String?
+  size                WidgetSize
+  questions           WidgetQuestion[]
+  welcomeMessage      String?
+  showMcpSetup        Boolean?
 }
 
 model Scrape {

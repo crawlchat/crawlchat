@@ -24,11 +24,7 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "~/components/ui/select";
-import type {
-  WidgetConfig,
-  WidgetQuestion,
-  WidgetSize,
-} from "libs/prisma";
+import type { WidgetConfig, WidgetQuestion, WidgetSize } from "libs/prisma";
 import { Button } from "~/components/ui/button";
 import { TbPlus, TbSettings, TbSettings2, TbTrash } from "react-icons/tb";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -53,6 +49,7 @@ import { Field } from "~/components/ui/field";
 import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
 import type { Route } from "./+types/embed";
 import { getSessionScrapeId } from "../scrapes/util";
+import { Switch } from "~/components/ui/switch";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -92,6 +89,7 @@ export async function action({ request }: Route.ActionArgs) {
     size: "small",
     questions: [],
     welcomeMessage: null,
+    showMcpSetup: null,
   };
 
   if (size) {
@@ -104,6 +102,10 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (welcomeMessage !== null && welcomeMessage !== undefined) {
     update.welcomeMessage = welcomeMessage as string;
+  }
+
+  if (formData.has("from-mcp-setup")) {
+    update.showMcpSetup = formData.get("showMcpSetup") === "on";
   }
 
   await prisma.scrape.update({
@@ -229,6 +231,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const sizeFetcher = useFetcher();
   const questionsFetcher = useFetcher();
   const welcomeMessageFetcher = useFetcher();
+  const mcpSetupFetcher = useFetcher();
   const [embedProps, setEmbedProps] = useState<EmbedProps>({
     button: true,
     buttonColor: "#7b2cbf",
@@ -489,6 +492,21 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
               Add question
             </Button>
           </Box>
+        </SettingsSection>
+        <SettingsSection
+          title="MCP client setup instructions"
+          description="Show the MCP client setup instrctions on the widget"
+          fetcher={mcpSetupFetcher}
+        >
+          <input type="hidden" name="from-mcp-setup" value={"true"} />
+          <Switch
+            name="showMcpSetup"
+            defaultChecked={
+              loaderData.scrape?.widgetConfig?.showMcpSetup ?? true
+            }
+          >
+            Show it
+          </Switch>
         </SettingsSection>
       </Stack>
     </Stack>

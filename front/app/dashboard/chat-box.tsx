@@ -3,7 +3,6 @@ import {
   Badge,
   Box,
   Center,
-  Clipboard,
   Group,
   Heading,
   Icon,
@@ -21,15 +20,12 @@ import {
   TbChevronRight,
   TbEraser,
   TbHelp,
-  TbHome,
   TbMessage,
   TbPin,
   TbRefresh,
-  TbRobot,
   TbRobotFace,
   TbTrash,
   TbPointer,
-  TbClipboard,
 } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
@@ -452,12 +448,14 @@ function MCPSetup({ scrape }: { scrape: Scrape }) {
 }
 
 function Toolbar({
+  scrape,
   messages,
   onErase,
   onPinSelect,
   screen,
   onScreenChange,
 }: {
+  scrape: Scrape;
   messages: Message[];
   onErase: () => void;
   onPinSelect: (id: string) => void;
@@ -572,25 +570,29 @@ function Toolbar({
           </Tooltip>
         )}
 
-        {screen === "chat" && (
-          <Button
-            size={"xs"}
-            variant={"subtle"}
-            onClick={() => onScreenChange("mcp")}
-          >
-            Setup MCP
-            <TbRobotFace />
-          </Button>
-        )}
-        {screen === "mcp" && (
-          <Button
-            size={"xs"}
-            variant={"subtle"}
-            onClick={() => onScreenChange("chat")}
-          >
-            Switch to chat
-            <TbMessage />
-          </Button>
+        {(scrape.widgetConfig?.showMcpSetup ?? true) && (
+          <>
+            {screen === "chat" && (
+              <Button
+                size={"xs"}
+                variant={"subtle"}
+                onClick={() => onScreenChange("mcp")}
+              >
+                Setup MCP
+                <TbRobotFace />
+              </Button>
+            )}
+            {screen === "mcp" && (
+              <Button
+                size={"xs"}
+                variant={"subtle"}
+                onClick={() => onScreenChange("chat")}
+              >
+                Switch to chat
+                <TbMessage />
+              </Button>
+            )}
+          </>
         )}
       </Group>
     </Group>
@@ -744,6 +746,7 @@ export default function ScrapeWidget({
           onPinSelect={handlePinSelect}
           screen={screen}
           onScreenChange={setScreen}
+          scrape={scrape}
         />
         <Stack flex="1" overflow={"auto"} gap={0}>
           {screen === "chat" && (
