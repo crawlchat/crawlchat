@@ -1,9 +1,12 @@
 import {
+  Accordion,
   Badge,
   Box,
   Center,
+  Clipboard,
   Group,
   Heading,
+  Icon,
   IconButton,
   Input,
   Kbd,
@@ -18,10 +21,15 @@ import {
   TbChevronRight,
   TbEraser,
   TbHelp,
+  TbHome,
   TbMessage,
   TbPin,
   TbRefresh,
+  TbRobot,
+  TbRobotFace,
   TbTrash,
+  TbPointer,
+  TbClipboard,
 } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
@@ -37,15 +45,19 @@ import {
 import { track } from "~/pirsch";
 import { Link as RouterLink } from "react-router";
 import { extractCitations } from "libs/citation";
+import { Button } from "~/components/ui/button";
+import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp/setup";
 
 function ChatInput({
   onAsk,
   stage,
   searchQuery,
+  disabled,
 }: {
   onAsk: (query: string) => void;
   stage: AskStage;
   searchQuery?: string;
+  disabled?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
@@ -93,7 +105,7 @@ function ChatInput({
     return "Ask your question";
   }
 
-  const disabled = stage !== "idle";
+  const isDisabled = disabled || stage !== "idle";
 
   return (
     <Group
@@ -120,7 +132,7 @@ function ChatInput({
                 handleAsk();
               }
             }}
-            disabled={disabled}
+            disabled={isDisabled}
           />
         </InputGroup>
       </Group>
@@ -129,7 +141,7 @@ function ChatInput({
           rounded={"full"}
           onClick={handleAsk}
           size={"xs"}
-          disabled={disabled}
+          disabled={isDisabled}
         >
           <TbArrowUp />
         </IconButton>
@@ -350,14 +362,107 @@ function LoadingMessage() {
   );
 }
 
+function MCPSetup({ scrape }: { scrape: Scrape }) {
+  const [section, setSection] = useState<string>("mcp-command");
+  const sections = useMemo(
+    () => [
+      {
+        value: "mcp-command",
+        icon: <TbRobotFace />,
+        title: "MCP Command",
+        script: makeMcpCommand(scrape.id, makeMcpName(scrape)),
+        language: "sh",
+      },
+      {
+        value: "stats",
+        icon: <TbPointer />,
+        title: "Cursor",
+        script: makeCursorMcpJson(scrape.id, makeMcpName(scrape)),
+        language: "json",
+      },
+    ],
+    [scrape]
+  );
+
+  return (
+    <Stack h="full" p={4}>
+      <Center w="full" h="full">
+        <Stack w="full" maxW={"400px"} gap={8}>
+          <Stack>
+            <Heading>
+              <Group>
+                <TbRobotFace />
+                <Text>Setup MCP client</Text>
+              </Group>
+            </Heading>
+            <Text opacity={0.5} fontSize={"sm"}>
+              <Text as="span" fontWeight={"bold"}>
+                Model Context Protocol
+              </Text>{" "}
+              is a standard way for AI apps to extend the ability to do custom
+              actions. You can also use your own AI applications to interact
+              with the documentation such as Cursor, Windsurf, Claude or ever
+              growing list.
+            </Text>
+          </Stack>
+          <Stack>
+            <Group justify={"end"}>
+              <Link
+                fontSize={"sm"}
+                href="https://guides.crawlchat.app/walkthrough/67db0080600010f091e529b7/read"
+                target="_blank"
+              >
+                <TbHelp /> Help
+              </Link>
+            </Group>
+            <Accordion.Root
+              value={[section]}
+              onValueChange={(e) => setSection(e.value[0])}
+              variant={"enclosed"}
+            >
+              {sections.map((item) => (
+                <Accordion.Item key={item.value} value={item.value}>
+                  <Accordion.ItemTrigger>
+                    <Group justify={"space-between"} w="full">
+                      <Group>
+                        <Icon fontSize="lg" color="fg.subtle">
+                          {item.icon}
+                        </Icon>
+                        <Text>{item.title}</Text>
+                      </Group>
+
+                      <Group></Group>
+                    </Group>
+                  </Accordion.ItemTrigger>
+                  <Accordion.ItemContent>
+                    <Accordion.ItemBody>
+                      <MarkdownProse noMarginCode>
+                        {`\`\`\`${item.language}\n${item.script}\n\`\`\``}
+                      </MarkdownProse>
+                    </Accordion.ItemBody>
+                  </Accordion.ItemContent>
+                </Accordion.Item>
+              ))}
+            </Accordion.Root>
+          </Stack>
+        </Stack>
+      </Center>
+    </Stack>
+  );
+}
+
 function Toolbar({
   messages,
   onErase,
   onPinSelect,
+  screen,
+  onScreenChange,
 }: {
   messages: Message[];
   onErase: () => void;
   onPinSelect: (id: string) => void;
+  screen: "chat" | "mcp";
+  onScreenChange: (screen: "chat" | "mcp") => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const pinnedCount = useMemo(() => {
@@ -398,15 +503,16 @@ function Toolbar({
       justify={"space-between"}
     >
       <Group>
-        <Group></Group>
+        <Group>
+          <Text fontSize={"xs"} opacity={0.5}>
+            Powered by{" "}
+            <Link asChild target="_blank" fontWeight={"bold"}>
+              <RouterLink to="/">CrawlChat</RouterLink>
+            </Link>
+          </Text>
+        </Group>
       </Group>
       <Group>
-        <Text fontSize={"xs"} opacity={0.5}>
-          Powered by{" "}
-          <Link asChild target="_blank" fontWeight={"bold"}>
-            <RouterLink to="/">CrawlChat</RouterLink>
-          </Link>
-        </Text>
         {pinnedCount > 0 && (
           <MenuRoot
             positioning={{ placement: "bottom-end" }}
@@ -448,21 +554,44 @@ function Toolbar({
           </MenuRoot>
         )}
 
-        <Tooltip
-          content={confirmDelete ? "Are you sure?" : "Clear chat"}
-          open={confirmDelete}
-          showArrow
-        >
-          <IconButton
-            size={"xs"}
-            rounded={"full"}
-            variant={confirmDelete ? "solid" : "subtle"}
-            colorPalette={confirmDelete ? "red" : undefined}
-            onClick={handleDelete}
+        {screen === "chat" && (
+          <Tooltip
+            content={confirmDelete ? "Are you sure?" : "Clear chat"}
+            open={confirmDelete}
+            showArrow
           >
-            <TbEraser />
-          </IconButton>
-        </Tooltip>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={confirmDelete ? "solid" : "subtle"}
+              colorPalette={confirmDelete ? "red" : undefined}
+              onClick={handleDelete}
+            >
+              <TbEraser />
+            </IconButton>
+          </Tooltip>
+        )}
+
+        {screen === "chat" && (
+          <Button
+            size={"xs"}
+            variant={"subtle"}
+            onClick={() => onScreenChange("mcp")}
+          >
+            Setup MCP
+            <TbRobotFace />
+          </Button>
+        )}
+        {screen === "mcp" && (
+          <Button
+            size={"xs"}
+            variant={"subtle"}
+            onClick={() => onScreenChange("chat")}
+          >
+            Switch to chat
+            <TbMessage />
+          </Button>
+        )}
       </Group>
     </Group>
   );
@@ -495,6 +624,7 @@ export default function ScrapeWidget({
     defaultMessages: messages,
     threadId: thread.id,
   });
+  const [screen, setScreen] = useState<"chat" | "mcp">("chat");
 
   useEffect(function () {
     chat.connect();
@@ -612,43 +742,60 @@ export default function ScrapeWidget({
           messages={chat.messages}
           onErase={handleErase}
           onPinSelect={handlePinSelect}
+          screen={screen}
+          onScreenChange={setScreen}
         />
         <Stack flex="1" overflow={"auto"} gap={0}>
-          {chat.allMessages.length === 0 && (
-            <NoMessages scrape={scrape} onQuestionClick={handleAsk} />
-          )}
-          {chat.allMessages.map((message, index) => (
-            <Stack key={index} id={`message-${message.id}`}>
-              {message.role === "user" ? (
-                <UserMessage content={message.content} />
-              ) : (
-                <AssistantMessage
-                  content={message.content}
-                  links={message.links}
-                  pinned={chat.allMessages[index - 1]?.pinned}
-                  onPin={() => handlePin(chat.allMessages[index - 1]?.id)}
-                  onUnpin={() => handleUnpin(chat.allMessages[index - 1]?.id)}
-                  onDelete={() =>
-                    handleDelete([chat.allMessages[index - 1]?.id, message.id])
-                  }
-                  onRefresh={() =>
-                    handleRefresh(chat.allMessages[index - 1]?.id, message.id)
-                  }
-                />
+          {screen === "chat" && (
+            <>
+              {chat.allMessages.length === 0 && (
+                <NoMessages scrape={scrape} onQuestionClick={handleAsk} />
               )}
-              {(chat.askStage === "asked" || chat.askStage === "searching") &&
-                index === chat.allMessages.length - 1 && <LoadingMessage />}
-              {chat.askStage !== "idle" &&
-                index === chat.allMessages.length - 1 && (
-                  <Box h={"2000px"} w="full" />
-                )}
-            </Stack>
-          ))}
+              {chat.allMessages.map((message, index) => (
+                <Stack key={index} id={`message-${message.id}`}>
+                  {message.role === "user" ? (
+                    <UserMessage content={message.content} />
+                  ) : (
+                    <AssistantMessage
+                      content={message.content}
+                      links={message.links}
+                      pinned={chat.allMessages[index - 1]?.pinned}
+                      onPin={() => handlePin(chat.allMessages[index - 1]?.id)}
+                      onUnpin={() =>
+                        handleUnpin(chat.allMessages[index - 1]?.id)
+                      }
+                      onDelete={() =>
+                        handleDelete([
+                          chat.allMessages[index - 1]?.id,
+                          message.id,
+                        ])
+                      }
+                      onRefresh={() =>
+                        handleRefresh(
+                          chat.allMessages[index - 1]?.id,
+                          message.id
+                        )
+                      }
+                    />
+                  )}
+                  {(chat.askStage === "asked" ||
+                    chat.askStage === "searching") &&
+                    index === chat.allMessages.length - 1 && <LoadingMessage />}
+                  {chat.askStage !== "idle" &&
+                    index === chat.allMessages.length - 1 && (
+                      <Box h={"2000px"} w="full" />
+                    )}
+                </Stack>
+              ))}
+            </>
+          )}
+          {screen === "mcp" && <MCPSetup scrape={scrape} />}
         </Stack>
         <ChatInput
           onAsk={handleAsk}
           stage={chat.askStage}
           searchQuery={chat.searchQuery}
+          disabled={screen !== "chat"}
         />
       </Stack>
     </Center>

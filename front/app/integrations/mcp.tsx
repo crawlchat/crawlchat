@@ -15,6 +15,8 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { TbHelp } from "react-icons/tb";
 import type { Route } from "./+types/mcp";
 import { getSessionScrapeId } from "~/scrapes/util";
+import { makeCursorMcpJson, makeMcpName } from "~/mcp/setup";
+import { makeMcpCommand } from "~/mcp/setup";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -56,19 +58,9 @@ export async function action({ request }: Route.ActionArgs) {
 export default function ScrapeMcp({ loaderData }: Route.ComponentProps) {
   const toolNameFetcher = useFetcher();
 
-  const name =
-    loaderData.scrape.mcpToolName ??
-    loaderData.scrape.title?.replaceAll(" ", "_") ??
-    loaderData.scrape.url;
-  const mcpCommand = `npx crawl-chat-mcp --id=${loaderData.scrape.id} --name=${name}`;
-  const cursorMcpCommand = `"${name?.replaceAll("_", "-")}": {
-  "command": "npx",
-  "args": [
-    "crawl-chat-mcp",
-    "--id=${loaderData.scrape.id}",
-    "--name=${name}"
-  ]
-}`;
+  const name = makeMcpName(loaderData.scrape);
+  const mcpCommand = makeMcpCommand(loaderData.scrape.id, name);
+  const cursorMcpCommand = makeCursorMcpJson(loaderData.scrape.id, name);
 
   return (
     <Stack gap={6}>
