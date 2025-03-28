@@ -6,8 +6,6 @@ import {
   Table,
   Text,
   Center,
-  IconButton,
-  DialogTitle,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
@@ -18,29 +16,16 @@ import {
   TbBrandDiscord,
   TbBrandGithub,
   TbPlus,
-  TbRefresh,
-  TbTrash,
   TbWorld,
-  TbX,
 } from "react-icons/tb";
-import { Link, redirect, useFetcher } from "react-router";
+import { Link } from "react-router";
 import { getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
-import { useEffect, useMemo, useState } from "react";
-import type { KnowledgeGroup } from "libs/prisma";
-import { createToken } from "~/jwt";
-import { toaster } from "~/components/ui/toaster";
-import {
-  DialogBackdrop,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogRoot,
-} from "~/components/ui/dialog";
+import { useMemo } from "react";
 import { GroupStatus } from "./group/status";
+import { RefreshButton } from "./group/refresh-button";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -70,102 +55,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { scrape, knowledgeGroups, counts };
 }
 
-export async function action({ request }: Route.ActionArgs) {
-  const user = await getAuthUser(request);
-
-  const scrapeId = await getSessionScrapeId(request);
-
-  const formData = await request.formData();
-  const intent = formData.get("intent");
-  if (intent === "refresh") {
-    const knowledgeGroupId = formData.get("knowledgeGroupId") as string;
-
-    if (!knowledgeGroupId) {
-      return { error: "Knowledge group ID is required" };
-    }
-
-    const token = createToken(user!.id);
-    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
-      method: "POST",
-      body: JSON.stringify({
-        scrapeId,
-        knowledgeGroupId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    await prisma.knowledgeGroup.update({
-      where: { id: knowledgeGroupId, userId: user!.id },
-      data: { status: "processing" },
-    });
-
-    return { success: true };
-  }
-
-  if (intent === "delete") {
-    const knowledgeGroupId = formData.get("knowledgeGroupId") as string;
-
-    if (!knowledgeGroupId) {
-      return { error: "Knowledge group ID is required" };
-    }
-
-    const token = createToken(user!.id);
-    await fetch(`${process.env.VITE_SERVER_URL}/knowledge-group`, {
-      method: "DELETE",
-      body: JSON.stringify({
-        knowledgeGroupId,
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    throw redirect(`/knowledge`);
-  }
-}
-
-function RefreshButton({
-  knowledgeGroupId,
-  disabled,
-}: {
-  knowledgeGroupId: string;
-  disabled: boolean;
-}) {
-  const fetcher = useFetcher();
-
-  useEffect(() => {
-    if (fetcher.data?.success) {
-      toaster.success({
-        title: "Group refresh initiated!",
-        description: "This may take a while.",
-      });
-    }
-  }, [fetcher.data]);
-
-  return (
-    <fetcher.Form method="post">
-      <input type="hidden" name="intent" value="refresh" />
-      <input type="hidden" name="knowledgeGroupId" value={knowledgeGroupId} />
-      <IconButton
-        size={"xs"}
-        variant={"subtle"}
-        type="submit"
-        disabled={fetcher.state !== "idle" || disabled}
-      >
-        <TbRefresh />
-      </IconButton>
-    </fetcher.Form>
-  );
-}
-
 export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
-  const deleteFetcher = useFetcher();
-  const [deleteGroup, setDeleteGroup] = useState<KnowledgeGroup>();
-
   const groups = useMemo(() => {
     return loaderData.knowledgeGroups.map((group) => {
       let icon = <TbBook />;
@@ -280,68 +170,12 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                           }
                         />
                       )}
-
-                      <IconButton
-                        size={"xs"}
-                        variant={"subtle"}
-                        colorPalette={"red"}
-                        onClick={() => setDeleteGroup(item.group)}
-                        disabled={
-                          !["pending", "error", "done"].includes(
-                            item.group.status
-                          )
-                        }
-                      >
-                        <TbTrash />
-                      </IconButton>
                     </Group>
                   </Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
           </Table.Root>
-
-          <DialogRoot
-            open={deleteGroup !== undefined}
-            onOpenChange={(e) => setDeleteGroup(e.open ? undefined : undefined)}
-          >
-            <DialogBackdrop />
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Delete knowledge group</DialogTitle>
-              </DialogHeader>
-              <DialogBody>
-                <Stack>
-                  <Text>
-                    Are you sure you want to delete{" "}
-                    <Text as="span" fontWeight={"bold"}>
-                      {deleteGroup?.title ?? "Untitled"}
-                    </Text>{" "}
-                    knowledge group? All the associated data will be deleted.
-                    This action cannot be undone.
-                  </Text>
-                </Stack>
-              </DialogBody>
-              <DialogFooter>
-                <deleteFetcher.Form method="post">
-                  <input type="hidden" name="intent" value="delete" />
-                  <input
-                    type="hidden"
-                    name="knowledgeGroupId"
-                    value={deleteGroup?.id}
-                  />
-                  <Button
-                    colorPalette={"red"}
-                    type="submit"
-                    loading={deleteFetcher.state !== "idle"}
-                  >
-                    Delete
-                    <TbTrash />
-                  </Button>
-                </deleteFetcher.Form>
-              </DialogFooter>
-            </DialogContent>
-          </DialogRoot>
         </Stack>
       )}
     </Page>

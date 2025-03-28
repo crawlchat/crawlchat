@@ -3,13 +3,15 @@ import { prisma, type KnowledgeGroup } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { getSessionScrapeId } from "~/scrapes/util";
 import type { Route } from "./+types/settings";
-import { DataList, Input, Stack } from "@chakra-ui/react";
+import { DataList, Group, Heading, Input, Stack, Text } from "@chakra-ui/react";
 import { SettingsSection } from "~/dashboard/profile";
-import { useMemo } from "react";
-import { useFetcher } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { redirect, useFetcher } from "react-router";
 import { Switch } from "~/components/ui/switch";
 import moment from "moment";
 import { GroupStatus } from "./status";
+import { Button } from "~/components/ui/button";
+import { TbTrash } from "react-icons/tb";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -40,6 +42,14 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const scrapeId = await getSessionScrapeId(request);
   const groupId = params.groupId;
+
+  if (request.method === "DELETE") {
+    await prisma.knowledgeGroup.delete({
+      where: { id: groupId, userId: user!.id, scrapeId },
+    });
+
+    return redirect("/knowledge");
+  }
 
   const formData = await request.formData();
 
@@ -147,6 +157,10 @@ function GithubSettings({ group }: { group: KnowledgeGroup }) {
         key: "Updated at",
         value: moment(group.updatedAt).format("DD/MM/YYYY HH:mm"),
       },
+      {
+        key: "Status",
+        value: <GroupStatus status={group.status} />,
+      },
     ];
   }, [group]);
 
@@ -179,14 +193,64 @@ function GithubSettings({ group }: { group: KnowledgeGroup }) {
 export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
+  const deleteFetcher = useFetcher();
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    if (deleteConfirm) {
+      setTimeout(() => {
+        setDeleteConfirm(false);
+      }, 5000);
+    }
+  }, [deleteConfirm]);
+
+  function handleDelete() {
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      return;
+    }
+
+    deleteFetcher.submit(null, {
+      method: "delete",
+    });
+  }
+
   return (
-    <Stack>
+    <Stack gap={6}>
       {loaderData.knowledgeGroup.type === "scrape_web" && (
         <WebSettings group={loaderData.knowledgeGroup} />
       )}
       {loaderData.knowledgeGroup.type === "scrape_github" && (
         <GithubSettings group={loaderData.knowledgeGroup} />
       )}
+
+      <Stack
+        border={"1px solid"}
+        borderColor={"red.300"}
+        bg="red.50"
+        rounded={"lg"}
+        p={4}
+        gap={4}
+      >
+        <Stack>
+          <Heading>Delete knowledge group</Heading>
+          <Text fontSize={"sm"} opacity={0.5}>
+            This will delete the knowledge group and all the data that is
+            associated with it. This is not reversible.
+          </Text>
+        </Stack>
+        <Group>
+          <Button
+            colorPalette={"red"}
+            onClick={handleDelete}
+            loading={deleteFetcher.state !== "idle"}
+            variant={deleteConfirm ? "solid" : "outline"}
+          >
+            {deleteConfirm ? "Sure to delete?" : "Delete"}
+            <TbTrash />
+          </Button>
+        </Group>
+      </Stack>
     </Stack>
   );
 }

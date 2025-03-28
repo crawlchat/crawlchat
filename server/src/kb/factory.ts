@@ -24,6 +24,9 @@ export function makeKbProcesser(
         knowledgeGroup.matchPrefix && knowledgeGroup.url
           ? new RegExp(`^${knowledgeGroup.url.replace(/\/$/, "")}.*`)
           : undefined,
+      skipRegex: knowledgeGroup.skipPageRegex
+        ? knowledgeGroup.skipPageRegex.split(",").map((r) => new RegExp(r))
+        : undefined,
     });
 
     return processer;

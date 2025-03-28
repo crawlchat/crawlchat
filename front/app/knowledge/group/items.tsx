@@ -11,10 +11,9 @@ import type { Route } from "./+types/items";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import moment from "moment";
-import { TbArrowLeft, TbCheck, TbRefresh, TbX } from "react-icons/tb";
+import { TbCheck, TbRefresh, TbX, TbStack } from "react-icons/tb";
 import { Link, Outlet } from "react-router";
 import { getSessionScrapeId } from "~/scrapes/util";
-import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -61,14 +60,8 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
           <EmptyState
             title="No items"
             description="Scrape your documents to get started."
-          >
-            <Button asChild colorPalette={"brand"} variant={"subtle"}>
-              <Link to="/knowledge">
-                <TbArrowLeft />
-                Go to groups
-              </Link>
-            </Button>
-          </EmptyState>
+            icon={<TbStack />}
+          />
         </Center>
       )}
       {loaderData.items.length > 0 && (

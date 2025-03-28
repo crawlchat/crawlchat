@@ -2,39 +2,18 @@ import {
   Input,
   Stack,
   Group,
-  Text,
-  createListCollection,
   Center,
   RadioCard,
   HStack,
   Icon,
   Checkbox,
 } from "@chakra-ui/react";
-import {
-  TbBook2,
-  TbBrandGithub,
-  TbCheck,
-  TbInfoCircle,
-  TbWorld,
-} from "react-icons/tb";
+import { TbBook2, TbBrandGithub, TbCheck, TbWorld } from "react-icons/tb";
 import { redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 import { Field } from "~/components/ui/field";
-import {
-  NumberInputField,
-  NumberInputRoot,
-} from "~/components/ui/number-input";
-import {
-  SelectContent,
-  SelectItem,
-  SelectLabel,
-  SelectRoot,
-  SelectTrigger,
-  SelectValueText,
-} from "~/components/ui/select";
-import { Tooltip } from "~/components/ui/tooltip";
 import { createToken } from "~/jwt";
 import type { Route } from "./+types/new-group";
 import { useMemo, useState } from "react";
@@ -70,13 +49,8 @@ export async function action({ request }: { request: Request }) {
   if (request.method === "POST") {
     let url = formData.get("url") as string;
     let maxLinks = formData.get("maxLinks");
-    let skipRegex = formData.get("skipRegex");
     let allowOnlyRegex = formData.get("allowOnlyRegex");
-    let dynamicFallbackContentLength = formData.get(
-      "dynamicFallbackContentLength"
-    );
     let removeHtmlTags = formData.get("removeHtmlTags");
-    let includeHtmlTags = formData.get("includeHtmlTags");
 
     let type = formData.get("type") as KnowledgeGroupType;
     let githubRepoUrl = formData.get("githubRepoUrl");
@@ -110,7 +84,7 @@ export async function action({ request }: { request: Request }) {
 
     const group = await prisma.knowledgeGroup.create({
       data: {
-        scrapeId,
+        scrapeId: scrape.id,
         userId: user!.id,
         type,
         status: "pending",
@@ -120,33 +94,17 @@ export async function action({ request }: { request: Request }) {
         url,
         matchPrefix: prefix === "on",
         removeHtmlTags: removeHtmlTags as string,
-        maxPages: parseInt(maxLinks as string),
-        staticContentThresholdLength: parseInt(
-          dynamicFallbackContentLength as string
-        ),
+        maxPages: 5000,
+        staticContentThresholdLength: 100,
 
         githubBranch: githubBranch as string,
         githubUrl: githubRepoUrl as string,
       },
     });
 
-    throw redirect(`/knowledge`);
+    throw redirect(`/knowledge/group/${group.id}`);
   }
 }
-
-const maxLinks = createListCollection({
-  items: [
-    { label: "1 page", value: "1" },
-    { label: "10 pages", value: "10" },
-    { label: "50 pages", value: "50" },
-    { label: "100 pages", value: "100" },
-    { label: "300 pages", value: "300" },
-    { label: "500 pages", value: "500" },
-    { label: "1000 pages", value: "1000" },
-    { label: "2000 pages", value: "2000" },
-    { label: "5000 pages", value: "5000" },
-  ],
-});
 
 export default function NewScrape({ loaderData }: Route.ComponentProps) {
   const scrapeFetcher = useFetcher();
@@ -226,89 +184,13 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                     />
                   </Field>
 
-                  <Checkbox.Root name="prefix">
+                  <Checkbox.Root name="prefix" defaultChecked>
                     <Checkbox.HiddenInput />
                     <Checkbox.Control>
                       <Checkbox.Indicator />
                     </Checkbox.Control>
                     <Checkbox.Label>Match exact prefix</Checkbox.Label>
                   </Checkbox.Root>
-
-                  <Group gap={4}>
-                    <Field label="Skip URLs">
-                      <Input
-                        name="skipRegex"
-                        placeholder="Ex: /blog or /docs/v1"
-                      />
-                    </Field>
-
-                    <Field
-                      label={
-                        <Group>
-                          <Text>Remove HTML tags</Text>
-                          <Tooltip
-                            content="It is highly recommended to remove all unnecessary content from the page. App already removes most of the junk content like navigations, ads, etc. You can also specify specific tags to remove. Garbage in, garbage out!"
-                            positioning={{ placement: "top" }}
-                            showArrow
-                          >
-                            <Text>
-                              <TbInfoCircle />
-                            </Text>
-                          </Tooltip>
-                        </Group>
-                      }
-                    >
-                      <Input
-                        name="removeHtmlTags"
-                        placeholder="Ex: aside,header,#ad,.link"
-                      />
-                    </Field>
-                  </Group>
-
-                  <Stack direction={["column", "row"]} gap={4}>
-                    <SelectRoot
-                      name="maxLinks"
-                      collection={maxLinks}
-                      defaultValue={["300"]}
-                    >
-                      <SelectLabel>Select max pages</SelectLabel>
-                      <SelectTrigger>
-                        <SelectValueText placeholder="Select max links" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {maxLinks.items.map((maxLink) => (
-                          <SelectItem item={maxLink} key={maxLink.value}>
-                            {maxLink.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
-
-                    <Field
-                      label={
-                        <Group>
-                          <Text>Dynamic fallback content length</Text>
-                          <Tooltip
-                            content="If the content length is less than this number, the content will be fetched dynamically (for client side rendered content)"
-                            positioning={{ placement: "top" }}
-                            showArrow
-                          >
-                            <Text>
-                              <TbInfoCircle />
-                            </Text>
-                          </Tooltip>
-                        </Group>
-                      }
-                    >
-                      <NumberInputRoot
-                        name="dynamicFallbackContentLength"
-                        defaultValue="100"
-                        w="full"
-                      >
-                        <NumberInputField />
-                      </NumberInputRoot>
-                    </Field>
-                  </Stack>
                 </>
               )}
 
