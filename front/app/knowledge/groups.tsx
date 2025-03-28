@@ -17,9 +17,6 @@ import {
   TbBook,
   TbBrandDiscord,
   TbBrandGithub,
-  TbCheck,
-  TbLoader,
-  TbPlayerPauseFilled,
   TbPlus,
   TbRefresh,
   TbTrash,
@@ -42,8 +39,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogRoot,
-  DialogTrigger,
 } from "~/components/ui/dialog";
+import { GroupStatus } from "./group/status";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -172,9 +169,6 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
   const groups = useMemo(() => {
     return loaderData.knowledgeGroups.map((group) => {
       let icon = <TbBook />;
-      let statusText = "Unknown";
-      let statusColor: string | undefined = undefined;
-      let statusIcon = <TbBook />;
       let typeText = "Unknown";
 
       if (group.type === "scrape_web") {
@@ -188,28 +182,8 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
         typeText = "Discord";
       }
 
-      if (group.status === "pending") {
-        statusText = "To be processed";
-        statusIcon = <TbPlayerPauseFilled />;
-      } else if (group.status === "done") {
-        statusText = "Up to date";
-        statusColor = "brand";
-        statusIcon = <TbCheck />;
-      } else if (group.status === "error") {
-        statusText = "Error";
-        statusColor = "red";
-        statusIcon = <TbX />;
-      } else if (group.status === "processing") {
-        statusText = "Updating";
-        statusColor = "blue";
-        statusIcon = <TbLoader />;
-      }
-
       return {
         icon,
-        statusText,
-        statusColor,
-        statusIcon,
         typeText,
         group,
       };
@@ -287,10 +261,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                     </Badge>
                   </Table.Cell>
                   <Table.Cell>
-                    <Badge variant={"surface"} colorPalette={item.statusColor}>
-                      {item.statusIcon}
-                      {item.statusText}
-                    </Badge>
+                    <GroupStatus status={item.group.status} />
                   </Table.Cell>
                   <Table.Cell>
                     {moment(item.group.updatedAt).fromNow()}

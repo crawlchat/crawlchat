@@ -244,6 +244,7 @@ model KnowledgeGroup {
   removeHtmlTags                            String?
   maxPages                                  Int?
   staticContentThresholdLength              Int?
+  skipPageRegex                             String?
 
   githubUrl                                 String?
   githubBranch                              String?

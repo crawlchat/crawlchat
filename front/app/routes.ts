@@ -42,7 +42,10 @@ export default [
     ]),
 
     route("knowledge/group", "knowledge/new-group.tsx"),
-    route("knowledge/group/:groupId", "knowledge/links.tsx"),
+    route("knowledge/group/:groupId", "knowledge/group/page.tsx", [
+      index("knowledge/group/settings.tsx"),
+      route("items", "knowledge/group/items.tsx"),
+    ]),
     route("knowledge", "knowledge/groups.tsx"),
     route("knowledge/item/:itemId", "knowledge/link-item.tsx"),
   ]),
