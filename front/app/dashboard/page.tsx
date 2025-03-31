@@ -10,6 +10,8 @@ import {
   Input,
   DialogCloseTrigger,
   Center,
+  SimpleGrid,
+  Flex,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/page";
 import {
@@ -19,6 +21,7 @@ import {
   TbHome,
   TbMessage,
   TbPlus,
+  TbStack,
 } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
@@ -132,10 +135,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   for (const message of messages) {
     if (!message.links || message.links.length === 0) continue;
-    
-    const sum = message.links
-      .map((l) => l.score ?? 0)
-      .reduce((acc, curr) => acc + curr, 0);
+
     const max = Math.max(...message.links.map((l) => l.score ?? 0));
     const index = Math.floor(max * points);
     scoreDestribution[index] = {
@@ -151,6 +151,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     messagesToday,
     scrapeId,
     scoreDestribution,
+    scrape: scrapes.find((s) => s.id === scrapeId),
   };
 }
 
@@ -386,6 +387,66 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               />
             </BarChart>
           </Stack>
+
+          {loaderData.scrape && loaderData.scrape.analytics?.categories && (
+            <Stack>
+              <Heading>
+                <Group>
+                  <TbStack />
+                  <Text>Message categories</Text>
+                  <ChakraTooltip
+                    showArrow
+                    content={
+                      "These are the categories of the messages received in the last 7 days across all the channels"
+                    }
+                  >
+                    <Icon opacity={0.5}>
+                      <TbHelp />
+                    </Icon>
+                  </ChakraTooltip>
+                  <Text fontSize={"sm"} opacity={0.2}>
+                    Updated once a day
+                  </Text>
+                </Group>
+              </Heading>
+
+              <SimpleGrid columns={[1, 2, 3]} gap={4}>
+                {loaderData.scrape.analytics.categories
+                  .sort((a, b) => b.messageIds.length - a.messageIds.length)
+                  .map((c) => (
+                    <Group
+                      key={c.key}
+                      border="1px solid"
+                      borderColor={"brand.outline"}
+                      p={4}
+                      rounded={"lg"}
+                      justifyContent={"space-between"}
+                    >
+                      <Stack gap={1}>
+                        <Text fontWeight={"bold"}>{c.name}</Text>
+                        <Text fontSize={"sm"} opacity={0.4}>
+                          {c.description}
+                        </Text>
+                      </Stack>
+                      <Group>
+                        <Center
+                          w={10}
+                          h={10}
+                          rounded={"full"}
+                          bg={"brand.subtle"}
+                          color={"brand.fg"}
+                          fontWeight={"bold"}
+                          border={"1px solid"}
+                          borderColor={"brand.outline"}
+                        >
+                          <Text>{c.messageIds.length}</Text>
+                        </Center>
+                      </Group>
+                    </Group>
+                  ))}
+              </SimpleGrid>
+            </Stack>
+          )}
         </Stack>
       )}
 
