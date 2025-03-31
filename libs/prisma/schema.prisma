@@ -73,6 +73,16 @@ type ScrapeAnalytics {
   updatedAt           DateTime
 }
 
+type DiscordAnswerChannel {
+  channelId           String
+}
+
+type DiscordAnswerConfig {
+  minScore            Float
+  channels            DiscordAnswerChannel[]
+  emoji               String?
+}
+
 model Scrape {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   userId                String   @db.ObjectId
@@ -87,6 +97,7 @@ model Scrape {
   widgetConfig          WidgetConfig?
   indexer               String?
   discordServerId       String?
+  discordAnswerConfig   DiscordAnswerConfig?
 
   analytics             ScrapeAnalytics?
 

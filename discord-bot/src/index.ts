@@ -9,7 +9,7 @@ import {
   Snowflake,
   TextChannel,
 } from "discord.js";
-import { getDiscordDetails, learn, query } from "./api";
+import { getDiscordDetails, learn, query, testQuery } from "./api";
 import { createToken } from "./jwt";
 
 type DiscordMessage = Message<boolean>;
@@ -143,6 +143,20 @@ It should be under 1000 charecters.`,
     stopTyping();
 
     message.reply(response);
+  } else {
+    const { userId, scrapeId, autoAnswerChannelIds, answerEmoji } =
+      await getDiscordDetails(message.guildId!);
+    if (
+      autoAnswerChannelIds.includes(message.channelId) &&
+      (await testQuery(
+        message.content,
+        createToken(userId),
+        scrapeId,
+        message.channelId
+      ))
+    ) {
+      message.react(answerEmoji);
+    }
   }
 });
 
