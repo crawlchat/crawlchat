@@ -24,6 +24,7 @@ import { makeKbProcesser } from "./kb/factory";
 import { FlowMessage } from "./llm/agentic";
 import { assignCategory } from "./collection";
 import { effect } from "./effect";
+import { makeTestQueryFlow } from "./llm/flow-test-query";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -501,7 +502,7 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
   res.json({ scrapeItem });
 });
 
-app.post("/answer/:scrapeId", async (req, res) => {
+app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: req.params.scrapeId },
   });
@@ -603,7 +604,62 @@ app.get("/discord/:channelId", async (req, res) => {
     return;
   }
 
-  res.json({ scrapeId: scrape.id, userId: scrape.userId });
+  res.json({
+    scrapeId: scrape.id,
+    userId: scrape.userId,
+    autoAnswerChannelIds: scrape.discordAnswerConfig?.channels.map(
+      (c) => c.channelId
+    ),
+    answerEmoji: scrape.discordAnswerConfig?.emoji ?? "✋🏻",
+  });
+});
+
+app.post("/test-query/:scrapeId", authenticate, async (req, res) => {
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: req.params.scrapeId },
+  });
+
+  let canAnswer = false;
+  const flow = makeTestQueryFlow(req.body.text);
+
+  while (await flow.stream()) {}
+  const message = JSON.parse((flow.getLastMessage().llmMessage as any).content);
+
+  if (
+    scrape.discordAnswerConfig &&
+    scrape.discordAnswerConfig.channels.some(
+      (c) => c.channelId === req.body.channelId
+    ) &&
+    message.isQuestion &&
+    message.confidence > 0.6
+  ) {
+    const flow = makeFlow(
+      scrape.id,
+      scrape.chatPrompt ?? "",
+      req.body.text,
+      [],
+      scrape.indexer
+    );
+
+    while (await flow.stream()) {}
+
+    const links = await collectSourceLinks(
+      scrape.id,
+      flow.flowState.state.messages
+    );
+
+    const maxScore = Math.max(...links.map((l) => l.score ?? 0));
+
+    console.log({ maxScore });
+
+    if (maxScore >= scrape.discordAnswerConfig.minScore) {
+      canAnswer = true;
+    }
+  }
+
+  res.json({
+    canAnswer,
+  });
 });
 
 app.listen(port, async () => {
