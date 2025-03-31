@@ -20,7 +20,10 @@ const agent = new SimpleAgent({
         description: z.string(),
         messageIds: z.array(
           z.object({
-            id: z.string({ description: "Message id" }),
+            id: z.string({
+              description:
+                "Message id as exactly mentioned in the above context json",
+            }),
           })
         ),
       })

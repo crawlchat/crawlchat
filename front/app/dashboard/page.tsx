@@ -257,7 +257,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     if (containerRef.current) {
-      setWidth(containerRef.current.clientWidth);
+      setWidth(containerRef.current.clientWidth - 10);
     }
   }, [containerRef, loaderData.scrapes]);
 
@@ -410,7 +410,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 </Group>
               </Heading>
 
-              <SimpleGrid columns={[1, 2, 3]} gap={4}>
+              <SimpleGrid columns={[1, 2, 3]} gap={4} maxW="90%">
                 {loaderData.scrape.analytics.categories
                   .sort((a, b) => b.messageIds.length - a.messageIds.length)
                   .map((c) => (
