@@ -393,7 +393,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <Heading>
                 <Group>
                   <TbStack />
-                  <Text>Message categories</Text>
+                  <Text>Categories</Text>
                   <ChakraTooltip
                     showArrow
                     content={
@@ -404,13 +404,10 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                       <TbHelp />
                     </Icon>
                   </ChakraTooltip>
-                  <Text fontSize={"sm"} opacity={0.2}>
-                    Updated once a day
-                  </Text>
                 </Group>
               </Heading>
 
-              <SimpleGrid columns={[1, 2, 3]} gap={4} maxW="90%">
+              <SimpleGrid columns={[1, 2, 3]} gap={4}>
                 {loaderData.scrape.analytics.categories
                   .sort((a, b) => b.messageIds.length - a.messageIds.length)
                   .map((c) => (

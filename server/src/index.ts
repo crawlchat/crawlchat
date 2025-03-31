@@ -22,7 +22,7 @@ import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
 import { FlowMessage } from "./llm/agentic";
-import { updateAnalytics } from "./collection";
+import { assignCategory } from "./collection";
 import { effect } from "./effect";
 
 const app: Express = express();
@@ -352,7 +352,7 @@ expressWs.app.ws("/", (ws: any, req) => {
             message: newAnswerMessage,
           })
         );
-        effect(updateAnalytics(scrape.id));
+        effect(assignCategory(scrape.id, newQueryMessage.id));
       }
     } catch (error) {
       console.error(error);
@@ -391,7 +391,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   }
   const query = req.query.query as string;
 
-  await prisma.message.create({
+  const userMessage = await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -418,7 +418,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   };
   const links = await collectSourceLinks(scrape.id, [message]);
 
-  await prisma.message.create({
+  const newAnswerMessage = await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -429,7 +429,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     },
   });
 
-  effect(updateAnalytics(scrape.id));
+  effect(assignCategory(scrape.id, userMessage.id));
 
   res.json(processed);
 });
@@ -530,7 +530,7 @@ app.post("/answer/:scrapeId", async (req, res) => {
     query = messages[messages.length - 1].content;
   }
 
-  await prisma.message.create({
+  const userMessage = await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -588,7 +588,7 @@ app.post("/answer/:scrapeId", async (req, res) => {
         .join("\n");
   }
 
-  effect(updateAnalytics(scrape.id));
+  effect(assignCategory(scrape.id, userMessage.id));
 
   res.json({ message: newAnswerMessage, content: updatedContent });
 });
