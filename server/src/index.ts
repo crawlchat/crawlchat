@@ -22,6 +22,7 @@ import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
 import { FlowMessage } from "./llm/agentic";
+import { updateAnalytics } from "./collection";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -350,6 +351,7 @@ expressWs.app.ws("/", (ws: any, req) => {
             message: newAnswerMessage,
           })
         );
+        updateAnalytics(scrape.id);
       }
     } catch (error) {
       console.error(error);
@@ -425,6 +427,8 @@ app.get("/mcp/:scrapeId", async (req, res) => {
       channel: "mcp",
     },
   });
+
+  updateAnalytics(scrape.id);
 
   res.json(processed);
 });
@@ -582,6 +586,8 @@ app.post("/answer/:scrapeId", async (req, res) => {
         .map((l) => l.url)
         .join("\n");
   }
+
+  updateAnalytics(scrape.id);
 
   res.json({ message: newAnswerMessage, content: updatedContent });
 });

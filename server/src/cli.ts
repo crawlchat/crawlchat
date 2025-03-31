@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Flow } from "./llm/flow";
 import { makeFlow, makeRagTool } from "./llm/flow-jasmine";
 import { prisma } from "./prisma";
+import { makeCategoryFlow } from "./llm/flow-category";
 
 async function main() {
   const ragTool = makeRagTool("67c1d700cb1ec09c237bab8a", "mars");
@@ -181,7 +182,7 @@ async function fillKnowledgeGroup2() {
           type: "scrape_web",
           status: "done",
           url: scrape.url,
-        }
+        },
       });
     }
 

@@ -57,6 +57,22 @@ type WidgetConfig {
   showMcpSetup        Boolean?
 }
 
+type ScrapeAnalyticsCategoryMessageId {
+  id                  String @db.ObjectId
+}
+
+type ScrapeAnalyticsCategory {
+  key                 String
+  name                String
+  description         String
+  messageIds          ScrapeAnalyticsCategoryMessageId[]
+}
+
+type ScrapeAnalytics {
+  categories          ScrapeAnalyticsCategory[]
+  updatedAt           DateTime
+}
+
 model Scrape {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   userId                String   @db.ObjectId
@@ -71,6 +87,8 @@ model Scrape {
   widgetConfig          WidgetConfig?
   indexer               String?
   discordServerId       String?
+
+  analytics             ScrapeAnalytics?
 
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
