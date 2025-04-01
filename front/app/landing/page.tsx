@@ -47,6 +47,7 @@ import {
   TbAi,
   TbLink,
   TbChartArea,
+  TbPlug,
 } from "react-icons/tb";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -433,10 +434,10 @@ function HowItWorks() {
         "Once the content is scraped, you can customise how the content is to be used. Set custom rules, custom data, system prompts etc.",
     },
     {
-      icon: <TbMessage />,
-      title: "Chat & APIs",
+      icon: <TbPlug />,
+      title: "Integrate",
       description:
-        "There are multiple ways you use the data for AI. Easiest is to just embed the chat widget on your website. API's to query and MCP servers are also available!",
+        "Deploy your documentation by integrating the Chat widget on your website, or add a Discord bot to your server, or share it with MCP server.",
     },
   ];
   return (
