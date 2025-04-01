@@ -15,8 +15,15 @@ import {
   Badge,
   Flex,
   Image,
+  Icon,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState, type PropsWithChildren } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ElementType,
+  type PropsWithChildren,
+} from "react";
 import {
   TbArrowRight,
   TbBrandDiscord,
@@ -48,14 +55,15 @@ import { Toaster } from "~/components/ui/toaster";
 import { useColorMode } from "~/components/ui/color-mode";
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/page";
+import { Tooltip } from "~/components/ui/tooltip";
 
 const maxW = "1200px";
 
 export function meta() {
   return [
     {
-      title: "CrawlChat - Make your content LLM ready!",
-      description: "Chat with Any Website using AI",
+      title: "CrawlChat - Your documentation with AI!",
+      description: "Deliver your documentation with AI",
     },
   ];
 }
@@ -235,6 +243,63 @@ function TryItOut() {
   );
 }
 
+function AnimatedGradient({ children }: PropsWithChildren) {
+  const [deg, setDeg] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDeg((deg) => deg + 1);
+    }, 10);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Text
+      as="span"
+      className="gradient-text"
+      style={{
+        background: `linear-gradient(${deg}deg, var(--chakra-colors-brand-200), var(--chakra-colors-brand-300), var(--chakra-colors-brand-400), var(--chakra-colors-brand-500))`,
+      }}
+      fontWeight={"black"}
+    >
+      {children}
+    </Text>
+  );
+}
+
+function ChannelIcon({
+  icon,
+  rotate,
+  tooltip,
+}: {
+  icon: ElementType;
+  rotate: string;
+  tooltip: string;
+}) {
+  return (
+    <Tooltip content={tooltip} showArrow>
+      <Text
+        as={"span"}
+        display={"inline-flex"}
+        w={8}
+        h={8}
+        border={"1px solid"}
+        borderColor="brand.muted"
+        rounded={"xl"}
+        fontSize={"2xl"}
+        justifyContent={"center"}
+        alignItems={"center"}
+        bgGradient={"to-b"}
+        gradientFrom={"brand.muted"}
+        gradientTo={"brand.subtle"}
+        rotate={rotate}
+      >
+        <Icon as={icon} fontSize={"18px"} />
+      </Text>
+    </Tooltip>
+  );
+}
+
 function Hero() {
   return (
     <Stack w={"full"} px={8} py={12}>
@@ -249,29 +314,46 @@ function Hero() {
             fontWeight={"medium"}
             rounded={"full"}
           >
-            Connect documentations to MCP!
+            Connect documentation to MCP!
           </Text>
 
           <Heading
             as="h1"
-            fontSize={"6xl"}
+            fontSize={["5xl", "6xl"]}
             fontWeight={"bolder"}
             lineHeight={1}
             textAlign={"center"}
           >
-            Make your content LLM ready!
+            Deliver your documentation with{" "}
+            <AnimatedGradient>AI</AnimatedGradient>
           </Heading>
 
           <Text
             as="h2"
-            fontSize={"xl"}
+            fontSize={["lg", "xl"]}
             textAlign={"center"}
-            maxW={"600px"}
+            maxW={"800px"}
             opacity={0.6}
           >
-            Give URL and it will scrape all the content and turns them
-            embeddings for RAG. You can share chat links or embed it on your
-            website. Or use API to query the content.
+            Add your existing documentation as knowledge base and deliver it
+            thourh multiple channels{" "}
+            <ChannelIcon
+              icon={TbMessage}
+              rotate={"10deg"}
+              tooltip="Embed chat widget"
+            />{" "}
+            <ChannelIcon
+              icon={TbBrandDiscord}
+              rotate={"-4deg"}
+              tooltip="Discord bot"
+            />{" "}
+            <ChannelIcon
+              icon={TbRobotFace}
+              rotate={"4deg"}
+              tooltip="MCP server"
+            />{" "}
+            for your community. Get visibility how your community consumes it
+            and make your documentation better!
           </Text>
 
           <TryItOut />
@@ -706,7 +788,7 @@ export function CTA() {
             textAlign={"center"}
             lineHeight={1.2}
           >
-            Ready to make your content LLM ready?
+            Ready to make your documentation LLM ready?
           </Heading>
           <Text maxW={"500px"} textAlign={"center"} opacity={0.6}>
             Join users who are already having meaningful conversations with web
@@ -736,7 +818,7 @@ export function Footer() {
         >
           <Stack flex={2}>
             <LogoText />
-            <Text>Turn your content LLM ready!</Text>
+            <Text>Deliver your documentation with AI!</Text>
             <Text fontSize={"sm"} opacity={0.5}>
               © 2025 CrawlChat
             </Text>
