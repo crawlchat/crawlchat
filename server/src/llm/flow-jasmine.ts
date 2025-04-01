@@ -94,13 +94,8 @@ export function makeFlow(
       "Don't repeat the same or similar queries.",
       "Break multi level queries as well. For example: 'What is the average score?' should be split into 'score list' and then calculate the average.",
       "You need to find indirect questions. For example: 'What is the cheapest pricing plan?' should be converted into 'pricing plans' and then find cheapest",
-    ]),
-    tools: [ragTool.make()],
-  });
 
-  const answerAgent = new SimpleAgent<RAGAgentCustomMessage>({
-    id: "answerer",
-    prompt: multiLinePrompt([
+      "Once you have the context,",
       `Given above context, answer the query "${query}".`,
       "Cite the sources in the format of !!<fetchUniqueId>!! at the end of the sentance or paragraph. Example: !!123!!",
       "<fetchUniqueId> should be the 'fetchUniqueId' mentioned above context json.",
@@ -108,10 +103,11 @@ export function makeFlow(
       "Pick most relevant sources and cite them.",
       systemPrompt,
     ]),
+    tools: [ragTool.make()],
   });
 
   const flow = new Flow(
-    [ragAgent, answerAgent],
+    [ragAgent],
     {
       messages: [
         ...messages,
@@ -123,10 +119,10 @@ export function makeFlow(
         },
       ],
     },
-    { repeatToolAgent: false }
+    { repeatToolAgent: true }
   );
 
-  flow.addNextAgents(["rag-agent", "answerer"]);
+  flow.addNextAgents(["rag-agent"]);
 
   return flow;
 }
