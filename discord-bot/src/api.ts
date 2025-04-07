@@ -59,7 +59,12 @@ export async function getDiscordDetails(channelId: string) {
   const { scrapeId, userId, autoAnswerChannelIds, answerEmoji } =
     await result.json();
 
-  return { scrapeId, userId, autoAnswerChannelIds, answerEmoji };
+  return {
+    scrapeId,
+    userId,
+    autoAnswerChannelIds: autoAnswerChannelIds ?? [],
+    answerEmoji,
+  };
 }
 
 export async function testQuery(
