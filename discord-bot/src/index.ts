@@ -149,13 +149,13 @@ It should be under 1000 charecters.`,
   } else {
     const { userId, scrapeId, autoAnswerChannelIds, answerEmoji } =
       await getDiscordDetails(message.guildId!);
-    let channelId = message.channelId;
+    const channelIds = [message.channelId];
 
     if (
       message.channel.type === ChannelType.PublicThread &&
       message.channel.parent?.id
     ) {
-      channelId = message.channel.parent.id;
+      channelIds.push(message.channel.parent.id);
     }
 
     console.log("Checking reactive answer", {
@@ -163,11 +163,11 @@ It should be under 1000 charecters.`,
       scrapeId,
       autoAnswerChannelIds,
       answerEmoji,
-      channelId,
+      channelIds,
     });
 
     if (
-      autoAnswerChannelIds.includes(channelId) &&
+      autoAnswerChannelIds.some((id: string) => channelIds.includes(id)) &&
       (await testQuery(message.content, createToken(userId), scrapeId))
     ) {
       console.log("Reacting");
