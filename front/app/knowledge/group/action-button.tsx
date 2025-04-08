@@ -32,8 +32,6 @@ export function ActionButton({
     }
   }, [stopFetcher.data]);
 
-  console.log(group.status);
-
   return (
     <>
       {["done", "pending", "error"].includes(group.status) && (

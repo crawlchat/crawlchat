@@ -648,8 +648,6 @@ app.post("/test-query/:scrapeId", authenticate, async (req, res) => {
 
     const maxScore = Math.max(...links.map((l) => l.score ?? 0));
 
-    console.log({ maxScore });
-
     if (maxScore >= scrape.discordAnswerConfig.minScore) {
       canAnswer = true;
     }

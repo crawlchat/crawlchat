@@ -15,9 +15,22 @@ export class GithubIssuesKbProcesser extends BaseKbProcesser {
   }
 
   async process() {
+    if (!this.knowledgeGroup.url) {
+      throw new Error("Knowledge group URL is required");
+    }
+
+    const match = this.knowledgeGroup.url.match(
+      "https://(www.)?github.com/(.+)/(.+)"
+    );
+    if (!match) {
+      throw new Error("Invalid GitHub URL");
+    }
+
+    const [, , username, repo] = match;
+
     const { issues } = await getIssues({
-      repo: "remotion",
-      username: "remotion-dev",
+      repo,
+      username,
     });
 
     for (let i = 0; i < issues.length; i++) {
@@ -28,8 +41,8 @@ export class GithubIssuesKbProcesser extends BaseKbProcesser {
 
       this.assertCreditsAvailable();
       const timeline = await getIssueTimeline({
-        repo: "remotion",
-        username: "remotion-dev",
+        repo,
+        username,
         issueNumber: issue.number,
       });
 
