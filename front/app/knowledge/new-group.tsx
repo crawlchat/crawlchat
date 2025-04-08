@@ -2,11 +2,11 @@ import {
   Input,
   Stack,
   Group,
-  Center,
   RadioCard,
   HStack,
   Icon,
   Checkbox,
+  Text,
 } from "@chakra-ui/react";
 import { TbBook2, TbBrandGithub, TbCheck, TbWorld } from "react-icons/tb";
 import { redirect, useFetcher } from "react-router";
@@ -121,18 +121,24 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
           value: "scrape_web",
           description: "Scrape a website",
           icon: <TbWorld />,
+          longDescription:
+            "Scrapes the provided URL and children links it finds and turns them into the knowledge. It can also fetch dynamic content (Javascript based).",
         },
         {
           title: "GitHub Repo",
           value: "scrape_github",
           description: "Scrape a GitHub repository",
           icon: <TbBrandGithub />,
+          longDescription:
+            "Scrapes the provided GitHub repository, reads the code from all the files and turns them into the knowledge.",
         },
         {
           title: "GitHub Issues",
           value: "github_issues",
           description: "Fetch GitHub issues",
           icon: <TbBrandGithub />,
+          longDescription:
+            "Fetch GitHub issues from the provided repository and turns them into the knowledge. The repository must be public (for now).",
         },
       ];
     },
@@ -140,110 +146,115 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
   );
   const [type, setType] = useState<KnowledgeGroupType>("scrape_web");
 
+  function getDescription(type: KnowledgeGroupType) {
+    return types.find((t) => t.value === type)?.longDescription;
+  }
+
   return (
     <Page title="New knowledge group" icon={<TbBook2 />}>
-      <Center w="full" h="full">
-        <Stack maxW={"500px"} w={"full"}>
-          <scrapeFetcher.Form method="post">
-            <Stack gap={4}>
-              <RadioCard.Root
-                name="type"
-                value={type}
-                onValueChange={(value) =>
-                  setType(value.value as KnowledgeGroupType)
-                }
-              >
-                <RadioCard.Label>Select type</RadioCard.Label>
-                <HStack align="stretch">
-                  {types.map((item) => (
-                    <RadioCard.Item key={item.value} value={item.value}>
-                      <RadioCard.ItemHiddenInput />
-                      <RadioCard.ItemControl>
-                        <RadioCard.ItemContent>
-                          <Icon fontSize="2xl" color="fg.muted" mb="2">
-                            {item.icon}
-                          </Icon>
-                          <RadioCard.ItemText>{item.title}</RadioCard.ItemText>
-                          <RadioCard.ItemDescription>
-                            {item.description}
-                          </RadioCard.ItemDescription>
-                        </RadioCard.ItemContent>
-                        <RadioCard.ItemIndicator />
-                      </RadioCard.ItemControl>
-                    </RadioCard.Item>
-                  ))}
-                </HStack>
-              </RadioCard.Root>
+      <Stack maxW={"800px"} w={"full"}>
+        <scrapeFetcher.Form method="post">
+          <Stack gap={4}>
+            <RadioCard.Root
+              name="type"
+              value={type}
+              onValueChange={(value) =>
+                setType(value.value as KnowledgeGroupType)
+              }
+            >
+              <HStack align="stretch">
+                {types.map((item) => (
+                  <RadioCard.Item key={item.value} value={item.value}>
+                    <RadioCard.ItemHiddenInput />
+                    <RadioCard.ItemControl>
+                      <RadioCard.ItemContent>
+                        <Icon fontSize="2xl" color="fg.muted" mb="2">
+                          {item.icon}
+                        </Icon>
+                        <RadioCard.ItemText>{item.title}</RadioCard.ItemText>
+                        <RadioCard.ItemDescription>
+                          {item.description}
+                        </RadioCard.ItemDescription>
+                      </RadioCard.ItemContent>
+                      <RadioCard.ItemIndicator />
+                    </RadioCard.ItemControl>
+                  </RadioCard.Item>
+                ))}
+              </HStack>
+            </RadioCard.Root>
 
-              <Field label="Name" required>
-                <Input
-                  required
-                  placeholder="Ex: Documentation"
-                  name="title"
-                  disabled={scrapeFetcher.state !== "idle"}
-                />
-              </Field>
+            <Text opacity={0.5}>{getDescription(type)}</Text>
 
-              {type === "scrape_web" && (
-                <>
-                  <Field label="URL" required>
-                    <Input
-                      placeholder="https://example.com"
-                      name="url"
-                      disabled={scrapeFetcher.state !== "idle"}
-                    />
-                  </Field>
+            <Field label="Name" required>
+              <Input
+                required
+                placeholder="Ex: Documentation"
+                name="title"
+                disabled={scrapeFetcher.state !== "idle"}
+              />
+            </Field>
 
-                  <Checkbox.Root name="prefix" defaultChecked>
-                    <Checkbox.HiddenInput />
-                    <Checkbox.Control>
-                      <Checkbox.Indicator />
-                    </Checkbox.Control>
-                    <Checkbox.Label>Match exact prefix</Checkbox.Label>
-                  </Checkbox.Root>
-                </>
-              )}
+            {type === "scrape_web" && (
+              <>
+                <Field label="URL" required>
+                  <Input
+                    placeholder="https://example.com"
+                    name="url"
+                    disabled={scrapeFetcher.state !== "idle"}
+                  />
+                </Field>
 
-              {type === "scrape_github" && (
-                <>
-                  <Group gap={4}>
-                    <Field label="GitHub Repo URL" required>
-                      <Input
-                        name="githubRepoUrl"
-                        placeholder="https://github.com/user/repo"
-                      />
-                    </Field>
+                <Checkbox.Root name="prefix" defaultChecked>
+                  <Checkbox.HiddenInput />
+                  <Checkbox.Control>
+                    <Checkbox.Indicator />
+                  </Checkbox.Control>
+                  <Checkbox.Label>Match exact prefix</Checkbox.Label>
+                </Checkbox.Root>
+              </>
+            )}
 
-                    <Field label="Branch name" required defaultValue={"main"}>
-                      <Input name="githubBranch" placeholder="main" />
-                    </Field>
-                  </Group>
-                </>
-              )}
-
-              {type === "github_issues" && (
-                <>
+            {type === "scrape_github" && (
+              <>
+                <Group gap={4}>
                   <Field label="GitHub Repo URL" required>
                     <Input
                       name="githubRepoUrl"
                       placeholder="https://github.com/user/repo"
                     />
                   </Field>
-                </>
-              )}
 
+                  <Field label="Branch name" required defaultValue={"main"}>
+                    <Input name="githubBranch" placeholder="main" />
+                  </Field>
+                </Group>
+              </>
+            )}
+
+            {type === "github_issues" && (
+              <>
+                <Field label="GitHub Repo URL" required>
+                  <Input
+                    name="githubRepoUrl"
+                    placeholder="https://github.com/user/repo"
+                  />
+                </Field>
+              </>
+            )}
+
+            <Group justifyContent={"flex-end"}>
               <Button
                 type="submit"
                 loading={scrapeFetcher.state !== "idle"}
                 colorPalette={"brand"}
               >
-                Save
+                Create
                 <TbCheck />
               </Button>
-            </Stack>
-          </scrapeFetcher.Form>
-        </Stack>
-      </Center>
+            </Group>
+          </Stack>
+        </scrapeFetcher.Form>
+      </Stack>
     </Page>
   );
 }
