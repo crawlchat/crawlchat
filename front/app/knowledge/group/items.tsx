@@ -15,6 +15,7 @@ import { TbCheck, TbRefresh, TbX, TbStack } from "react-icons/tb";
 import { Link, Outlet } from "react-router";
 import { getSessionScrapeId } from "~/scrapes/util";
 import { EmptyState } from "~/components/ui/empty-state";
+import type { ScrapeItem } from "libs/prisma";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -52,6 +53,18 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return { scrape, items, knowledgeGroup };
 }
 
+function getKey(item: { id: string; url?: string | null }) {
+  if (!item.url) {
+    return item.id;
+  }
+
+  try {
+    return new URL(item.url).pathname;
+  } catch (error) {}
+
+  return item.url;
+}
+
 export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
   return (
     <>
@@ -70,7 +83,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader w="300px" truncate>
-                  Url
+                  Key
                 </Table.ColumnHeader>
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
                 <Table.ColumnHeader w="120px">Status</Table.ColumnHeader>
@@ -82,15 +95,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                 <Table.Row key={item.id}>
                   <Table.Cell className="group">
                     <Group>
-                      <Text>
-                        {item.url ? (
-                          <ChakraLink href={item.url} target="_blank">
-                            {new URL(item.url).pathname}
-                          </ChakraLink>
-                        ) : (
-                          item.id
-                        )}
-                      </Text>
+                      <Text>{getKey(item)}</Text>
                     </Group>
                   </Table.Cell>
                   <Table.Cell>

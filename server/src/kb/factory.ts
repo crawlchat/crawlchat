@@ -1,6 +1,7 @@
 import { KnowledgeGroup, Scrape } from "libs/prisma";
 import { WebKbProcesser } from "./web-kb-processer";
 import { KbProcesser, KbProcesserListener } from "./kb-processer";
+import { GithubIssuesKbProcesser } from "./gh-issues-kb-processer";
 
 export function makeKbProcesser(
   listener: KbProcesserListener,
@@ -68,6 +69,10 @@ export function makeKbProcesser(
     );
 
     return processer;
+  }
+
+  if (knowledgeGroup.type === "github_issues") {
+    return new GithubIssuesKbProcesser(listener, knowledgeGroup, options);
   }
 
   throw new Error("Unsupported knowledge group type");

@@ -249,6 +249,7 @@ enum KnowledgeGroupType {
   scrape_web
   scrape_github
   learn_discord
+  github_issues
 }
 
 enum KnowledgeGroupStatus {

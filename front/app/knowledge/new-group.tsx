@@ -74,6 +74,10 @@ export async function action({ request }: { request: Request }) {
       maxLinks = "100";
     }
 
+    if (type === "github_issues") {
+      url = githubRepoUrl as string;
+    }
+
     if (!url) {
       return { error: "URL is required" };
     }
@@ -122,6 +126,12 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
           title: "GitHub Repo",
           value: "scrape_github",
           description: "Scrape a GitHub repository",
+          icon: <TbBrandGithub />,
+        },
+        {
+          title: "GitHub Issues",
+          value: "github_issues",
+          description: "Fetch GitHub issues",
           icon: <TbBrandGithub />,
         },
       ];
@@ -208,6 +218,17 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                       <Input name="githubBranch" placeholder="main" />
                     </Field>
                   </Group>
+                </>
+              )}
+
+              {type === "github_issues" && (
+                <>
+                  <Field label="GitHub Repo URL" required>
+                    <Input
+                      name="githubRepoUrl"
+                      placeholder="https://github.com/user/repo"
+                    />
+                  </Field>
                 </>
               )}
 
