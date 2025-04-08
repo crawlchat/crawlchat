@@ -94,6 +94,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "learn_discord") {
         icon = <TbBrandDiscord />;
         typeText = "Discord";
+      } else if (group.type === "github_issues") {
+        icon = <TbBrandGithub />;
+        typeText = "GH Issues";
       }
 
       const totalCited = Object.values(loaderData.citationCounts).reduce(
@@ -211,7 +214,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                   </Table.Cell>
                   <Table.Cell>
                     <Group>
-                      {["scrape_web", "scrape_github"].includes(
+                      {["scrape_web", "scrape_github", "github_issues"].includes(
                         item.group.type
                       ) && <ActionButton group={item.group} />}
                     </Group>

@@ -15,7 +15,7 @@ export class GithubIssuesKbProcesser extends BaseKbProcesser {
   }
 
   async process() {
-    const issues = await getIssues({
+    const { issues } = await getIssues({
       repo: "remotion",
       username: "remotion-dev",
     });
@@ -34,8 +34,8 @@ export class GithubIssuesKbProcesser extends BaseKbProcesser {
       });
 
       await this.onContentAvailable(
-        issue.number.toString(),
-        { text: getIssueMarkdown(issue, timeline) },
+        issue.html_url,
+        { text: getIssueMarkdown(issue, timeline), title: issue.title },
         { remaining: issues.length - i, completed: i }
       );
 

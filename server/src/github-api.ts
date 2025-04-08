@@ -9,6 +9,8 @@ type GithubIssue = {
   pull_request: {
     url: string;
   };
+  title?: string;
+  html_url: string;
 };
 
 type GithubTimelineEvent = {
@@ -23,32 +25,50 @@ type GithubUser = {
   id: string;
 };
 
+export type GithubPagination = {
+  nextUrl?: string;
+  previousUrl?: string;
+};
+
+function parsePagination(headers: Headers): GithubPagination {
+  const link = headers.get("link");
+  const nextUrl = link?.match(/<([^<>]+)>; rel="next"/)?.[1];
+  const previousUrl = link?.match(/<([^<>]+)>; rel="previous"/)?.[1];
+
+  return { nextUrl, previousUrl };
+}
+
 export async function getIssues({
   repo,
   username,
   perPage = 100,
   page = 1,
   state = "closed",
+  pageUrl,
 }: {
   repo: string;
   username: string;
   perPage?: number;
   page?: number;
   state?: "open" | "closed" | "all";
-}): Promise<GithubIssue[]> {
+  pageUrl?: string;
+}): Promise<{ issues: GithubIssue[]; pagination: GithubPagination }> {
   console.log(`Fetching issues for ${username}/${repo}...`);
-  const response = await fetch(
-    `https://api.github.com/repos/${username}/${repo}/issues?per_page=${perPage}&page=${page}&state=${state}`,
-    {
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    }
-  );
+  const url =
+    pageUrl ??
+    `https://api.github.com/repos/${username}/${repo}/issues?per_page=${perPage}&page=${page}&state=${state}`;
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+  });
 
-  return await response.json();
+  return {
+    issues: await response.json(),
+    pagination: parsePagination(response.headers),
+  };
 }
 
 export async function getIssue({
@@ -105,11 +125,11 @@ export function getIssueMarkdown(
   issue: GithubIssue,
   timeline: GithubTimelineEvent[]
 ) {
-  const entries: string[] = [issue.body];
+  const entries: string[] = [`${issue.user.login}: ${issue.body}`];
   for (const event of timeline) {
     if (event.event === "commented" && event.body) {
-      entries.push(event.body);
+      entries.push(`${event.actor.login}: ${event.body}`);
     }
   }
-  return entries.join("\n\n");
+  return entries.join("\n---\n");
 }

@@ -12,6 +12,7 @@ import moment from "moment";
 import { GroupStatus } from "./status";
 import { Button } from "~/components/ui/button";
 import { TbTrash } from "react-icons/tb";
+import { createToken } from "~/jwt";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -44,8 +45,16 @@ export async function action({ request, params }: Route.ActionArgs) {
   const groupId = params.groupId;
 
   if (request.method === "DELETE") {
-    await prisma.knowledgeGroup.delete({
-      where: { id: groupId, userId: user!.id, scrapeId },
+    const token = createToken(user!.id);
+    await fetch(`${process.env.VITE_SERVER_URL}/knowledge-group`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        knowledgeGroupId: groupId,
+      }),
     });
 
     return redirect("/knowledge");
@@ -190,6 +199,39 @@ function GithubSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
+function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
+  const branchFetcher = useFetcher();
+  const details = useMemo(() => {
+    return [
+      {
+        key: "Repo",
+        value: group.githubUrl,
+      },
+      {
+        key: "Updated at",
+        value: moment(group.updatedAt).format("DD/MM/YYYY HH:mm"),
+      },
+      {
+        key: "Status",
+        value: <GroupStatus status={group.status} />,
+      },
+    ];
+  }, [group]);
+
+  return (
+    <Stack gap={6}>
+      <DataList.Root orientation={"horizontal"}>
+        {details.map((item) => (
+          <DataList.Item key={item.key}>
+            <DataList.ItemLabel>{item.key}</DataList.ItemLabel>
+            <DataList.ItemValue>{item.value}</DataList.ItemValue>
+          </DataList.Item>
+        ))}
+      </DataList.Root>
+    </Stack>
+  );
+}
+
 export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
@@ -222,6 +264,9 @@ export default function KnowledgeGroupSettings({
       )}
       {loaderData.knowledgeGroup.type === "scrape_github" && (
         <GithubSettings group={loaderData.knowledgeGroup} />
+      )}
+      {loaderData.knowledgeGroup.type === "github_issues" && (
+        <GithubIssuesSettings group={loaderData.knowledgeGroup} />
       )}
 
       <Stack
