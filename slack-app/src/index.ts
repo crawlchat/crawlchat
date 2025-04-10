@@ -83,13 +83,13 @@ const app = new App({
   },
 });
 
-app.message("hello", async ({ message, say, client }) => {
-  const history = await client.conversations.history({
-    channel: message.channel,
-    limit: 15,
-  });
+app.message("hello", async ({ message, say, client, context }) => {
+  // const history = await client.conversations.history({
+  //   channel: message.channel,
+  //   limit: 15,
+  // });
 
-  console.log(history);
+  console.log({ context });
 
   await say({
     text: `Hey there <@${(message as any).user}>!`,
