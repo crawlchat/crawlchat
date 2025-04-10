@@ -37,6 +37,10 @@ export async function action({ request }: Route.ActionArgs) {
         userId: process.env.OPEN_USER_ID!,
         url: url as string,
         status: "pending",
+        title: new URL(url).hostname,
+        widgetConfig: {
+          size: "large",
+        },
       },
     });
 
@@ -46,7 +50,7 @@ export async function action({ request }: Route.ActionArgs) {
         title: "Default",
         type: "scrape_web",
         scrapeId: scrape.id,
-        status: "pending",
+        status: "processing",
         url,
       },
     });
@@ -55,10 +59,7 @@ export async function action({ request }: Route.ActionArgs) {
       method: "POST",
       body: JSON.stringify({
         scrapeId: scrape.id,
-        userId: scrape.userId,
         knowledgeGroupId: knowledgeGroup.id,
-        url,
-        maxLinks: 1,
         roomId: `user-${roomId}`,
         includeMarkdown: true,
       }),
