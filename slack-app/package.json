@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "@slack/bolt": "^4.2.1",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "libs": "file:../libs"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

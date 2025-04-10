@@ -83,6 +83,10 @@ type DiscordAnswerConfig {
   emoji               String?
 }
 
+type SlackConfig {
+  installation          Json
+}
+
 model Scrape {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   userId                String   @db.ObjectId
@@ -98,6 +102,9 @@ model Scrape {
   indexer               String?
   discordServerId       String?
   discordAnswerConfig   DiscordAnswerConfig?
+
+  slackTeamId           String?
+  slackConfig           SlackConfig?
 
   analytics             ScrapeAnalytics?
 
