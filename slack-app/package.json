@@ -16,6 +16,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.9",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }

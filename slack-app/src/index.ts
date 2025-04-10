@@ -8,10 +8,9 @@ const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   clientId: process.env.SLACK_CLIENT_ID,
   clientSecret: process.env.SLACK_CLIENT_SECRET,
-  stateSecret: "a-secret",
+  stateSecret: process.env.SLACK_STATE_SECRET,
   scopes: ["channels:history", "channels:read", "chat:write", "im:history"],
-  redirectUri:
-    "https://4cab-2409-40f0-11c4-ab2a-1da0-318f-ddca-b135.ngrok-free.app/slack/oauth_redirect",
+  redirectUri: `${process.env.HOST}/slack/oauth_redirect`,
   installationStore: new FileInstallationStore(),
   installerOptions: {
     redirectUriPath: "/slack/oauth_redirect",
