@@ -6,6 +6,7 @@ import { InstallationStore } from "@slack/oauth";
 import { prisma } from "libs/prisma";
 import { createToken } from "./jwt";
 import { query } from "./api";
+import { markdownToBlocks } from "@tryfabric/mack";
 
 const installationStore: InstallationStore = {
   storeInstallation: async (installation) => {
@@ -92,19 +93,29 @@ function cleanText(text: string) {
 app.message(
   `<@${process.env.SLACK_USER_ID}>`,
   async ({ message, say, client, context }) => {
-    const history = await client.conversations.history({
-      channel: message.channel,
-      limit: 15,
-    });
+    let messages: { user?: string; text?: string }[] = [];
 
-    if (!history.messages) {
-      await say({
-        text: "No messages found",
+    if ((message as any).thread_ts) {
+      const replies = await client.conversations.replies({
+        channel: message.channel,
+        ts: (message as any).thread_ts,
       });
-      return;
+      if (replies.messages) {
+        messages = replies.messages;
+      }
+    } else {
+      const history = await client.conversations.history({
+        channel: message.channel,
+        limit: 15,
+      });
+      if (history.messages) {
+        messages = history.messages.reverse();
+      }
     }
 
-    const llmMessages = history.messages.map((m) => ({
+    console.log(messages);
+
+    const llmMessages = messages.map((m) => ({
       role: m.user === process.env.SLACK_USER_ID ? "assistant" : "user",
       content: cleanText(m.text ?? ""),
     }));
@@ -127,7 +138,8 @@ app.message(
       llmMessages,
       createToken(scrape.userId),
       {
-        prompt: "This would be a Slack message. Use only code blocks, lists from markdown. Don't use headings, tables, links and other blocks from markdown",
+        prompt:
+          "This would be a Slack message. Keep it short and concise. Use markdown for formatting.",
       }
     );
 
@@ -135,6 +147,8 @@ app.message(
       text: answer,
       mrkdwn: true,
       thread_ts: message.ts,
+      channel: message.channel,
+      blocks: await markdownToBlocks(answer),
     });
   }
 );
