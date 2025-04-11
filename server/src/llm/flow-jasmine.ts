@@ -101,6 +101,7 @@ export function makeFlow(
       "<fetchUniqueId> should be the 'fetchUniqueId' mentioned above context json.",
       "Cite only for the sources that are used to answer the query.",
       "Pick most relevant sources and cite them.",
+      "Don't ask more than 3 questions for the entire answering flow.",
       systemPrompt,
     ]),
     tools: [ragTool.make()],
@@ -118,8 +119,7 @@ export function makeFlow(
           },
         },
       ],
-    },
-    { repeatToolAgent: true }
+    }
   );
 
   flow.addNextAgents(["rag-agent"]);
