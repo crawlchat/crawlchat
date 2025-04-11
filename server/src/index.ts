@@ -353,7 +353,7 @@ expressWs.app.ws("/", (ws: any, req) => {
             message: newAnswerMessage,
           })
         );
-        effect(assignCategory(scrape.id, newQueryMessage.id));
+        // effect(assignCategory(scrape.id, newQueryMessage.id));
       }
     } catch (error) {
       console.error(error);
