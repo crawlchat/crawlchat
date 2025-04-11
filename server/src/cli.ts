@@ -9,14 +9,29 @@ import {
   getJustIssues,
   GithubPagination,
 } from "./github-api";
+import { SimpleAgent } from "./llm/agentic";
+import { handleStream } from "./llm/stream";
 
 async function main() {
-  const issues = await getJustIssues({
-    username: "remotion-dev",
-    repo: "remotion",
-    n: 100,
+  const agent = new SimpleAgent({
+    id: "agent",
+    prompt: "You are a helpful assistant.",
   });
-  console.log(issues.length);
+
+  const stream = await agent.stream({
+    messages: [
+      {
+        llmMessage: {
+          role: "user",
+          content: "Hello, how are you?",
+        },
+      },
+    ],
+  });
+
+  const { content, messages } = await handleStream(stream);
+  console.log(content);
+  console.log(messages);
 }
 
 console.log("Starting...");

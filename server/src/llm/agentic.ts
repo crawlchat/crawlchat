@@ -40,9 +40,10 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
 
   constructor(id: string) {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: "https://api.anthropic.com/v1",
+      apiKey: process.env.ANTHROPIC_API_KEY,
     });
-    this.model = "gpt-4o-mini";
+    this.model = "claude-3-7-sonnet-20250219";
     this.id = id;
   }
 

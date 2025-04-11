@@ -95,6 +95,13 @@ export function makeFlow(
       "Break multi level queries as well. For example: 'What is the average score?' should be split into 'score list' and then calculate the average.",
       "You need to find indirect questions. For example: 'What is the cheapest pricing plan?' should be converted into 'pricing plans' and then find cheapest",
 
+      "Don't repeat the question in the answer.",
+      "Don't inform about searching using the RAG tool. Just fetch and answer.",
+      "Don't use headings in the answer.",
+      "Query only related items from RAG. Keep the search simple and small",
+      "Don't repeat similar search terms. Don't use more than 3 searches from RAG.",
+      "Don't use the RAG tool once you have the answer.",
+
       "Once you have the context,",
       `Given above context, answer the query "${query}".`,
       "Cite the sources in the format of !!<fetchUniqueId>!! at the end of the sentance or paragraph. Example: !!123!!",

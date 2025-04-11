@@ -143,7 +143,7 @@ export class MarsIndexer implements Indexer {
         scrapeItemId: m.metadata!.scrapeItemId as string,
       })),
       {
-        topN: 4,
+        topN: 1,
         returnDocuments: true,
         parameters: {
           truncate: "END",
