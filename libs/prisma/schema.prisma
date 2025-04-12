@@ -86,6 +86,7 @@ type DiscordAnswerConfig {
 enum LlmModel {
   gpt_4o_mini
   sonnet_3_7
+  sonnet_3_5
 }
 
 model Scrape {

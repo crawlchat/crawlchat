@@ -103,7 +103,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
     return createListCollection({
       items: [
         { label: "GPT-4o-mini", value: "gpt_4o_mini" },
-        { label: "Sonnet-3.7", value: "sonnet_3_7" },
+        { label: "Sonnet-3.5", value: "sonnet_3_5" },
       ],
     });
   }, []);
@@ -203,13 +203,13 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
                 </Select.Positioner>
               </Portal>
             </Select.Root>
-            {selectedModel === "sonnet_3_7" && (
+            {selectedModel === "sonnet_3_5" && (
               <Alert.Root status="info" title="Alert" maxW="400px">
                 <Alert.Indicator />
                 <Alert.Title>
                   <Text>
                     <Text as={"span"} fontWeight={"bolder"}>
-                      Sonnet-3.7
+                      Sonnet-3.5
                     </Text>{" "}
                     is the best performing model available and it consumes{" "}
                     <Text as="span" fontWeight={"bolder"}>

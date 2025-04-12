@@ -9,6 +9,15 @@ export type LlmConfig = {
 };
 
 export const getConfig = (model?: LlmModel | null): LlmConfig => {
+  if (model === LlmModel.sonnet_3_5) {
+    return {
+      model: "claude-3-5-sonnet-20241022",
+      apiKey: process.env.ANTHROPIC_API_KEY!,
+      ragTopN: 1,
+      baseURL: "https://api.anthropic.com/v1",
+      creditsPerMessage: 4,
+    };
+  }
   if (model === LlmModel.sonnet_3_7) {
     return {
       model: "claude-3-7-sonnet-20250219",
