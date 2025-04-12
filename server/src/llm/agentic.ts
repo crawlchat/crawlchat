@@ -38,12 +38,15 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
   private openai: OpenAI;
   private model: string;
 
-  constructor(id: string) {
+  constructor(
+    id: string,
+    options?: { model?: string; baseURL?: string; apiKey?: string }
+  ) {
     this.openai = new OpenAI({
-      baseURL: "https://api.anthropic.com/v1",
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: options?.apiKey ?? process.env.OPENAI_API_KEY,
+      baseURL: options?.baseURL,
     });
-    this.model = "claude-3-7-sonnet-20250219";
+    this.model = options?.model ?? "gpt-4o-mini";
     this.id = id;
   }
 
@@ -105,13 +108,19 @@ export class SimpleAgent<CustomMessage> extends Agent<{}, CustomMessage> {
     prompt,
     schema,
     tools,
+    model,
+    baseURL,
+    apiKey,
   }: {
     id: string;
     prompt: string;
     schema?: ZodSchema<any>;
     tools?: LlmTool<any, CustomMessage>[];
+    model?: string;
+    baseURL?: string;
+    apiKey?: string;
   }) {
-    super(id);
+    super(id, { model, baseURL, apiKey });
     this.prompt = prompt;
     this.schema = schema;
     this.tools = tools;

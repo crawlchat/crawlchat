@@ -25,6 +25,7 @@ import { FlowMessage } from "./llm/agentic";
 import { assignCategory } from "./collection";
 import { effect } from "./effect";
 import { makeTestQueryFlow } from "./llm/flow-test-query";
+import { getConfig } from "./llm/config";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -298,6 +299,8 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         ws.send(makeMessage("query-message", newQueryMessage));
 
+        const llmConfig = getConfig(scrape.llmModel);
+
         const flow = makeFlow(
           scrape.id,
           scrape.chatPrompt ?? "",
@@ -315,6 +318,10 @@ expressWs.app.ws("/", (ws: any, req) => {
                 })
               );
             },
+            model: llmConfig.model,
+            baseURL: llmConfig.baseURL,
+            apiKey: llmConfig.apiKey,
+            topN: llmConfig.ragTopN,
           }
         );
 

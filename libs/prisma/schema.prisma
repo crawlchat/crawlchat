@@ -83,6 +83,11 @@ type DiscordAnswerConfig {
   emoji               String?
 }
 
+enum LlmModel {
+  gpt_4o_mini
+  sonnet_3_7
+}
+
 model Scrape {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   userId                String   @db.ObjectId
@@ -100,6 +105,7 @@ model Scrape {
   discordAnswerConfig   DiscordAnswerConfig?
 
   analytics             ScrapeAnalytics?
+  llmModel              LlmModel?
 
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

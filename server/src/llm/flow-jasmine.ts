@@ -22,9 +22,9 @@ export type RAGAgentCustomMessage = {
 export function makeRagTool(
   scrapeId: string,
   indexerKey: string | null,
-  options?: { onPreSearch?: (query: string) => Promise<void> }
+  options?: { onPreSearch?: (query: string) => Promise<void>; topN?: number }
 ) {
-  const indexer = makeIndexer({ key: indexerKey });
+  const indexer = makeIndexer({ key: indexerKey, topN: options?.topN });
 
   return new SimpleTool({
     id: "search_data",
@@ -73,7 +73,13 @@ export function makeFlow(
   query: string,
   messages: FlowMessage<RAGAgentCustomMessage>[],
   indexerKey: string | null,
-  options?: { onPreSearch?: (query: string) => Promise<void> }
+  options?: {
+    onPreSearch?: (query: string) => Promise<void>;
+    model?: string;
+    baseURL?: string;
+    apiKey?: string;
+    topN?: number;
+  }
 ) {
   const ragTool = makeRagTool(scrapeId, indexerKey, options);
 
@@ -113,22 +119,22 @@ export function makeFlow(
       systemPrompt,
     ]),
     tools: [ragTool.make()],
+    model: options?.model,
+    baseURL: options?.baseURL,
+    apiKey: options?.apiKey,
   });
 
-  const flow = new Flow(
-    [ragAgent],
-    {
-      messages: [
-        ...messages,
-        {
-          llmMessage: {
-            role: "user",
-            content: query,
-          },
+  const flow = new Flow([ragAgent], {
+    messages: [
+      ...messages,
+      {
+        llmMessage: {
+          role: "user",
+          content: query,
         },
-      ],
-    }
-  );
+      },
+    ],
+  });
 
   flow.addNextAgents(["rag-agent"]);
 
