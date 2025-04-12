@@ -85,6 +85,7 @@ type DiscordAnswerConfig {
 
 enum LlmModel {
   gpt_4o_mini
+  o3_mini
   sonnet_3_7
   sonnet_3_5
 }

@@ -9,6 +9,14 @@ export type LlmConfig = {
 };
 
 export const getConfig = (model?: LlmModel | null): LlmConfig => {
+  if (model === "o3_mini") {
+    return {
+      model: "o3-mini",
+      apiKey: process.env.OPENAI_API_KEY!,
+      ragTopN: 2,
+      creditsPerMessage: 1,
+    };
+  }
   if (model === LlmModel.sonnet_3_5) {
     return {
       model: "claude-3-5-sonnet-20241022",
