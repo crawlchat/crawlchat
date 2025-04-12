@@ -749,8 +749,8 @@ export function Pricing() {
               title="Starter"
               description="Start your journey with CrawlChat"
               features={[
-                { label: "3000 site scrapes per month" },
-                { label: "15,000 messages per month" },
+                { label: "5000 site scrapes per month" },
+                { label: "7000 messages per month" },
                 { label: "API available" },
                 { label: "MCP available" },
                 { label: "Discord bot" },
@@ -765,8 +765,8 @@ export function Pricing() {
               title="Pro"
               description="For power users and teams"
               features={[
-                { label: "10,000 site scrapes per month" },
-                { label: "50,000 messages per month" },
+                { label: "14,000 site scrapes per month" },
+                { label: "20,000 messages per month" },
                 { label: "API available" },
                 { label: "MCP available" },
                 { label: "Discord bot" },
