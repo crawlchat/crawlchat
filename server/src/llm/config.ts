@@ -4,6 +4,7 @@ export type LlmConfig = {
   model: string;
   apiKey: string;
   ragTopN: number;
+  creditsPerMessage: number;
   baseURL?: string;
 };
 
@@ -14,11 +15,13 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       apiKey: process.env.ANTHROPIC_API_KEY!,
       ragTopN: 1,
       baseURL: "https://api.anthropic.com/v1",
+      creditsPerMessage: 4,
     };
   }
   return {
     model: "gpt-4o-mini",
     apiKey: process.env.OPENAI_API_KEY!,
     ragTopN: 4,
+    creditsPerMessage: 1,
   };
 };

@@ -343,7 +343,11 @@ expressWs.app.ws("/", (ws: any, req) => {
           flow.flowState.state.messages
         );
 
-        await consumeCredits(scrape.userId, "messages", 1);
+        await consumeCredits(
+          scrape.userId,
+          "messages",
+          llmConfig.creditsPerMessage
+        );
         const newAnswerMessage = await prisma.message.create({
           data: {
             threadId,
@@ -552,6 +556,8 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     .filter(Boolean)
     .join("\n\n");
 
+  const llmConfig = getConfig(scrape.llmModel);
+
   const flow = makeFlow(
     scrape.id,
     prompt,
@@ -562,7 +568,13 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
         content: m.content,
       },
     })),
-    scrape.indexer
+    scrape.indexer,
+    {
+      model: llmConfig.model,
+      baseURL: llmConfig.baseURL,
+      apiKey: llmConfig.apiKey,
+      topN: llmConfig.ragTopN,
+    }
   );
 
   while (await flow.stream()) {}
@@ -574,7 +586,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     flow.flowState.state.messages
   );
 
-  await consumeCredits(scrape.userId, "messages", 1);
+  await consumeCredits(scrape.userId, "messages", llmConfig.creditsPerMessage);
   const newAnswerMessage = await prisma.message.create({
     data: {
       threadId: thread.id,

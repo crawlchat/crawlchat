@@ -1,10 +1,12 @@
 import {
-  Badge,
+  Alert,
+  createListCollection,
   DataList,
   Group,
   Heading,
   Input,
-  Spinner,
+  Portal,
+  Select,
   Stack,
   Text,
   Textarea,
@@ -14,19 +16,13 @@ import { SettingsSection } from "~/dashboard/profile";
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/settings";
 import { getAuthUser } from "~/auth/middleware";
-import type { Prisma } from "libs/prisma";
+import type { LlmModel, Prisma } from "libs/prisma";
 import { getSession } from "~/session";
-import {
-  TbAlertCircle,
-  TbCheck,
-  TbSettings,
-  TbTrash,
-  TbWorld,
-} from "react-icons/tb";
+import { TbSettings, TbTrash } from "react-icons/tb";
 import { Page } from "~/components/page";
 import moment from "moment";
 import { Button } from "~/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSessionScrapeId } from "./util";
 import { createToken } from "~/jwt";
 
@@ -48,11 +44,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  const itemsCount = await prisma.scrapeItem.count({
-    where: { scrapeId: scrape.id },
-  });
-
-  return { scrape, itemsCount };
+  return { scrape };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -86,6 +78,9 @@ export async function action({ request }: Route.ActionArgs) {
   if (title) {
     update.title = title;
   }
+  if (formData.has("llmModel")) {
+    update.llmModel = formData.get("llmModel") as LlmModel;
+  }
 
   const scrape = await prisma.scrape.update({
     where: { id: scrapeId, userId: user!.id },
@@ -99,7 +94,19 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const promptFetcher = useFetcher();
   const nameFetcher = useFetcher();
   const deleteFetcher = useFetcher();
+  const modelFetcher = useFetcher();
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<LlmModel>(
+    loaderData.scrape.llmModel ?? "gpt_4o_mini"
+  );
+  const models = useMemo(() => {
+    return createListCollection({
+      items: [
+        { label: "GPT-4o-mini", value: "gpt_4o_mini" },
+        { label: "Sonnet-3.7", value: "sonnet_3_7" },
+      ],
+    });
+  }, []);
 
   useEffect(() => {
     if (deleteConfirm) {
@@ -125,48 +132,14 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
       <Stack gap={4}>
         <DataList.Root orientation={"horizontal"}>
           <DataList.Item>
-            <DataList.ItemLabel>Links scraped</DataList.ItemLabel>
-            <DataList.ItemValue>
-              <Badge variant={"surface"} colorPalette={"brand"}>
-                <TbWorld />
-                {loaderData.itemsCount}
-              </Badge>
-            </DataList.ItemValue>
-          </DataList.Item>
-          <DataList.Item>
-            <DataList.ItemLabel>Status</DataList.ItemLabel>
-            <DataList.ItemValue>
-              {loaderData.scrape.status === "done" && (
-                <Badge colorPalette={"brand"} variant={"surface"}>
-                  <TbCheck />
-                  Completed
-                </Badge>
-              )}
-              {loaderData.scrape.status === "scraping" && (
-                <Badge variant={"surface"}>
-                  <Spinner size={"xs"} />
-                  Scraping
-                </Badge>
-              )}
-              {loaderData.scrape.status === "error" && (
-                <Badge variant={"surface"} colorPalette={"red"}>
-                  <TbAlertCircle />
-                  Error
-                </Badge>
-              )}
-            </DataList.ItemValue>
-          </DataList.Item>
-          <DataList.Item>
             <DataList.ItemLabel>Created</DataList.ItemLabel>
             <DataList.ItemValue>
               {moment(loaderData.scrape.createdAt).fromNow()}
             </DataList.ItemValue>
           </DataList.Item>
           <DataList.Item>
-            <DataList.ItemLabel>Root URL</DataList.ItemLabel>
-            <DataList.ItemValue>
-              {loaderData.scrape.url || "-"}
-            </DataList.ItemValue>
+            <DataList.ItemLabel>Id</DataList.ItemLabel>
+            <DataList.ItemValue>{loaderData.scrape.id}</DataList.ItemValue>
           </DataList.Item>
         </DataList.Root>
 
@@ -181,6 +154,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             placeholder="Enter a name for this scrape."
           />
         </SettingsSection>
+
         <SettingsSection
           title="Chat Prompt"
           description="Customize the chat prompt for this scrape."
@@ -191,6 +165,62 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             defaultValue={loaderData.scrape.chatPrompt ?? ""}
             placeholder="Enter a custom chat prompt for this scrape."
           />
+        </SettingsSection>
+
+        <SettingsSection
+          title="AI Model"
+          description="Select the AI model to use for the messages across channels."
+          fetcher={modelFetcher}
+        >
+          <Stack>
+            <Select.Root
+              name="llmModel"
+              collection={models}
+              maxW="400px"
+              positioning={{ sameWidth: true }}
+              defaultValue={[loaderData.scrape.llmModel ?? "gpt_4o_mini"]}
+              onValueChange={(e) => setSelectedModel(e.value[0] as LlmModel)}
+            >
+              <Select.HiddenSelect />
+              <Select.Control>
+                <Select.Trigger>
+                  <Select.ValueText placeholder="Select framework" />
+                </Select.Trigger>
+                <Select.IndicatorGroup>
+                  <Select.Indicator />
+                </Select.IndicatorGroup>
+              </Select.Control>
+              <Portal>
+                <Select.Positioner>
+                  <Select.Content>
+                    {models.items.map((model) => (
+                      <Select.Item item={model} key={model.value}>
+                        {model.label}
+                        <Select.ItemIndicator />
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select.Positioner>
+              </Portal>
+            </Select.Root>
+            {selectedModel === "sonnet_3_7" && (
+              <Alert.Root status="info" title="Alert" maxW="400px">
+                <Alert.Indicator />
+                <Alert.Title>
+                  <Text>
+                    <Text as={"span"} fontWeight={"bolder"}>
+                      Sonnet-3.7
+                    </Text>{" "}
+                    is the best performing model available and it consumes{" "}
+                    <Text as="span" fontWeight={"bolder"}>
+                      4 message credits
+                    </Text>
+                    .
+                  </Text>
+                </Alert.Title>
+              </Alert.Root>
+            )}
+          </Stack>
         </SettingsSection>
 
         <Stack

@@ -48,6 +48,8 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
     });
     this.model = options?.model ?? "gpt-4o-mini";
     this.id = id;
+
+    console.log("Created agent", this.id, this.model);
   }
 
   async stream(
