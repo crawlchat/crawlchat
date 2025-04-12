@@ -734,8 +734,8 @@ export function Pricing() {
               title="Free"
               description="For personal use"
               features={[
-                { label: "100 page scrapes per month" },
-                { label: "200 messages per month" },
+                { label: "100 page scrapes/month" },
+                { label: "200 message credits/month" },
                 { label: "API not available", excluded: true },
                 { label: "MCP not available", excluded: true },
                 { label: "Discord bot", excluded: true },
@@ -749,8 +749,8 @@ export function Pricing() {
               title="Starter"
               description="Start your journey with CrawlChat"
               features={[
-                { label: "5000 site scrapes per month" },
-                { label: "7000 messages per month" },
+                { label: "5000 site scrapes/month" },
+                { label: "7000 message credits/month" },
                 { label: "API available" },
                 { label: "MCP available" },
                 { label: "Discord bot" },
