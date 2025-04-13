@@ -7,10 +7,11 @@ import {
   Events,
   GatewayIntentBits,
   Message,
-  Snowflake,
+  Partials,
+  PublicThreadChannel,
   TextChannel,
 } from "discord.js";
-import { getDiscordDetails, learn, query, testQuery } from "./api";
+import { getDiscordDetails, learn, query } from "./api";
 import { createToken } from "./jwt";
 
 type DiscordMessage = Message<boolean>;
@@ -23,7 +24,12 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
   ],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
+
+const privateHelpChannelId = "1360940733766566011";
+const defaultPrompt = `Keep the response very short and very concised.
+It should be under 1000 charecters.`;
 
 const fetchAllParentMessages = async (
   message: DiscordMessage,
@@ -47,7 +53,7 @@ const fetchAllParentMessages = async (
   return fetchAllParentMessages(parentMessage, messages, i + 1);
 };
 
-const sendTyping = async (channel: TextChannel) => {
+const sendTyping = async (channel: TextChannel | PublicThreadChannel) => {
   await channel.sendTyping();
 
   const interval = setInterval(async () => {
@@ -131,8 +137,7 @@ client.on(Events.MessageCreate, async (message) => {
       messages,
       createToken(userId),
       {
-        prompt: `Keep the response very short and very concised.
-It should be under 1000 charecters.`,
+        prompt: defaultPrompt,
       }
     );
 
@@ -146,33 +151,120 @@ It should be under 1000 charecters.`,
     stopTyping();
 
     message.reply(response);
-  } else {
-    const { userId, scrapeId, autoAnswerChannelIds, answerEmoji } =
-      await getDiscordDetails(message.guildId!);
-    const channelIds = [message.channelId];
+  } else if (
+    message.channel.type === ChannelType.PublicThread &&
+    message.channel.parent?.id === privateHelpChannelId &&
+    message.author.id !== process.env.BOT_USER_ID
+  ) {
+    const { stopTyping } = await sendTyping(message.channel);
 
-    if (
-      message.channel.type === ChannelType.PublicThread &&
-      message.channel.parent?.id
-    ) {
-      channelIds.push(message.channel.parent.id);
+    const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
+
+    if (!scrapeId || !userId) {
+      console.log("Not integrated!");
+      stopTyping();
+      message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+      return;
     }
 
-    console.log("Checking reactive answer", {
-      userId,
+    const messages = await message.channel.messages.fetch();
+    const llmMessages = messages
+      .map((m) => ({
+        role: m.author.id === process.env.BOT_USER_ID! ? "assistant" : "user",
+        content: cleanContent(m.content),
+      }))
+      .reverse();
+
+    const { answer, error } = await query(
       scrapeId,
-      autoAnswerChannelIds,
-      answerEmoji,
-      channelIds,
+      llmMessages,
+      createToken(userId),
+      {
+        prompt: defaultPrompt,
+      }
+    );
+
+    if (error) {
+      stopTyping();
+      message.channel.send(
+        `‼️ Attention required: ${error}. Please contact the support team.`
+      );
+      return;
+    }
+
+    message.channel.send(answer);
+
+    stopTyping();
+  }
+});
+
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+  if (reaction.partial) {
+    try {
+      await reaction.fetch();
+    } catch (error) {
+      console.error("Something went wrong when fetching the message:", error);
+      return;
+    }
+  }
+
+  const emojiStr = reaction.emoji.toString();
+
+  if (emojiStr !== "✍️") {
+    return;
+  }
+
+  const channel = await reaction.message.client.channels.fetch(
+    privateHelpChannelId
+  );
+
+  if (channel && channel.isThreadOnly()) {
+    const { scrapeId, userId } = await getDiscordDetails(
+      reaction.message.guildId!
+    );
+    if (!scrapeId || !userId) {
+      console.log("Not integrated!");
+      reaction.message.reply(
+        "‼️ Integrate it on CrawlChat.app to use this bot!"
+      );
+      return;
+    }
+
+    const { answer, error } = await query(
+      scrapeId,
+      [
+        {
+          role: "user",
+          content: reaction.message.content!,
+        },
+      ],
+      createToken(userId),
+      {
+        prompt: defaultPrompt,
+      }
+    );
+
+    if (error) {
+      reaction.message.reply(
+        `‼️ Attention required: ${error}. Please contact the support team.`
+      );
+      return;
+    }
+
+    let threadName = `${emojiStr}`;
+    if (reaction.message.channel.isThread()) {
+      threadName = `${threadName} ${reaction.message.channel.name}`;
+    }
+
+    const thread = await channel.threads.create({
+      name: threadName,
+      message: {
+        content: `Original message: ${reaction.message.url}
+Question: ${reaction.message.content}`,
+      },
     });
 
-    if (
-      autoAnswerChannelIds.some((id: string) => channelIds.includes(id)) &&
-      (await testQuery(message.content, createToken(userId), scrapeId))
-    ) {
-      console.log("Reacting");
-      message.react(answerEmoji);
-    }
+    thread.send(answer);
   }
 });
 
