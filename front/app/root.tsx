@@ -63,8 +63,7 @@ function WidgetHighligter() {
           textAlign: "center",
         }}
       >
-        try it out{" "}
-        <br />
+        try it out <br />
         now
       </div>
       <div
@@ -82,20 +81,25 @@ function WidgetHighligter() {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const matches = useMatches();
-  const isEmbed = matches.some((match) => match.id === "landing/embed-demo");
+  const isEmbedDemo = matches.some(
+    (match) => match.id === "landing/embed-demo"
+  );
   const isLandingPage = matches.some((match) => match.id === "landing/page");
+  const isWidget = matches.some((match) => match.id === "widget/scrape");
 
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script
-          defer
-          src="https://api.pirsch.io/pa.js"
-          id="pianjs"
-          data-code="aO7kKYfA1oQ3g4FLHanketwYCWPu2cE0"
-        ></script>
+        {!isWidget && (
+          <script
+            defer
+            src="https://api.pirsch.io/pa.js"
+            id="pianjs"
+            data-code="aO7kKYfA1oQ3g4FLHanketwYCWPu2cE0"
+          ></script>
+        )}
         <Meta />
         <Links />
       </head>
@@ -103,7 +107,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {children}
         <ScrollRestoration />
         <Scripts />
-        {isEmbed && (
+        {isEmbedDemo && (
           <script
             src="/embed.js"
             id="crawlchat-script"
