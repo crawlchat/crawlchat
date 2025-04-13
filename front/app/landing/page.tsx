@@ -35,7 +35,6 @@ import {
   TbFileAi,
   TbFileX,
   TbMail,
-  TbMarkdown,
   TbMessage,
   TbMessage2,
   TbRobotFace,
@@ -44,11 +43,12 @@ import {
   TbWorld,
   TbX,
   TbFileInfo,
-  TbAi,
   TbLink,
   TbChartArea,
   TbPlug,
   TbBrandGithub,
+  TbBolt,
+  TbCodeCircle,
 } from "react-icons/tb";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -1031,7 +1031,7 @@ function Features() {
     () => [
       {
         title: "Embed Ask AI",
-        icon: <TbAi />,
+        icon: <TbCodeCircle />,
         description:
           "You can embed the popular Ask AI widget on your website without any hassle",
       },
@@ -1114,7 +1114,6 @@ function Features() {
         icon: <TbChartArea />,
         description:
           "It's not a chatbot, it also provides you in-deep analytics to understand your customer queries and make your documentation better.",
-        new: true,
       },
       {
         title: "Reactive bot",
@@ -1128,6 +1127,13 @@ function Features() {
         icon: <TbBrandGithub />,
         description:
           "Fetch the Github issues and add them to your knowledge base instantly!",
+        new: true,
+      },
+      {
+        title: "Multiple AI models",
+        icon: <TbBolt />,
+        description:
+          "Use different AI models that work better for your knowledge and requirement from 4o-mini, o3-mini, sonnet-3.5 and more.",
         new: true,
       },
     ],
