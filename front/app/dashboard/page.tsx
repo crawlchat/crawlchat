@@ -10,8 +10,6 @@ import {
   Input,
   DialogCloseTrigger,
   Center,
-  SimpleGrid,
-  Flex,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/page";
 import {
@@ -387,63 +385,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               />
             </BarChart>
           </Stack>
-
-          {loaderData.scrape && loaderData.scrape.analytics?.categories && (
-            <Stack>
-              <Heading>
-                <Group>
-                  <TbStack />
-                  <Text>Categories</Text>
-                  <ChakraTooltip
-                    showArrow
-                    content={
-                      "These are the categories of the messages received in the last 7 days across all the channels"
-                    }
-                  >
-                    <Icon opacity={0.5}>
-                      <TbHelp />
-                    </Icon>
-                  </ChakraTooltip>
-                </Group>
-              </Heading>
-
-              <SimpleGrid columns={[1, 2, 3]} gap={4}>
-                {loaderData.scrape.analytics.categories
-                  .sort((a, b) => b.messageIds.length - a.messageIds.length)
-                  .map((c) => (
-                    <Group
-                      key={c.key}
-                      border="1px solid"
-                      borderColor={"brand.outline"}
-                      p={4}
-                      rounded={"lg"}
-                      justifyContent={"space-between"}
-                    >
-                      <Stack gap={1}>
-                        <Text fontWeight={"bold"}>{c.name}</Text>
-                        <Text fontSize={"sm"} opacity={0.4}>
-                          {c.description}
-                        </Text>
-                      </Stack>
-                      <Group>
-                        <Center
-                          w={10}
-                          h={10}
-                          rounded={"full"}
-                          bg={"brand.subtle"}
-                          color={"brand.fg"}
-                          fontWeight={"bold"}
-                          border={"1px solid"}
-                          borderColor={"brand.outline"}
-                        >
-                          <Text>{c.messageIds.length}</Text>
-                        </Center>
-                      </Group>
-                    </Group>
-                  ))}
-              </SimpleGrid>
-            </Stack>
-          )}
         </Stack>
       )}
 

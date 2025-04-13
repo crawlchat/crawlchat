@@ -22,8 +22,6 @@ import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
 import { FlowMessage } from "./llm/agentic";
-import { assignCategory } from "./collection";
-import { effect } from "./effect";
 import { makeTestQueryFlow } from "./llm/flow-test-query";
 import { getConfig } from "./llm/config";
 
@@ -441,8 +439,6 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     },
   });
 
-  effect(assignCategory(scrape.id, userMessage.id));
-
   res.json(processed);
 });
 
@@ -607,8 +603,6 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
         .map((l) => l.url)
         .join("\n");
   }
-
-  effect(assignCategory(scrape.id, userMessage.id));
 
   res.json({ message: newAnswerMessage, content: updatedContent });
 });
