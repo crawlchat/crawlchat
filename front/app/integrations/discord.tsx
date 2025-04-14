@@ -186,7 +186,7 @@ export default function ScrapeIntegrations({
             <Text>Drafting</Text>
             <IconButton size={"xs"} variant={"ghost"} asChild>
               <a
-                href="https://discord.com/channels/1346845279692918804/1346845279692918804"
+                href="https://guides.crawlchat.app/walkthrough/67fd0aad123cc427aca681a7/read"
                 target="_blank"
               >
                 <TbInfoCircle />
