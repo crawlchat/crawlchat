@@ -249,8 +249,7 @@ export default function ScrapeIntegrations({
                 >
                   <option value="✍️">✍️</option>
                   <option value="✏️">✏️</option>
-                  <option value="💭">💭</option>
-                  <option value="💬">💬</option>
+                  <option value="🤔">🤔</option>
                 </NativeSelect.Field>
                 <NativeSelect.Indicator />
               </NativeSelect.Root>
