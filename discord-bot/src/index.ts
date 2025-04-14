@@ -27,7 +27,6 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-const privateHelpChannelId = "1360940733766566011";
 const defaultPrompt = `Keep the response very short and very concised.
 It should be under 1000 charecters.`;
 
@@ -153,48 +152,43 @@ client.on(Events.MessageCreate, async (message) => {
     message.reply(response);
   } else if (
     message.channel.type === ChannelType.PublicThread &&
-    message.channel.parent?.id === privateHelpChannelId &&
+    message.channel.parent?.id &&
     message.author.id !== process.env.BOT_USER_ID
   ) {
-    const { stopTyping } = await sendTyping(message.channel);
+    const { scrapeId, userId, draftDestinationChannelId } =
+      await getDiscordDetails(message.guildId!);
+    if (message.channel.parent.id === draftDestinationChannelId) {
+      const { stopTyping } = await sendTyping(message.channel);
 
-    const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
+      const messages = await message.channel.messages.fetch();
+      const llmMessages = messages
+        .map((m) => ({
+          role: m.author.id === process.env.BOT_USER_ID! ? "assistant" : "user",
+          content: cleanContent(m.content),
+        }))
+        .reverse();
 
-    if (!scrapeId || !userId) {
-      console.log("Not integrated!");
-      stopTyping();
-      message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
-      return;
-    }
-
-    const messages = await message.channel.messages.fetch();
-    const llmMessages = messages
-      .map((m) => ({
-        role: m.author.id === process.env.BOT_USER_ID! ? "assistant" : "user",
-        content: cleanContent(m.content),
-      }))
-      .reverse();
-
-    const { answer, error } = await query(
-      scrapeId,
-      llmMessages,
-      createToken(userId),
-      {
-        prompt: defaultPrompt,
-      }
-    );
-
-    if (error) {
-      stopTyping();
-      message.channel.send(
-        `‼️ Attention required: ${error}. Please contact the support team.`
+      const { answer, error } = await query(
+        scrapeId,
+        llmMessages,
+        createToken(userId),
+        {
+          prompt: defaultPrompt,
+        }
       );
-      return;
+
+      if (error) {
+        stopTyping();
+        message.channel.send(
+          `‼️ Attention required: ${error}. Please contact the support team.`
+        );
+        return;
+      }
+
+      message.channel.send(answer);
+
+      stopTyping();
     }
-
-    message.channel.send(answer);
-
-    stopTyping();
   }
 });
 
@@ -208,28 +202,25 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     }
   }
 
+  const { scrapeId, userId, draftEmoji, draftDestinationChannelId } =
+    await getDiscordDetails(reaction.message.guildId!);
+
   const emojiStr = reaction.emoji.toString();
 
-  if (emojiStr !== "✍️") {
+  if (
+    emojiStr !== draftEmoji ||
+    !scrapeId ||
+    !userId ||
+    !draftDestinationChannelId
+  ) {
     return;
   }
 
   const channel = await reaction.message.client.channels.fetch(
-    privateHelpChannelId
+    draftDestinationChannelId
   );
 
   if (channel && channel.isThreadOnly()) {
-    const { scrapeId, userId } = await getDiscordDetails(
-      reaction.message.guildId!
-    );
-    if (!scrapeId || !userId) {
-      console.log("Not integrated!");
-      reaction.message.reply(
-        "‼️ Integrate it on CrawlChat.app to use this bot!"
-      );
-      return;
-    }
-
     const { answer, error } = await query(
       scrapeId,
       [
