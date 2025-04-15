@@ -81,6 +81,12 @@ const config = defineConfig({
               _dark: "{colors.black}",
             },
           },
+          "danger.subtle": {
+            value: {
+              base: "{colors.red.50}",
+              _dark: "{colors.red.800}",
+            },
+          },
         },
       },
     },

@@ -101,6 +101,7 @@ model Scrape {
   indexer               String?
   discordServerId       String?
   discordDraftConfig    DiscordDraftConfig?
+  logoUrl               String?
 
   analytics             ScrapeAnalytics?
   llmModel              LlmModel?

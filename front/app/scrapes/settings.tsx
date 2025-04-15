@@ -1,9 +1,11 @@
 import {
   Alert,
+  Center,
   createListCollection,
   DataList,
   Group,
   Heading,
+  Image,
   Input,
   Portal,
   Select,
@@ -18,7 +20,7 @@ import type { Route } from "./+types/settings";
 import { getAuthUser } from "~/auth/middleware";
 import type { LlmModel, Prisma } from "libs/prisma";
 import { getSession } from "~/session";
-import { TbSettings, TbTrash } from "react-icons/tb";
+import { TbPhoto, TbSettings, TbTrash } from "react-icons/tb";
 import { Page } from "~/components/page";
 import moment from "moment";
 import { Button } from "~/components/ui/button";
@@ -81,6 +83,9 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("llmModel")) {
     update.llmModel = formData.get("llmModel") as LlmModel;
   }
+  if (formData.has("logoUrl")) {
+    update.logoUrl = formData.get("logoUrl") as string;
+  }
 
   const scrape = await prisma.scrape.update({
     where: { id: scrapeId, userId: user!.id },
@@ -95,6 +100,8 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const nameFetcher = useFetcher();
   const deleteFetcher = useFetcher();
   const modelFetcher = useFetcher();
+  const logoFetcher = useFetcher();
+
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [selectedModel, setSelectedModel] = useState<LlmModel>(
     loaderData.scrape.llmModel ?? "gpt_4o_mini"
@@ -154,6 +161,36 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             defaultValue={loaderData.scrape.title ?? ""}
             placeholder="Enter a name for this scrape."
           />
+        </SettingsSection>
+
+        <SettingsSection
+          title="Logo"
+          description="Set the logo URL for this collection. It will be shown on embed widget and other appropriate places."
+          fetcher={logoFetcher}
+        >
+          <Stack>
+            <Center
+              w={"100px"}
+              h={"100px"}
+              bg={"gray.100"}
+              rounded={"lg"}
+              p={2}
+            >
+              {loaderData.scrape.logoUrl ? (
+                <Image src={loaderData.scrape.logoUrl} alt="Logo" />
+              ) : (
+                <Text fontSize={"3xl"} opacity={0.4}>
+                  <TbPhoto/>
+                </Text>
+              )}
+            </Center>
+            <Input
+              name="logoUrl"
+              defaultValue={loaderData.scrape.logoUrl ?? ""}
+              placeholder="Enter a logo URL"
+              pattern="https://.*"
+            />
+          </Stack>
         </SettingsSection>
 
         <SettingsSection
@@ -227,7 +264,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
         <Stack
           border={"1px solid"}
           borderColor={"red.300"}
-          bg="red.50"
+          bg={"brand.danger.subtle"}
           rounded={"lg"}
           p={4}
           gap={4}

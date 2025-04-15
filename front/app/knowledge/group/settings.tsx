@@ -272,7 +272,7 @@ export default function KnowledgeGroupSettings({
       <Stack
         border={"1px solid"}
         borderColor={"red.300"}
-        bg="red.50"
+        bg={"brand.danger.subtle"}
         rounded={"lg"}
         p={4}
         gap={4}
