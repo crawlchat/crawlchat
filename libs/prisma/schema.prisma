@@ -51,10 +51,11 @@ type WidgetQuestion {
 }
 
 type WidgetConfig {
-  size                WidgetSize
-  questions           WidgetQuestion[]
-  welcomeMessage      String?
-  showMcpSetup        Boolean?
+  size                  WidgetSize
+  questions             WidgetQuestion[]
+  welcomeMessage        String?
+  showMcpSetup          Boolean?
+  textInputPlaceholder  String?
 }
 
 type ScrapeAnalyticsCategoryMessageId {

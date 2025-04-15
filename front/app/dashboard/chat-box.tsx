@@ -14,7 +14,13 @@ import {
   Skeleton,
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
-import type { Message, MessageSourceLink, Scrape, Thread, WidgetSize } from "libs/prisma";
+import type {
+  Message,
+  MessageSourceLink,
+  Scrape,
+  Thread,
+  WidgetSize,
+} from "libs/prisma";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TbArrowUp,
@@ -50,11 +56,13 @@ function ChatInput({
   stage,
   searchQuery,
   disabled,
+  scrape,
 }: {
   onAsk: (query: string) => void;
   stage: AskStage;
   searchQuery?: string;
   disabled?: boolean;
+  scrape: Scrape;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
@@ -99,7 +107,7 @@ function ChatInput({
       case "searching":
         return `🔍 Searching for "${searchQuery ?? "answer"}"`;
     }
-    return "Ask your question";
+    return scrape.widgetConfig?.textInputPlaceholder ?? "Ask your question";
   }
 
   const isDisabled = disabled || stage !== "idle";
@@ -221,7 +229,7 @@ function AssistantMessage({
   onUnpin: () => void;
   onDelete: () => void;
   onRefresh: () => void;
-  size?: WidgetSize
+  size?: WidgetSize;
 }) {
   const [cleanedLinks, cleanedContent] = useMemo(() => {
     const citation = extractCitations(content, links);
@@ -506,7 +514,9 @@ function Toolbar({
     >
       <Group>
         <Group>
-          {scrape.logoUrl && <Image src={scrape.logoUrl} alt="Logo" w={"34px"} h={"34px"} />}
+          {scrape.logoUrl && (
+            <Image src={scrape.logoUrl} alt="Logo" w={"34px"} h={"34px"} />
+          )}
           <Text fontSize={"xs"} opacity={0.5}>
             By{" "}
             <Link asChild target="_blank" fontWeight={"bold"}>
@@ -805,6 +815,7 @@ export default function ScrapeWidget({
           stage={chat.askStage}
           searchQuery={chat.searchQuery}
           disabled={screen !== "chat"}
+          scrape={scrape}
         />
       </Stack>
     </Center>

@@ -90,6 +90,7 @@ export async function action({ request }: Route.ActionArgs) {
     questions: [],
     welcomeMessage: null,
     showMcpSetup: null,
+    textInputPlaceholder: null,
   };
 
   if (size) {
@@ -106,6 +107,12 @@ export async function action({ request }: Route.ActionArgs) {
 
   if (formData.has("from-mcp-setup")) {
     update.showMcpSetup = formData.get("showMcpSetup") === "on";
+  }
+
+  if (formData.has("textInputPlaceholder")) {
+    update.textInputPlaceholder = formData.get(
+      "textInputPlaceholder"
+    ) as string;
   }
 
   await prisma.scrape.update({
@@ -232,6 +239,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const questionsFetcher = useFetcher();
   const welcomeMessageFetcher = useFetcher();
   const mcpSetupFetcher = useFetcher();
+  const textInputPlaceholderFetcher = useFetcher();
   const [embedProps, setEmbedProps] = useState<EmbedProps>({
     button: true,
     buttonColor: "#7b2cbf",
@@ -493,6 +501,21 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
             </Button>
           </Box>
         </SettingsSection>
+
+        <SettingsSection
+          title="Text input placeholder"
+          description="Set the placeholder text for the text input field"
+          fetcher={textInputPlaceholderFetcher}
+        >
+          <Input
+            name="textInputPlaceholder"
+            defaultValue={
+              loaderData.scrape?.widgetConfig?.textInputPlaceholder ?? ""
+            }
+            placeholder="Ex: Ask me anything about the product"
+          />
+        </SettingsSection>
+
         <SettingsSection
           title="MCP client setup instructions"
           description="Show the MCP client setup instrctions on the widget"
