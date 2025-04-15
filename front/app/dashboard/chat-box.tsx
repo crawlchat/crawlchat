@@ -7,6 +7,7 @@ import {
   Heading,
   Icon,
   IconButton,
+  Image,
   Input,
   Kbd,
   Link,
@@ -505,8 +506,9 @@ function Toolbar({
     >
       <Group>
         <Group>
+          {scrape.logoUrl && <Image src={scrape.logoUrl} alt="Logo" w={"34px"} h={"34px"} />}
           <Text fontSize={"xs"} opacity={0.5}>
-            Powered by{" "}
+            By{" "}
             <Link asChild target="_blank" fontWeight={"bold"}>
               <RouterLink to="/">CrawlChat</RouterLink>
             </Link>
