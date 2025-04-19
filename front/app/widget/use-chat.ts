@@ -18,7 +18,6 @@ export function useScrapeChat({
   threadId: string;
   defaultMessages: Message[];
 }) {
-  const { setThreadTitle } = useContext(AppContext);
   const socket = useRef<WebSocket>(null);
   const [messages, setMessages] = useState<Message[]>(defaultMessages);
   const [content, setContent] = useState("");
@@ -48,16 +47,6 @@ export function useScrapeChat({
       id: message.id,
     }));
   }, [messages, content]);
-
-  useEffect(() => {
-    if (setThreadTitle) {
-      const title = getThreadName(messages);
-      setThreadTitle((titles) => ({
-        ...titles,
-        [threadId]: title,
-      }));
-    }
-  }, [messages]);
 
   function connect() {
     socket.current = new WebSocket(window.ENV.VITE_SERVER_WS_URL);
@@ -161,6 +150,8 @@ export function useScrapeChat({
         threadId,
         updatedAt: new Date(),
         ownerUserId: "",
+        scrapeId,
+        channel: null,
       },
     ]);
     setAskStage("asked");

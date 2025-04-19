@@ -75,6 +75,7 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
           borderRight={"1px solid"}
           borderColor="brand.outline"
           h="full"
+          maxH={"calc(100dvh - 60px)"}
           gap={0}
           overflowY={"auto"}
         >
@@ -94,14 +95,16 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
               onClick={() => setSelectedThread(thread)}
             >
               <Group justifyContent={"space-between"}>
-                <Text fontWeight={"bold"} opacity={0.8}>
-                  #{thread.id.substring(thread.id.length - 4)}
+                <Text opacity={0.8}>
+                  {thread.id.substring(thread.id.length - 4)}
                 </Text>
                 <Badge colorPalette={"brand"} variant={"surface"}>
                   {thread.messages.length}
                 </Badge>
               </Group>
-              <Text opacity={0.5}>{moment(thread.createdAt).fromNow()}</Text>
+              <Text opacity={0.5} fontSize={"sm"}>
+                {moment(thread.createdAt).fromNow()}
+              </Text>
             </Stack>
           ))}
         </Stack>
@@ -119,6 +122,7 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
                 onErase={() => {}}
                 onDelete={() => {}}
                 messages={selectedThread.messages}
+                showScore
               />
             )}
           </Center>
