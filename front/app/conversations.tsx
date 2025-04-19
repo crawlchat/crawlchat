@@ -9,7 +9,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { Page } from "./components/page";
-import { TbMessage } from "react-icons/tb";
+import { TbMessages } from "react-icons/tb";
 import type { Route } from "./+types/conversations";
 import { getAuthUser } from "./auth/middleware";
 import { getSessionScrapeId } from "./scrapes/util";
@@ -76,12 +76,12 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
   >(loaderData.threads[0]);
 
   return (
-    <Page title="Conversations" icon={<TbMessage />} noPadding>
+    <Page title="Conversations" icon={<TbMessages />} noPadding>
       {loaderData.threads.length === 0 && (
         <EmptyState.Root>
           <EmptyState.Content>
             <EmptyState.Indicator>
-              <TbMessage />
+              <TbMessages />
             </EmptyState.Indicator>
             <VStack textAlign="center">
               <EmptyState.Title>No conversations found</EmptyState.Title>
@@ -122,13 +122,19 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
                   selectedThread?.id === thread.id ? "brand.gray.50" : undefined
                 }
                 _hover={{ bg: "brand.gray.50" }}
-                _first={{ borderTop: "1px solid", borderColor: "brand.outline" }}
+                _first={{
+                  borderTop: "1px solid",
+                  borderColor: "brand.outline",
+                }}
                 onClick={() => setSelectedThread(thread)}
               >
                 <Group justifyContent={"space-between"}>
-                  <Text opacity={0.8}>
-                    {thread.id.substring(thread.id.length - 4)}
-                  </Text>
+                  <Group>
+                    <TbMessages />
+                    <Text opacity={0.8}>
+                      {thread.id.substring(thread.id.length - 4)}
+                    </Text>
+                  </Group>
                   <Badge colorPalette={"brand"} variant={"surface"}>
                     {thread.messages.length}
                   </Badge>

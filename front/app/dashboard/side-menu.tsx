@@ -16,9 +16,9 @@ import {
   TbHome,
   TbLogout,
   TbMessage,
+  TbMessages,
   TbPlug,
   TbRoad,
-  TbScan,
   TbSettings,
   TbUser,
 } from "react-icons/tb";
@@ -50,7 +50,7 @@ const links = [
   {
     label: "Conversations",
     to: "/conversations",
-    icon: <TbMessage />,
+    icon: <TbMessages />,
     forScrape: true,
   },
   { label: "Settings", to: "/settings", icon: <TbSettings />, forScrape: true },
