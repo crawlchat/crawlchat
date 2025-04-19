@@ -33,6 +33,7 @@ export default [
     route("app", "dashboard/page.tsx"),
     route("profile", "dashboard/profile.tsx"),
     route("messages", "analyse/messages.tsx"),
+    route("conversations", "conversations.tsx"),
     route("settings", "scrapes/settings.tsx"),
 
     route("integrations", "integrations/page.tsx", [

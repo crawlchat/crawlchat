@@ -8,11 +8,13 @@ export function Page({
   icon,
   children,
   right,
+  noPadding,
 }: {
   title: string;
   icon?: React.ReactNode;
   children?: React.ReactNode;
   right?: React.ReactNode;
+  noPadding?: boolean;
 }) {
   const { menuOpen, setMenuOpen, setContainerWidth } = useContext(AppContext);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,7 +61,12 @@ export function Page({
           {right}
         </Group>
       </Stack>
-      <Box p={4} h="full" ref={containerRef}>
+      <Box
+        p={noPadding ? 0 : 4}
+        h="full"
+        ref={containerRef}
+        bg="brand.background"
+      >
         {children}
       </Box>
     </Stack>

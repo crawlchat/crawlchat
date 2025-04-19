@@ -221,6 +221,7 @@ function AssistantMessage({
   onDelete,
   onRefresh,
   size,
+  disabled,
 }: {
   content: string;
   links: MessageSourceLink[];
@@ -230,6 +231,7 @@ function AssistantMessage({
   onDelete: () => void;
   onRefresh: () => void;
   size?: WidgetSize;
+  disabled?: boolean;
 }) {
   const [cleanedLinks, cleanedContent] = useMemo(() => {
     const citation = extractCitations(content, links);
@@ -255,6 +257,7 @@ function AssistantMessage({
               rounded={"full"}
               variant={pinned ? "solid" : "subtle"}
               onClick={pinned ? onUnpin : onPin}
+              disabled={disabled}
             >
               <TbPin />
             </IconButton>
@@ -265,6 +268,7 @@ function AssistantMessage({
               rounded={"full"}
               variant={"subtle"}
               onClick={onDelete}
+              disabled={disabled}
             >
               <TbTrash />
             </IconButton>
@@ -275,6 +279,7 @@ function AssistantMessage({
               rounded={"full"}
               variant={"subtle"}
               onClick={onRefresh}
+              disabled={disabled}
             >
               <TbRefresh />
             </IconButton>
@@ -466,6 +471,7 @@ function Toolbar({
   onPinSelect,
   screen,
   onScreenChange,
+  disabled,
 }: {
   scrape: Scrape;
   messages: Message[];
@@ -473,6 +479,7 @@ function Toolbar({
   onPinSelect: (id: string) => void;
   screen: "chat" | "mcp";
   onScreenChange: (screen: "chat" | "mcp") => void;
+  disabled: boolean;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const pinnedCount = useMemo(() => {
@@ -579,6 +586,7 @@ function Toolbar({
               variant={confirmDelete ? "solid" : "subtle"}
               colorPalette={confirmDelete ? "red" : undefined}
               onClick={handleDelete}
+              disabled={disabled}
             >
               <TbEraser />
             </IconButton>
@@ -642,11 +650,14 @@ export default function ScrapeWidget({
     threadId: thread.id,
   });
   const [screen, setScreen] = useState<"chat" | "mcp">("chat");
+  const readOnly = useMemo(() => userToken === "NA", [userToken]);
 
   useEffect(function () {
-    chat.connect();
-    return () => chat.disconnect();
-  }, []);
+    if (!readOnly) {
+      chat.connect();
+      return () => chat.disconnect();
+    }
+  }, [readOnly]);
 
   useEffect(function () {
     scroll();
@@ -762,6 +773,7 @@ export default function ScrapeWidget({
           screen={screen}
           onScreenChange={setScreen}
           scrape={scrape}
+          disabled={readOnly}
         />
         <Stack flex="1" overflow={"auto"} gap={0}>
           {screen === "chat" && (
@@ -780,6 +792,7 @@ export default function ScrapeWidget({
                       links={message.links}
                       pinned={chat.allMessages[index - 1]?.pinned}
                       onPin={() => handlePin(chat.allMessages[index - 1]?.id)}
+                      disabled={readOnly}
                       onUnpin={() =>
                         handleUnpin(chat.allMessages[index - 1]?.id)
                       }
@@ -814,7 +827,7 @@ export default function ScrapeWidget({
           onAsk={handleAsk}
           stage={chat.askStage}
           searchQuery={chat.searchQuery}
-          disabled={screen !== "chat"}
+          disabled={screen !== "chat" || readOnly }
           scrape={scrape}
         />
       </Stack>
