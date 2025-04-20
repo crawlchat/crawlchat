@@ -266,7 +266,7 @@ function AssistantMessage({
               <TbPin />
             </IconButton>
           </Tooltip>
-          <Tooltip content="Delete message" showArrow>
+          {/* <Tooltip content="Delete message" showArrow>
             <IconButton
               size={"xs"}
               rounded={"full"}
@@ -276,7 +276,7 @@ function AssistantMessage({
             >
               <TbTrash />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip content="Regenerate message" showArrow>
             <IconButton
               size={"xs"}

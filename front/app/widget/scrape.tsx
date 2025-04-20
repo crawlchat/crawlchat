@@ -1,13 +1,12 @@
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/scrape";
-import { Group, Link, Stack, Text } from "@chakra-ui/react";
+import { Stack } from "@chakra-ui/react";
 import { createToken } from "~/jwt";
 import "highlight.js/styles/vs.css";
 import ChatBox from "~/dashboard/chat-box";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, useFetcher } from "react-router";
-import { useEffect, useState } from "react";
-import type { Thread } from "libs/prisma";
+import { useEffect } from "react";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findUnique({
@@ -32,7 +31,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   session.set("chatSessionKeys", chatSessionKeys);
 
-  const userToken = await createToken(chatSessionKeys[scrape.id], {
+  const userToken = createToken(chatSessionKeys[scrape.id], {
     expiresInSeconds: 60 * 60,
   });
 
@@ -77,13 +76,14 @@ export function meta({ data }: Route.MetaArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+  const scrapeId = params.id;
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   const session = await getSession(request.headers.get("cookie"));
   const chatSessionKeys = session.get("chatSessionKeys") ?? {};
 
-  const threadId = chatSessionKeys[params.id];
+  const threadId = chatSessionKeys[scrapeId];
 
   if (!threadId) {
     throw redirect("/");
@@ -112,9 +112,24 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   if (intent === "erase") {
-    await prisma.message.deleteMany({
-      where: { threadId },
+    const thread = await prisma.thread.create({
+      data: {
+        scrapeId: scrapeId,
+      },
     });
+    chatSessionKeys[scrapeId] = thread.id;
+    session.set("chatSessionKeys", chatSessionKeys);
+    const userToken = createToken(chatSessionKeys[scrapeId], {
+      expiresInSeconds: 60 * 60,
+    });
+    return data(
+      { userToken, thread },
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+      }
+    );
   }
 
   if (intent === "delete") {
