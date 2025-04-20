@@ -278,12 +278,14 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             <TbPlus />
             New collection
           </Button>
-          <Button variant={"subtle"} colorPalette={"brand"} asChild>
-            <a href={`/w/${loaderData.scrapeId}`} target="_blank">
-              <TbMessage />
-              Chat
-            </a>
-          </Button>
+          {loaderData.scrape && (
+            <Button variant={"subtle"} colorPalette={"brand"} asChild>
+              <a href={`/w/${loaderData.scrapeId}`} target="_blank">
+                <TbMessage />
+                Chat
+              </a>
+            </Button>
+          )}
         </Group>
       }
     >
