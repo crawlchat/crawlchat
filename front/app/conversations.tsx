@@ -20,20 +20,13 @@ import { useState } from "react";
 import ChatBox from "./dashboard/chat-box";
 import { getMessagesScore, getScoreColor } from "./score";
 import { Tooltip } from "./components/ui/tooltip";
+import { chunk } from "libs/chunk";
 
 type ThreadWithMessages = Prisma.ThreadGetPayload<{
   include: {
     messages: true;
   };
 }>;
-
-function chunk<T>(array: T[], size: number) {
-  const chunks: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

@@ -24,6 +24,7 @@ import { makeKbProcesser } from "./kb/factory";
 import { FlowMessage } from "./llm/agentic";
 import { makeTestQueryFlow } from "./llm/flow-test-query";
 import { getConfig } from "./llm/config";
+import { chunk } from "libs/chunk";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -41,14 +42,6 @@ function cleanUrl(url: string) {
     url = "https://" + url;
   }
   return url.toLowerCase();
-}
-
-function chunk<T>(array: T[], size: number) {
-  const chunks: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
 }
 
 async function collectSourceLinks(

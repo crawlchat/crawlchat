@@ -21,6 +21,10 @@
     "./citation": {
       "default": "./dist/citation.js",
       "types": "./dist/citation.d.ts"
+    },
+    "./chunk": {
+      "default": "./dist/chunk.js",
+      "types": "./dist/chunk.d.ts"
     }
   },
   "typesVersions": {
@@ -33,6 +37,9 @@
       ],
       "citation": [
         "./dist/citation.d.ts"
+      ],
+      "chunk": [
+        "./dist/chunk.d.ts"
       ]
     }
   },
