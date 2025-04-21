@@ -27,6 +27,14 @@ type ThreadWithMessages = Prisma.ThreadGetPayload<{
   };
 }>;
 
+function chunk<T>(array: T[], size: number) {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
@@ -41,20 +49,27 @@ export async function loader({ request }: Route.LoaderArgs) {
         gte: ONE_WEEK_AGO,
       },
     },
-    include: {
-      thread: {
-        include: {
-          messages: true,
-        },
-      },
+    select: {
+      threadId: true,
     },
   });
 
   const threads: Record<string, ThreadWithMessages> = {};
 
-  for (const message of messages) {
-    if (!threads[message.threadId]) {
-      threads[message.threadId] = message.thread;
+  const chunks = chunk(messages, 1);
+
+  for (const chunk of chunks) {
+    const _threads = await prisma.thread.findMany({
+      where: {
+        id: { in: chunk.map((m) => m.threadId).filter((id) => !threads[id]) },
+      },
+      include: {
+        messages: true,
+      },
+    });
+
+    for (const thread of _threads) {
+      threads[thread.id] = thread;
     }
   }
 
