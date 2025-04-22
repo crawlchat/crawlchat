@@ -155,6 +155,8 @@ function ChatInput({
             autoresize
             onKeyDown={handleKeyDown}
             disabled={isDisabled}
+            maxHeight={"240px"}
+            overflow={"auto"}
           />
         </InputGroup>
       </Group>
