@@ -67,7 +67,7 @@ class CrawlChatEmbed {
     setTimeout(() => {
       div.style.width = "0px";
       div.style.height = "0px";
-      document.body.focus();
+      window.focus();
     }, this.transitionDuration);
 
     if (this.askAIEnabled) {
