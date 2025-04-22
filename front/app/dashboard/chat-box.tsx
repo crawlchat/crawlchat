@@ -223,7 +223,7 @@ function UserMessage({ content }: { content: string }) {
       pb={0}
     >
       <Text
-        fontSize={"2xl"}
+        fontSize={"xl"}
         fontWeight={"bolder"}
         opacity={0.8}
         whiteSpace={"pre-wrap"}
@@ -556,14 +556,23 @@ function Toolbar({
       <Group>
         <Group>
           {scrape.logoUrl && (
-            <Image src={scrape.logoUrl} alt="Logo" w={"34px"} h={"34px"} />
+            <img
+              src={scrape.logoUrl}
+              alt="Logo"
+              style={{ maxWidth: "34px", maxHeight: "34px" }}
+            />
           )}
-          <Text fontSize={"xs"} opacity={0.5}>
-            By{" "}
-            <Link asChild target="_blank" fontWeight={"bold"}>
-              <RouterLink to="/">CrawlChat</RouterLink>
-            </Link>
-          </Text>
+          <Stack gap={0.6}>
+            <Text fontWeight={"bold"} lineHeight={1}>
+              {scrape.title ?? "Ask AI"}
+            </Text>
+            <Text fontSize={9} opacity={0.5} lineHeight={1}>
+              By{" "}
+              <Link asChild target="_blank">
+                <RouterLink to="/">CrawlChat</RouterLink>
+              </Link>
+            </Text>
+          </Stack>
           {overallScore !== undefined && (
             <Tooltip content="Avg score of all messages" showArrow>
               <Badge
