@@ -12,6 +12,7 @@ import {
   Kbd,
   Link,
   Skeleton,
+  Textarea,
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
 import type {
@@ -65,9 +66,12 @@ function ChatInput({
   searchQuery?: string;
   disabled?: boolean;
   scrape: Scrape;
-  inputRef: React.RefObject<HTMLInputElement | null>;
+  inputRef: React.RefObject<HTMLTextAreaElement | null>;
 }) {
   const [query, setQuery] = useState("");
+  const [height, setHeight] = useState(60);
+
+  useEffect(adjustHeight, [query]);
 
   useEffect(function () {
     const handleOnMessage = (event: MessageEvent) => {
@@ -79,6 +83,8 @@ function ChatInput({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Enter" && !inputRef.current?.matches(":focus")) {
         inputRef.current?.focus();
+        event.preventDefault();
+        event.stopPropagation();
       }
     };
 
@@ -108,19 +114,34 @@ function ChatInput({
     return scrape.widgetConfig?.textInputPlaceholder ?? "Ask your question";
   }
 
+  function adjustHeight() {
+    const rect = inputRef.current?.getBoundingClientRect();
+    if (rect) {
+      setHeight(rect.height + 36);
+    }
+  }
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      handleAsk();
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }
+
   const isDisabled = disabled || stage !== "idle";
 
   return (
     <Group
-      h="60px"
+      h={`${height}px`}
       borderTop={"1px solid"}
       borderColor={"brand.outline"}
       justify={"space-between"}
       p={4}
     >
       <Group flex={1}>
-        <InputGroup flex="1" endElement={<Kbd>⏎</Kbd>}>
-          <Input
+        <InputGroup flex="1">
+          <Textarea
             ref={inputRef}
             placeholder={getPlaceholder()}
             size={"xl"}
@@ -130,11 +151,9 @@ function ChatInput({
             fontSize={"lg"}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                handleAsk();
-              }
-            }}
+            rows={1}
+            autoresize
+            onKeyDown={handleKeyDown}
             disabled={isDisabled}
           />
         </InputGroup>
@@ -203,7 +222,12 @@ function UserMessage({ content }: { content: string }) {
       p={4}
       pb={0}
     >
-      <Text fontSize={"2xl"} fontWeight={"bolder"} opacity={0.8}>
+      <Text
+        fontSize={"2xl"}
+        fontWeight={"bolder"}
+        opacity={0.8}
+        whiteSpace={"pre-wrap"}
+      >
         {content}
       </Text>
     </Stack>
@@ -723,7 +747,7 @@ export default function ScrapeWidget({
     scrape.widgetConfig?.size ?? null,
     containerRef
   );
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(
     function () {
