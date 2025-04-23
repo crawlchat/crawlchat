@@ -9,6 +9,7 @@ import {
   Text,
 } from "@chakra-ui/react";
 import { TbBook2, TbBrandGithub, TbCheck, TbWorld } from "react-icons/tb";
+import { SiDocusaurus } from "react-icons/si";
 import { redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
@@ -51,8 +52,10 @@ export async function action({ request }: { request: Request }) {
     let maxLinks = formData.get("maxLinks");
     let allowOnlyRegex = formData.get("allowOnlyRegex");
     let removeHtmlTags = formData.get("removeHtmlTags");
+    let skipPageRegex = formData.get("skipPageRegex") as string;
+    let subType = formData.get("subType") as string;
 
-    let type = formData.get("type") as KnowledgeGroupType;
+    let type = formData.get("type") as string;
     let githubRepoUrl = formData.get("githubRepoUrl");
     let githubBranch = formData.get("githubBranch");
     let prefix = formData.get("prefix");
@@ -86,11 +89,24 @@ export async function action({ request }: { request: Request }) {
       allowOnlyRegex = `^${url.replace(/\/$/, "")}.*`;
     }
 
+    if (type === "docusaurus") {
+      type = "scrape_web";
+    }
+
+    if (formData.has("versionsToSkip")) {
+      const value = formData.get("versionsToSkip") as string;
+      skipPageRegex += `,${value
+        .split(",")
+        .map((v) => v.trim())
+        .map((v) => "/" + v)
+        .join(",")}`;
+    }
+
     const group = await prisma.knowledgeGroup.create({
       data: {
         scrapeId: scrape.id,
         userId: user!.id,
-        type,
+        type: type as KnowledgeGroupType,
         status: "pending",
 
         title,
@@ -100,6 +116,9 @@ export async function action({ request }: { request: Request }) {
         removeHtmlTags: removeHtmlTags as string,
         maxPages: 5000,
         staticContentThresholdLength: 100,
+
+        skipPageRegex,
+        subType,
 
         githubBranch: githubBranch as string,
         githubUrl: githubRepoUrl as string,
@@ -125,6 +144,14 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
             "Scrapes the provided URL and children links it finds and turns them into the knowledge. It can also fetch dynamic content (Javascript based).",
         },
         {
+          title: "Docusaurus based",
+          value: "docusaurus",
+          description: "Fetch Docusaurus based docs",
+          icon: <SiDocusaurus />,
+          longDescription:
+            "Scrapes the Docusaurus based docs from the provided URL and turns them into the knowledge. It sets all required settings tailored for Docusaurus.",
+        },
+        {
           title: "GitHub Repo",
           value: "scrape_github",
           description: "Scrape a GitHub repository",
@@ -144,9 +171,9 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
     },
     [loaderData.scrapes]
   );
-  const [type, setType] = useState<KnowledgeGroupType>("scrape_web");
+  const [type, setType] = useState<string>("scrape_web");
 
-  function getDescription(type: KnowledgeGroupType) {
+  function getDescription(type: string) {
     return types.find((t) => t.value === type)?.longDescription;
   }
 
@@ -198,6 +225,8 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
               <>
                 <Field label="URL" required>
                   <Input
+                    required
+                    pattern="^https://[^/]+"
                     placeholder="https://example.com"
                     name="url"
                     disabled={scrapeFetcher.state !== "idle"}
@@ -211,6 +240,39 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                   </Checkbox.Control>
                   <Checkbox.Label>Match exact prefix</Checkbox.Label>
                 </Checkbox.Root>
+              </>
+            )}
+
+            {type === "docusaurus" && (
+              <>
+                <Field label="Docs URL" required>
+                  <Input
+                    required
+                    pattern="^https://[^/]+"
+                    placeholder="https://example.com/docs"
+                    name="url"
+                    disabled={scrapeFetcher.state !== "idle"}
+                  />
+                </Field>
+                <Field label="Versions to skip">
+                  <Input
+                    placeholder="Ex: 1.0.0, 1.1.0, 2.x"
+                    name="versionsToSkip"
+                    disabled={scrapeFetcher.state !== "idle"}
+                  />
+                </Field>
+                <input
+                  type="hidden"
+                  name="removeHtmlTags"
+                  value="nav,aside,footer,header,.theme-announcement-bar"
+                />
+                <input type="hidden" name="prefix" value="on" />
+                <input
+                  type="hidden"
+                  name="skipPageRegex"
+                  value="/[0-9x]+\.[0-9x]+\.[0-9x]+"
+                />
+                <input type="hidden" name="subType" value="docusaurus" />
               </>
             )}
 

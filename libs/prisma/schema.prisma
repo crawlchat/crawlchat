@@ -271,6 +271,7 @@ model KnowledgeGroup {
   userId                                    String   @db.ObjectId
 
   type                                      KnowledgeGroupType
+  subType                                   String?
   status                                    KnowledgeGroupStatus
   
   title                                     String?
