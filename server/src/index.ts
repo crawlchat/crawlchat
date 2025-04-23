@@ -291,7 +291,7 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         ws.send(makeMessage("query-message", newQueryMessage));
 
-        await retry(async (nTime, error) => {
+        await retry(async (nTime) => {
           const llmConfig = getConfig(
             nTime === 0 ? scrape.llmModel : "gpt_4o_mini"
           );

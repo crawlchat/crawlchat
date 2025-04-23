@@ -19,7 +19,7 @@ export async function retry(
     }
 
     try {
-      return await fn(nTime);
+      return await fn(nTime, error);
     } catch (e) {
       nTime++;
       error = e;
