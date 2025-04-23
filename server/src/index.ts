@@ -25,6 +25,7 @@ import { FlowMessage } from "./llm/agentic";
 import { makeTestQueryFlow } from "./llm/flow-test-query";
 import { getConfig } from "./llm/config";
 import { chunk } from "libs/chunk";
+import { retry } from "./retry";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -290,76 +291,83 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         ws.send(makeMessage("query-message", newQueryMessage));
 
-        const llmConfig = getConfig(scrape.llmModel);
+        await retry(async (nTime, error) => {
+          const llmConfig = getConfig(
+            nTime === 0 ? scrape.llmModel : "gpt_4o_mini"
+          );
 
-        const flow = makeFlow(
-          scrape.id,
-          scrape.chatPrompt ?? "",
-          message.data.query,
-          thread.messages.map((message) => ({
-            llmMessage: message.llmMessage as any,
-          })),
-          scrape.indexer,
-          {
-            onPreSearch: async (query) => {
-              ws.send(
-                makeMessage("stage", {
-                  stage: "tool-call",
-                  query,
-                })
-              );
+          const flow = makeFlow(
+            scrape.id,
+            scrape.chatPrompt ?? "",
+            message.data.query,
+            thread.messages.map((message) => ({
+              llmMessage: message.llmMessage as any,
+            })),
+            scrape.indexer,
+            {
+              onPreSearch: async (query) => {
+                ws.send(
+                  makeMessage("stage", {
+                    stage: "tool-call",
+                    query,
+                  })
+                );
+              },
+              model: llmConfig.model,
+              baseURL: llmConfig.baseURL,
+              apiKey: llmConfig.apiKey,
+              topN: llmConfig.ragTopN,
+            }
+          );
+
+          while (
+            await flow.stream({
+              onDelta: ({ delta }) => {
+                if (delta !== undefined && delta !== null) {
+                  ws.send(makeMessage("llm-chunk", { content: delta }));
+                }
+              },
+            })
+          ) {}
+
+          const content =
+            (flow.getLastMessage().llmMessage.content as string) ?? "";
+
+          const links = await collectSourceLinks(
+            scrape.id,
+            flow.flowState.state.messages
+          );
+
+          await consumeCredits(
+            scrape.userId,
+            "messages",
+            llmConfig.creditsPerMessage
+          );
+          const newAnswerMessage = await prisma.message.create({
+            data: {
+              threadId,
+              scrapeId: scrape.id,
+              llmMessage: { role: "assistant", content },
+              links,
+              ownerUserId: scrape.userId,
             },
-            model: llmConfig.model,
-            baseURL: llmConfig.baseURL,
-            apiKey: llmConfig.apiKey,
-            topN: llmConfig.ragTopN,
-          }
-        );
-
-        while (
-          await flow.stream({
-            onDelta: ({ delta }) => {
-              if (delta !== undefined && delta !== null) {
-                ws.send(makeMessage("llm-chunk", { content: delta }));
-              }
-            },
-          })
-        ) {}
-
-        const content =
-          (flow.getLastMessage().llmMessage.content as string) ?? "";
-
-        const links = await collectSourceLinks(
-          scrape.id,
-          flow.flowState.state.messages
-        );
-
-        await consumeCredits(
-          scrape.userId,
-          "messages",
-          llmConfig.creditsPerMessage
-        );
-        const newAnswerMessage = await prisma.message.create({
-          data: {
-            threadId,
-            scrapeId: scrape.id,
-            llmMessage: { role: "assistant", content },
-            links,
-            ownerUserId: scrape.userId,
-          },
+          });
+          ws.send(
+            makeMessage("llm-chunk", {
+              end: true,
+              content,
+              message: newAnswerMessage,
+            })
+          );
         });
-        ws.send(
-          makeMessage("llm-chunk", {
-            end: true,
-            content,
-            message: newAnswerMessage,
-          })
-        );
-        // effect(assignCategory(scrape.id, newQueryMessage.id));
       }
     } catch (error) {
       console.error(error);
-      ws.send(makeMessage("error", { message: "Authentication failed" }));
+      ws.send(
+        makeMessage("error", {
+          message: "Something went wrong! Please refresh and try again.",
+        })
+      );
       ws.close();
     }
   });
