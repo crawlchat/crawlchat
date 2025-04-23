@@ -9,6 +9,7 @@ import { Group, IconButton, Spinner, Stack } from "@chakra-ui/react";
 import { Tooltip } from "~/components/ui/tooltip";
 import { getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
+import { createToken } from "~/jwt";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -24,10 +25,27 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 export async function action({ params, request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   if (request.method === "DELETE") {
-    await prisma.scrapeItem.delete({
+    const scrapeItem = await prisma.scrapeItem.findUnique({
       where: { id: params.itemId, userId: user!.id },
     });
-    return redirect("/knowledge");
+
+    if (!scrapeItem) {
+      return redirect("/knowledge");
+    }
+
+    const token = createToken(user!.id);
+    await fetch(`${process.env.VITE_SERVER_URL}/scrape-item`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        scrapeItemId: params.itemId,
+      }),
+    });
+
+    return redirect(`/knowledge/group/${scrapeItem.knowledgeGroupId}/items`);
   }
 }
 

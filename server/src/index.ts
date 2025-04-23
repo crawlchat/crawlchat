@@ -191,6 +191,32 @@ app.delete(
 );
 
 app.delete(
+  "/scrape-item",
+  authenticate,
+  async function (req: Request, res: Response) {
+    const scrapeItemId = req.body.scrapeItemId;
+
+    const scrapeItem = await prisma.scrapeItem.findFirstOrThrow({
+      where: { id: scrapeItemId },
+      include: {
+        scrape: true,
+      },
+    });
+
+    const indexer = makeIndexer({ key: scrapeItem.scrape.indexer });
+    await deleteByIds(
+      indexer.getKey(),
+      scrapeItem.embeddings.map((e) => e.id)
+    );
+
+    await prisma.scrapeItem.delete({
+      where: { id: scrapeItemId },
+    });
+    res.json({ message: "ok" });
+  }
+);
+
+app.delete(
   "/knowledge-group",
   authenticate,
   async function (req: Request, res: Response) {
