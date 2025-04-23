@@ -191,6 +191,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         onErase={handleErase}
         onDelete={handleDelete}
         messages={loaderData.messages}
+        embed={loaderData.embed}
       />
     </Stack>
   );

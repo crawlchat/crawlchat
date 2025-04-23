@@ -7,9 +7,6 @@ import {
   Heading,
   Icon,
   IconButton,
-  Image,
-  Input,
-  Kbd,
   Link,
   Skeleton,
   Textarea,
@@ -47,7 +44,6 @@ import {
   MenuTrigger,
 } from "~/components/ui/menu";
 import { track } from "~/pirsch";
-import { Link as RouterLink } from "react-router";
 import { extractCitations } from "libs/citation";
 import { Button } from "~/components/ui/button";
 import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp/setup";
@@ -561,18 +557,12 @@ function Toolbar({
             <img
               src={scrape.logoUrl}
               alt="Logo"
-              style={{ maxWidth: "34px", maxHeight: "34px" }}
+              style={{ maxWidth: "24px", maxHeight: "24px" }}
             />
           )}
           <Stack gap={0.6}>
-            <Text fontWeight={"bold"} lineHeight={1}>
+            <Text fontWeight={"bold"} lineHeight={1} fontSize={"xl"}>
               {scrape.title ?? "Ask AI"}
-            </Text>
-            <Text fontSize={9} opacity={0.5} lineHeight={1}>
-              By{" "}
-              <Link asChild target="_blank">
-                <RouterLink to="/">CrawlChat</RouterLink>
-              </Link>
             </Text>
           </Stack>
           {overallScore !== undefined && (
@@ -685,7 +675,7 @@ function useChatBoxDimensions(
   const [height, setHeight] = useState<number>(0);
 
   function getDimensionsForSize(width: number, height: number) {
-    const padding = 16;
+    const padding = 32;
     width -= padding * 2;
     height -= padding * 2;
 
@@ -721,6 +711,33 @@ function useChatBoxDimensions(
   return { width, height };
 }
 
+function PoweredBy({ embed }: { embed?: boolean }) {
+  return (
+    <Text
+      position={"absolute"}
+      bottom={0}
+      right={0}
+      transform={"translateY(100%)"}
+      fontSize={"12px"}
+      py={1}
+      opacity={0.4}
+      _hover={{
+        opacity: 0.6,
+      }}
+      className="group"
+    >
+      <Link
+        href="https://crawlchat.app"
+        target="_blank"
+        textDecor={"none"}
+        color={embed ? "white" : undefined}
+      >
+        By CrawlChat
+      </Link>
+    </Text>
+  );
+}
+
 export default function ScrapeWidget({
   thread,
   messages,
@@ -732,6 +749,7 @@ export default function ScrapeWidget({
   onErase,
   onDelete,
   showScore,
+  embed,
 }: {
   thread: Thread;
   messages: Message[];
@@ -743,6 +761,7 @@ export default function ScrapeWidget({
   onErase: () => void;
   onDelete: (ids: string[]) => void;
   showScore?: boolean;
+  embed?: boolean;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -864,8 +883,8 @@ export default function ScrapeWidget({
         bg="brand.white"
         w={boxDimensions.width}
         h={boxDimensions.height}
-        overflow={"hidden"}
         gap={0}
+        position={"relative"}
       >
         <Toolbar
           messages={chat.messages}
@@ -934,6 +953,8 @@ export default function ScrapeWidget({
           disabled={screen !== "chat" || readOnly}
           scrape={scrape}
         />
+
+        <PoweredBy embed={embed} />
       </Stack>
     </Center>
   );
