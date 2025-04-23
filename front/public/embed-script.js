@@ -7,6 +7,7 @@ class CrawlChatEmbed {
     this.host = "https://crawlchat.app";
     this.scrapeId = this.getScrapeId();
     this.askAIButtonId = "crawlchat-ask-ai-button";
+    this.lastScrollTop = 0;
 
     const script = document.getElementById(this.scriptId);
     this.askAIEnabled = script.getAttribute("data-ask-ai") === "true";
@@ -57,11 +58,22 @@ class CrawlChatEmbed {
     setTimeout(() => {
       div.style.opacity = "1";
     }, 0);
+    this.lastScrollTop = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.overflowY = "scroll";
+    document.body.style.width = "100%";
+    document.body.style.top = `-${this.lastScrollTop}px`;
+
     const iframe = document.getElementById(this.iframeId);
     iframe.contentWindow.postMessage("focus", "*");
   }
 
   hide() {
+    document.body.style.position = "relative";
+    document.body.style.overflowY = "auto";
+    document.body.style.top = "0px";
+    window.scrollTo(0, this.lastScrollTop);
+
     const div = document.getElementById(this.embedDivId);
     div.style.opacity = "0";
     setTimeout(() => {

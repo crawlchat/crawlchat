@@ -64,6 +64,12 @@ export default function EmbedDemo() {
         <Box w={"full"} h={"60px"} bg={"gray.100"} />
         <Box w={"full"} h={"60px"} bg={"gray.100"} />
         <Box w={"full"} h={"60px"} bg={"gray.100"} />
+        <Box w={"full"} h={"100px"} bg={"gray.100"} />
+        <Box w={"full"} h={"240px"} bg={"gray.100"} />
+        <Box w={"full"} h={"60px"} bg={"gray.100"} />
+        <Box w={"full"} h={"60px"} bg={"gray.100"} />
+        <Box w={"full"} h={"60px"} bg={"gray.100"} />
+        <Box w={"full"} h={"60px"} bg={"gray.100"} />
       </Stack>
     </Stack>
   );
