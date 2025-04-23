@@ -98,7 +98,7 @@ export async function action({ request }: { request: Request }) {
       skipPageRegex += `,${value
         .split(",")
         .map((v) => v.trim())
-        .map((v) => "/" + v)
+        .map((v) => "/docs/" + v)
         .join(",")}`;
     }
 
@@ -270,7 +270,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                 <input
                   type="hidden"
                   name="skipPageRegex"
-                  value="/[0-9x]+\.[0-9x]+\.[0-9x]+"
+                  value="/docs/[0-9x]+\.[0-9x]+\.[0-9x]+"
                 />
                 <input type="hidden" name="subType" value="docusaurus" />
               </>

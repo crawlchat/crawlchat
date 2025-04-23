@@ -27,6 +27,7 @@ import { EmptyState } from "~/components/ui/empty-state";
 import { useMemo } from "react";
 import { GroupStatus } from "./group/status";
 import { ActionButton } from "./group/action-button";
+import { SiDocusaurus } from "react-icons/si";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -88,6 +89,12 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       if (group.type === "scrape_web") {
         icon = <TbWorld />;
         typeText = "Web";
+        
+        if (group.subType === "docusaurus") {
+          typeText = "Docusaurus";
+          icon = <SiDocusaurus />;
+        }
+
       } else if (group.type === "scrape_github") {
         icon = <TbBrandGithub />;
         typeText = "GitHub";
