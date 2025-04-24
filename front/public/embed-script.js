@@ -178,5 +178,13 @@ class CrawlChatEmbed {
   }
 }
 
-window.crawlchatEmbed = new CrawlChatEmbed();
-window.crawlchatEmbed.mount();
+function setupCrawlChat() {
+  window.crawlchatEmbed = new CrawlChatEmbed();
+  window.crawlchatEmbed.mount();
+}
+
+if (document.readyState === "complete") {
+  setupCrawlChat();
+} else {
+  window.addEventListener("load", setupCrawlChat);
+}
