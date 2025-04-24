@@ -270,7 +270,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                 <input
                   type="hidden"
                   name="skipPageRegex"
-                  value="/docs/[0-9x]+\.[0-9x]+\.[0-9x]+"
+                  value="/docs/[0-9x]+\.[0-9x]+\.[0-9x]+,/docs/next"
                 />
                 <input type="hidden" name="subType" value="docusaurus" />
               </>
