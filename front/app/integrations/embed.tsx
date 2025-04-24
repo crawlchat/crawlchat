@@ -204,15 +204,12 @@ function makeScriptCode(props: EmbedProps, scrapeId: string) {
         "src": "${origin}/embed.js",
         "id": "crawlchat-script",
         "data-id": "${scrapeId}",
-        "data-ask-ai": "true",
-        "data-ask-ai-background-color": "${buttonColor}",
-        "data-ask-ai-color": "${buttonTextColor}",
-        "data-ask-ai-text": "${buttonText}",
-        "data-ask-ai-position": "${position}",
-        "data-ask-ai-radius": "${radius}px",
+        ${Object.entries(attributes)
+          .map(([key, value]) => `"${key}": "${value}"`)
+          .join(",\n        ")}
       },
     },
-]`;
+],`;
 
   return { script, docusaurusConfig };
 }
