@@ -1,5 +1,6 @@
 import {
   Box,
+  Code,
   createListCollection,
   Group,
   HStack,
@@ -26,7 +27,7 @@ import {
 } from "~/components/ui/select";
 import type { WidgetConfig, WidgetQuestion, WidgetSize } from "libs/prisma";
 import { Button } from "~/components/ui/button";
-import { TbCopy, TbPlus, TbTrash } from "react-icons/tb";
+import { TbCode, TbEye, TbCopy, TbPlus, TbTrash } from "react-icons/tb";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ColorPickerArea,
@@ -45,6 +46,7 @@ import type { Route } from "./+types/embed";
 import { getSessionScrapeId } from "../scrapes/util";
 import { Switch } from "~/components/ui/switch";
 import { toaster } from "~/components/ui/toaster";
+import { SiDocusaurus } from "react-icons/si";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -142,7 +144,7 @@ type EmbedProps = {
 
 function makeScriptCode(props: EmbedProps, scrapeId: string) {
   if (typeof window === "undefined") {
-    return "";
+    return { script: "", docusaurusConfig: "" };
   }
 
   const origin = window.location.origin;
@@ -186,7 +188,7 @@ function makeScriptCode(props: EmbedProps, scrapeId: string) {
     attributes["data-ask-ai-radius"] = `${radius}px`;
   }
 
-  return `<script 
+  const script = `<script 
   src="${origin}/embed.js" 
   id="crawlchat-script" 
   data-id="${scrapeId}" 
@@ -194,6 +196,25 @@ function makeScriptCode(props: EmbedProps, scrapeId: string) {
     .map(([key, value]) => `${key}="${value}"`)
     .join("\n  ")}
 ></script>`;
+
+  const docusaurusConfig = `headTags: [
+  {
+      "tagName": "script",
+      "attributes": {
+        "src": "${origin}/embed.js",
+        "id": "crawlchat-script",
+        "data-id": "${scrapeId}",
+        "data-ask-ai": "true",
+        "data-ask-ai-background-color": "${buttonColor}",
+        "data-ask-ai-color": "${buttonTextColor}",
+        "data-ask-ai-text": "${buttonText}",
+        "data-ask-ai-position": "${position}",
+        "data-ask-ai-radius": "${radius}px",
+      },
+    },
+]`;
+
+  return { script, docusaurusConfig };
 }
 
 function PreviewEmbed({ scriptCode }: { scriptCode: string }) {
@@ -229,8 +250,9 @@ function PreviewEmbed({ scriptCode }: { scriptCode: string }) {
 
 const widgetConfigTabs = createListCollection({
   items: [
-    { label: "Preview", value: "preview" },
-    { label: "Code", value: "code" },
+    { label: "Preview", value: "preview", icon: <TbEye /> },
+    { label: "Code", value: "code", icon: <TbCode /> },
+    { label: "Docusaurus", value: "docusaurus", icon: <SiDocusaurus /> },
   ],
 });
 
@@ -248,7 +270,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
     position: "br",
     radius: 20,
   });
-  const [tab, setTab] = useState<"preview" | "code">("preview");
+  const [tab, setTab] = useState<"preview" | "code" | "docusaurus">("preview");
   const scriptCode = useMemo(
     () => makeScriptCode(embedProps, loaderData.scrape?.id ?? ""),
     [embedProps, loaderData.scrape?.id]
@@ -271,7 +293,11 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   }
 
   function copyCode() {
-    navigator.clipboard.writeText(scriptCode);
+    if (tab === "code") {
+      navigator.clipboard.writeText(scriptCode.script);
+    } else if (tab === "docusaurus") {
+      navigator.clipboard.writeText(scriptCode.docusaurusConfig);
+    }
     toaster.success({
       title: "Copied to clipboard",
     });
@@ -405,12 +431,19 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
             <Box>
               <SegmentGroup.Root
                 value={tab}
-                onValueChange={(e) => setTab(e.value as "preview" | "code")}
+                onValueChange={(e) =>
+                  setTab(e.value as "preview" | "code" | "docusaurus")
+                }
               >
                 <SegmentGroup.Indicator />
                 {widgetConfigTabs.items.map((item) => (
                   <SegmentGroup.Item key={item.value} value={item.value}>
-                    <SegmentGroup.ItemText>{item.label}</SegmentGroup.ItemText>
+                    <SegmentGroup.ItemText>
+                      <HStack>
+                        {item.icon}
+                        {item.label}
+                      </HStack>
+                    </SegmentGroup.ItemText>
                     <SegmentGroup.ItemHiddenInput />
                   </SegmentGroup.Item>
                 ))}
@@ -427,35 +460,75 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
               >
                 <PreviewEmbed
                   key={JSON.stringify(embedProps)}
-                  scriptCode={scriptCode}
+                  scriptCode={scriptCode.script}
                 />
               </Stack>
             )}
 
             {tab === "code" && (
-              <Stack
-                flex={1}
-                border={"1px solid"}
-                borderColor="brand.outline"
-                rounded={"md"}
-                alignSelf={"stretch"}
-              >
+              <Stack>
                 <Stack
-                  p={4}
-                  h="full"
-                  alignItems={"flex-start"}
-                  flexDir={"column"}
+                  flex={1}
+                  border={"1px solid"}
+                  borderColor="brand.outline"
+                  rounded={"md"}
+                  alignSelf={"stretch"}
                 >
-                  <Text fontSize={"sm"} flex={1}>
-                    {scriptCode}
-                  </Text>
+                  <Stack
+                    p={4}
+                    h="full"
+                    alignItems={"flex-start"}
+                    flexDir={"column"}
+                  >
+                    <Text fontSize={"sm"} flex={1} whiteSpace={"pre-wrap"}>
+                      {scriptCode.script}
+                    </Text>
 
-                  <Group justifyContent={"flex-end"} w="full">
-                    <ClipboardRoot value={scriptCode}>
-                      <ClipboardIconButton />
-                    </ClipboardRoot>
-                  </Group>
+                    <Group justifyContent={"flex-end"} w="full">
+                      <ClipboardRoot value={scriptCode.script}>
+                        <ClipboardIconButton />
+                      </ClipboardRoot>
+                    </Group>
+                  </Stack>
                 </Stack>
+                <Text fontSize={"sm"}>
+                  Copy and paste the above code inside the{" "}
+                  <Code>&lt;head&gt;</Code> tag of your website to embed the
+                  widget.
+                </Text>
+              </Stack>
+            )}
+
+            {tab === "docusaurus" && (
+              <Stack>
+                <Stack
+                  flex={1}
+                  border={"1px solid"}
+                  borderColor="brand.outline"
+                  rounded={"md"}
+                  alignSelf={"stretch"}
+                >
+                  <Stack
+                    p={4}
+                    h="full"
+                    alignItems={"flex-start"}
+                    flexDir={"column"}
+                  >
+                    <Text fontSize={"sm"} flex={1} whiteSpace={"pre-wrap"}>
+                      {scriptCode.docusaurusConfig}
+                    </Text>
+
+                    <Group justifyContent={"flex-end"} w="full">
+                      <ClipboardRoot value={scriptCode.docusaurusConfig}>
+                        <ClipboardIconButton />
+                      </ClipboardRoot>
+                    </Group>
+                  </Stack>
+                </Stack>
+                <Text fontSize={"sm"}>
+                  Copy and paste the above config inside your{" "}
+                  <Code>docusaurus.config.js</Code> file to embed the widget.
+                </Text>
               </Stack>
             )}
           </Stack>
