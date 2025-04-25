@@ -136,6 +136,156 @@ function UsedBy() {
   );
 }
 
+function Heading({ children }: PropsWithChildren) {
+  return (
+    <h3 className="text-center text-6xl font-bold max-w-[450px] mx-auto font-radio-grotesk leading-[1.2]">
+      {children}
+    </h3>
+  );
+}
+
+function HeadingHighlight({ children }: PropsWithChildren) {
+  return (
+    <span className="text-brand bg-brand-subtle px-4 py-1">{children}</span>
+  );
+}
+
+function HeadingDescription({ children }: PropsWithChildren) {
+  return (
+    <p className="text-center text-xl font-medium max-w-[800px] mx-auto py-8 opacity-60">
+      {children}
+    </p>
+  );
+}
+
+function WorksBox({
+  title,
+  description,
+  children,
+}: { title: string; description: string } & PropsWithChildren) {
+  return (
+    <div className="p-6 rounded-2xl bg-white shadow-md flex-1 pb-10">
+      <h4 className="text-2xl font-bold mb-2 font-radio-grotesk">{title}</h4>
+      <p className="text opacity-60 mb-8 leading-tight">{description}</p>
+
+      {children}
+    </div>
+  );
+}
+
+function WorksChip({ label, icon }: { label: string; icon: string }) {
+  return (
+    <div className="flex items-center gap-2 p-1 px-2 shadow rounded-md w-fit">
+      <img src={icon} alt={label} className="w-4 h-4" />
+      <div className="text-xs font-medium text-brand">{label}</div>
+    </div>
+  );
+}
+
+function WorksChipRow({ children }: PropsWithChildren) {
+  return (
+    <div className="flex items-center gap-2 justify-center">{children}</div>
+  );
+}
+
+function IntegrateChip({ label, icon }: { label?: string; icon: string }) {
+  return (
+    <div className="flex items-center p-1 px-2 shadow rounded-md w-fit">
+      <img src={icon} alt={label} className="w-4 h-4" />
+      {label && <div className="text-sm font-medium text-brand">{label}</div>}
+    </div>
+  );
+}
+
+function Works() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        Works in <HeadingHighlight>three</HeadingHighlight> simple steps
+      </Heading>
+
+      <HeadingDescription>
+        CrawlChat has a very simple workflow at its core. In three simple steps
+        you can turn your docs into LLM ready for your community.
+      </HeadingDescription>
+
+      <div className="flex gap-8">
+        <WorksBox
+          title="Add knowledge"
+          description="Bring your docs to CrawlChat as a knowledge base. The LLMs will answer your community questions with the provided knowledge without any hallucination."
+        >
+          <div className="flex flex-col gap-4">
+            <WorksChipRow>
+              <WorksChip
+                label="Knowledge Base"
+                icon="/new-landing/notion.png"
+              />
+              <WorksChip
+                label="Help Center"
+                icon="/new-landing/help-center.png"
+              />
+            </WorksChipRow>
+            <WorksChipRow>
+              <WorksChip label="Website" icon="/new-landing/globe.png" />
+              <WorksChip label="Documentation" icon="/new-landing/doc.png" />
+            </WorksChipRow>
+            <WorksChipRow>
+              <WorksChip
+                label="Technical Docs"
+                icon="/new-landing/github.png"
+              />
+              <WorksChip label="Forumns" icon="/new-landing/signal.png" />
+            </WorksChipRow>
+            <WorksChipRow>
+              <WorksChip
+                label="Discord Channels"
+                icon="/new-landing/discord.png"
+              />
+              <WorksChip label="Blog" icon="/new-landing/blogger.png" />
+            </WorksChipRow>
+          </div>
+        </WorksBox>
+        <WorksBox
+          title="Integrate"
+          description="You can integrate the LLM ready docs into your community as a “Ask AI” chat widget on your website, a Discord/Slack bot, and as a MCP server."
+        >
+          <div className="flex flex-col relative">
+            <div className="flex justify-center">
+              <img
+                src="new-landing/integrate-lines.png"
+                className="w-[180px] translate-y-[32px]"
+              />
+            </div>
+
+            <img
+              src="/new-landing/docs.png"
+              alt="Docs"
+              className="w-20 h-20 absolute top-0 left-0 right-0 mx-auto"
+            />
+
+            <div className="flex justify-center gap-2 absolute left-0 bottom-0 translate-y-8 -translate-x-1">
+              <IntegrateChip label="Ask AI" icon="/new-landing/ai.png" />
+            </div>
+            <div className="flex justify-center gap-2 absolute right-0 bottom-0 translate-y-8 translate-x-1">
+              <IntegrateChip label="MCP" icon="/new-landing/mcp.png" />
+            </div>
+            <div className="flex justify-center gap-2 absolute left-[50%] -bottom-8 translate-y-6 -translate-x-10">
+              <IntegrateChip icon="/new-landing/discord.png" />
+            </div>
+            <div className="flex justify-center gap-2 absolute right-[50%] -bottom-8 translate-y-6 translate-x-10">
+              <IntegrateChip icon="/new-landing/slack.png" />
+            </div>
+          </div>
+        </WorksBox>
+        <WorksBox
+          title="Customise"
+          description="You get full control of how the integrations look like and also customise the AI behaviour with prompts, AI models, and multiple other settings."
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function LandingV2() {
   return (
     <div className="bg-ash font-aeonik">
@@ -192,6 +342,10 @@ export default function LandingV2() {
 
         <Container>
           <Stats />
+        </Container>
+
+        <Container>
+          <Works />
         </Container>
       </div>
     </div>
