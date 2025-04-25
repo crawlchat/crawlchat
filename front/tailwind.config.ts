@@ -15,6 +15,19 @@ export default {
           '"Segoe UI Symbol"',
           '"Noto Color Emoji"',
         ],
+        aeonik: ["Aeonik-"],
+        "radio-grotesk": ["Radio Grotesk"],
+      },
+      colors: {
+        brand: {
+          DEFAULT: "#7C2CBF",
+        },
+        "brand-subtle": {
+          DEFAULT: "#F4E7FF",
+        },
+        outline: {
+          DEFAULT: "#E5E5E5",
+        }
       },
     },
   },
