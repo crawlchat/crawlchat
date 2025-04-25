@@ -27,6 +27,9 @@ export default {
         },
         outline: {
           DEFAULT: "#E5E5E5",
+        },
+        ash: {
+          DEFAULT: "#F6F6F5",
         }
       },
     },
