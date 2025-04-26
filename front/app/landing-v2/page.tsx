@@ -279,7 +279,7 @@ function Works() {
             <div className="flex justify-center">
               <img
                 src="new-landing/integrate-lines.png"
-                className="w-[180px] translate-y-[32px]"
+                className="w-[180px] translate-y-[32px] dark:opacity-20"
               />
             </div>
 
@@ -998,7 +998,7 @@ function Hero() {
 export default function LandingV2() {
   return (
     <div className="bg-ash font-aeonik">
-      <div className="hidden md:block aspect-[1440/960] w-full bg-[url('/clouds.png')] bg-contain bg-no-repeat absolute top-0 left-0">
+      <div className="hidden md:block aspect-[1440/960] w-full bg-[url('/new-landing/clouds.png')] dark:bg-[url('/new-landing/clouds-dark.png')] bg-contain bg-no-repeat absolute top-0 left-0">
         <div className="w-full h-full bg-gradient-to-b from-[rgba(246,246,245,0)] to-ash"></div>
       </div>
 
