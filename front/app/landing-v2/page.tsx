@@ -197,6 +197,17 @@ function IntegrateChip({ label, icon }: { label?: string; icon: string }) {
   );
 }
 
+function CustomiseIcon({ src, rotate }: { src: string; rotate: number }) {
+  return (
+    <div
+      className="flex items-center justify-center w-10 h-10 rounded-lg shadow-md border border-outline"
+      style={{ transform: `rotate(${rotate}deg)` }}
+    >
+      <img src={src} alt="Grok" className="max-w-[24px]" />
+    </div>
+  );
+}
+
 function Works() {
   return (
     <div className="mt-32">
@@ -214,7 +225,7 @@ function Works() {
           title="Add knowledge"
           description="Bring your docs to CrawlChat as a knowledge base. The LLMs will answer your community questions with the provided knowledge without any hallucination."
         >
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-6">
             <WorksChipRow>
               <WorksChip
                 label="Knowledge Base"
@@ -280,7 +291,29 @@ function Works() {
         <WorksBox
           title="Customise"
           description="You get full control of how the integrations look like and also customise the AI behaviour with prompts, AI models, and multiple other settings."
-        />
+        >
+          <div className="flex flex-col gap-6">
+            <div className="flex gap-16 justify-center">
+              <CustomiseIcon src="/new-landing/chatgpt.png" rotate={10} />
+              <CustomiseIcon src="/new-landing/google.png" rotate={-14} />
+            </div>
+            <div className="flex gap-2 justify-between">
+              <CustomiseIcon src="/new-landing/grok.png" rotate={-16} />
+              <CustomiseIcon src="/new-landing/anthropic.png" rotate={14} />
+              <CustomiseIcon src="/new-landing/deepseek.png" rotate={8} />
+            </div>
+            <div className="bg-ash rounded-lg p-3 flex items-center gap-2 justify-between border border-outline border-dashed">
+              <div className="font-medium text-brand">Custom prompt</div>
+              <div>
+                <img
+                  src="/new-landing/square-setting.png"
+                  alt="Setting"
+                  className="w-6 h-6"
+                />
+              </div>
+            </div>
+          </div>
+        </WorksBox>
       </div>
     </div>
   );
