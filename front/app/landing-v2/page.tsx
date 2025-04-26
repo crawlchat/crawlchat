@@ -82,7 +82,7 @@ function DemoWindow() {
           <div className="w-[10px] h-[10px] bg-green-500 rounded-full" />
         </div>
       </div>
-      <div className="bg-canvas rounded-lg aspect-[16/12]"></div>
+      <div className="bg-canvas rounded-lg aspect-[16/10]"></div>
     </div>
   );
 }
@@ -965,7 +965,7 @@ function Nav() {
 function Hero() {
   return (
     <div className="py-8">
-      <h1 className="font-radio-grotesk text-[42px] md:text-[80px] leading-[1.4] md:leading-[1.3] font-bold text-center max-w-[90%] md:max-w-[75%] mx-auto">
+      <h1 className="font-radio-grotesk text-[42px] md:text-[80px] leading-[1.4] md:leading-[1.3] font-bold text-center max-w-[90%] mx-auto">
         Deliver your{" "}
         <span className="text-brand bg-brand-subtle px-3 rounded-lg relative inline-block">
           documentation
