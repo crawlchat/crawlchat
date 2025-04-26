@@ -159,7 +159,7 @@ function Heading({ children }: PropsWithChildren) {
 
 function HeadingHighlight({ children }: PropsWithChildren) {
   return (
-    <span className="text-brand bg-brand-subtle px-4 py-1 rounded-lg">
+    <span className="text-brand bg-brand-subtle px-4 rounded-lg md:leading-[1.4]">
       {children}
     </span>
   );
@@ -701,7 +701,7 @@ function Pricing() {
         <HeadingHighlight>Pricing</HeadingHighlight> for everyone
       </Heading>
 
-      <div className="flex gap-6 mt-20">
+      <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
         <PricingBox
           free
           title="Free"
@@ -746,7 +746,7 @@ function Testimonials() {
         People <HeadingHighlight>love</HeadingHighlight> CrawlChat
       </Heading>
 
-      <div className="flex gap-6 mt-20">
+      <div className="flex flex-col md:flex-row gap-6 mt-20">
         <div>
           <div>
             <blockquote className="twitter-tweet">
@@ -811,7 +811,7 @@ function CTA() {
   return (
     <div className="mt-32">
       <div className="w-full bg-gradient-to-b from-white to-ash shadow-md rounded-2xl py-20 relative">
-        <div className="absolute top-[20%] left-[8%] rotate-[-24deg] scale-120 opacity-50">
+        <div className="absolute top-[10%] md:top-[20%] left-[4%] md:left-[8%] rotate-[-24deg] scale-120 opacity-50">
           <IntegrateChip label="Ask AI" icon="/new-landing/ai.png" />
         </div>
 
@@ -862,7 +862,7 @@ function Footer() {
   return (
     <div className="bg-white mt-32 border-t border-outline">
       <Container>
-        <div className="py-8 flex">
+        <div className="py-8 flex flex-col md:flex-row gap-10">
           <div className="flex-[2] flex flex-col gap-4">
             <Logo />
             <p className="font-medium opacity-60">Deliver your docs with AI!</p>
@@ -870,6 +870,7 @@ function Footer() {
               © 2025 CrawlChat
             </p>
           </div>
+
           <div className="flex-[2]">
             <ul className="flex flex-col gap-4">
               <li>
@@ -888,6 +889,7 @@ function Footer() {
               </li>
             </ul>
           </div>
+
           <div className="flex-[1]">
             <ul className="flex flex-col gap-4">
               <li>
@@ -913,6 +915,7 @@ function Footer() {
               </li>
             </ul>
           </div>
+
           <div className="flex-[1]">
             <ul className="flex flex-col gap-4">
               <li>
@@ -1041,7 +1044,7 @@ export default function LandingV2() {
           <Tools />
         </Container>
 
-        {/* <Container>
+        <Container>
           <Pricing />
         </Container>
 
@@ -1053,7 +1056,7 @@ export default function LandingV2() {
           <CTA />
         </Container>
 
-        <Footer /> */}
+        <Footer />
       </div>
     </div>
   );
