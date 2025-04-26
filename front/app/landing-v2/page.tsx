@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from "react";
 import cn from "@meltdownjs/cn";
 import "../tailwind.css";
+import { TbArrowRight } from "react-icons/tb";
 
 function Container({ children }: PropsWithChildren) {
   return (
@@ -29,10 +30,21 @@ function NavLink({ children, href }: PropsWithChildren<{ href: string }>) {
   );
 }
 
-function LoginButton() {
+function Button({
+  children,
+  className,
+  variant = "outline",
+}: PropsWithChildren & { className?: string; variant?: "solid" | "outline" }) {
   return (
-    <a className="font-medium border text-brand border-brand rounded-xl px-6 py-1">
-      Login
+    <a
+      className={cn(
+        "font-medium border text-brand border-brand rounded-xl px-6 py-1 flex items-center justify-center gap-2",
+        "cursor-pointer hover:bg-brand hover:text-white transition-all",
+        variant === "solid" && "bg-brand text-white",
+        className
+      )}
+    >
+      {children}
     </a>
   );
 }
@@ -139,7 +151,7 @@ function UsedBy() {
 
 function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className="text-center text-6xl font-bold max-w-[600px] mx-auto font-radio-grotesk leading-[1.2]">
+    <h3 className="text-center text-6xl font-bold max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
       {children}
     </h3>
   );
@@ -147,13 +159,15 @@ function Heading({ children }: PropsWithChildren) {
 
 function HeadingHighlight({ children }: PropsWithChildren) {
   return (
-    <span className="text-brand bg-brand-subtle px-4 py-1">{children}</span>
+    <span className="text-brand bg-brand-subtle px-4 py-1 rounded-lg">
+      {children}
+    </span>
   );
 }
 
 function HeadingDescription({ children }: PropsWithChildren) {
   return (
-    <p className="text-center text-xl font-medium max-w-[800px] mx-auto py-8 opacity-60">
+    <p className="text-center text-xl font-medium max-w-[760px] mx-auto py-8 opacity-60">
       {children}
     </p>
   );
@@ -191,7 +205,7 @@ function WorksChipRow({ children }: PropsWithChildren) {
 
 function IntegrateChip({ label, icon }: { label?: string; icon: string }) {
   return (
-    <div className="flex items-center p-1 px-2 shadow rounded-md w-fit">
+    <div className="flex items-center p-1 px-2 shadow rounded-md w-fit gap-1">
       <img src={icon} alt={label} className="w-4 h-4" />
       {label && <div className="text-sm font-medium text-brand">{label}</div>}
     </div>
@@ -605,6 +619,336 @@ function Tools() {
   );
 }
 
+type PricingItem = {
+  text: string;
+  excluded?: boolean;
+};
+
+function PricingBox({
+  popular,
+  title,
+  description,
+  price,
+  items,
+  free,
+}: {
+  popular?: boolean;
+  title: string;
+  description: string;
+  price: string;
+  items: PricingItem[];
+  free?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex-1 bg-white shadow-md border border-outline rounded-2xl relative",
+        popular && "bg-brand-subtle bg-opacity-60 rounded-tl-none"
+      )}
+    >
+      {popular && (
+        <div
+          className={cn(
+            "bg-brand-subtle border border-outline absolute top-0 left-[-1px] translate-y-[-100%]",
+            "text-sm text-brand px-2 py-1 rounded-t-lg font-medium flex items-center gap-2"
+          )}
+        >
+          <img src="/new-landing/crown.png" alt="Popular" className="w-4 h-4" />
+          Popular
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "p-6 border-b border-outline",
+          popular && "border-brand border-opacity-20"
+        )}
+      >
+        <h4 className="text-2xl font-bold font-radio-grotesk">{title}</h4>
+        <p className="opacity-50 font-medium">{description}</p>
+      </div>
+      <div className="p-6 gap-6 flex flex-col">
+        <div className="flex gap-1 items-end">
+          <p className="text-4xl font-bold font-radio-grotesk">{price}</p>
+          <p className="opacity-50 font-medium mb-1">/month</p>
+        </div>
+        <ul className="flex flex-col gap-2">
+          {items.map((item) => (
+            <li key={item.text} className="flex gap-2 items-center">
+              <img
+                src={`/new-landing/${
+                  item.excluded ? "bold-cross" : "bold-check"
+                }.png`}
+                alt="Check"
+                className="w-4 h-4"
+              />
+              <span className="font-medium">{item.text}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="w-full">
+          <Button className="w-full" variant={popular ? "solid" : "outline"}>
+            {free ? "Get started" : "Purchase"}
+            <TbArrowRight />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Pricing() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        <HeadingHighlight>Pricing</HeadingHighlight> for everyone
+      </Heading>
+
+      <div className="flex gap-6 mt-20">
+        <PricingBox
+          free
+          title="Free"
+          description="For personal use"
+          price="$0"
+          items={[
+            { text: "100 messages per month" },
+            { text: "100 messages per month" },
+            { text: "API not available", excluded: true },
+          ]}
+        />
+        <PricingBox
+          title="Starter"
+          description="Start your journey with CrawlChat"
+          price="$29"
+          items={[
+            { text: "100 messages per month" },
+            { text: "100 messages per month" },
+            { text: "API available" },
+          ]}
+        />
+        <PricingBox
+          title="Pro"
+          description="For power users and teams"
+          popular
+          price="$79"
+          items={[
+            { text: "100 messages per month" },
+            { text: "100 messages per month" },
+            { text: "API available" },
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
+function Testimonials() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        People <HeadingHighlight>love</HeadingHighlight> CrawlChat
+      </Heading>
+
+      <div className="flex gap-6 mt-20">
+        <div>
+          <div>
+            <blockquote className="twitter-tweet">
+              <p lang="en" dir="ltr">
+                MCP, llms.txt and{" "}
+                <a href="https://t.co/wvTaGlv99L">https://t.co/wvTaGlv99L</a>{" "}
+                are now live!
+                <br />
+                <br />
+                Thanks to{" "}
+                <a href="https://twitter.com/pramodk73?ref_src=twsrc%5Etfw">
+                  @pramodk73
+                </a>{" "}
+                and{" "}
+                <a href="https://t.co/dv2PDLzt2V">https://t.co/dv2PDLzt2V</a>{" "}
+                for getting us up to speed with AI integrations.{" "}
+                <a href="https://t.co/Sornu9aIFi">https://t.co/Sornu9aIFi</a>
+              </p>
+              &mdash; Jonny Burger (@JNYBGR){" "}
+              <a href="https://twitter.com/JNYBGR/status/1899786274635927674?ref_src=twsrc%5Etfw">
+                March 12, 2025
+              </a>
+            </blockquote>
+            <script async src="https://platform.twitter.com/widgets.js" />
+          </div>
+        </div>
+        <div>
+          <div>
+            <blockquote className="twitter-tweet">
+              <p lang="en" dir="ltr">
+                Integrated{" "}
+                <a href="https://t.co/uKP4sKdbjV">https://t.co/uKP4sKdbjV</a>{" "}
+                into the new Konva docs – hats off to{" "}
+                <a href="https://twitter.com/pramodk73?ref_src=twsrc%5Etfw">
+                  @pramodk73
+                </a>{" "}
+                for making it insanely useful.
+                <br />
+                <br />
+                It now powers:
+                <br />- &quot;Ask AI&quot; widget on site
+                <br />- MCP server for docs
+                <br />- Discord bot for community
+                <br />
+                <br />
+                Smarter docs. Better support.
+              </p>
+              &mdash; Anton Lavrenov (@lavrton){" "}
+              <a href="https://twitter.com/lavrton/status/1915467775734350149?ref_src=twsrc%5Etfw">
+                April 24, 2025
+              </a>
+            </blockquote>{" "}
+            <script async src="https://platform.twitter.com/widgets.js" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CTA() {
+  return (
+    <div className="mt-32">
+      <div className="w-full bg-gradient-to-b from-white to-ash shadow-md rounded-2xl py-20 relative">
+        <div className="absolute top-[20%] left-[8%] rotate-[-24deg] scale-120 opacity-50">
+          <IntegrateChip label="Ask AI" icon="/new-landing/ai.png" />
+        </div>
+
+        <div className="absolute top-[80%] left-[80%] rotate-[24deg] scale-120 opacity-50">
+          <IntegrateChip label="MCP" icon="/new-landing/mcp.png" />
+        </div>
+
+        <div className="absolute top-[20%] left-[90%] rotate-[24deg] scale-150 opacity-50">
+          <IntegrateChip icon="/new-landing/discord.png" />
+        </div>
+
+        <div className="absolute top-[80%] left-[8%] rotate-[-24deg] scale-150 opacity-50">
+          <IntegrateChip icon="/new-landing/slack.png" />
+        </div>
+
+        <Heading>
+          Ready to make your <HeadingHighlight>docs</HeadingHighlight> LLM
+          ready?
+        </Heading>
+
+        <HeadingDescription>
+          Join users who are already having meaningful conversations with web
+          content using CrawlChat.
+        </HeadingDescription>
+
+        <div className="flex justify-center">
+          <a
+            href="#"
+            className="px-12 py-4 bg-brand text-white font-medium rounded-2xl text-xl"
+          >
+            Get started
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FooterLink({ children, href }: PropsWithChildren<{ href: string }>) {
+  return (
+    <a href={href} className="opacity-60 font-medium hover:underline">
+      {children}
+    </a>
+  );
+}
+
+function Footer() {
+  return (
+    <div className="bg-white mt-32 border-t border-outline">
+      <Container>
+        <div className="py-8 flex">
+          <div className="flex-[2] flex flex-col gap-4">
+            <Logo />
+            <p className="font-medium opacity-60">Deliver your docs with AI!</p>
+            <p className="opacity-50 text-xs mt-4 font-medium">
+              © 2025 CrawlChat
+            </p>
+          </div>
+          <div className="flex-[2]">
+            <ul className="flex flex-col gap-4">
+              <li>
+                <FooterLink href="#">
+                  How to add AI Chatbot for your docs
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Documentation - Use case</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Setup MCP server</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">How Discord Bot helps?</FooterLink>
+              </li>
+            </ul>
+          </div>
+          <div className="flex-[1]">
+            <ul className="flex flex-col gap-4">
+              <li>
+                <FooterLink href="#">Home</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Pricing</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Use cases</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Features</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Guides</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Roadmap</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Blog</FooterLink>
+              </li>
+            </ul>
+          </div>
+          <div className="flex-[1]">
+            <ul className="flex flex-col gap-4">
+              <li>
+                <FooterLink href="#">Terms</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="#">Privacy policy</FooterLink>
+              </li>
+            </ul>
+
+            <ul className="flex gap-6 mt-4">
+              <li>
+                <a href="#">
+                  <img
+                    src="/new-landing/mail.png"
+                    alt="Mail"
+                    className="w-4 h-4"
+                  />
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <img src="/new-landing/x.png" alt="X" className="w-4 h-4" />
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </Container>
+    </div>
+  );
+}
+
 export default function LandingV2() {
   return (
     <div className="bg-ash font-aeonik">
@@ -622,16 +966,16 @@ export default function LandingV2() {
               <NavLink href="#">Features</NavLink>
               <NavLink href="#">Pricing</NavLink>
 
-              <LoginButton />
+              <Button>Login</Button>
             </div>
           </div>
         </Container>
 
         <Container>
           <div className="py-8">
-            <h1 className="font-radio-grotesk text-[80px] leading-[96px] font-bold text-center">
+            <h1 className="font-radio-grotesk text-[80px] leading-[1.3] font-bold text-center">
               Deliver your <br />
-              <span className="text-brand bg-brand-subtle px-4 py-2px relative">
+              <span className="text-brand bg-brand-subtle px-4 py-2 rounded-lg relative">
                 documentation
                 <img
                   src="/new-landing/docs-h1.png"
@@ -640,7 +984,9 @@ export default function LandingV2() {
                 />
               </span>{" "}
               with{" "}
-              <span className="text-brand bg-brand-subtle px-4 py-2">AI</span>
+              <span className="text-brand bg-brand-subtle px-4 py-2 rounded-lg">
+                AI
+              </span>
             </h1>
 
             <h2 className="text-center text-xl font-medium max-w-[800px] mx-auto py-8 opacity-60">
@@ -682,6 +1028,20 @@ export default function LandingV2() {
         <Container>
           <Tools />
         </Container>
+
+        <Container>
+          <Pricing />
+        </Container>
+
+        <Container>
+          <Testimonials />
+        </Container>
+
+        <Container>
+          <CTA />
+        </Container>
+
+        <Footer />
       </div>
     </div>
   );
