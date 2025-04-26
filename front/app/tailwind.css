@@ -186,3 +186,14 @@
   font-weight: 900;
   font-style: italic;
 }
+
+/* inside your CSS file */
+@layer utilities {
+  .no-border-last-3:nth-last-child(-n+3) {
+    @apply md:border-b-0;
+  }
+
+  .no-border-every-3:nth-child(3n) {
+    @apply md:border-r-0;
+  }
+}

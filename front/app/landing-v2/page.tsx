@@ -367,7 +367,9 @@ function ImportKnowledgePreview() {
           set up auto updates on the groups & get analytics on each group.
         </p>
       </div>
-      <div className="w-full flex-1 bg-white rounded-xl p-4 aspect-square">Inside</div>
+      <div className="w-full flex-1 bg-white rounded-xl p-4 aspect-square">
+        Inside
+      </div>
     </div>
   );
 }
@@ -536,25 +538,23 @@ function ChatWidget() {
 }
 
 function ToolsRow({ children }: PropsWithChildren) {
-  return <div className="flex">{children}</div>;
+  return <div className="grid grid-cols-1 md:grid-cols-3">{children}</div>;
 }
 
 function ToolItem({
   title,
   description,
   icon,
-  noBorderBottom,
 }: {
   title: string;
   description: string;
   icon: string;
-  noBorderBottom?: boolean;
 }) {
   return (
     <div
       className={cn(
-        "flex-1 flex flex-col gap-2 p-6 border-r border-opacity-60 border-outline last:border-r-0",
-        !noBorderBottom && "border-b"
+        "flex-1 flex flex-col gap-2 p-6 border-opacity-60 border-outline",
+        "md:border-r border-b no-border-last-3 no-border-every-3 last:border-b-0"
       )}
     >
       <div className="flex flex-col gap-2">
@@ -595,25 +595,20 @@ function Tools() {
             description="You get to know how each knowledge group is performing against the questions asked. You can always improve them if they are not performing as expected"
             icon="/new-landing/heirarchy-square.png"
           />
-        </ToolsRow>
-        <ToolsRow>
           <ToolItem
             title="@CrawlChat to answer"
             description="You don’t have to be available on the channels all the time. Members and just tag @crawlchat to get the answer for the questions they have."
             icon="/new-landing/chat-bubble.png"
-            noBorderBottom
           />
           <ToolItem
             title="Learn"
             description="Turn the conversations you have on the channels into a knowledge base with just a @crawlchat learn message. The bot adds the whole conversation into the knowledge group so that it uses it in the upcoming answers"
             icon="/new-landing/online-learning.png"
-            noBorderBottom
           />
           <ToolItem
             title="Drafting"
             description="Get more control on the help you provide on your channels. Use CrawlChat to draft answers for the questions so that you can minimise your efforts in answering them end to end. Automate manually!"
             icon="/new-landing/edit-pen.png"
-            noBorderBottom
           />
         </ToolsRow>
       </div>
