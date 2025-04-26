@@ -82,7 +82,7 @@ function DemoWindow() {
           <div className="w-[10px] h-[10px] bg-green-500 rounded-full" />
         </div>
       </div>
-      <div className="bg-white rounded-lg h-[600px]"></div>
+      <div className="bg-white rounded-lg aspect-[16/12]"></div>
     </div>
   );
 }
@@ -949,6 +949,57 @@ function Footer() {
   );
 }
 
+function Nav() {
+  return (
+    <nav className="flex items-center justify-between gap-2 lg:py-6">
+      <Logo />
+
+      <div className="flex items-center gap-8">
+        <div className="items-center gap-8 hidden md:flex">
+          <NavLink href="#">How it works</NavLink>
+          <NavLink href="#">Features</NavLink>
+          <NavLink href="#">Pricing</NavLink>
+        </div>
+
+        <Button>Login</Button>
+      </div>
+    </nav>
+  );
+}
+
+function Hero() {
+  return (
+    <div className="py-8">
+      <h1 className="font-radio-grotesk text-[42px] md:text-[80px] leading-[1.4] md:leading-[1.3] font-bold text-center max-w-[90%] md:max-w-[75%] mx-auto">
+        Deliver your{" "}
+        <span className="text-brand bg-brand-subtle px-3 rounded-lg relative inline-block">
+          documentation
+          <img
+            src="/new-landing/docs-h1.png"
+            alt="Docs"
+            className={cn(
+              "absolute left-[-34px] top-[-30px] w-[68px] h-[68px] ",
+              "md:w-[120px] md:h-[120px] md:top-[-50px] md:left-[-80px]"
+            )}
+          />
+        </span>{" "}
+        with{" "}
+        <span className="text-brand bg-brand-subtle px-3 rounded-lg">AI</span>
+      </h1>
+
+      <h2 className="text-center text-xl font-medium max-w-[800px] mx-auto py-8 opacity-60">
+        Add your existing documentation as knowledge base and deliver it through
+        multiple channels for your community. Get visibility how your community
+        consumes it and make your documentation better!
+      </h2>
+
+      <Scrape />
+
+      <DemoWindow />
+    </div>
+  );
+}
+
 export default function LandingV2() {
   return (
     <div className="bg-ash font-aeonik">
@@ -958,50 +1009,14 @@ export default function LandingV2() {
 
       <div className="relative">
         <Container>
-          <div className="flex items-center justify-between gap-2 py-6">
-            <Logo />
-
-            <div className="flex items-center gap-8">
-              <NavLink href="#">How it works</NavLink>
-              <NavLink href="#">Features</NavLink>
-              <NavLink href="#">Pricing</NavLink>
-
-              <Button>Login</Button>
-            </div>
-          </div>
+          <Nav />
         </Container>
 
         <Container>
-          <div className="py-8">
-            <h1 className="font-radio-grotesk text-[80px] leading-[1.3] font-bold text-center">
-              Deliver your <br />
-              <span className="text-brand bg-brand-subtle px-4 py-2 rounded-lg relative">
-                documentation
-                <img
-                  src="/new-landing/docs-h1.png"
-                  alt="Docs"
-                  className="absolute left-[-80px] top-[-50px] w-[120px] h-[120px]"
-                />
-              </span>{" "}
-              with{" "}
-              <span className="text-brand bg-brand-subtle px-4 py-2 rounded-lg">
-                AI
-              </span>
-            </h1>
-
-            <h2 className="text-center text-xl font-medium max-w-[800px] mx-auto py-8 opacity-60">
-              Add your existing documentation as knowledge base and deliver it
-              through multiple channels for your community. Get visibility how
-              your community consumes it and make your documentation better!
-            </h2>
-
-            <Scrape />
-
-            <DemoWindow />
-          </div>
+          <Hero />
         </Container>
 
-        <Container>
+        {/* <Container>
           <UsedBy />
         </Container>
 
@@ -1041,7 +1056,7 @@ export default function LandingV2() {
           <CTA />
         </Container>
 
-        <Footer />
+        <Footer /> */}
       </div>
     </div>
   );
