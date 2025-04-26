@@ -1,4 +1,5 @@
 import type { PropsWithChildren } from "react";
+import cn from "@meltdownjs/cn";
 import "../tailwind.css";
 
 function Container({ children }: PropsWithChildren) {
@@ -138,7 +139,7 @@ function UsedBy() {
 
 function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className="text-center text-6xl font-bold max-w-[450px] mx-auto font-radio-grotesk leading-[1.2]">
+    <h3 className="text-center text-6xl font-bold max-w-[600px] mx-auto font-radio-grotesk leading-[1.2]">
       {children}
     </h3>
   );
@@ -319,6 +320,137 @@ function Works() {
   );
 }
 
+function Tabs({ children }: PropsWithChildren) {
+  return (
+    <div className="flex gap-2 items-center shadow-md w-fit p-2 rounded-2xl border border-outline">
+      {children}
+    </div>
+  );
+}
+
+function Tab({ children, active }: PropsWithChildren & { active?: boolean }) {
+  return (
+    <div
+      className={cn(
+        "px-4 py-1 rounded-xl font-bold opacity-60 text-lg font-radio-grotesk border border-transparent hover:border-outline cursor-pointer",
+        active && "bg-white shadow opacity-100 hover:border-transparent"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ImportKnowledgePreview() {
+  return (
+    <div className="w-full h-[700px] bg-ash-subtle rounded-2xl bg-white bg-opacity-50 flex flex-col gap-4 p-4 border border-outline">
+      <div className="flex flex-col gap-2">
+        <p className="text-2xl font-bold">Group</p>
+        <p className="font-medium opacity-50">
+          Knowledge bases are maintained as groups for easy maintenance. You can
+          set up auto updates on the groups & get analytics on each group.
+        </p>
+      </div>
+      <div className="w-full flex-1 bg-white rounded-xl p-4">Inside</div>
+    </div>
+  );
+}
+
+function ImportKnowledge() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        Knowledge bases for quick <HeadingHighlight>import</HeadingHighlight>
+      </Heading>
+
+      <HeadingDescription>
+        CrawlChat has quick to import options for multiple sources that cover
+        most of your use cases.
+      </HeadingDescription>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-center">
+          <Tabs>
+            <Tab active>Groups</Tab>
+            <Tab>Scrape</Tab>
+            <Tab>Think</Tab>
+          </Tabs>
+        </div>
+
+        <ImportKnowledgePreview />
+      </div>
+    </div>
+  );
+}
+
+function IntegrationCard({
+  flex,
+  title,
+  description,
+}: {
+  flex: number;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div
+      className={
+        "p-4 shadow-md border border-outline rounded-xl bg-white flex flex-col gap-4"
+      }
+      style={{ flex: flex }}
+    >
+      <div className="h-[200px] bg-ash rounded-lg" />
+      <div className="flex flex-col gap-2">
+        <h3 className="text-2xl font-bold font-radio-grotesk">{title}</h3>
+        <p className="opacity-50 font-medium leading-tight">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function Integrations() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        Easy <HeadingHighlight>integrations</HeadingHighlight>
+      </Heading>
+
+      <HeadingDescription>
+        CrawlChat provides multiple options to bring your docs to your community
+        platforms easily. It takes only few minutes to integrate them
+      </HeadingDescription>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex gap-6">
+          <IntegrationCard
+            flex={4}
+            title="Ask AI button"
+            description="A drop in embed code to add the Ask AI button on your docs website. All the visitors to your docs can now quickly ask their question."
+          />
+          <IntegrationCard
+            flex={6}
+            title="Discord bot"
+            description="CrawlChat focuses on giving a wholesome integration experience by providing Discord bot that can answer questions from your community by just tagging it."
+          />
+        </div>
+
+        <div className="flex gap-6">
+          <IntegrationCard
+            flex={6}
+            title="Slack bot"
+            description="CrawlChat focuses on giving a wholesome integration experience by providing Slack bot that can answer questions from your community by just tagging it."
+          />
+          <IntegrationCard
+            flex={4}
+            title="MCP server"
+            description="You will not be missed by the next gen developers. CrawlChat provides the MCP server out of the box."
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingV2() {
   return (
     <div className="bg-ash font-aeonik">
@@ -379,6 +511,14 @@ export default function LandingV2() {
 
         <Container>
           <Works />
+        </Container>
+
+        <Container>
+          <ImportKnowledge />
+        </Container>
+
+        <Container>
+          <Integrations />
         </Container>
       </div>
     </div>

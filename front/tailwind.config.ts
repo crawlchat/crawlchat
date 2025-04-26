@@ -30,7 +30,7 @@ export default {
         },
         ash: {
           DEFAULT: "#F6F6F5",
-        }
+        },
       },
     },
   },
