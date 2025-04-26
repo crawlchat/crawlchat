@@ -271,7 +271,6 @@ function Works() {
             </WorksChipRow>
           </div>
         </WorksBox>
-
         <WorksBox
           title="Integrate"
           description="You can integrate the LLM ready docs into your community as a “Ask AI” chat widget on your website, a Discord/Slack bot, and as a MCP server."
@@ -304,7 +303,6 @@ function Works() {
             </div>
           </div>
         </WorksBox>
-
         <WorksBox
           title="Customise"
           description="You get full control of how the integrations look like and also customise the AI behaviour with prompts, AI models, and multiple other settings."
@@ -870,7 +868,6 @@ function Footer() {
               © 2025 CrawlChat
             </p>
           </div>
-
           <div className="flex-[2]">
             <ul className="flex flex-col gap-4">
               <li>
@@ -889,7 +886,6 @@ function Footer() {
               </li>
             </ul>
           </div>
-
           <div className="flex-[1]">
             <ul className="flex flex-col gap-4">
               <li>
@@ -915,7 +911,6 @@ function Footer() {
               </li>
             </ul>
           </div>
-
           <div className="flex-[1]">
             <ul className="flex flex-col gap-4">
               <li>
