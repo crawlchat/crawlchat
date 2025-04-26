@@ -451,6 +451,74 @@ function Integrations() {
   );
 }
 
+function ChatWidgetFeature({
+  active,
+  title,
+  description,
+  img,
+}: {
+  active: boolean;
+  title: string;
+  description: string;
+  img: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-2xl p-4 border border-transparent hover:border-outline gap-2 flex flex-col",
+        "cursor-pointer",
+        active && "bg-white shadow-md hover:border-transparent"
+      )}
+    >
+      <h3 className="text-2xl font-bold font-radio-grotesk flex items-center gap-2">
+        <img src={img} alt={title} className="w-6 h-6" />
+        {title}
+      </h3>
+      <p className="opacity-50 font-medium leading-tight">{description}</p>
+    </div>
+  );
+}
+
+function ChatWidget() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        <HeadingHighlight>Chat</HeadingHighlight> widget
+      </Heading>
+
+      <HeadingDescription>
+        The chat widget comes with all tools required. Your community finds the
+        perfect answers right from your docs website from one click exactly what
+        they want
+      </HeadingDescription>
+
+      <div className="flex gap-10">
+        <div className="flex-1 flex flex-col gap-4">
+          <ChatWidgetFeature
+            active={true}
+            title="Your sources"
+            description="All the answers on the chat widget are provided by the resources that the answer is fetched from so that your community can always go find more help if required."
+            img="/new-landing/archive-active.png"
+          />
+          <ChatWidgetFeature
+            active={false}
+            title="Code blocks"
+            description="CrawlChat supports showing code blocks and your community can just copy and paste the generated code to their workflow."
+            img="/new-landing/app-programming.png"
+          />
+          <ChatWidgetFeature
+            active={false}
+            title="Pin"
+            description="Your community can pin the important answers so that they can always come back and find the critical help with ease"
+            img="/new-landing/pin.png"
+          />
+        </div>
+        <div className="flex-1 bg-ash-strong rounded-2xl p-4 shadow-md border border-outline aspect-square"></div>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingV2() {
   return (
     <div className="bg-ash font-aeonik">
@@ -519,6 +587,10 @@ export default function LandingV2() {
 
         <Container>
           <Integrations />
+        </Container>
+
+        <Container>
+          <ChatWidget />
         </Container>
       </div>
     </div>

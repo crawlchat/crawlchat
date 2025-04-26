@@ -31,6 +31,9 @@ export default {
         ash: {
           DEFAULT: "#F6F6F5",
         },
+        "ash-strong": {
+          DEFAULT: "#F0F0F0",
+        }
       },
     },
   },
