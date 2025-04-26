@@ -519,6 +519,92 @@ function ChatWidget() {
   );
 }
 
+function ToolsRow({ children }: PropsWithChildren) {
+  return <div className="flex">{children}</div>;
+}
+
+function ToolItem({
+  title,
+  description,
+  icon,
+  noBorderBottom,
+}: {
+  title: string;
+  description: string;
+  icon: string;
+  noBorderBottom?: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex-1 flex flex-col gap-2 p-6 border-r border-opacity-60 border-outline last:border-r-0",
+        !noBorderBottom && "border-b"
+      )}
+    >
+      <div className="flex flex-col gap-2">
+        <img src={icon} alt={title} className="w-6 h-6" />
+        <h3 className="text-xl font-bold font-radio-grotesk">{title}</h3>
+      </div>
+      <p className="opacity-50 font-medium leading-tight">{description}</p>
+    </div>
+  );
+}
+
+function Tools() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        All the <HeadingHighlight>tools</HeadingHighlight> to improve your docs
+      </Heading>
+
+      <HeadingDescription>
+        CrawlChat has quick to import options for multiple sources that cover
+        most of your use cases.
+      </HeadingDescription>
+
+      <div className="bg-white rounded-2xl border border-outline">
+        <ToolsRow>
+          <ToolItem
+            title="Scoring"
+            description="All the answers and conversations are given a score that represent how relevant the sources are for the question asked. Low score means not enough data, a chance to improve"
+            icon="/new-landing/ring-chart.png"
+          />
+          <ToolItem
+            title="Analytics"
+            description="You get a wide range of analytics for your docs and community. The daily messages chart, score distribution and many more that give your more visibility into your docs and the community"
+            icon="/new-landing/graph-up.png"
+          />
+          <ToolItem
+            title="Dense groups"
+            description="You get to know how each knowledge group is performing against the questions asked. You can always improve them if they are not performing as expected"
+            icon="/new-landing/heirarchy-square.png"
+          />
+        </ToolsRow>
+        <ToolsRow>
+          <ToolItem
+            title="@CrawlChat to answer"
+            description="You don’t have to be available on the channels all the time. Members and just tag @crawlchat to get the answer for the questions they have."
+            icon="/new-landing/chat-bubble.png"
+            noBorderBottom
+          />
+          <ToolItem
+            title="Learn"
+            description="Turn the conversations you have on the channels into a knowledge base with just a @crawlchat learn message. The bot adds the whole conversation into the knowledge group so that it uses it in the upcoming answers"
+            icon="/new-landing/online-learning.png"
+            noBorderBottom
+          />
+          <ToolItem
+            title="Drafting"
+            description="Get more control on the help you provide on your channels. Use CrawlChat to draft answers for the questions so that you can minimise your efforts in answering them end to end. Automate manually!"
+            icon="/new-landing/edit-pen.png"
+            noBorderBottom
+          />
+        </ToolsRow>
+      </div>
+    </div>
+  );
+}
+
 export default function LandingV2() {
   return (
     <div className="bg-ash font-aeonik">
@@ -591,6 +677,10 @@ export default function LandingV2() {
 
         <Container>
           <ChatWidget />
+        </Container>
+
+        <Container>
+          <Tools />
         </Container>
       </div>
     </div>
