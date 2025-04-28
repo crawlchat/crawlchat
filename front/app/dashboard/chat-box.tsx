@@ -813,7 +813,7 @@ export default function ScrapeWidget({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-    const { setTheme } = useTheme()
+  const { setTheme } = useTheme()
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
