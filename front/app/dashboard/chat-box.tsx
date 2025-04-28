@@ -12,6 +12,8 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
+import { useTheme } from "next-themes"
+
 import type {
   Message,
   MessageSourceLink,
@@ -811,12 +813,23 @@ export default function ScrapeWidget({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+    const { setTheme } = useTheme()
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data === "focus") {
         scroll();
       }
+
+      if (event.data === "dark-mode") {
+        setTheme("dark");
+      }
+
+      if (event.data === "light-mode") {
+        setTheme("light")
+      }
     };
+
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
