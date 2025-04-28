@@ -903,6 +903,7 @@ function PricingBox({
   price,
   items,
   free,
+  href,
 }: {
   popular?: boolean;
   title: string;
@@ -910,6 +911,7 @@ function PricingBox({
   price: string;
   items: PricingItem[];
   free?: boolean;
+  href?: string;
 }) {
   return (
     <div
@@ -959,7 +961,11 @@ function PricingBox({
           ))}
         </ul>
         <div className="w-full">
-          <Button className="w-full" variant={popular ? "solid" : "outline"}>
+          <Button
+            className="w-full"
+            variant={popular ? "solid" : "outline"}
+            href={href}
+          >
             {free ? "Get started" : "Purchase"}
             <TbArrowRight />
           </Button>
@@ -986,17 +992,27 @@ function Pricing() {
             { text: "100 messages per month" },
             { text: "100 messages per month" },
             { text: "API not available", excluded: true },
+            { text: "MCP not available", excluded: true },
+            { text: "Discord bot", excluded: true },
+            { text: "Discord drafting", excluded: true },
+            { text: "GitHub issues", excluded: true },
           ]}
+          href="/login"
         />
         <PricingBox
           title="Starter"
           description="Start your journey with CrawlChat"
           price="$29"
           items={[
-            { text: "100 messages per month" },
-            { text: "100 messages per month" },
+            { text: "5000 messages per month" },
+            { text: "7000 messages per month" },
             { text: "API available" },
+            { text: "MCP available" },
+            { text: "Discord bot" },
+            { text: "Discord drafting", excluded: true },
+            { text: "GitHub issues", excluded: true },
           ]}
+          href="https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
         />
         <PricingBox
           title="Pro"
@@ -1004,10 +1020,15 @@ function Pricing() {
           popular
           price="$79"
           items={[
-            { text: "100 messages per month" },
-            { text: "100 messages per month" },
+            { text: "14,000 messages per month" },
+            { text: "20,000 messages per month" },
             { text: "API available" },
+            { text: "MCP available" },
+            { text: "Discord bot" },
+            { text: "Discord drafting" },
+            { text: "GitHub issues" },
           ]}
+          href="https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
         />
       </div>
     </div>
