@@ -520,7 +520,11 @@ function IntegrationCard({
       style={{ flex: flex }}
     >
       <div className="aspect-video bg-ash rounded-lg">
-        <img src={img} alt={title} className="w-full h-full object-cover rounded-md" />
+        <img
+          src={img}
+          alt={title}
+          className="w-full h-full object-cover rounded-md"
+        />
       </div>
       <div className="flex flex-col gap-2">
         <h3 className="text-2xl font-bold font-radio-grotesk">{title}</h3>
@@ -582,11 +586,13 @@ function ChatWidgetFeature({
   title,
   description,
   img,
+  onClick,
 }: {
   active: boolean;
   title: string;
   description: string;
   img: string;
+  onClick?: () => void;
 }) {
   return (
     <div
@@ -595,6 +601,7 @@ function ChatWidgetFeature({
         "cursor-pointer",
         active && "bg-canvas shadow-md hover:border-transparent"
       )}
+      onClick={onClick}
     >
       <h3 className="text-2xl font-bold font-radio-grotesk flex items-center gap-2">
         <img src={img} alt={title} className="w-6 h-6" />
@@ -606,6 +613,8 @@ function ChatWidgetFeature({
 }
 
 function ChatWidget() {
+  const [activeTab, setActiveTab] = useState("sources");
+
   return (
     <div className="mt-32">
       <Heading>
@@ -621,25 +630,33 @@ function ChatWidget() {
       <div className="flex flex-col md:flex-row gap-10">
         <div className="flex-1 flex flex-col gap-4">
           <ChatWidgetFeature
-            active={true}
+            active={activeTab === "sources"}
             title="Your sources"
             description="All the answers on the chat widget are provided by the resources that the answer is fetched from so that your community can always go find more help if required."
             img="/new-landing/archive-active.png"
+            onClick={() => setActiveTab("sources")}
           />
           <ChatWidgetFeature
-            active={false}
+            active={activeTab === "code"}
             title="Code blocks"
             description="CrawlChat supports showing code blocks and your community can just copy and paste the generated code to their workflow."
             img="/new-landing/app-programming.png"
+            onClick={() => setActiveTab("code")}
           />
           <ChatWidgetFeature
-            active={false}
+            active={activeTab === "pin"}
             title="Pin"
             description="Your community can pin the important answers so that they can always come back and find the critical help with ease"
             img="/new-landing/pin.png"
+            onClick={() => setActiveTab("pin")}
           />
         </div>
-        <div className="flex-1 bg-ash-strong rounded-2xl p-4 shadow-md border border-outline aspect-square"></div>
+        <div className="flex-1 bg-ash-strong rounded-2xl shadow-md border border-outline aspect-square overflow-hidden">
+          <img
+            src={`/new-landing/widget-${activeTab}.png`}
+            className="w-full h-full aspect-square"
+          />
+        </div>
       </div>
     </div>
   );
