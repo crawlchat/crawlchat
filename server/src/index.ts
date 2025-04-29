@@ -90,6 +90,13 @@ async function collectSourceLinks(
   return links;
 }
 
+async function updateLastMessageAt(threadId: string) {
+  await prisma.thread.update({
+    where: { id: threadId },
+    data: { lastMessageAt: new Date() },
+  });
+}
+
 app.get("/", function (req: Request, res: Response) {
   res.json({ message: "ok" });
 });
@@ -314,6 +321,7 @@ expressWs.app.ws("/", (ws: any, req) => {
             ownerUserId: scrape.userId,
           },
         });
+        await updateLastMessageAt(threadId);
 
         ws.send(makeMessage("query-message", newQueryMessage));
 
@@ -378,6 +386,7 @@ expressWs.app.ws("/", (ws: any, req) => {
               ownerUserId: scrape.userId,
             },
           });
+          await updateLastMessageAt(threadId);
           ws.send(
             makeMessage("llm-chunk", {
               end: true,
@@ -428,7 +437,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   }
   const query = req.query.query as string;
 
-  const userMessage = await prisma.message.create({
+  await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -437,6 +446,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
       channel: "mcp",
     },
   });
+  await updateLastMessageAt(thread.id);
 
   const indexer = makeIndexer({ key: scrape.indexer });
   const result = await indexer.search(scrape.id, query);
@@ -455,7 +465,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   };
   const links = await collectSourceLinks(scrape.id, [message]);
 
-  const newAnswerMessage = await prisma.message.create({
+  await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -465,7 +475,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
       channel: "mcp",
     },
   });
-
+  await updateLastMessageAt(thread.id);
   res.json(processed);
 });
 
@@ -565,7 +575,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     query = messages[messages.length - 1].content;
   }
 
-  const userMessage = await prisma.message.create({
+  await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -574,6 +584,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       channel,
     },
   });
+  await updateLastMessageAt(thread.id);
 
   const prompt = [scrape.chatPrompt ?? "", reqPrompt ?? ""]
     .filter(Boolean)
@@ -619,7 +630,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       ownerUserId: scrape.userId,
     },
   });
-
+  await updateLastMessageAt(thread.id);
   const citation = extractCitations(content, links, { cleanCitations: true });
 
   let updatedContent = citation.content;

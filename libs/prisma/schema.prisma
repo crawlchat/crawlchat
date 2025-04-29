@@ -167,6 +167,7 @@ model Thread {
   updatedAt       DateTime @updatedAt
   openedAt        DateTime?
   isDefault       Boolean?
+  lastMessageAt   DateTime?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   
