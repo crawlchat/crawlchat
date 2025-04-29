@@ -321,7 +321,6 @@ expressWs.app.ws("/", (ws: any, req) => {
             ownerUserId: scrape.userId,
           },
         });
-
         await updateLastMessageAt(threadId);
 
         ws.send(makeMessage("query-message", newQueryMessage));
