@@ -8,6 +8,7 @@ class CrawlChatEmbed {
     this.scrapeId = this.getScrapeId();
     this.askAIButtonId = "crawlchat-ask-ai-button";
     this.lastScrollTop = 0;
+    this.lastBodyStyle = {};
 
     const script = document.getElementById(this.scriptId);
     this.askAIEnabled = script.getAttribute("data-ask-ai") === "true";
@@ -59,6 +60,7 @@ class CrawlChatEmbed {
       div.style.opacity = "1";
     }, 0);
     this.lastScrollTop = window.scrollY;
+    this.lastBodyStyle = document.body.style;
     document.body.style.position = "fixed";
     document.body.style.overflowY = "scroll";
     document.body.style.width = "100%";
@@ -69,9 +71,7 @@ class CrawlChatEmbed {
   }
 
   hide() {
-    document.body.style.position = "relative";
-    document.body.style.overflowY = "auto";
-    document.body.style.top = "0px";
+    document.body.style = this.lastBodyStyle;
     window.scrollTo(0, this.lastScrollTop);
 
     const div = document.getElementById(this.embedDivId);
