@@ -12,7 +12,7 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
-import { useTheme } from "next-themes"
+import { useTheme } from "next-themes";
 
 import type {
   Message,
@@ -73,32 +73,35 @@ function ChatInput({
 
   useEffect(adjustHeight, [query]);
 
-  useEffect(function () {
-    const handleOnMessage = (event: MessageEvent) => {
-      if (event.data === "focus") {
+  useEffect(
+    function () {
+      const handleOnMessage = (event: MessageEvent) => {
+        if (event.data === "focus") {
+          inputRef.current?.focus();
+        }
+      };
+
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === "Enter" && !inputRef.current?.matches(":focus")) {
+          inputRef.current?.focus();
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+
+      if (!embed) {
         inputRef.current?.focus();
       }
-    };
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Enter" && !inputRef.current?.matches(":focus")) {
-        inputRef.current?.focus();
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    };
-
-    if (!embed) {
-      inputRef.current?.focus();
-    }
-
-    window.addEventListener("message", handleOnMessage);
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("message", handleOnMessage);
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [embed]);
+      window.addEventListener("message", handleOnMessage);
+      window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        window.removeEventListener("message", handleOnMessage);
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    },
+    [embed]
+  );
 
   function handleAsk() {
     onAsk(query);
@@ -813,12 +816,13 @@ export default function ScrapeWidget({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const { setTheme } = useTheme()
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data === "focus") {
         scroll();
+        document.querySelector("html")?.style.setProperty("color-scheme", "");
       }
 
       if (event.data === "dark-mode") {
@@ -826,7 +830,7 @@ export default function ScrapeWidget({
       }
 
       if (event.data === "light-mode") {
-        setTheme("light")
+        setTheme("light");
       }
     };
 
