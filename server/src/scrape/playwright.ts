@@ -17,12 +17,17 @@ export async function scrapePw(
   const page = await getPage();
   console.log("Navigating to", url);
   await page.goto(url);
+  await page.waitForLoadState("networkidle");
 
-  const scrollSelector: string = options?.scrollSelector ?? "body";
+  const scrollSelector = options?.scrollSelector;
 
   let previousHeight = 0;
   for (let i = 0; i < 10; i++) {
     console.log(`Scroll iteration ${i + 1}/10`);
+
+    if (!scrollSelector) {
+      break;
+    }
 
     const currentHeight = await page.evaluate(
       (selector) => document.querySelector(selector)?.scrollHeight ?? 0,
