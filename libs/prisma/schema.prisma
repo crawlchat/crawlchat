@@ -283,6 +283,7 @@ model KnowledgeGroup {
   maxPages                                  Int?
   staticContentThresholdLength              Int?
   skipPageRegex                             String?
+  scrollSelector                            String?
 
   githubUrl                                 String?
   githubBranch                              String?

@@ -37,6 +37,7 @@ export class WebKbProcesser extends BaseKbProcesser {
       limit?: number;
       skipRegex?: RegExp[];
       allowOnlyRegex?: RegExp;
+      scrollSelector?: string;
     }
   ) {
     super(listener, options);
@@ -76,6 +77,7 @@ export class WebKbProcesser extends BaseKbProcesser {
       limit: this.options.limit,
       skipRegex: this.options.skipRegex,
       allowOnlyRegex: this.options.allowOnlyRegex,
+      scrollSelector: this.options.scrollSelector,
       onComplete: () => this.onComplete(),
       shouldScrape: async () => {
         if (!(await this.options.hasCredits())) {

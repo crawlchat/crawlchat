@@ -76,6 +76,9 @@ export async function action({ request, params }: Route.ActionArgs) {
   if (formData.has("githubBranch")) {
     update.githubBranch = formData.get("githubBranch") as string;
   }
+  if (formData.has("scrollSelector")) {
+    update.scrollSelector = formData.get("scrollSelector") as string;
+  }
 
   const group = await prisma.knowledgeGroup.update({
     where: { id: groupId, userId: user!.id, scrapeId },
@@ -89,6 +92,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
   const matchPrefixFetcher = useFetcher();
   const htmlTagsToRemoveFetcher = useFetcher();
   const skipRegexFetcher = useFetcher();
+  const scrollSelectorFetcher = useFetcher();
   const details = useMemo(() => {
     return [
       {
@@ -148,6 +152,18 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           maxW="400px"
           defaultValue={group.skipPageRegex ?? ""}
           name="skipPageRegex"
+        />
+      </SettingsSection>
+      <SettingsSection
+        fetcher={scrollSelectorFetcher}
+        title="Scroll selector"
+        description="Specify the selector of the element to scroll to. It is useful to scrape pages that have infinite scroll."
+      >
+        <Input
+          placeholder="Ex: #panel"
+          maxW="400px"
+          defaultValue={group.scrollSelector ?? ""}
+          name="scrollSelector"
         />
       </SettingsSection>
     </Stack>

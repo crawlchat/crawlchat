@@ -33,6 +33,7 @@ export function makeKbProcesser(
         skipRegex: knowledgeGroup.skipPageRegex
           ? knowledgeGroup.skipPageRegex.split(",").map((r) => new RegExp(r))
           : undefined,
+        scrollSelector: knowledgeGroup.scrollSelector ?? undefined,
       }
     );
 
