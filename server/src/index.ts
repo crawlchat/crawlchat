@@ -132,11 +132,11 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       if (req.body.maxLinks) {
         return parseInt(req.body.maxLinks);
       }
-      if (knowledgeGroup.maxPages !== null) {
-        return knowledgeGroup.maxPages;
-      }
       if (url) {
         return 1;
+      }
+      if (knowledgeGroup.maxPages !== null) {
+        return knowledgeGroup.maxPages;
       }
       return undefined;
     }
@@ -161,6 +161,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
       hasCredits: () => hasEnoughCredits(userId, "scrapes"),
       limit: getLimit(),
+      url,
     });
 
     await processer.start();
