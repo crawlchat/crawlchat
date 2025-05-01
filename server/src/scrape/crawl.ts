@@ -106,7 +106,15 @@ export async function scrapeWithLinks(
   for (const link of linkLinks) {
     if (!link.href) continue;
 
-    const linkUrl = new URL(link.href, url);
+    let linkUrl: string | undefined;
+    try {
+      linkUrl = new URL(link.href, url).toString();
+    } catch (e) {}
+
+    if (!linkUrl) {
+      console.log("Invalid link", link.href);
+      continue;
+    }
 
     if (!isSameHost(baseUrl, linkUrl.toString())) {
       continue;
