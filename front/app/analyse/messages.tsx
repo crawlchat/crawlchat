@@ -26,6 +26,8 @@ import {
   TbLink,
   TbMessage,
   TbRobotFace,
+  TbThumbDown,
+  TbThumbUp,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import type { Route } from "./+types/messages";
@@ -79,7 +81,17 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
-  return { messagePairs: makeMessagePairs(messages), scrapes };
+  let messagePairs = makeMessagePairs(messages);
+
+  const url = new URL(request.url);
+  const rating = url.searchParams.get("rating");
+  if (rating) {
+    messagePairs = messagePairs.filter(
+      (pair) => pair.responseMessage.rating === rating
+    );
+  }
+
+  return { messagePairs, scrapes };
 }
 
 function getMessageContent(message?: Message) {
@@ -251,7 +263,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
         )}
         {loaderData.messagePairs.length > 0 && (
           <Stack>
-            <Flex justifyContent={"flex-end"} gap={2}>
+            {/* <Flex justifyContent={"flex-end"} gap={2}>
               <Popover.Root>
                 <Popover.Trigger asChild>
                   <IconButton variant={"ghost"}>
@@ -315,9 +327,9 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                   </SelectContent>
                 </SelectRoot>
               </Box>
-            </Flex>
+            </Flex> */}
 
-            <Flex gap={2}>
+            {/* <Flex gap={2}>
               <MetricCheckbox
                 label="Worst"
                 value={metrics.worst}
@@ -348,7 +360,11 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                 }
                 tooltip="0.75 - 1"
               />
-            </Flex>
+            </Flex> */}
+
+            <Text opacity={0.5} mb={2}>
+              Showing messages in last 7 days
+            </Text>
 
             {pairs.length === 0 && (
               <Center my={8} flexDir={"column"} gap={2}>
@@ -381,6 +397,21 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                           </Text>
                         </Group>
                         <Group>
+                          {pair.responseMessage.rating && (
+                            <Badge
+                              colorPalette={
+                                pair.responseMessage.rating === "up"
+                                  ? "green"
+                                  : "red"
+                              }
+                            >
+                              {pair.responseMessage.rating === "up" ? (
+                                <TbThumbUp />
+                              ) : (
+                                <TbThumbDown />
+                              )}
+                            </Badge>
+                          )}
                           <ChannelIcon channel={pair.queryMessage?.channel} />
                           <Badge
                             colorPalette={getScoreColor(pair.maxScore)}

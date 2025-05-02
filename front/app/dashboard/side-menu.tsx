@@ -46,13 +46,13 @@ import { useMemo, useRef } from "react";
 const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
   { label: "Knowledge", to: "/knowledge", icon: <TbBook />, forScrape: true },
-  // { label: "Messages", to: "/messages", icon: <TbMessage />, forScrape: true },
   {
     label: "Conversations",
     to: "/conversations",
     icon: <TbMessages />,
     forScrape: true,
   },
+  { label: "Messages", to: "/messages", icon: <TbMessage />, forScrape: true },
   { label: "Settings", to: "/settings", icon: <TbSettings />, forScrape: true },
   {
     label: "Integrations",

@@ -20,6 +20,8 @@ import {
   TbMessage,
   TbPlus,
   TbStack,
+  TbThumbDown,
+  TbThumbUp,
 } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
@@ -37,7 +39,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
-import { redirect, useFetcher } from "react-router";
+import { Link, redirect, useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   DialogBackdrop,
@@ -141,6 +143,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     };
   }
 
+  const ratingUpCount = messages.filter((m) => m.rating === "up").length;
+  const ratingDownCount = messages.filter((m) => m.rating === "down").length;
+
   return {
     user,
     scrapes,
@@ -150,6 +155,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     scrapeId,
     scoreDestribution,
     scrape: scrapes.find((s) => s.id === scrapeId),
+    ratingUpCount,
+    ratingDownCount,
   };
 }
 
@@ -203,20 +210,45 @@ export function StatCard({
   label,
   value,
   icon,
+  href,
+  color,
 }: {
   label: string;
   value: number;
   icon: React.ReactNode;
+  href?: string;
+  color?: string;
 }) {
-  return (
-    <Stat.Root flex={1} borderWidth="1px" p="4" rounded="md">
-      <HStack justify="space-between">
-        <Stat.Label>{label}</Stat.Label>
-        <Icon color="fg.muted">{icon}</Icon>
-      </HStack>
-      <Stat.ValueText>{numberToKMB(value)}</Stat.ValueText>
-    </Stat.Root>
-  );
+  function render() {
+    return (
+      <Stat.Root
+        flex={1}
+        borderWidth="1px"
+        p="4"
+        rounded="md"
+        _hover={{ bg: href ? "brand.gray.50" : undefined }}
+        transition={"background-color 0.2s ease-in-out"}
+      >
+        <HStack justify="space-between" align={"start"}>
+          <Stat.Label>{label}</Stat.Label>
+          <Icon color={color ?? "fg.muted"} size={"xl"}>
+            {icon}
+          </Icon>
+        </HStack>
+        <Stat.ValueText fontSize={"3xl"}>{numberToKMB(value)}</Stat.ValueText>
+      </Stat.Root>
+    );
+  }
+
+  if (href) {
+    return (
+      <Link to={href} style={{ flex: 1 }}>
+        {render()}
+      </Link>
+    );
+  }
+
+  return render();
 }
 
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
@@ -322,6 +354,20 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 0
               )}
               icon={<TbMessage />}
+            />
+            <StatCard
+              label="Helpful"
+              value={loaderData.ratingUpCount}
+              icon={<TbThumbUp />}
+              href={`/messages?rating=up`}
+              color="green.500"
+            />
+            <StatCard
+              label="Not helpful"
+              value={loaderData.ratingDownCount}
+              icon={<TbThumbDown />}
+              href={`/messages?rating=down`}
+              color="red.600"
             />
           </Group>
 
