@@ -129,6 +129,11 @@ enum MessageChannel {
   discord
 }
 
+enum MessageRating {
+  up
+  down
+}
+
 model Message {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId        String   @db.ObjectId
@@ -139,6 +144,7 @@ model Message {
   links           MessageSourceLink[]
   pinnedAt        DateTime?
   channel         MessageChannel?
+  rating          MessageRating?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

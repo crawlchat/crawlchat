@@ -7,6 +7,7 @@ import ChatBox from "~/dashboard/chat-box";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, useFetcher } from "react-router";
 import { useEffect } from "react";
+import type { MessageRating } from "libs/prisma";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findUnique({
@@ -139,6 +140,18 @@ export async function action({ request, params }: Route.ActionArgs) {
       where: { id: { in: ids } },
     });
   }
+
+  if (intent === "rate") {
+    const id = formData.get("id") as string;
+    const rating = formData.get("rating") as MessageRating;
+
+    await prisma.message.update({
+      where: { id },
+      data: {
+        rating,
+      },
+    });
+  }
 }
 
 export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
@@ -146,6 +159,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
   const unpinFetcher = useFetcher();
   const eraseFetcher = useFetcher();
   const deleteFetcher = useFetcher();
+  const rateFetcher = useFetcher();
 
   useEffect(() => {
     if (loaderData.embed) {
@@ -196,6 +210,10 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
     deleteFetcher.submit({ intent: "delete", ids }, { method: "post" });
   }
 
+  function handleRate(id: string, rating: MessageRating) {
+    rateFetcher.submit({ intent: "rate", id, rating }, { method: "post" });
+  }
+
   return (
     <Stack
       h="100dvh"
@@ -213,6 +231,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         onDelete={handleDelete}
         messages={loaderData.messages}
         embed={loaderData.embed}
+        onRate={handleRate}
       />
     </Stack>
   );

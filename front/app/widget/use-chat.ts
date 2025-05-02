@@ -34,6 +34,7 @@ export function useScrapeChat({
               links: [],
               pinnedAt: null,
               id: "new-answer",
+              rating: null,
               createdAt: new Date(),
             },
           ]
@@ -45,6 +46,7 @@ export function useScrapeChat({
       links: message.links,
       pinned: message.pinnedAt !== null,
       id: message.id,
+      rating: message.rating,
     }));
   }, [messages, content]);
 
@@ -152,6 +154,7 @@ export function useScrapeChat({
         ownerUserId: "",
         scrapeId,
         channel: null,
+        rating: null,
       },
     ]);
     setAskStage("asked");
