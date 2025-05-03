@@ -34,6 +34,10 @@ export function ActionButton({
     }
   }, [stopFetcher.data]);
 
+  if (["learn_discord", "answer_corrections"].includes(group.type)) {
+    return null;
+  }
+
   return (
     <>
       {["done", "pending", "error"].includes(group.status) && (

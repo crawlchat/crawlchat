@@ -495,6 +495,11 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
+  if (!(await hasEnoughCredits(userId, "scrapes"))) {
+    res.status(400).json({ message: "Not enough credits" });
+    return;
+  }
+
   let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
     where: { userId, type: knowledgeGroupType },
   });
@@ -545,6 +550,8 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
       })),
     },
   });
+
+  await consumeCredits(userId, "scrapes", 1);
 
   res.json({ scrapeItem });
 });
@@ -681,6 +688,11 @@ app.post("/fix-message", authenticate, async (req, res) => {
     return;
   }
 
+  if (!(await hasEnoughCredits(userId, "messages"))) {
+    res.status(400).json({ message: "Not enough credits" });
+    return;
+  }
+
   const thread = await prisma.thread.findFirstOrThrow({
     where: { id: message.threadId },
     include: {
@@ -700,7 +712,9 @@ app.post("/fix-message", authenticate, async (req, res) => {
       messages.map(massageToText).join("\n\n"),
     ]),
     schema: z.object({
-      correctAnswer: z.string({ description: "The correct answer. Can be markdown" }),
+      correctAnswer: z.string({
+        description: "The correct answer. Can be markdown",
+      }),
       title: z.string({
         description: "The short title of the answer under 6 words",
       }),
@@ -740,6 +754,8 @@ app.post("/fix-message", authenticate, async (req, res) => {
 
   const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
   const { correctAnswer, title } = JSON.parse(content);
+
+  await consumeCredits(userId, "messages", 1);
 
   res.json({ content: correctAnswer, title });
 });

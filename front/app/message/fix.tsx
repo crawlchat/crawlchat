@@ -25,6 +25,8 @@ import { createToken } from "~/jwt";
 import { Button } from "~/components/ui/button";
 import { Field } from "~/components/ui/field";
 import type { ScrapeItem } from "@prisma/client";
+import { useEffect } from "react";
+import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -97,7 +99,9 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     const data = await response.json();
 
-    return Response.json({ content: data.content, title: data.title });
+    const error = response.status !== 200 ? data.error ?? data.message : null;
+
+    return Response.json({ content: data.content, title: data.title, error });
   }
 
   if (intent === "save") {
@@ -134,6 +138,11 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
     );
 
+    if (response.status !== 200) {
+      const data = await response.json();
+      return Response.json({ error: data.error ?? data.message });
+    }
+
     const { scrapeItem } = (await response.json()) as {
       scrapeItem: ScrapeItem;
     };
@@ -155,6 +164,24 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
   const summarizeFetcher = useFetcher();
   const saveFetcher = useFetcher();
 
+  useEffect(() => {
+    if (summarizeFetcher.data?.error) {
+      toaster.error({
+        title: "Error",
+        description: summarizeFetcher.data.error,
+      });
+    }
+  }, [summarizeFetcher.data]);
+
+  useEffect(() => {
+    if (saveFetcher.data?.error) {
+      toaster.error({
+        title: "Error",
+        description: saveFetcher.data.error,
+      });
+    }
+  }, [saveFetcher.data]);
+
   return (
     <Page title="Fix message" icon={<TbSettingsBolt />} noPadding>
       <Flex h="full">
@@ -169,15 +196,13 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
           overflowY={"auto"}
           p={4}
         >
-          {/* <Text opacity={0.5}>
-            Here is the conversation up to the message you want to fix. You can
-            prompt the AI to frame the correct answer.
-          </Text> */}
           <Text opacity={0.5}>
             You can attach your answer below and the AI will summarise the fix.
             It finally adds it to the knowledge base so that this will be
             considered for further answers.
           </Text>
+
+          <Text opacity={0.5}>Uses 1 message credit & 1 scrape credit.</Text>
 
           {loaderData.message.correctionItemId && (
             <Alert.Root status="info" title="This is the alert title">
@@ -186,37 +211,18 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
                 This message is already corrected{" "}
                 <Link
                   to={`/knowledge/item/${loaderData.message.correctionItemId}`}
-                  style={{ display: "inline-block" }}
+                  style={{
+                    display: "inline-block",
+                    textDecoration: "underline",
+                  }}
                 >
-                  <TbExternalLink />
+                  here
                 </Link>
               </Alert.Title>
             </Alert.Root>
           )}
 
-          {!summarizeFetcher.data && (
-            <summarizeFetcher.Form method="post">
-              <input type="hidden" name="intent" value={"summarise"} />
-              <Textarea
-                placeholder="Enter the correct answer/fix here"
-                rows={4}
-                autoresize
-                name="answer"
-                disabled={saveFetcher.state !== "idle"}
-              />
-              <Group justifyContent={"flex-end"} w="full">
-                <Button
-                  type="submit"
-                  loading={summarizeFetcher.state !== "idle"}
-                >
-                  Summarise
-                  <TbArrowRight />
-                </Button>
-              </Group>
-            </summarizeFetcher.Form>
-          )}
-
-          {summarizeFetcher.data && (
+          {summarizeFetcher.data?.title && summarizeFetcher.data?.content ? (
             <saveFetcher.Form method="post">
               <Stack>
                 <input type="hidden" name="intent" value={"save"} />
@@ -245,6 +251,28 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
                 </Group>
               </Stack>
             </saveFetcher.Form>
+          ) : (
+            <summarizeFetcher.Form method="post">
+              <Stack>
+                <input type="hidden" name="intent" value={"summarise"} />
+                <Textarea
+                  placeholder="Enter the correct answer/fix here"
+                  rows={4}
+                  autoresize
+                  name="answer"
+                  disabled={saveFetcher.state !== "idle"}
+                />
+                <Group justifyContent={"flex-end"} w="full">
+                  <Button
+                    type="submit"
+                    loading={summarizeFetcher.state !== "idle"}
+                  >
+                    Summarise
+                    <TbArrowRight />
+                  </Button>
+                </Group>
+              </Stack>
+            </summarizeFetcher.Form>
           )}
         </Stack>
         <Stack h="full" flex={1} bg="brand.gray.100">

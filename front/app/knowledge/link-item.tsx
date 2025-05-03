@@ -19,6 +19,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const item = await prisma.scrapeItem.findUnique({
     where: { id: params.itemId, userId: user!.id },
+    include: {
+      knowledgeGroup: true,
+    },
   });
   return { item, scrapeId };
 }
@@ -110,24 +113,32 @@ export default function ScrapeItem({ loaderData }: Route.ComponentProps) {
     }
   }
 
+  const canRefresh =
+    loaderData.item?.knowledgeGroup &&
+    !["learn_discord", "answer_corrections"].includes(
+      loaderData.item.knowledgeGroup.type
+    );
+
   return (
     <Page
       title={loaderData.item?.title ?? "Untitled"}
       icon={<TbBook2 />}
       right={
         <Group>
-          <refreshFetcher.Form method="post">
-            <input type="hidden" name="intent" value="refresh" />
-            <Tooltip content={"Refetch"} showArrow>
-              <IconButton
-                variant={"subtle"}
-                type={"submit"}
-                disabled={refreshFetcher.state !== "idle"}
-              >
-                <TbRefresh />
-              </IconButton>
-            </Tooltip>
-          </refreshFetcher.Form>
+          {canRefresh && (
+            <refreshFetcher.Form method="post">
+              <input type="hidden" name="intent" value="refresh" />
+              <Tooltip content={"Refetch"} showArrow>
+                <IconButton
+                  variant={"subtle"}
+                  type={"submit"}
+                  disabled={refreshFetcher.state !== "idle"}
+                >
+                  <TbRefresh />
+                </IconButton>
+              </Tooltip>
+            </refreshFetcher.Form>
+          )}
 
           <deleteFetcher.Form method="delete">
             <Tooltip
