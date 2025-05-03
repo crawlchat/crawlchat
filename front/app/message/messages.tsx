@@ -464,7 +464,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                           <Box>
                             <Button asChild>
                               <RouterLink
-                                to={`/messages/${pair.queryMessage?.id}/fix`}
+                                to={`/messages/${pair.responseMessage?.id}/fix`}
                               >
                                 <TbSettingsBolt />
                                 Fix it

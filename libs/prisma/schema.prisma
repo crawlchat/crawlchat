@@ -135,23 +135,25 @@ enum MessageRating {
 }
 
 model Message {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  threadId        String   @db.ObjectId
-  ownerUserId     String   @db.ObjectId
-  scrapeId        String   @db.ObjectId
+  id                        String   @id @default(auto()) @map("_id") @db.ObjectId
+  threadId                  String   @db.ObjectId
+  ownerUserId               String   @db.ObjectId
+  scrapeId                  String   @db.ObjectId
 
-  llmMessage      Json
-  links           MessageSourceLink[]
-  pinnedAt        DateTime?
-  channel         MessageChannel?
-  rating          MessageRating?
+  llmMessage                Json
+  links                     MessageSourceLink[]
+  pinnedAt                  DateTime?
+  channel                   MessageChannel?
+  rating                    MessageRating?
+  correctionItemId          String?  @db.ObjectId
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 
-  thread          Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  ownerUser       User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
-  scrape          Scrape @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+  thread                    Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  ownerUser                 User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  scrape                    Scrape @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+  correctionItem            ScrapeItem? @relation(fields: [correctionItemId], references: [id])
 
   @@index([ownerUserId, scrapeId, createdAt])
 }
@@ -209,6 +211,7 @@ model ScrapeItem {
   scrape                  Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   knowledgeGroup          KnowledgeGroup?  @relation(fields: [knowledgeGroupId], references: [id], onDelete: Cascade)
+  correctetdMessages      Message[]
 
   @@unique([knowledgeGroupId, url])
 }
@@ -263,6 +266,7 @@ enum KnowledgeGroupType {
   scrape_github
   learn_discord
   github_issues
+  answer_corrections
 }
 
 enum KnowledgeGroupStatus {

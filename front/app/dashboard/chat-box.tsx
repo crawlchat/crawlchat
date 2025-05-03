@@ -85,23 +85,13 @@ function ChatInput({
         }
       };
 
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === "Enter" && !inputRef.current?.matches(":focus")) {
-          inputRef.current?.focus();
-          event.preventDefault();
-          event.stopPropagation();
-        }
-      };
-
       if (!embed) {
         inputRef.current?.focus();
       }
 
       window.addEventListener("message", handleOnMessage);
-      window.addEventListener("keydown", handleKeyDown);
       return () => {
         window.removeEventListener("message", handleOnMessage);
-        window.removeEventListener("keydown", handleKeyDown);
       };
     },
     [embed]

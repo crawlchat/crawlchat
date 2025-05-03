@@ -13,7 +13,7 @@ import { authenticate, verifyToken } from "./jwt";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
-import { MessageSourceLink, Prisma } from "libs/prisma";
+import { Message, MessageSourceLink, Prisma } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
@@ -21,11 +21,13 @@ import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
 import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
-import { FlowMessage } from "./llm/agentic";
+import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
 import { makeTestQueryFlow } from "./llm/flow-test-query";
 import { getConfig } from "./llm/config";
 import { chunk } from "libs/chunk";
 import { retry } from "./retry";
+import { Flow } from "./llm/flow";
+import { z } from "zod";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -663,6 +665,83 @@ app.get("/discord/:channelId", async (req, res) => {
     draftEmoji: scrape.discordDraftConfig?.emoji,
     draftDestinationChannelId: scrape.discordDraftConfig?.destinationChannelId,
   });
+});
+
+app.post("/fix-message", authenticate, async (req, res) => {
+  const userId = req.user!.id;
+  const messageId = req.body.messageId as string;
+  const answer = req.body.answer as string;
+
+  const message = await prisma.message.findFirstOrThrow({
+    where: { id: messageId, ownerUserId: userId },
+  });
+
+  if (!message) {
+    res.status(404).json({ message: "Message not found" });
+    return;
+  }
+
+  const thread = await prisma.thread.findFirstOrThrow({
+    where: { id: message.threadId },
+    include: {
+      messages: true,
+    },
+  });
+
+  const messageIndex = thread.messages.findIndex((m) => m.id === messageId);
+
+  const messages = thread.messages.slice(0, messageIndex + 1);
+
+  const agent = new SimpleAgent<RAGAgentCustomMessage>({
+    id: "fix-agent",
+    prompt: multiLinePrompt([
+      "You are a helpful assistant who fixes the wrongly answer with provided context.",
+      "Here is the context for the conversation:",
+      messages.map(massageToText).join("\n\n"),
+    ]),
+    schema: z.object({
+      correctAnswer: z.string({ description: "The correct answer. Can be markdown" }),
+      title: z.string({
+        description: "The short title of the answer under 6 words",
+      }),
+    }),
+  });
+
+  function massageToText(message: Message) {
+    const role = (message.llmMessage as any).role as string;
+    const content = (message.llmMessage as any).content as string;
+    if (role === "user") {
+      return `Question: ${content}`;
+    }
+    return `Answer: ${content}\n---`;
+  }
+
+  const flow = new Flow([agent], {
+    messages: [
+      {
+        llmMessage: {
+          role: "user",
+          content: multiLinePrompt([
+            "Fix the above wrongly answered question with the below context and summarise the entire conversation under 200 words.",
+            "Add only those details that are relevant to the below question.",
+            "Elaborate the answer to be more detailed and accurate.",
+            "Give the correctAnswer in markdown format.",
+            "Wrong answer: " + (message.llmMessage as any).content,
+            "Correct answer: " + answer,
+          ]),
+        },
+      },
+    ],
+  });
+
+  flow.addNextAgents(["fix-agent"]);
+
+  while (await flow.stream()) {}
+
+  const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
+  const { correctAnswer, title } = JSON.parse(content);
+
+  res.json({ content: correctAnswer, title });
 });
 
 app.listen(port, async () => {
