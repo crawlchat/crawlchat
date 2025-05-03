@@ -1,5 +1,5 @@
 import WeeklyEmail from "../../emails/weekly";
-import { analysePairMessages, makeMessagePairs } from "~/analyse/analyse";
+import { analysePairMessages, makeMessagePairs } from "~/message/analyse";
 import { sendReactEmail } from "~/email";
 import { prisma } from "~/prisma";
 

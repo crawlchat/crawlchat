@@ -18,6 +18,7 @@ import {
   Portal,
   Highlight,
   Icon,
+  Button,
 } from "@chakra-ui/react";
 import {
   TbBox,
@@ -26,6 +27,7 @@ import {
   TbLink,
   TbMessage,
   TbRobotFace,
+  TbSettingsBolt,
   TbThumbDown,
   TbThumbUp,
 } from "react-icons/tb";
@@ -55,6 +57,7 @@ import { Tooltip } from "~/components/ui/tooltip";
 import { getSessionScrapeId } from "~/scrapes/util";
 import type { Message, MessageChannel } from "libs/prisma";
 import { getScoreColor } from "~/score";
+import { Link as RouterLink } from "react-router";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -456,6 +459,18 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                               ))}
                             </List.Root>
                           </Stack>
+                        )}
+                        {pair.responseMessage.rating === "down" && (
+                          <Box>
+                            <Button asChild>
+                              <RouterLink
+                                to={`/messages/${pair.queryMessage?.id}/fix`}
+                              >
+                                <TbSettingsBolt />
+                                Fix it
+                              </RouterLink>
+                            </Button>
+                          </Box>
                         )}
                       </Stack>
                     </AccordionItemContent>

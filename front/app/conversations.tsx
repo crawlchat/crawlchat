@@ -244,6 +244,7 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
                   onUnpin={() => {}}
                   onErase={() => {}}
                   onDelete={() => {}}
+                  onRate={() => {}}
                   messages={selectedThread.messages}
                   showScore
                 />

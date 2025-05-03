@@ -33,7 +33,8 @@ export default [
   layout("dashboard/layout.tsx", [
     route("app", "dashboard/page.tsx"),
     route("profile", "dashboard/profile.tsx"),
-    route("messages", "analyse/messages.tsx"),
+    route("messages", "message/messages.tsx"),
+    route("messages/:messageId/fix", "message/fix.tsx"),
     route("conversations", "conversations.tsx"),
     route("settings", "scrapes/settings.tsx"),
 
