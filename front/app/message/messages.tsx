@@ -405,13 +405,20 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                               colorPalette={
                                 pair.responseMessage.rating === "up"
                                   ? "green"
+                                  : pair.responseMessage.correctionItemId
+                                  ? "brand"
                                   : "red"
                               }
                             >
                               {pair.responseMessage.rating === "up" ? (
                                 <TbThumbUp />
                               ) : (
-                                <TbThumbDown />
+                                <>
+                                  <TbThumbDown />
+                                  {pair.responseMessage.correctionItemId && (
+                                    <TbSettingsBolt />
+                                  )}
+                                </>
                               )}
                             </Badge>
                           )}
@@ -462,12 +469,21 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                         )}
                         {pair.responseMessage.rating === "down" && (
                           <Box>
-                            <Button asChild>
+                            <Button
+                              asChild
+                              variant={
+                                !pair.responseMessage.correctionItemId
+                                  ? "solid"
+                                  : "outline"
+                              }
+                            >
                               <RouterLink
                                 to={`/messages/${pair.responseMessage?.id}/fix`}
                               >
                                 <TbSettingsBolt />
                                 Fix it
+                                {pair.responseMessage.correctionItemId &&
+                                  " again"}
                               </RouterLink>
                             </Button>
                           </Box>

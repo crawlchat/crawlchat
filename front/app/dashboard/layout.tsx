@@ -45,6 +45,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       ownerUserId: user!.id,
       createdAt: { gte: ONE_WEEK_AGO },
       rating: "down",
+      OR: [{ correctionItemId: { isSet: false } }, { correctionItemId: null }],
     },
   });
 
