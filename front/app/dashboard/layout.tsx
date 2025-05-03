@@ -38,7 +38,17 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
-  return { user: user!, plan, scrapes, scrapeId };
+  const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
+
+  const toBeFixedMessages = await prisma.message.count({
+    where: {
+      ownerUserId: user!.id,
+      createdAt: { gte: ONE_WEEK_AGO },
+      rating: "down",
+    },
+  });
+
+  return { user: user!, plan, scrapes, scrapeId, toBeFixedMessages };
 }
 
 const drawerWidth = 260;
@@ -60,6 +70,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           scrapes={loaderData.scrapes}
           scrapeId={loaderData.scrapeId}
           scrapeIdFetcher={scrapeIdFetcher}
+          toBeFixedMessages={loaderData.toBeFixedMessages}
         />
 
         <DrawerRoot
@@ -79,6 +90,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               scrapes={loaderData.scrapes}
               scrapeId={loaderData.scrapeId}
               scrapeIdFetcher={scrapeIdFetcher}
+              toBeFixedMessages={loaderData.toBeFixedMessages}
             />
           </DrawerContent>
         </DrawerRoot>

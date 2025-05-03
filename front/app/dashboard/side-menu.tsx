@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   createListCollection,
   Group,
@@ -20,6 +21,7 @@ import {
   TbPlug,
   TbRoad,
   TbSettings,
+  TbThumbDown,
   TbUser,
 } from "react-icons/tb";
 import { Link, NavLink, type FetcherWithComponents } from "react-router";
@@ -65,12 +67,18 @@ const links = [
 
 function SideMenuItem({
   link,
+  number,
 }: {
   link: {
     label: string;
     to: string;
     icon: React.ReactNode;
     external?: boolean;
+  };
+  number?: {
+    value: number;
+    color?: string;
+    icon?: React.ReactNode;
   };
 }) {
   return (
@@ -85,10 +93,21 @@ function SideMenuItem({
           borderRadius={"md"}
           transition={"all 100ms ease"}
           _hover={{ bg: !isActive ? "brand.gray.100" : undefined }}
+          justify="space-between"
         >
-          <Text>{link.icon}</Text>
-          <Text truncate>{link.label}</Text>
-          <Text>{isPending && <Spinner size="xs" />}</Text>
+          <Group>
+            <Text>{link.icon}</Text>
+            <Text truncate>{link.label}</Text>
+            <Text>{isPending && <Spinner size="xs" />}</Text>
+          </Group>
+          <Group>
+            {number && (
+              <Badge colorPalette={number.color} variant={"surface"}>
+                {number.icon}
+                {number.value}
+              </Badge>
+            )}
+          </Group>
         </Group>
       )}
     </NavLink>
@@ -145,6 +164,7 @@ export function SideMenu({
   scrapes,
   scrapeId,
   scrapeIdFetcher,
+  toBeFixedMessages,
 }: {
   fixed: boolean;
   width: number;
@@ -154,6 +174,7 @@ export function SideMenu({
   scrapes: Scrape[];
   scrapeId?: string;
   scrapeIdFetcher: FetcherWithComponents<any>;
+  toBeFixedMessages: number;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const collections = useMemo(
@@ -236,7 +257,19 @@ export function SideMenu({
           {links
             .filter((link) => !link.forScrape || scrapeId)
             .map((link, index) => (
-              <SideMenuItem key={index} link={link} />
+              <SideMenuItem
+                key={index}
+                link={link}
+                number={
+                  toBeFixedMessages && link.label === "Messages"
+                    ? {
+                        value: toBeFixedMessages,
+                        icon: <TbThumbDown />,
+                        color: "red",
+                      }
+                    : undefined
+                }
+              />
             ))}
         </Stack>
 
