@@ -277,6 +277,15 @@ enum KnowledgeGroupStatus {
   error
 }
 
+enum KnowledgeGroupUpdateFrequency {
+  minutely
+  hourly
+  never
+  daily
+  weekly
+  monthly
+}
+
 model KnowledgeGroup {
   id                                        String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId                                  String   @db.ObjectId
@@ -298,6 +307,9 @@ model KnowledgeGroup {
 
   githubUrl                                 String?
   githubBranch                              String?
+  updateFrequency                           KnowledgeGroupUpdateFrequency?
+  nextUpdateAt                              DateTime?
+  lastUpdatedAt                             DateTime?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt

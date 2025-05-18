@@ -1,9 +1,19 @@
-import type { Prisma } from "libs/prisma";
+import type { KnowledgeGroupUpdateFrequency, Prisma } from "libs/prisma";
 import { prisma, type KnowledgeGroup } from "libs/prisma";
+import { getNextUpdateTime } from "libs/knowledge-group";
 import { getAuthUser } from "~/auth/middleware";
 import { getSessionScrapeId } from "~/scrapes/util";
 import type { Route } from "./+types/settings";
-import { DataList, Group, Heading, Input, Stack, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  createListCollection,
+  DataList,
+  Group,
+  Heading,
+  Input,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import { SettingsSection } from "~/dashboard/profile";
 import { useEffect, useMemo, useState } from "react";
 import { redirect, useFetcher } from "react-router";
@@ -13,6 +23,13 @@ import { GroupStatus } from "./status";
 import { Button } from "~/components/ui/button";
 import { TbTrash } from "react-icons/tb";
 import { createToken } from "~/jwt";
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "~/components/ui/select";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -79,6 +96,12 @@ export async function action({ request, params }: Route.ActionArgs) {
   if (formData.has("scrollSelector")) {
     update.scrollSelector = formData.get("scrollSelector") as string;
   }
+  if (formData.has("updateFrequency")) {
+    update.updateFrequency = formData.get(
+      "updateFrequency"
+    ) as KnowledgeGroupUpdateFrequency;
+    update.nextUpdateAt = getNextUpdateTime(update.updateFrequency, new Date());
+  }
 
   const group = await prisma.knowledgeGroup.update({
     where: { id: groupId, userId: user!.id, scrapeId },
@@ -93,6 +116,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
   const htmlTagsToRemoveFetcher = useFetcher();
   const skipRegexFetcher = useFetcher();
   const scrollSelectorFetcher = useFetcher();
+  const autoUpdateFetcher = useFetcher();
   const details = useMemo(() => {
     return [
       {
@@ -109,6 +133,36 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
       },
     ];
   }, [group]);
+  const autoUpdateCollection = useMemo(() => {
+    return createListCollection({
+      items: [
+        {
+          label: "Never",
+          value: "never",
+        },
+        {
+          label: "Every minute",
+          value: "minutely",
+        },
+        {
+          label: "Every hour",
+          value: "hourly",
+        },
+        {
+          label: "Every day",
+          value: "daily",
+        },
+        {
+          label: "Every week",
+          value: "weekly",
+        },
+        {
+          label: "Every month",
+          value: "monthly",
+        },
+      ],
+    });
+  }, []);
 
   return (
     <Stack gap={6}>
@@ -154,6 +208,43 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           name="skipPageRegex"
         />
       </SettingsSection>
+
+      {["scrape_web", "scrape_github", "github_issues"].includes(
+        group.type
+      ) && (
+        <SettingsSection
+          fetcher={autoUpdateFetcher}
+          title="Auto update"
+          description="If enabled, the knowledge group will be updated automatically every day at the specified time."
+        >
+          <SelectRoot
+            collection={autoUpdateCollection}
+            maxW="400px"
+            name="updateFrequency"
+            defaultValue={[group.updateFrequency ?? "never"]}
+          >
+            <SelectTrigger>
+              <SelectValueText placeholder="Select auto update" />
+            </SelectTrigger>
+            <SelectContent>
+              {autoUpdateCollection.items.map((item) => (
+                <SelectItem item={item} key={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </SelectRoot>
+          {group.nextUpdateAt && (
+            <Text fontSize={"sm"}>
+              Next update at{" "}
+              <Badge ml={1} colorPalette={"brand"} variant={"surface"}>
+                {moment(group.nextUpdateAt).format("DD/MM/YYYY HH:mm")}
+              </Badge>
+            </Text>
+          )}
+        </SettingsSection>
+      )}
+
       <SettingsSection
         fetcher={scrollSelectorFetcher}
         title="Scroll selector"

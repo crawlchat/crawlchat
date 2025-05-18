@@ -1,4 +1,5 @@
 import { KnowledgeGroup, prisma, Scrape } from "libs/prisma";
+import { getNextUpdateTime } from "libs/knowledge-group";
 import {
   KbContent,
   KbProcesserListener,
@@ -36,10 +37,16 @@ export class BaseKbProcesserListener implements KbProcesserListener {
       scrapeId: this.scrape.id,
       knowledgeGroupId: this.knowledgeGroup.id,
     });
+
     await prisma.knowledgeGroup.update({
       where: { id: this.knowledgeGroup.id },
       data: {
         status: "done",
+        lastUpdatedAt: new Date(),
+        nextUpdateAt: getNextUpdateTime(
+          this.knowledgeGroup.updateFrequency,
+          new Date()
+        ),
       },
     });
     this.broadcast("saved", { scrapeId: this.scrape.id });
