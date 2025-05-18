@@ -25,6 +25,10 @@
     "./chunk": {
       "default": "./dist/chunk.js",
       "types": "./dist/chunk.d.ts"
+    },
+    "./knowledge-group": {
+      "default": "./dist/knowledge-group.js",
+      "types": "./dist/knowledge-group.d.ts"
     }
   },
   "typesVersions": {
@@ -40,6 +44,9 @@
       ],
       "chunk": [
         "./dist/chunk.d.ts"
+      ],
+      "knowledge-group": [
+        "./dist/knowledge-group.d.ts"
       ]
     }
   },

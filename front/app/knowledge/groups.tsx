@@ -13,10 +13,13 @@ import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import moment from "moment";
 import {
+  TbAutomaticGearbox,
+  TbAutomation,
   TbBook,
   TbBrandDiscord,
   TbBrandGithub,
   TbPlus,
+  TbRefresh,
   TbWorld,
 } from "react-icons/tb";
 import { Link } from "react-router";
@@ -28,6 +31,7 @@ import { useMemo } from "react";
 import { GroupStatus } from "./group/status";
 import { ActionButton } from "./group/action-button";
 import { SiDocusaurus } from "react-icons/si";
+import { Tooltip } from "~/components/ui/tooltip";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -89,12 +93,11 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       if (group.type === "scrape_web") {
         icon = <TbWorld />;
         typeText = "Web";
-        
+
         if (group.subType === "docusaurus") {
           typeText = "Docusaurus";
           icon = <SiDocusaurus />;
         }
-
       } else if (group.type === "scrape_github") {
         icon = <TbBrandGithub />;
         typeText = "GitHub";
@@ -217,13 +220,36 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                     <GroupStatus status={item.group.status} />
                   </Table.Cell>
                   <Table.Cell>
-                    {moment(item.group.updatedAt).fromNow()}
+                    <Text>
+                      {moment(item.group.updatedAt).fromNow()}
+                      {item.group.nextUpdateAt && (
+                        <Tooltip
+                          content={`Next update at ${moment(
+                            item.group.nextUpdateAt
+                          ).format("DD/MM/YYYY HH:mm")}`}
+                          showArrow
+                        >
+                          <Badge
+                            ml={1}
+                            colorPalette={"brand"}
+                            variant={"surface"}
+                            as={"span"}
+                          >
+                            <TbAutomation />
+                          </Badge>
+                        </Tooltip>
+                      )}
+                    </Text>
                   </Table.Cell>
                   <Table.Cell>
                     <Group>
-                      {["scrape_web", "scrape_github", "github_issues"].includes(
-                        item.group.type
-                      ) && <ActionButton group={item.group} />}
+                      {[
+                        "scrape_web",
+                        "scrape_github",
+                        "github_issues",
+                      ].includes(item.group.type) && (
+                        <ActionButton group={item.group} />
+                      )}
                     </Group>
                   </Table.Cell>
                 </Table.Row>

@@ -11,9 +11,9 @@ export type KbProcessProgress = {
 };
 
 export interface KbProcesserListener {
-  onBeforeStart: () => void;
-  onComplete: () => void;
-  onError: (path: string, error: unknown) => void;
+  onBeforeStart: () => Promise<void>;
+  onComplete: () => Promise<void>;
+  onError: (path: string, error: unknown) => Promise<void>;
   onContentAvailable: (
     path: string,
     content: KbContent,
@@ -34,15 +34,15 @@ export abstract class BaseKbProcesser implements KbProcesser {
   ) {}
 
   async onComplete() {
-    this.listener.onComplete();
+    await this.listener.onComplete();
   }
 
   async onBeforeStart() {
-    this.listener.onBeforeStart();
+    await this.listener.onBeforeStart();
   }
 
   async onError(path: string, error: unknown) {
-    this.listener.onError(path, error);
+    await this.listener.onError(path, error);
   }
 
   async assertCreditsAvailable() {
