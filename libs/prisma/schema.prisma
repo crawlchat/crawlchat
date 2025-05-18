@@ -278,6 +278,8 @@ enum KnowledgeGroupStatus {
 }
 
 enum KnowledgeGroupUpdateFrequency {
+  minutely
+  hourly
   never
   daily
   weekly
