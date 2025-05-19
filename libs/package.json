@@ -29,6 +29,10 @@
     "./knowledge-group": {
       "default": "./dist/knowledge-group.js",
       "types": "./dist/knowledge-group.d.ts"
+    },
+    "./rich-message-block": {
+      "default": "./dist/rich-message-block.js",
+      "types": "./dist/rich-message-block.d.ts"
     }
   },
   "typesVersions": {
@@ -47,6 +51,9 @@
       ],
       "knowledge-group": [
         "./dist/knowledge-group.d.ts"
+      ],
+      "rich-message-block": [
+        "./dist/rich-message-block.d.ts"
       ]
     }
   },

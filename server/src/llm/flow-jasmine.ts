@@ -7,6 +7,8 @@ import {
 } from "./agentic";
 import { Flow } from "./flow";
 import { z } from "zod";
+import { richMessageBlocks } from "libs/rich-message-block";
+import zodToJsonSchema from "zod-to-json-schema";
 
 export type RAGAgentCustomMessage = {
   result?: {
@@ -83,6 +85,29 @@ export function makeFlow(
 ) {
   const ragTool = makeRagTool(scrapeId, indexerKey, options);
 
+  const dkkd =
+    "Use the contacts block to display contact information like email, phone, address, website, social links, etc. Pass the details accordingly. Pass phone number only found. Use cards block to show information about any person, place, document, etc.";
+  const richBlocksPrompt = multiLinePrompt([
+    "You can use rich message blocks as code language in the answer.",
+    "Use the details only found in the context. Don't hallucinate.",
+    "Use the rich message blocks wherever applicable as per below mentioned usage requirement",
+    "Available blocks are:",
+
+    richMessageBlocks
+      // .filter((b) => b.key === "contacts")
+      .map((block) =>
+        [
+          `key: ${block.key}`,
+          `schema: ${JSON.stringify(zodToJsonSchema(block.schema as any))}`,
+          `usage: ${dkkd}`,
+        ].join("\n\n")
+      )
+      .join("\n\n---\n\n"),
+    "This is how you use a block: ```json|<key>\n<json>\n``` Example: ```json|cards\n[{...}]\n```",
+  ]);
+
+  console.log(richBlocksPrompt);
+
   const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
     id: "rag-agent",
     prompt: multiLinePrompt([
@@ -117,6 +142,9 @@ export function makeFlow(
       "Cite only for the sources that are used to answer the query.",
       "Cite every fact that is used in the answer.",
       "Pick most relevant sources and cite them.",
+
+      richBlocksPrompt,
+
       "Don't ask more than 3 questions for the entire answering flow.",
       systemPrompt,
     ]),
