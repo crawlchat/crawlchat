@@ -1028,8 +1028,8 @@ function Pricing() {
           description="For personal use"
           price="$0"
           items={[
-            { text: "100 messages per month" },
-            { text: "100 messages per month" },
+            { text: "100 page scrapes" },
+            { text: "100 message credits" },
             { text: "API not available", excluded: true },
             { text: "MCP not available", excluded: true },
             { text: "Discord bot", excluded: true },
@@ -1043,8 +1043,8 @@ function Pricing() {
           description="Start your journey with CrawlChat"
           price="$29"
           items={[
-            { text: "5000 messages per month" },
-            { text: "7000 messages per month" },
+            { text: "5000 scrapes/month" },
+            { text: "7000 message credits/month" },
             { text: "API available" },
             { text: "MCP available" },
             { text: "Discord bot" },
@@ -1059,8 +1059,8 @@ function Pricing() {
           popular
           price="$79"
           items={[
-            { text: "14,000 messages per month" },
-            { text: "20,000 messages per month" },
+            { text: "14,000 scrapes/month" },
+            { text: "20,000 message credits/month" },
             { text: "API available" },
             { text: "MCP available" },
             { text: "Discord bot" },
