@@ -208,7 +208,12 @@ export function SourceLink({
             <Text fontSize={"xs"} lineClamp={1} data-score={link.score}>
               {link.title}
             </Text>
-            <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
+            <Text
+              fontSize={"xs"}
+              opacity={0.5}
+              lineClamp={1}
+              display={["none", "none", "block"]}
+            >
               {link.url}
             </Text>
           </Stack>
@@ -789,6 +794,7 @@ function Toolbar({
                 size={"xs"}
                 variant={"subtle"}
                 onClick={() => onScreenChange("mcp")}
+                display={["none", "none", "flex"]}
               >
                 Setup MCP
                 <TbRobotFace />
