@@ -5,7 +5,15 @@ import type { Route } from "./+types/tickets";
 import { prisma } from "libs/prisma";
 import type { Thread, Prisma, TicketStatus } from "libs/prisma";
 import { getSessionScrapeId } from "./scrapes/util";
-import { Badge, Group, Link, Stack, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  EmptyState,
+  Group,
+  Link,
+  Stack,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
 import moment from "moment";
 import { Button } from "~/components/ui/button";
 import { redirect } from "react-router";
@@ -133,6 +141,26 @@ function StatusButton({
   );
 }
 
+function NoTickets() {
+  return (
+    <Stack>
+      <EmptyState.Root>
+        <EmptyState.Content>
+          <EmptyState.Indicator>
+            <TbTicket />
+          </EmptyState.Indicator>
+          <VStack textAlign="center">
+            <EmptyState.Title>No tickets found</EmptyState.Title>
+            <EmptyState.Description>
+              Hope your customers are enjoying without any need for support.
+            </EmptyState.Description>
+          </VStack>
+        </EmptyState.Content>
+      </EmptyState.Root>
+    </Stack>
+  );
+}
+
 export default function Tickets({ loaderData }: Route.ComponentProps) {
   function getUrl(next: { status?: string; page?: number }) {
     const status = next.status ?? loaderData.status;
@@ -166,17 +194,21 @@ export default function Tickets({ loaderData }: Route.ComponentProps) {
             />
           </Group>
         </Group>
-        <Stack
-          gap={0}
-          border={"1px solid"}
-          borderColor={"brand.outline"}
-          rounded={"md"}
-          w={"full"}
-        >
-          {loaderData.threads.map((thread) => (
-            <Ticket key={thread.id} thread={thread} />
-          ))}
-        </Stack>
+        {loaderData.threads.length === 0 ? (
+          <NoTickets />
+        ) : (
+          <Stack
+            gap={0}
+            border={"1px solid"}
+            borderColor={"brand.outline"}
+            rounded={"md"}
+            w={"full"}
+          >
+            {loaderData.threads.map((thread) => (
+              <Ticket key={thread.id} thread={thread} />
+            ))}
+          </Stack>
+        )}
 
         <Group justifyContent={"space-between"}>
           <Group />
