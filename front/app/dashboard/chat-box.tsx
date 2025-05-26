@@ -222,7 +222,15 @@ export function SourceLink({
   );
 }
 
-export function Resolved({ onNo }: { onNo: () => void }) {
+export function Resolved({
+  onNo,
+  onYes,
+  onCancel,
+}: {
+  onNo: () => void;
+  onYes: () => void;
+  onCancel: () => void;
+}) {
   return (
     <Stack borderBottom={"1px solid"} borderColor={"brand.outline"}>
       <Stack px={4} py={3} w="full">
@@ -236,13 +244,13 @@ export function Resolved({ onNo }: { onNo: () => void }) {
             </Text>
           </Stack>
           <Group>
-            <Button size={"xs"} variant={"solid"}>
+            <Button size={"xs"} variant={"solid"} onClick={onYes}>
               <TbThumbUp /> Yes
             </Button>
             <Button size={"xs"} variant={"outline"} onClick={onNo}>
               <TbThumbDown /> No
             </Button>
-            <IconButton size={"xs"} variant={"subtle"}>
+            <IconButton size={"xs"} variant={"subtle"} onClick={onCancel}>
               <TbX />
             </IconButton>
           </Group>
@@ -410,8 +418,12 @@ function AssistantMessage({
       {Object.keys(cleanedLinks).length > 0 && (
         <Stack gap={0}>
           <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
-            {last && !disabled && ticketingEnabled && (
-              <Resolved onNo={() => onResolved(false)} />
+            {last && !disabled && ticketingEnabled && !currentRating && (
+              <Resolved
+                onNo={() => onResolved(false)}
+                onYes={() => handleRate("up")}
+                onCancel={() => handleRate("none")}
+              />
             )}
             {Object.entries(cleanedLinks)
               .filter(([_, link]) => link)

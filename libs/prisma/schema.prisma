@@ -133,6 +133,7 @@ enum MessageChannel {
 enum MessageRating {
   up
   down
+  none
 }
 
 enum TicketAuthorRole {
