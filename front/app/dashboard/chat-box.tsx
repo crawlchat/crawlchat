@@ -288,6 +288,7 @@ function AssistantMessage({
   disabled,
   showScore,
   onResolved,
+  last,
 }: {
   id: string;
   content: string;
@@ -303,6 +304,7 @@ function AssistantMessage({
   disabled?: boolean;
   showScore?: boolean;
   onResolved: (resolved: boolean) => void;
+  last: boolean;
 }) {
   const [cleanedLinks, cleanedContent, score] = useMemo(() => {
     const citation = extractCitations(content, links);
@@ -406,7 +408,7 @@ function AssistantMessage({
       {Object.keys(cleanedLinks).length > 0 && (
         <Stack gap={0}>
           <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
-            <Resolved onNo={() => onResolved(false)} />
+            {last && !disabled && <Resolved onNo={() => onResolved(false)} />}
             {Object.entries(cleanedLinks)
               .filter(([_, link]) => link)
               .map(([index, link]) => (
@@ -1164,6 +1166,7 @@ export default function ScrapeWidget({
                       }
                       onRate={(rating) => onRate(message.id, rating)}
                       onResolved={handleResolved}
+                      last={index === chat.allMessages.length - 1}
                     />
                   )}
                   {(chat.askStage === "asked" ||

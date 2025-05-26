@@ -1,5 +1,5 @@
 import { prisma } from "libs/prisma";
-import type { Scrape, TicketAuthorRole } from "libs/prisma";
+import type { Prisma, Scrape, TicketAuthorRole } from "libs/prisma";
 import type { Route } from "./+types/ticket";
 import {
   Badge,
@@ -22,19 +22,27 @@ import { MarkdownProse } from "./markdown-prose";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const key = url.searchParams.get("key");
-  const ticketNumber = parseInt(params.number);
+  let key = url.searchParams.get("key");
+  let ticketNumber = parseInt(params.number);
 
-  const thread = await prisma.thread.findFirst({
+  let thread = await prisma.thread.findFirst({
     where: {
       ticketNumber,
-      ticketKey: key,
     },
     include: {
       messages: true,
       scrape: true,
     },
   });
+
+  const loggedInUser = await getAuthUser(request, { dontRedirect: true });
+  if (loggedInUser && loggedInUser.id === thread?.scrape.userId) {
+    key = thread.ticketKey;
+  }
+  if (key !== thread?.ticketKey) {
+    thread = null;
+  }
+
   return { thread, passedKey: key, ticketNumber };
 }
 
@@ -88,12 +96,19 @@ export async function action({ params, request }: Route.ActionArgs) {
       },
     });
 
+    const threadUpdate: Prisma.ThreadUpdateInput = {
+      lastMessageAt: new Date(),
+    };
+
     if (resolve) {
-      await prisma.thread.update({
-        where: { id: thread.id },
-        data: { ticketStatus: "closed", ticketClosedAt: new Date() },
-      });
+      threadUpdate.ticketStatus = "closed";
+      threadUpdate.ticketClosedAt = new Date();
     }
+
+    await prisma.thread.update({
+      where: { id: thread.id },
+      data: threadUpdate,
+    });
 
     return { message };
   }
@@ -188,7 +203,8 @@ function Message({
 export default function Ticket({ loaderData }: Route.ComponentProps) {
   const commentFetcher = useFetcher();
   const [resolve, setResolve] = useState(false);
-  const commentFormRef = useRef<HTMLFormElement>(null);
+  const commentSubmitRef = useRef<HTMLButtonElement>(null);
+  const commentRef = useRef<HTMLTextAreaElement>(null);
 
   const ticketMessages = useMemo<TicketMessage[]>(() => {
     if (!loaderData.thread) return [];
@@ -208,10 +224,17 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
   }, [ticketMessages]);
 
   useEffect(() => {
-    if (resolve && commentFormRef.current) {
-      commentFormRef.current.submit();
+    if (resolve && commentSubmitRef.current) {
+      commentSubmitRef.current.click();
     }
   }, [resolve]);
+
+  useEffect(() => {
+    if (commentRef.current) {
+      commentRef.current.value = "";
+      setResolve(false);
+    }
+  }, [commentFetcher.data]);
 
   function handleResolve() {
     setResolve(true);
@@ -274,7 +297,7 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
         </Stack>
 
         {loaderData.thread.ticketStatus !== "closed" && (
-          <commentFetcher.Form method="post" ref={commentFormRef}>
+          <commentFetcher.Form method="post">
             <Stack>
               <input type="hidden" name="intent" value={"comment"} />
               <input type="hidden" name="resolve" value={resolve.toString()} />
@@ -285,6 +308,7 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
               />
               <Text fontWeight={"medium"}>Add a message</Text>
               <Textarea
+                ref={commentRef}
                 name="content"
                 placeholder="Type your message here..."
                 rows={3}
@@ -292,14 +316,20 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
               />
               <Group justifyContent={"flex-end"}>
                 <Button
-                  loading={commentFetcher.state !== "idle"}
+                  loading={commentFetcher.state !== "idle" && resolve}
                   variant={"subtle"}
                   onClick={handleResolve}
+                  disabled={commentFetcher.state !== "idle"}
                 >
                   Resolve & Close
                   <TbCheck />
                 </Button>
-                <Button type="submit" loading={commentFetcher.state !== "idle"}>
+                <Button
+                  ref={commentSubmitRef}
+                  type="submit"
+                  loading={commentFetcher.state !== "idle" && !resolve}
+                  disabled={commentFetcher.state !== "idle"}
+                >
                   Comment
                   <TbMessage />
                 </Button>
