@@ -51,7 +51,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 export function meta({ data }: Route.MetaArgs) {
   return [
     {
-      title: "CrawlChat",
+      title: data.thread?.title ?? "CrawlChat",
     },
   ];
 }
