@@ -186,14 +186,6 @@ enum TicketStatus {
   closed
 }
 
-type TicketThread {
-  number          Int
-  key             String
-  title           String
-  status          TicketStatus
-  closedAt        DateTime?
-}
-
 model Thread {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId        String   @db.ObjectId
@@ -205,8 +197,12 @@ model Thread {
   openedAt        DateTime?
   isDefault       Boolean?
   lastMessageAt   DateTime?
+  title           String?
 
-  ticketThread    TicketThread?
+  ticketNumber    Int?
+  ticketKey       String?
+  ticketStatus    TicketStatus?
+  ticketClosedAt  DateTime?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   

@@ -8,6 +8,8 @@ import { commitSession, getSession } from "~/session";
 import { data, redirect, useFetcher } from "react-router";
 import { useEffect } from "react";
 import type { MessageRating } from "libs/prisma";
+import { randomUUID } from "crypto";
+import { getNextNumber } from "libs/mongo-counter";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findUnique({
@@ -152,6 +154,62 @@ export async function action({ request, params }: Route.ActionArgs) {
       },
     });
   }
+
+  if (intent === "ticket-create") {
+    const email = formData.get("email") as string;
+    const title = formData.get("title") as string;
+    const message = formData.get("message") as string;
+
+    const scrape = await prisma.scrape.findFirstOrThrow({
+      where: { id: scrapeId },
+    });
+
+    await prisma.message.create({
+      data: {
+        threadId,
+        scrapeId,
+        ownerUserId: scrape.userId,
+        llmMessage: {
+          role: "user",
+          content: message,
+        },
+        channel: "ticket",
+        ticketMessage: {
+          role: "user",
+          event: "message",
+        },
+      },
+    });
+
+    await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        title,
+        ticketKey: randomUUID().slice(0, 8),
+        ticketNumber: await getNextNumber("ticket-number"),
+        ticketStatus: "open",
+      },
+    });
+
+    const thread = await prisma.thread.create({
+      data: {
+        scrapeId: scrapeId,
+      },
+    });
+    chatSessionKeys[scrapeId] = thread.id;
+    session.set("chatSessionKeys", chatSessionKeys);
+    const userToken = createToken(chatSessionKeys[scrapeId], {
+      expiresInSeconds: 60 * 60,
+    });
+    return data(
+      { userToken, thread },
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+      }
+    );
+  }
 }
 
 export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
@@ -160,6 +218,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
   const eraseFetcher = useFetcher();
   const deleteFetcher = useFetcher();
   const rateFetcher = useFetcher();
+  const ticketCreateFetcher = useFetcher();
 
   useEffect(() => {
     if (loaderData.embed) {
@@ -214,6 +273,13 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
     rateFetcher.submit({ intent: "rate", id, rating }, { method: "post" });
   }
 
+  function handleTicketCreate(email: string, title: string, message: string) {
+    ticketCreateFetcher.submit(
+      { intent: "ticket-create", email, title, message },
+      { method: "post" }
+    );
+  }
+
   return (
     <Stack
       h="100dvh"
@@ -232,6 +298,8 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         messages={loaderData.messages}
         embed={loaderData.embed}
         onRate={handleRate}
+        onTicketCreate={handleTicketCreate}
+        ticketCreationLoading={ticketCreateFetcher.state !== "idle"}
       />
     </Stack>
   );
