@@ -127,11 +127,26 @@ type MessageSourceLink {
 enum MessageChannel {
   mcp
   discord
+  ticket
 }
 
 enum MessageRating {
   up
   down
+}
+
+enum TicketAuthorRole {
+  user
+  agent
+}
+
+enum TicketEvent {
+  message
+}
+
+type TicketMessage {
+  role                      TicketAuthorRole
+  event                     TicketEvent
 }
 
 model Message {
@@ -146,6 +161,7 @@ model Message {
   channel                   MessageChannel?
   rating                    MessageRating?
   correctionItemId          String?  @db.ObjectId
+  ticketMessage             TicketMessage?
 
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
@@ -165,6 +181,19 @@ enum ResponseType {
   points
 }
 
+enum TicketStatus {
+  open
+  closed
+}
+
+type TicketThread {
+  number          Int
+  key             String
+  title           String
+  status          TicketStatus
+  closedAt        DateTime?
+}
+
 model Thread {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId        String   @db.ObjectId
@@ -176,6 +205,8 @@ model Thread {
   openedAt        DateTime?
   isDefault       Boolean?
   lastMessageAt   DateTime?
+
+  ticketThread    TicketThread?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   
@@ -318,4 +349,9 @@ model KnowledgeGroup {
   user                                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   scrapeItems                               ScrapeItem[]
+}
+
+model Counter {
+  id                                        String @id @map("_id")
+  count                                     Int
 }

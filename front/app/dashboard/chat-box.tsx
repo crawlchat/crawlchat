@@ -38,6 +38,7 @@ import {
   TbThumbDown,
   TbShare2,
   TbCheck,
+  TbX,
 } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
@@ -218,6 +219,36 @@ export function SourceLink({
   );
 }
 
+export function Resolved() {
+  return (
+    <Stack borderBottom={"1px solid"} borderColor={"brand.outline"}>
+      <Stack px={4} py={3} w="full">
+        <Group justify={"space-between"} w="full">
+          <Stack gap={0}>
+            <Text fontSize={"xs"} lineClamp={1}>
+              Issue solved?
+            </Text>
+            <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
+              Confirm if your issue is solved.
+            </Text>
+          </Stack>
+          <Group>
+            <Button size={"xs"} variant={"solid"}>
+              <TbThumbUp /> Yes
+            </Button>
+            <Button size={"xs"} variant={"outline"}>
+              <TbThumbDown /> No
+            </Button>
+            <IconButton size={"xs"} variant={"subtle"}>
+              <TbX />
+            </IconButton>
+          </Group>
+        </Group>
+      </Stack>
+    </Stack>
+  );
+}
+
 function UserMessage({ content }: { content: string }) {
   return (
     <Stack
@@ -370,6 +401,7 @@ function AssistantMessage({
       {Object.keys(cleanedLinks).length > 0 && (
         <Stack gap={0}>
           <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
+            <Resolved />
             {Object.entries(cleanedLinks)
               .filter(([_, link]) => link)
               .map(([index, link]) => (
