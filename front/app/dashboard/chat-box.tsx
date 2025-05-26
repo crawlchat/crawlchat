@@ -289,6 +289,7 @@ function AssistantMessage({
   showScore,
   onResolved,
   last,
+  ticketingEnabled,
 }: {
   id: string;
   content: string;
@@ -305,6 +306,7 @@ function AssistantMessage({
   showScore?: boolean;
   onResolved: (resolved: boolean) => void;
   last: boolean;
+  ticketingEnabled?: boolean;
 }) {
   const [cleanedLinks, cleanedContent, score] = useMemo(() => {
     const citation = extractCitations(content, links);
@@ -408,7 +410,9 @@ function AssistantMessage({
       {Object.keys(cleanedLinks).length > 0 && (
         <Stack gap={0}>
           <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
-            {last && !disabled && <Resolved onNo={() => onResolved(false)} />}
+            {last && !disabled && ticketingEnabled && (
+              <Resolved onNo={() => onResolved(false)} />
+            )}
             {Object.entries(cleanedLinks)
               .filter(([_, link]) => link)
               .map(([index, link]) => (
@@ -948,6 +952,7 @@ export default function ScrapeWidget({
   embed,
   onTicketCreate,
   ticketCreationLoading,
+  ticketingEnabled,
 }: {
   thread: Thread;
   messages: Message[];
@@ -963,6 +968,7 @@ export default function ScrapeWidget({
   embed?: boolean;
   onTicketCreate?: (email: string, title: string, message: string) => void;
   ticketCreationLoading?: boolean;
+  ticketingEnabled?: boolean;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -1167,6 +1173,7 @@ export default function ScrapeWidget({
                       onRate={(rating) => onRate(message.id, rating)}
                       onResolved={handleResolved}
                       last={index === chat.allMessages.length - 1}
+                      ticketingEnabled={ticketingEnabled}
                     />
                   )}
                   {(chat.askStage === "asked" ||

@@ -27,6 +27,7 @@ import { Button } from "~/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
 import { getSessionScrapeId } from "./util";
 import { createToken } from "~/jwt";
+import { Switch } from "~/components/ui/switch";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -86,6 +87,9 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("logoUrl")) {
     update.logoUrl = formData.get("logoUrl") as string;
   }
+  if (formData.has("from-ticketing-enabled")) {
+    update.ticketingEnabled = formData.get("ticketing") === "on";
+  }
 
   const scrape = await prisma.scrape.update({
     where: { id: scrapeId, userId: user!.id },
@@ -101,6 +105,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const deleteFetcher = useFetcher();
   const modelFetcher = useFetcher();
   const logoFetcher = useFetcher();
+  const ticketingFetcher = useFetcher();
 
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [selectedModel, setSelectedModel] = useState<LlmModel>(
@@ -180,7 +185,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
                 <Image src={loaderData.scrape.logoUrl} alt="Logo" />
               ) : (
                 <Text fontSize={"3xl"} opacity={0.4}>
-                  <TbPhoto/>
+                  <TbPhoto />
                 </Text>
               )}
             </Center>
@@ -206,6 +211,20 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
 
         <SettingsSection
+          title="Ticketing support"
+          description="Enable ticketing support for this collection. If enabled, users will be able to create support tickets and you can resolve them from Tickets section."
+          fetcher={ticketingFetcher}
+        >
+          <input type="hidden" name="from-ticketing-enabled" value={"true"} />
+          <Switch
+            name="ticketing"
+            defaultChecked={loaderData.scrape.ticketingEnabled ?? false}
+          >
+            Active
+          </Switch>
+        </SettingsSection>
+
+        <SettingsSection
           title="AI Model"
           description="Select the AI model to use for the messages across channels."
           fetcher={modelFetcher}
@@ -222,7 +241,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
               <Select.HiddenSelect />
               <Select.Control>
                 <Select.Trigger>
-                  <Select.ValueText placeholder="Select framework" />
+                  <Select.ValueText placeholder="Select model" />
                 </Select.Trigger>
                 <Select.IndicatorGroup>
                   <Select.Indicator />
