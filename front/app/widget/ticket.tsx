@@ -13,11 +13,12 @@ import {
 } from "@chakra-ui/react";
 import { TbAlertCircle, TbCheck, TbMessage, TbUser } from "react-icons/tb";
 import { RiChatVoiceAiFill } from "react-icons/ri";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import moment from "moment";
 import { getAuthUser } from "~/auth/middleware";
+import { MarkdownProse } from "./markdown-prose";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -69,6 +70,8 @@ export async function action({ params, request }: Route.ActionArgs) {
   if (intent === "comment") {
     const content = formData.get("content") as string;
     const role = loggedInUser?.id === thread.scrape.userId ? "agent" : "user";
+    const resolve = formData.get("resolve") === "true";
+
     const message = await prisma.message.create({
       data: {
         ownerUserId: thread.scrape.userId,
@@ -85,13 +88,20 @@ export async function action({ params, request }: Route.ActionArgs) {
       },
     });
 
+    if (resolve) {
+      await prisma.thread.update({
+        where: { id: thread.id },
+        data: { ticketStatus: "closed", ticketClosedAt: new Date() },
+      });
+    }
+
     return { message };
   }
 }
 
 function Nav({ scrape }: { scrape: Scrape }) {
   return (
-    <Stack as="nav">
+    <Stack as="nav" pt={4}>
       <Group justifyContent={"space-between"}>
         <Group>
           {scrape.logoUrl && (
@@ -139,8 +149,10 @@ function Message({
 }) {
   return (
     <Stack
-      border={"1px solid"}
-      borderColor={"brand.outline"}
+      border={"2px solid"}
+      borderColor={
+        message.role === "user" ? "brand.outline" : "brand.emphasized"
+      }
       rounded={"md"}
       gap={0}
     >
@@ -166,8 +178,8 @@ function Message({
           {moment(message.createdAt).fromNow()}
         </Text>
       </Group>
-      <Stack p={4}>
-        <Text>{message.content}</Text>
+      <Stack px={4}>
+        <MarkdownProse>{message.content}</MarkdownProse>
       </Stack>
     </Stack>
   );
@@ -175,6 +187,8 @@ function Message({
 
 export default function Ticket({ loaderData }: Route.ComponentProps) {
   const commentFetcher = useFetcher();
+  const [resolve, setResolve] = useState(false);
+  const commentFormRef = useRef<HTMLFormElement>(null);
 
   const ticketMessages = useMemo<TicketMessage[]>(() => {
     if (!loaderData.thread) return [];
@@ -192,6 +206,16 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
     if (ticketMessages.length === 0) return null;
     return ticketMessages[0].createdAt;
   }, [ticketMessages]);
+
+  useEffect(() => {
+    if (resolve && commentFormRef.current) {
+      commentFormRef.current.submit();
+    }
+  }, [resolve]);
+
+  function handleResolve() {
+    setResolve(true);
+  }
 
   if (!loaderData.thread) {
     return (
@@ -236,38 +260,53 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
               scrape={loaderData.thread!.scrape}
             />
           ))}
-        </Stack>
-        <commentFetcher.Form method="post">
-          <Stack>
-            <input type="hidden" name="intent" value={"comment"} />
-            <input
-              type="hidden"
-              name="key"
-              value={loaderData.passedKey ?? ""}
-            />
-            <Text fontWeight={"medium"}>Add a message</Text>
-            <Textarea
-              name="content"
-              placeholder="Type your message here..."
-              rows={3}
-              required
-            />
-            <Group justifyContent={"flex-end"}>
-              <Button
-                type="submit"
-                loading={commentFetcher.state !== "idle"}
-                variant={"subtle"}
-              >
-                Resolve & Close
-                <TbCheck />
-              </Button>
-              <Button type="submit" loading={commentFetcher.state !== "idle"}>
-                Comment
-                <TbMessage />
-              </Button>
+          {loaderData.thread.ticketStatus === "closed" && (
+            <Group px={[0, 10]} opacity={0.5}>
+              <TbCheck />
+              <Text fontSize={"sm"}>
+                This ticket has been resolved and closed{" "}
+                <Text as="span" fontWeight={"medium"}>
+                  {moment(loaderData.thread.ticketClosedAt).fromNow()}
+                </Text>
+              </Text>
             </Group>
-          </Stack>
-        </commentFetcher.Form>
+          )}
+        </Stack>
+
+        {loaderData.thread.ticketStatus !== "closed" && (
+          <commentFetcher.Form method="post" ref={commentFormRef}>
+            <Stack>
+              <input type="hidden" name="intent" value={"comment"} />
+              <input type="hidden" name="resolve" value={resolve.toString()} />
+              <input
+                type="hidden"
+                name="key"
+                value={loaderData.passedKey ?? ""}
+              />
+              <Text fontWeight={"medium"}>Add a message</Text>
+              <Textarea
+                name="content"
+                placeholder="Type your message here..."
+                rows={3}
+                required
+              />
+              <Group justifyContent={"flex-end"}>
+                <Button
+                  loading={commentFetcher.state !== "idle"}
+                  variant={"subtle"}
+                  onClick={handleResolve}
+                >
+                  Resolve & Close
+                  <TbCheck />
+                </Button>
+                <Button type="submit" loading={commentFetcher.state !== "idle"}>
+                  Comment
+                  <TbMessage />
+                </Button>
+              </Group>
+            </Stack>
+          </commentFetcher.Form>
+        )}
       </Stack>
     </Stack>
   );

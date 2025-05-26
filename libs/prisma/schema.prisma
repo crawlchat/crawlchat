@@ -127,7 +127,6 @@ type MessageSourceLink {
 enum MessageChannel {
   mcp
   discord
-  ticket
 }
 
 enum MessageRating {
