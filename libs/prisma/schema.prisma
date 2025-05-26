@@ -104,6 +104,9 @@ model Scrape {
   discordDraftConfig    DiscordDraftConfig?
   logoUrl               String?
   ticketingEnabled      Boolean?
+  
+  resolveQuestion       String?
+  resolveDescription    String?
 
   analytics             ScrapeAnalytics?
   llmModel              LlmModel?

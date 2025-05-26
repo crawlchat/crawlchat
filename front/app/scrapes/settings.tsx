@@ -90,6 +90,12 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("from-ticketing-enabled")) {
     update.ticketingEnabled = formData.get("ticketing") === "on";
   }
+  if (formData.has("resolveQuestion")) {
+    update.resolveQuestion = formData.get("resolveQuestion") as string;
+  }
+  if (formData.has("resolveDescription")) {
+    update.resolveDescription = formData.get("resolveDescription") as string;
+  }
 
   const scrape = await prisma.scrape.update({
     where: { id: scrapeId, userId: user!.id },
@@ -110,6 +116,9 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [selectedModel, setSelectedModel] = useState<LlmModel>(
     loaderData.scrape.llmModel ?? "gpt_4o_mini"
+  );
+  const [ticketingEnabled, setTicketingEnabled] = useState(
+    loaderData.scrape.ticketingEnabled ?? false
   );
   const models = useMemo(() => {
     return createListCollection({
@@ -219,9 +228,24 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
           <Switch
             name="ticketing"
             defaultChecked={loaderData.scrape.ticketingEnabled ?? false}
+            onCheckedChange={(e) => setTicketingEnabled(e.checked)}
           >
             Active
           </Switch>
+          {ticketingEnabled && (
+            <Input
+              name="resolveQuestion"
+              defaultValue={loaderData.scrape.resolveQuestion ?? ""}
+              placeholder="Enter the question to ask if issue resolved"
+            />
+          )}
+          {ticketingEnabled && (
+            <Input
+              name="resolveDescription"
+              defaultValue={loaderData.scrape.resolveDescription ?? ""}
+              placeholder="A description"
+            />
+          )}
         </SettingsSection>
 
         <SettingsSection

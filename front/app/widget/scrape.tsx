@@ -317,6 +317,8 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         onTicketCreate={handleTicketCreate}
         ticketCreationLoading={ticketCreateFetcher.state !== "idle"}
         ticketingEnabled={loaderData.scrape.ticketingEnabled ?? false}
+        resolveQuestion={loaderData.scrape.resolveQuestion ?? undefined}
+        resolveDescription={loaderData.scrape.resolveDescription ?? undefined}
       />
     </Stack>
   );

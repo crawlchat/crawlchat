@@ -226,10 +226,14 @@ export function Resolved({
   onNo,
   onYes,
   onCancel,
+  resolveQuestion,
+  resolveDescription,
 }: {
   onNo: () => void;
   onYes: () => void;
   onCancel: () => void;
+  resolveQuestion?: string;
+  resolveDescription?: string;
 }) {
   return (
     <Stack borderBottom={"1px solid"} borderColor={"brand.outline"}>
@@ -237,10 +241,10 @@ export function Resolved({
         <Group justify={"space-between"} w="full">
           <Stack gap={0}>
             <Text fontSize={"xs"} lineClamp={1}>
-              Issue solved?
+              {resolveQuestion ?? "Issue solved?"}
             </Text>
             <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
-              Confirm if your issue is solved.
+              {resolveDescription ?? "Confirm if your issue is solved."}
             </Text>
           </Stack>
           <Group>
@@ -298,6 +302,8 @@ function AssistantMessage({
   onResolved,
   last,
   ticketingEnabled,
+  resolveQuestion,
+  resolveDescription,
 }: {
   id: string;
   content: string;
@@ -315,6 +321,8 @@ function AssistantMessage({
   onResolved: (resolved: boolean) => void;
   last: boolean;
   ticketingEnabled?: boolean;
+  resolveQuestion?: string;
+  resolveDescription?: string;
 }) {
   const [cleanedLinks, cleanedContent, score] = useMemo(() => {
     const citation = extractCitations(content, links);
@@ -423,6 +431,8 @@ function AssistantMessage({
                 onNo={() => onResolved(false)}
                 onYes={() => handleRate("up")}
                 onCancel={() => handleRate("none")}
+                resolveQuestion={resolveQuestion}
+                resolveDescription={resolveDescription}
               />
             )}
             {Object.entries(cleanedLinks)
@@ -965,6 +975,8 @@ export default function ScrapeWidget({
   onTicketCreate,
   ticketCreationLoading,
   ticketingEnabled,
+  resolveQuestion,
+  resolveDescription,
 }: {
   thread: Thread;
   messages: Message[];
@@ -981,6 +993,8 @@ export default function ScrapeWidget({
   onTicketCreate?: (email: string, title: string, message: string) => void;
   ticketCreationLoading?: boolean;
   ticketingEnabled?: boolean;
+  resolveQuestion?: string;
+  resolveDescription?: string;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -1186,6 +1200,8 @@ export default function ScrapeWidget({
                       onResolved={handleResolved}
                       last={index === chat.allMessages.length - 1}
                       ticketingEnabled={ticketingEnabled}
+                      resolveQuestion={resolveQuestion}
+                      resolveDescription={resolveDescription}
                     />
                   )}
                   {(chat.askStage === "asked" ||
