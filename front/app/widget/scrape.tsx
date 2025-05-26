@@ -10,6 +10,8 @@ import { useEffect } from "react";
 import type { MessageRating } from "libs/prisma";
 import { randomUUID } from "crypto";
 import { getNextNumber } from "libs/mongo-counter";
+import { sendReactEmail } from "~/email";
+import TicketUserCreateEmail from "emails/ticket-user-create";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findUnique({
@@ -173,7 +175,6 @@ export async function action({ request, params }: Route.ActionArgs) {
           role: "user",
           content: message,
         },
-        channel: "ticket",
         ticketMessage: {
           role: "user",
           event: "message",
@@ -181,15 +182,30 @@ export async function action({ request, params }: Route.ActionArgs) {
       },
     });
 
+    const ticketKey = randomUUID().slice(0, 8);
+    const ticketNumber = await getNextNumber("ticket-number");
+
     await prisma.thread.update({
       where: { id: threadId },
       data: {
         title,
-        ticketKey: randomUUID().slice(0, 8),
-        ticketNumber: await getNextNumber("ticket-number"),
+        ticketKey,
+        ticketNumber,
         ticketStatus: "open",
+        ticketUserEmail: email,
       },
     });
+
+    await sendReactEmail(
+      email,
+      `Ticket created (#${ticketNumber})`,
+      <TicketUserCreateEmail
+        scrapeTitle={scrape.title ?? "CrawlChat"}
+        ticketNumber={ticketNumber}
+        ticketKey={ticketKey}
+        title={title}
+      />
+    );
 
     const thread = await prisma.thread.create({
       data: {

@@ -19,6 +19,8 @@ import { Button } from "~/components/ui/button";
 import moment from "moment";
 import { getAuthUser } from "~/auth/middleware";
 import { MarkdownProse } from "./markdown-prose";
+import { sendReactEmail } from "~/email";
+import TicketUserMessageEmail from "emails/ticket-user-message";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const url = new URL(request.url);
@@ -109,6 +111,26 @@ export async function action({ params, request }: Route.ActionArgs) {
       where: { id: thread.id },
       data: threadUpdate,
     });
+
+    if (
+      role === "agent" &&
+      thread.ticketUserEmail &&
+      thread.ticketNumber &&
+      thread.ticketKey &&
+      thread.title
+    ) {
+      await sendReactEmail(
+        thread.ticketUserEmail,
+        `New message on ticket #${thread.ticketNumber}`,
+        <TicketUserMessageEmail
+          scrapeTitle={thread.scrape.title ?? "CrawlChat"}
+          ticketNumber={thread.ticketNumber}
+          ticketKey={thread.ticketKey}
+          title={thread.title}
+          message={content}
+        />
+      );
+    }
 
     return { message };
   }

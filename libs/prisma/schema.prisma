@@ -202,6 +202,7 @@ model Thread {
   ticketKey       String?
   ticketStatus    TicketStatus?
   ticketClosedAt  DateTime?
+  ticketUserEmail String?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   
