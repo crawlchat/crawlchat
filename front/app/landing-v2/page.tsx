@@ -377,7 +377,7 @@ function WorksBox({
   return (
     <div className="p-6 rounded-2xl bg-canvas shadow-md flex-1 pb-10">
       <h4 className="text-2xl font-bold mb-2 font-radio-grotesk">{title}</h4>
-      <p className="text opacity-60 mb-8 leading-tight">{description}</p>
+      <p className="opacity-60 mb-8 leading-tight">{description}</p>
 
       {children}
     </div>
@@ -704,7 +704,7 @@ function IntegrationCard({
   return (
     <div
       className={
-        "p-4 shadow-md border border-outline rounded-xl bg-canvas flex flex-col gap-4"
+        "p-6 shadow-md border border-outline rounded-xl bg-canvas flex flex-col gap-6"
       }
       style={{ flex: flex }}
     >
@@ -717,7 +717,7 @@ function IntegrationCard({
       </div>
       <div className="flex flex-col gap-2">
         <h3 className="text-2xl font-bold font-radio-grotesk">{title}</h3>
-        <p className="opacity-50 font-medium leading-tight">{description}</p>
+        <p className="opacity-50 font-medium text-lg">{description}</p>
       </div>
     </div>
   );
@@ -1156,7 +1156,7 @@ function CTA() {
   return (
     <div className="mt-32">
       <div className="w-full bg-gradient-to-b from-canvas to-ash shadow-md rounded-2xl py-20 relative">
-        <div className="absolute top-[10%] md:top-[20%] left-[4%] md:left-[8%] rotate-[-24deg] scale-120 opacity-50">
+        {/* <div className="absolute top-[10%] md:top-[20%] left-[4%] md:left-[8%] rotate-[-24deg] scale-120 opacity-50">
           <IntegrateChip label="Ask AI" icon="/new-landing/ai.png" />
         </div>
 
@@ -1170,24 +1170,16 @@ function CTA() {
 
         <div className="absolute top-[80%] left-[8%] rotate-[-24deg] scale-150 opacity-50">
           <IntegrateChip icon="/new-landing/slack.png" />
-        </div>
+        </div> */}
 
-        <Heading>
-          Ready to make your <HeadingHighlight>docs</HeadingHighlight> LLM
-          ready?
-        </Heading>
+        <h2 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+          Add AI Chatbot to your documents and knowledge now
+        </h2>
 
-        <HeadingDescription>
-          Join users who are already having meaningful conversations with web
-          content using CrawlChat.
-        </HeadingDescription>
-
-        <div className="flex justify-center">
-          <a
-            href="/login"
-            className="px-12 py-4 bg-brand text-canvas font-medium rounded-2xl text-xl"
-          >
+        <div className="flex justify-center mt-8">
+          <a href="/login" className={ctaClassNames(true)}>
             Get started
+            <TbArrowRight />
           </a>
         </div>
       </div>
