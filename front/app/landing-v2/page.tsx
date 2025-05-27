@@ -1334,30 +1334,27 @@ function Nav() {
 function Hero() {
   return (
     <div className="py-8">
-      <h1 className="font-radio-grotesk text-[42px] md:text-[80px] leading-[1.4] md:leading-[1.3] font-bold text-center max-w-[90%] mx-auto">
-        Deliver your{" "}
-        <span className="text-brand bg-brand-subtle px-3 rounded-lg relative inline-block">
-          documentation
-          <img
-            src="/new-landing/docs-h1.png"
-            alt="Docs"
-            className={cn(
-              "absolute left-[-34px] top-[-30px] w-[68px] h-[68px] ",
-              "md:w-[120px] md:h-[120px] md:top-[-50px] md:left-[-80px]"
-            )}
-          />
-        </span>{" "}
-        with{" "}
-        <span className="text-brand bg-brand-subtle px-3 rounded-lg">AI</span>
+      <h1 className="font-radio-grotesk text-[42px] md:text-[56px] leading-[1.4] md:leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+        <span className="text-brand">AI Chatbot</span> for your knowledge base
+        and documentation
       </h1>
 
-      <h2 className="text-center text-xl font-medium max-w-[800px] mx-auto py-8 opacity-60">
-        Add your existing docs as knowledge base and deliver it as Chatbot,
-        Discord bot, or as a MCP server for your community. Get visibility how
-        your community consumes it and make your documentation better!
+      <h2 className="text-center text-xl max-w-[600px] mx-auto py-8">
+        CrawlChat turns your documentation and other knowledge sources into a AI
+        chatbot that you can embed on your{" "}
+        <span className="bg-red-50 text-red-500 border border-red-500 px-4 py-1 inline-block mx-2 rounded-full">
+          Website
+        </span>
+        <span className="hidden">,</span>{" "}
+        <span className="bg-green-50 text-green-500 border border-green-500 px-4 py-1 inline-block mx-2 rounded-full">
+          Discord
+        </span>
+        <span className="hidden">,</span> or{" "}
+        <span className="bg-purple-50 text-purple-500 border border-purple-500 px-4 py-1 inline-block mx-2 rounded-full">
+          Slack
+        </span>
+        <span className="hidden">.</span>
       </h2>
-
-      <Scrape />
 
       <DemoWindow />
     </div>
