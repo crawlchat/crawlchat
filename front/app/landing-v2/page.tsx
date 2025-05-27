@@ -1173,7 +1173,7 @@ function CTA() {
         </div> */}
 
         <h2 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
-          Add AI Chatbot to your documents and knowledge now
+          Make your documents and knowledge base be powered by AI now!
         </h2>
 
         <div className="flex justify-center mt-8">
