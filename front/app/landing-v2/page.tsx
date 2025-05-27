@@ -222,7 +222,7 @@ function Scrape() {
 
 function DemoWindow() {
   return (
-    <div className="max-w-[900px] w-full mx-auto border border-outline shadow-md bg-ash mt-8 px-4 py-3 rounded-2xl">
+    <div className="max-w-[900px] w-full mx-auto border border-outline shadow-md bg-ash mt-16 px-4 py-3 rounded-2xl">
       <div>
         <div className="flex items-center gap-1 mb-3">
           <div className="w-[10px] h-[10px] bg-red-500 rounded-full" />
@@ -1331,32 +1331,55 @@ function Nav() {
   );
 }
 
+function ctaClassNames(primary: boolean) {
+  return cn(
+    "text-2xl border-2 border-brand px-8 py-4 rounded-xl font-medium flex items-center gap-2 transition-all hover:translate-y-[-2px]",
+    !primary && "text-brand hover:bg-brand-subtle",
+    primary && "bg-brand text-canvas"
+  );
+}
+
 function Hero() {
+  function handleAskCrawlChat() {
+    (window as any).crawlchatEmbed.show();
+  }
+
   return (
     <div className="py-8">
-      <h1 className="font-radio-grotesk text-[42px] md:text-[56px] leading-[1.4] md:leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+      <h1 className="font-radio-grotesk text-[42px] md:text-[56px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
         <span className="text-brand">AI Chatbot</span> for your knowledge base
         and documentation
       </h1>
 
-      <h2 className="text-center text-xl max-w-[600px] mx-auto py-8">
+      <h2 className="text-center text-xl max-w-[600px] mx-auto mt-8">
         CrawlChat turns your documentation and other knowledge sources into a AI
         chatbot that you can embed on your{" "}
-        <span className="bg-red-50 text-red-500 border border-red-500 px-4 py-1 inline-block mx-2 rounded-full">
+        <span className="bg-red-50 text-red-500 border border-red-500 px-4 py-1 inline-block m-1 rounded-full">
           Website
         </span>
         <span className="hidden">,</span>{" "}
-        <span className="bg-green-50 text-green-500 border border-green-500 px-4 py-1 inline-block mx-2 rounded-full">
+        <span className="bg-green-50 text-green-500 border border-green-500 px-4 py-1 inline-block m-1 rounded-full">
           Discord
         </span>
         <span className="hidden">,</span> or{" "}
-        <span className="bg-purple-50 text-purple-500 border border-purple-500 px-4 py-1 inline-block mx-2 rounded-full">
+        <span className="bg-purple-50 text-purple-500 border border-purple-500 px-4 py-1 inline-block m-1 rounded-full">
           Slack
         </span>
         <span className="hidden">.</span>
       </h2>
 
-      <DemoWindow />
+      <div className="flex justify-center gap-4 my-8 flex-wrap">
+        <button className={ctaClassNames(false)} onClick={handleAskCrawlChat}>
+          <TbMessage />
+          Ask CrawlChat
+        </button>
+        <a className={ctaClassNames(true)} href="/login">
+          Make your own
+          <TbArrowRight />
+        </a>
+      </div>
+
+      {/* <DemoWindow /> */}
     </div>
   );
 }
