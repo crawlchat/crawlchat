@@ -23,6 +23,8 @@ export default [
   route("use-case/mcp", "landing/use-case/mcp.tsx"),
   route("use-case/discord-bot", "landing/use-case/discord-bot.tsx"),
 
+  route("discord-bot", "landing/discord-bot.tsx"),
+
   route("test", "landing/test.tsx"),
 
   route("payment/lemonsqueezy-webhook", "payment/lemonsqueezy-webhook.ts"),

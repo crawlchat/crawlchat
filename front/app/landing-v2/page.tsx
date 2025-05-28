@@ -1445,10 +1445,13 @@ function Hero() {
           Website
         </span>
         <span className="hidden">,</span>{" "}
-        <span className="bg-green-50 text-green-500 border border-green-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
+        <a
+          className="bg-green-50 text-green-500 border border-green-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1"
+          href="/discord-bot"
+        >
           <TbBrandDiscord />
           Discord
-        </span>
+        </a>
         <span className="hidden">,</span> or{" "}
         <span className="bg-purple-50 text-purple-500 border border-purple-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
           <TbBrandSlack />
