@@ -37,7 +37,11 @@ export default function DiscordBotPage() {
       "Tag and make it learn",
       "Available 24x7",
       "Works in most of the languages",
+      "Support tickets",
     ];
+  }, []);
+  const tags = useMemo(() => {
+    return ["RAG", "AI", "Knowledge base", "Support"];
   }, []);
 
   return (
@@ -96,6 +100,13 @@ export default function DiscordBotPage() {
                 </List.Item>
               ))}
             </List.Root>
+            <Flex gap={2}>
+              {tags.map((tag) => (
+                <Badge key={tag} variant={"surface"}>
+                  {tag}
+                </Badge>
+              ))}
+            </Flex>
           </Stack>
           <Stack>
             <Heading size={"md"} opacity={0.5}>

@@ -1359,6 +1359,9 @@ function Footer() {
               <li>
                 <FooterLink href="/blog">Blog</FooterLink>
               </li>
+              <li>
+                <FooterLink href="/discord-bot">Discord bot</FooterLink>
+              </li>
             </ul>
           </div>
           <div className="flex-[1]">
