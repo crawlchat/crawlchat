@@ -5,8 +5,15 @@ import "../fonts.css";
 import {
   TbArrowRight,
   TbBrandDiscord,
+  TbBrandSlack,
+  TbDatabase,
+  TbFile,
   TbLoader2,
   TbMessage,
+  TbRobotFace,
+  TbScoreboard,
+  TbSpider,
+  TbWorld,
 } from "react-icons/tb";
 import { useOpenScrape } from "~/landing/use-open-scrape";
 import { prisma } from "libs/prisma";
@@ -263,7 +270,7 @@ function Stats({
   messagesMonth: number;
 }) {
   return (
-    <div className="flex flex-col md:flex-row gap-8 w-full mt-8 md:items-center">
+    <div className="flex flex-col md:flex-row gap-8 w-full mt-16 md:items-center">
       <div className="flex-1 flex flex-col gap-10">
         <div className="text-md md:text-xl font-medium px-6 py-3 shadow-md rounded-2xl bg-canvas w-fit flex items-center gap-4 -rotate-[4deg]">
           <div className="w-3 h-3 bg-green-500 rounded-full outline-2 outline-green-300 outline" />
@@ -347,7 +354,7 @@ function UsedBy() {
 
 function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className="text-center text-4xl md:text-6xl font-bold max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
+    <h3 className="text-center text-4xl md:text-5xl font-bold max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
       {children}
     </h3>
   );
@@ -419,6 +426,30 @@ function CustomiseIcon({ src, rotate }: { src: string; rotate: number }) {
   );
 }
 
+function WorksStep({
+  img,
+  title,
+  children,
+}: PropsWithChildren<{
+  img: string;
+  title: string;
+}>) {
+  return (
+    <div className="flex flex-col gap-4 flex-1 items-center max-w-[400px]">
+      <img src={img} alt="Works step 1" />
+
+      <h4 className="text-2xl font-bold">{title}</h4>
+      <p className="text-center text-lg">{children}</p>
+    </div>
+  );
+}
+
+function stepHighlightClassNames() {
+  return cn(
+    "border px-2 py-0.5 inline-flex items-center gap-1 rounded-full leading-none mx-1"
+  );
+}
+
 function Works() {
   return (
     <div className="mt-32" id="how-it-works">
@@ -431,8 +462,8 @@ function Works() {
         into LLM ready for your community in three simple steps.
       </HeadingDescription>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        <WorksBox
+      <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+        {/* <WorksBox
           title="Add knowledge"
           description="Bring your docs to CrawlChat as a knowledge base. The LLMs will answer your community questions with the provided knowledge without any hallucination."
         >
@@ -524,7 +555,68 @@ function Works() {
               </div>
             </div>
           </div>
-        </WorksBox>
+        </WorksBox> */}
+        <WorksStep img="/new-landing/knowledge.png" title="Make knowledge base">
+          Add your existing documents or web pages as knowledge base. You can{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-purple-500 border-purple-500"
+            )}
+          >
+            <TbSpider />
+            scrape
+          </span>{" "}
+          your online documentation or{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-green-500 border-green-500"
+            )}
+          >
+            <TbFile />
+            upload files
+          </span>{" "}
+          directly.
+        </WorksStep>
+        <WorksStep img="/new-landing/integrate.png" title="Integrate chatbot">
+          You can connect the AI chatbot to your website, Discord, Slack. You
+          can customise the bot UI and{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-purple-500 border-purple-500"
+            )}
+          >
+            <TbRobotFace />
+            behaviour
+          </span>{" "}
+          of the bot
+        </WorksStep>
+        <WorksStep img="/new-landing/analyse.png" title="Analyse performance">
+          View all the messages and conversations that the bot has had. You get
+          to see the performance,{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-green-500 border-green-500"
+            )}
+          >
+            <TbScoreboard />
+            scores
+          </span>
+          , and{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-blue-500 border-blue-500"
+            )}
+          >
+            <TbDatabase />
+            data gaps
+          </span>{" "}
+          as well.
+        </WorksStep>
       </div>
     </div>
   );
@@ -1347,16 +1439,19 @@ function Hero() {
 
       <h2 className="text-center text-xl max-w-[600px] mx-auto mt-8">
         CrawlChat turns your documentation and other knowledge sources into a AI
-        chatbot that you can embed on your{" "}
-        <span className="bg-red-50 text-red-500 border border-red-500 px-4 py-1 inline-block m-1 rounded-full">
+        chatbot that you can connect on your{" "}
+        <span className="bg-red-50 text-red-500 border border-red-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
+          <TbWorld />
           Website
         </span>
         <span className="hidden">,</span>{" "}
-        <span className="bg-green-50 text-green-500 border border-green-500 px-4 py-1 inline-block m-1 rounded-full">
+        <span className="bg-green-50 text-green-500 border border-green-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
+          <TbBrandDiscord />
           Discord
         </span>
         <span className="hidden">,</span> or{" "}
-        <span className="bg-purple-50 text-purple-500 border border-purple-500 px-4 py-1 inline-block m-1 rounded-full">
+        <span className="bg-purple-50 text-purple-500 border border-purple-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
+          <TbBrandSlack />
           Slack
         </span>
         <span className="hidden">.</span>
@@ -1368,7 +1463,7 @@ function Hero() {
           Ask CrawlChat
         </button>
         <a className={ctaClassNames(true)} href="/login">
-          Make your own
+          Create your chatbot
           <TbArrowRight />
         </a>
       </div>
