@@ -53,7 +53,19 @@ function plainChunk(line: string, chunkSize: number): string[] {
   return chunks;
 }
 
-export async function splitMarkdown(markdown: string) {
+export async function splitMarkdown(
+  markdown: string,
+  options?: {
+    context?: string;
+  }
+) {
+  function addContext(lines: string[]) {
+    if (options?.context) {
+      return [`Context: ${options.context}\n---\n\n`, ...lines];
+    }
+    return lines;
+  }
+
   const originalLines: string[] = markdown.split("\n");
   const chunks: string[] = [];
   let currentChunk: string[] = [];
@@ -82,7 +94,7 @@ export async function splitMarkdown(markdown: string) {
       ];
     }
 
-    return chunksToPush;
+    return addContext(chunksToPush);
   }
 
   function addChunk(size: number) {
@@ -124,11 +136,6 @@ export async function splitMarkdown(markdown: string) {
       tableLines.separator = "";
     }
 
-    // console.log(
-    //   getChunkSize(getFutureChunk()),
-    //   getChunkSize(getFutureChunk([line])),
-    //   line
-    // );
     if (getChunkSize(getFutureChunk([line])) > size) {
       addChunk(size);
       headingsAtSplit = [...headings];
