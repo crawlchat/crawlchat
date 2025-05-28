@@ -102,6 +102,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     ) as KnowledgeGroupUpdateFrequency;
     update.nextUpdateAt = getNextUpdateTime(update.updateFrequency, new Date());
   }
+  if (formData.has("itemContext")) {
+    update.itemContext = formData.get("itemContext") as string;
+  }
 
   const group = await prisma.knowledgeGroup.update({
     where: { id: groupId, userId: user!.id, scrapeId },
@@ -339,6 +342,7 @@ export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
   const deleteFetcher = useFetcher();
+  const itemContextFetcher = useFetcher();
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   useEffect(() => {
@@ -371,6 +375,22 @@ export default function KnowledgeGroupSettings({
       {loaderData.knowledgeGroup.type === "github_issues" && (
         <GithubIssuesSettings group={loaderData.knowledgeGroup} />
       )}
+
+      <SettingsSection
+        fetcher={itemContextFetcher}
+        title="Item context"
+        description="Pass context for the group knowledge. Usefule to segregate the data between types. Example: v1, v2, node, bun, etc."
+      >
+        <Input
+          name="itemContext"
+          defaultValue={loaderData.knowledgeGroup.itemContext ?? ""}
+          placeholder="Ex: v1, v2, node, bun, etc."
+          maxW="400px"
+        />
+        <Text fontSize={"sm"} opacity={0.5}>
+          This requires re-fetching the knowledge group.
+        </Text>
+      </SettingsSection>
 
       <Stack
         border={"1px solid"}

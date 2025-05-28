@@ -85,7 +85,9 @@ export class BaseKbProcesserListener implements KbProcesserListener {
     }
 
     const indexer = makeIndexer({ key: this.scrape.indexer });
-    const chunks = await splitMarkdown(content.text);
+    const chunks = await splitMarkdown(content.text, {
+      context: this.knowledgeGroup.itemContext ?? undefined,
+    });
     const documents = chunks.map((chunk) => ({
       id: makeRecordId(this.scrape.id, uuidv4()),
       text: chunk,

@@ -25,6 +25,7 @@ export interface Indexer {
       score: number;
       fetchUniqueId: string;
       id: string;
+      scrapeItemId?: string;
     }[]
   >;
 }
