@@ -107,6 +107,8 @@ model Scrape {
   
   resolveQuestion       String?
   resolveDescription    String?
+  resolveYesLink        String?
+  resolveNoLink         String?
 
   analytics             ScrapeAnalytics?
   llmModel              LlmModel?

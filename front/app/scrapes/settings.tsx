@@ -28,6 +28,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getSessionScrapeId } from "./util";
 import { createToken } from "~/jwt";
 import { Switch } from "~/components/ui/switch";
+import { Field } from "~/components/ui/field";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -95,6 +96,12 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("resolveDescription")) {
     update.resolveDescription = formData.get("resolveDescription") as string;
+  }
+  if (formData.has("resolveYesLink")) {
+    update.resolveYesLink = formData.get("resolveYesLink") as string;
+  }
+  if (formData.has("resolveNoLink")) {
+    update.resolveNoLink = formData.get("resolveNoLink") as string;
   }
 
   const scrape = await prisma.scrape.update({
@@ -245,6 +252,36 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
               defaultValue={loaderData.scrape.resolveDescription ?? ""}
               placeholder="A description"
             />
+          )}
+          {ticketingEnabled && (
+            <Stack mt={2} gap={1}>
+              <Field label="Yes link">
+                <Input
+                  name="resolveYesLink"
+                  defaultValue={loaderData.scrape.resolveYesLink ?? ""}
+                  placeholder="Example: https://example.com/rate"
+                />
+              </Field>
+              <Text fontSize={"sm"} opacity={0.5}>
+                If passed following link, it will redirect to it when user says
+                the issue is resolved
+              </Text>
+            </Stack>
+          )}
+          {ticketingEnabled && (
+            <Stack gap={1}>
+              <Field label="No link">
+                <Input
+                  name="resolveNoLink"
+                  defaultValue={loaderData.scrape.resolveNoLink ?? ""}
+                  placeholder="Example: https://example.com/support"
+                />
+              </Field>
+              <Text fontSize={"sm"} opacity={0.5}>
+                If passed following link, it will redirect to it when user says
+                the issue is not resolved
+              </Text>
+            </Stack>
           )}
         </SettingsSection>
 

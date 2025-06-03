@@ -323,7 +323,7 @@ function AssistantMessage({
   size?: WidgetSize;
   disabled?: boolean;
   showScore?: boolean;
-  onResolved: (resolved: boolean) => void;
+  onResolved: (messageId: string, resolved: boolean | null) => void;
   last: boolean;
   ticketingEnabled?: boolean;
   resolveQuestion?: string;
@@ -344,6 +344,19 @@ function AssistantMessage({
       track("chat_rate", { rating, messageId: id });
       onRate(rating);
     }
+  }
+
+  function handleResolved(resolved: boolean | null) {
+    if (resolved === true) {
+      handleRate("up");
+    }
+    if (resolved === false) {
+      handleRate("down");
+    }
+    if (resolved === null) {
+      handleRate("none");
+    }
+    onResolved(id, resolved);
   }
 
   return (
@@ -433,9 +446,9 @@ function AssistantMessage({
           <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
             {last && !disabled && ticketingEnabled && !currentRating && (
               <Resolved
-                onNo={() => onResolved(false)}
-                onYes={() => handleRate("up")}
-                onCancel={() => handleRate("none")}
+                onNo={() => handleResolved(false)}
+                onYes={() => handleResolved(true)}
+                onCancel={() => handleResolved(null)}
                 resolveQuestion={resolveQuestion}
                 resolveDescription={resolveDescription}
               />
@@ -983,6 +996,8 @@ export default function ScrapeWidget({
   ticketingEnabled,
   resolveQuestion,
   resolveDescription,
+  resolveYesLink,
+  resolveNoLink,
 }: {
   thread: Thread;
   messages: Message[];
@@ -1001,6 +1016,8 @@ export default function ScrapeWidget({
   ticketingEnabled?: boolean;
   resolveQuestion?: string;
   resolveDescription?: string;
+  resolveYesLink?: string;
+  resolveNoLink?: string;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -1126,10 +1143,18 @@ export default function ScrapeWidget({
     await scroll();
   }
 
-  function handleResolved(resolved: boolean) {
-    if (!resolved) {
-      setScreen("ticket-create");
-      return;
+  function handleResolved(messageId: string, resolved: boolean | null) {
+    if (resolved === false) {
+      if (resolveNoLink) {
+        window.open(resolveNoLink, "_blank");
+      } else {
+        setScreen("ticket-create");
+      }
+    }
+    if (resolved === true) {
+      if (resolveYesLink) {
+        window.open(resolveYesLink, "_blank");
+      }
     }
   }
 
