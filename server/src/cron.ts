@@ -48,6 +48,7 @@ async function updateKnowledgeBase() {
     where: {
       nextUpdateAt: {
         lte: new Date(),
+        not: null,
       },
     },
   });

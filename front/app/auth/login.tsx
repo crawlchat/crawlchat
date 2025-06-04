@@ -176,40 +176,42 @@ export default function LoginPage() {
                 <Text>CrawlChat</Text>
               </Stack>
 
-              <Text textAlign={"center"} opacity={"0.5"} fontSize={"sm"}>
-                Enter your email to get the login link
-              </Text>
-              <Stack w="full">
-                <Input
-                  ref={emailRef}
-                  type="email"
-                  w="full"
-                  placeholder="myemail@example.com"
-                  name="email"
-                  required
-                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                />
+              <Stack>
+                <Text textAlign={"center"} opacity={"0.5"} fontSize={"sm"}>
+                  Enter your email to get the login link
+                </Text>
+                <Stack w="full">
+                  <Input
+                    ref={emailRef}
+                    type="email"
+                    w="full"
+                    placeholder="myemail@example.com"
+                    name="email"
+                    required
+                    pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                  />
 
-                {mailSent && (
-                  <Alert title="Email sent" status={"success"}>
-                    Check your email for a login link.
-                  </Alert>
-                )}
+                  {mailSent && (
+                    <Alert title="Email sent" status={"success"}>
+                      Check your email for a login link.
+                    </Alert>
+                  )}
 
-                <Button
-                  type="submit"
-                  w="full"
-                  loading={fetcher.state !== "idle"}
-                  colorPalette={"brand"}
-                >
-                  Login
-                  <TbArrowRight />
-                </Button>
-                {fetcher.data?.error && (
-                  <Alert title="Error" status={"error"}>
-                    {fetcher.data.error}
-                  </Alert>
-                )}
+                  <Button
+                    type="submit"
+                    w="full"
+                    loading={fetcher.state !== "idle"}
+                    colorPalette={"brand"}
+                  >
+                    Login
+                    <TbArrowRight />
+                  </Button>
+                  {fetcher.data?.error && (
+                    <Alert title="Error" status={"error"}>
+                      {fetcher.data.error}
+                    </Alert>
+                  )}
+                </Stack>
               </Stack>
             </Stack>
           </fetcher.Form>

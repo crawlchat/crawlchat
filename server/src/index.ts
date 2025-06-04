@@ -330,7 +330,8 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         await retry(async (nTime) => {
           const llmConfig = getConfig(
-            nTime === 0 ? scrape.llmModel : "gpt_4o_mini"
+            // nTime === 0 ? scrape.llmModel : "gpt_4o_mini"
+            "gpt_4o_mini"
           );
 
           const flow = makeFlow(
@@ -501,7 +502,7 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
   }
 
   let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
-    where: { userId, type: knowledgeGroupType },
+    where: { userId, scrapeId, type: knowledgeGroupType },
   });
 
   if (!knowledgeGroup) {
@@ -600,7 +601,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     .filter(Boolean)
     .join("\n\n");
 
-  const llmConfig = getConfig(scrape.llmModel);
+  const llmConfig = getConfig("gpt_4o_mini");
 
   const flow = makeFlow(
     scrape.id,

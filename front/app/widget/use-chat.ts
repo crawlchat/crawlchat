@@ -26,7 +26,7 @@ export function useScrapeChat({
 
   const allMessages = useMemo(() => {
     const allMessages = [
-      ...messages,
+      ...messages.filter((message) => !message.ticketMessage),
       ...(content
         ? [
             {
@@ -155,6 +155,8 @@ export function useScrapeChat({
         scrapeId,
         channel: null,
         rating: null,
+        correctionItemId: null,
+        ticketMessage: null,
       },
     ]);
     setAskStage("asked");

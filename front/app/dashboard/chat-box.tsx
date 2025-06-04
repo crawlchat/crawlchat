@@ -7,6 +7,7 @@ import {
   Heading,
   Icon,
   IconButton,
+  Input,
   Link,
   Separator,
   Skeleton,
@@ -33,10 +34,13 @@ import {
   TbPin,
   TbRefresh,
   TbRobotFace,
-  TbTrash,
   TbPointer,
   TbThumbUp,
   TbThumbDown,
+  TbShare2,
+  TbCheck,
+  TbX,
+  TbTicket,
 } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
@@ -55,6 +59,7 @@ import { Button } from "~/components/ui/button";
 import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp/setup";
 import { getScoreColor, getMessagesScore } from "~/score";
 import { RiChatVoiceAiFill } from "react-icons/ri";
+import { Field } from "~/components/ui/field";
 
 function ChatInput({
   onAsk,
@@ -176,7 +181,7 @@ function ChatInput({
   );
 }
 
-function SourceLink({
+export function SourceLink({
   link,
   index,
 }: {
@@ -203,7 +208,12 @@ function SourceLink({
             <Text fontSize={"xs"} lineClamp={1} data-score={link.score}>
               {link.title}
             </Text>
-            <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
+            <Text
+              fontSize={"xs"}
+              opacity={0.5}
+              lineClamp={1}
+              display={["none", "none", "block"]}
+            >
               {link.url}
             </Text>
           </Stack>
@@ -214,6 +224,48 @@ function SourceLink({
         </Group>
       </Stack>
     </Link>
+  );
+}
+
+export function Resolved({
+  onNo,
+  onYes,
+  onCancel,
+  resolveQuestion,
+  resolveDescription,
+}: {
+  onNo: () => void;
+  onYes: () => void;
+  onCancel: () => void;
+  resolveQuestion?: string;
+  resolveDescription?: string;
+}) {
+  return (
+    <Stack borderBottom={"1px solid"} borderColor={"brand.outline"}>
+      <Stack px={4} py={3} w="full">
+        <Group justify={"space-between"} w="full">
+          <Stack gap={0}>
+            <Text fontSize={"xs"} lineClamp={1}>
+              {resolveQuestion || "Issue solved?"}
+            </Text>
+            <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
+              {resolveDescription || "Confirm if your issue is solved."}
+            </Text>
+          </Stack>
+          <Group>
+            <Button size={"xs"} variant={"solid"} onClick={onYes}>
+              <TbThumbUp /> Yes
+            </Button>
+            <Button size={"xs"} variant={"outline"} onClick={onNo}>
+              <TbThumbDown /> No
+            </Button>
+            <IconButton size={"xs"} variant={"subtle"} onClick={onCancel}>
+              <TbX />
+            </IconButton>
+          </Group>
+        </Group>
+      </Stack>
+    </Stack>
   );
 }
 
@@ -252,6 +304,11 @@ function AssistantMessage({
   size,
   disabled,
   showScore,
+  onResolved,
+  last,
+  ticketingEnabled,
+  resolveQuestion,
+  resolveDescription,
 }: {
   id: string;
   content: string;
@@ -266,6 +323,11 @@ function AssistantMessage({
   size?: WidgetSize;
   disabled?: boolean;
   showScore?: boolean;
+  onResolved: (messageId: string, resolved: boolean | null) => void;
+  last: boolean;
+  ticketingEnabled?: boolean;
+  resolveQuestion?: string;
+  resolveDescription?: string;
 }) {
   const [cleanedLinks, cleanedContent, score] = useMemo(() => {
     const citation = extractCitations(content, links);
@@ -282,6 +344,19 @@ function AssistantMessage({
       track("chat_rate", { rating, messageId: id });
       onRate(rating);
     }
+  }
+
+  function handleResolved(resolved: boolean | null) {
+    if (resolved === true) {
+      handleRate("up");
+    }
+    if (resolved === false) {
+      handleRate("down");
+    }
+    if (resolved === null) {
+      handleRate("none");
+    }
+    onResolved(id, resolved);
   }
 
   return (
@@ -369,6 +444,15 @@ function AssistantMessage({
       {Object.keys(cleanedLinks).length > 0 && (
         <Stack gap={0}>
           <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
+            {last && !disabled && ticketingEnabled && !currentRating && (
+              <Resolved
+                onNo={() => handleResolved(false)}
+                onYes={() => handleResolved(true)}
+                onCancel={() => handleResolved(null)}
+                resolveQuestion={resolveQuestion}
+                resolveDescription={resolveDescription}
+              />
+            )}
             {Object.entries(cleanedLinks)
               .filter(([_, link]) => link)
               .map(([index, link]) => (
@@ -545,6 +629,7 @@ function MCPSetup({ scrape }: { scrape: Scrape }) {
 }
 
 function Toolbar({
+  threadId,
   scrape,
   messages,
   onErase,
@@ -554,16 +639,18 @@ function Toolbar({
   disabled,
   overallScore,
 }: {
+  threadId: string;
   scrape: Scrape;
   messages: Message[];
   onErase: () => void;
   onPinSelect: (id: string) => void;
-  screen: "chat" | "mcp";
-  onScreenChange: (screen: "chat" | "mcp") => void;
+  screen: "chat" | "mcp" | "ticket-create";
+  onScreenChange: (screen: "chat" | "mcp" | "ticket-create") => void;
   disabled: boolean;
   overallScore?: number;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
   const pinnedCount = useMemo(() => {
     return messages.filter((message) => message.pinnedAt).length;
   }, [messages]);
@@ -592,6 +679,12 @@ function Toolbar({
     onPinSelect(id);
   }
 
+  function handleShare() {
+    navigator.clipboard.writeText(`${window.location.origin}/s/${threadId}`);
+    setCopiedShareLink(true);
+    setTimeout(() => setCopiedShareLink(false), 2000);
+  }
+
   return (
     <Group
       h="60px"
@@ -612,7 +705,9 @@ function Toolbar({
           )}
           <Stack gap={0.6}>
             <Text fontWeight={"bold"} lineHeight={1} fontSize={"xl"}>
-              {scrape.title ?? "Ask AI"}
+              {screen === "ticket-create"
+                ? "Create support ticket"
+                : scrape.title ?? "Ask AI"}
             </Text>
           </Stack>
           {overallScore !== undefined && (
@@ -671,6 +766,23 @@ function Toolbar({
 
         {screen === "chat" && (
           <Tooltip
+            content={"Copied!"}
+            showArrow
+            open={copiedShareLink || undefined}
+          >
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={"subtle"}
+              onClick={handleShare}
+            >
+              {copiedShareLink ? <TbCheck /> : <TbShare2 />}
+            </IconButton>
+          </Tooltip>
+        )}
+
+        {screen === "chat" && (
+          <Tooltip
             content={confirmDelete ? "Are you sure?" : "Clear chat"}
             open={confirmDelete}
             showArrow
@@ -695,6 +807,7 @@ function Toolbar({
                 size={"xs"}
                 variant={"subtle"}
                 onClick={() => onScreenChange("mcp")}
+                display={["none", "none", "flex"]}
               >
                 Setup MCP
                 <TbRobotFace />
@@ -793,6 +906,78 @@ function PoweredBy({ embed }: { embed?: boolean }) {
   );
 }
 
+function TicketCreate({
+  onCancel,
+  onSubmit,
+  loading,
+}: {
+  onCancel: () => void;
+  onSubmit: (email: string, title: string, message: string) => void;
+  loading?: boolean;
+}) {
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("");
+
+  function handleSubmit() {
+    onSubmit(email, title, message);
+  }
+
+  return (
+    <Stack p={4}>
+      <Text opacity={0.5} mb={4}>
+        Our team will work on the issue and get back with a resolution. We'll
+        send you an email with a link to the ticket.
+      </Text>
+      <Field label="Email">
+        <Input
+          type="email"
+          placeholder="youremail@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+        />
+      </Field>
+      <Field label="Title">
+        <Input
+          type="text"
+          placeholder="Title of your issue"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          disabled={loading}
+        />
+      </Field>
+      <Field label="Message">
+        <Textarea
+          placeholder="Explain your issue in detail"
+          rows={4}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          disabled={loading}
+        />
+      </Field>
+      <Text opacity={0.5} mb={4}>
+        This chat will be turned into a ticket and you cannot continue the AI
+        help on the same thread. A new thread will be created for you.
+      </Text>
+      <Group justify={"flex-end"}>
+        <Button variant={"subtle"} onClick={onCancel} disabled={loading}>
+          Cancel
+          <TbX />
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          loading={loading}
+          disabled={!email || !title || !message}
+        >
+          Create ticket
+          <TbTicket />
+        </Button>
+      </Group>
+    </Stack>
+  );
+}
+
 export default function ScrapeWidget({
   thread,
   messages,
@@ -806,6 +991,13 @@ export default function ScrapeWidget({
   onRate,
   showScore,
   embed,
+  onTicketCreate,
+  ticketCreationLoading,
+  ticketingEnabled,
+  resolveQuestion,
+  resolveDescription,
+  resolveYesLink,
+  resolveNoLink,
 }: {
   thread: Thread;
   messages: Message[];
@@ -819,6 +1011,13 @@ export default function ScrapeWidget({
   onRate: (id: string, rating: MessageRating) => void;
   showScore?: boolean;
   embed?: boolean;
+  onTicketCreate?: (email: string, title: string, message: string) => void;
+  ticketCreationLoading?: boolean;
+  ticketingEnabled?: boolean;
+  resolveQuestion?: string;
+  resolveDescription?: string;
+  resolveYesLink?: string;
+  resolveNoLink?: string;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -826,7 +1025,9 @@ export default function ScrapeWidget({
     defaultMessages: messages,
     threadId: thread.id,
   });
-  const [screen, setScreen] = useState<"chat" | "mcp">("chat");
+  const [screen, setScreen] = useState<"chat" | "mcp" | "ticket-create">(
+    "chat"
+  );
   const readOnly = useMemo(() => userToken === "NA", [userToken]);
   const overallScore = useMemo(() => getMessagesScore(messages), [messages]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -942,6 +1143,30 @@ export default function ScrapeWidget({
     await scroll();
   }
 
+  function handleResolved(messageId: string, resolved: boolean | null) {
+    if (resolved === false) {
+      if (resolveNoLink) {
+        window.open(resolveNoLink, "_blank");
+      } else {
+        setScreen("ticket-create");
+      }
+    }
+    if (resolved === true) {
+      if (resolveYesLink) {
+        window.open(resolveYesLink, "_blank");
+      }
+    }
+  }
+
+  function handleTicketCreateCancel() {
+    setScreen("chat");
+    scroll();
+  }
+
+  function handleTicketCreate(email: string, title: string, message: string) {
+    onTicketCreate?.(email, title, message);
+  }
+
   return (
     <Center w="full" h="full" onClick={handleBgClick} ref={containerRef}>
       <Stack
@@ -956,6 +1181,7 @@ export default function ScrapeWidget({
         position={"relative"}
       >
         <Toolbar
+          threadId={thread.id}
           messages={chat.messages}
           onErase={handleErase}
           onPinSelect={handlePinSelect}
@@ -1002,6 +1228,11 @@ export default function ScrapeWidget({
                         )
                       }
                       onRate={(rating) => onRate(message.id, rating)}
+                      onResolved={handleResolved}
+                      last={index === chat.allMessages.length - 1}
+                      ticketingEnabled={ticketingEnabled}
+                      resolveQuestion={resolveQuestion}
+                      resolveDescription={resolveDescription}
                     />
                   )}
                   {(chat.askStage === "asked" ||
@@ -1016,6 +1247,13 @@ export default function ScrapeWidget({
             </>
           )}
           {screen === "mcp" && <MCPSetup scrape={scrape} />}
+          {screen === "ticket-create" && (
+            <TicketCreate
+              onCancel={handleTicketCreateCancel}
+              onSubmit={handleTicketCreate}
+              loading={ticketCreationLoading}
+            />
+          )}
         </Stack>
         <ChatInput
           inputRef={inputRef}

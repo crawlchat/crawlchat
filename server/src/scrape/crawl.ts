@@ -108,7 +108,9 @@ export async function scrapeWithLinks(
 
     let linkUrl: string | undefined;
     try {
-      linkUrl = new URL(link.href, url).toString();
+      const safePostFix =
+        !link.href.startsWith("/") && !url.endsWith("/") ? "/" : "";
+      linkUrl = new URL(link.href, url + safePostFix).toString();
     } catch (e) {}
 
     if (!linkUrl) {

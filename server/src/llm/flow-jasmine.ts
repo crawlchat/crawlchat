@@ -1,3 +1,4 @@
+import { prisma } from "libs/prisma";
 import { makeIndexer } from "../indexer/factory";
 import {
   FlowMessage,

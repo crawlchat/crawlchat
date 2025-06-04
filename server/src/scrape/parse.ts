@@ -73,7 +73,7 @@ function cleanA($: cheerio.CheerioAPI) {
     if (href?.includes("?")) {
       $(a).attr("href", href.split("?")[0]);
     }
-    if ($(a).text().trim().length === 0) {
+    if ($(a).text().trim().length === 0 && $(a).find("img").length === 0) {
       $(a).remove();
     }
   });

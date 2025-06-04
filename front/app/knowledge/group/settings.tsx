@@ -102,6 +102,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     ) as KnowledgeGroupUpdateFrequency;
     update.nextUpdateAt = getNextUpdateTime(update.updateFrequency, new Date());
   }
+  if (formData.has("itemContext")) {
+    update.itemContext = formData.get("itemContext") as string;
+  }
 
   const group = await prisma.knowledgeGroup.update({
     where: { id: groupId, userId: user!.id, scrapeId },
@@ -117,6 +120,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
   const skipRegexFetcher = useFetcher();
   const scrollSelectorFetcher = useFetcher();
   const autoUpdateFetcher = useFetcher();
+  const itemContextFetcher = useFetcher();
   const details = useMemo(() => {
     return [
       {
@@ -240,6 +244,22 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           )}
         </SettingsSection>
       )}
+
+      <SettingsSection
+        fetcher={itemContextFetcher}
+        title="Item context"
+        description="Pass context for the group knowledge. Usefule to segregate the data between types. Example: v1, v2, node, bun, etc."
+      >
+        <Input
+          name="itemContext"
+          defaultValue={group.itemContext ?? ""}
+          placeholder="Ex: v1, v2, node, bun, etc."
+          maxW="400px"
+        />
+        <Text fontSize={"sm"} opacity={0.5}>
+          This requires re-fetching the knowledge group.
+        </Text>
+      </SettingsSection>
 
       <SettingsSection
         fetcher={scrollSelectorFetcher}

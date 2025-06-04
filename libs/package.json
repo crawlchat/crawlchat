@@ -33,6 +33,10 @@
     "./rich-message-block": {
       "default": "./dist/rich-message-block.js",
       "types": "./dist/rich-message-block.d.ts"
+    },
+    "./mongo-counter": {
+      "default": "./dist/mongo-counter.js",
+      "types": "./dist/mongo-counter.d.ts"
     }
   },
   "typesVersions": {
@@ -52,8 +56,13 @@
       "knowledge-group": [
         "./dist/knowledge-group.d.ts"
       ],
+<<<<<<< HEAD
       "rich-message-block": [
         "./dist/rich-message-block.d.ts"
+=======
+      "mongo-counter": [
+        "./dist/mongo-counter.d.ts"
+>>>>>>> main
       ]
     }
   },

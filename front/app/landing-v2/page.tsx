@@ -1,22 +1,39 @@
-import { useMemo, useState, type PropsWithChildren } from "react";
+import {
+  useMemo,
+  useState,
+  type PropsWithChildren,
+  type ReactNode,
+} from "react";
 import cn from "@meltdownjs/cn";
 import "../tailwind.css";
 import "../fonts.css";
 import {
   TbArrowRight,
+  TbArrowsShuffle,
   TbBrandDiscord,
+  TbBrandSlack,
+  TbChartBar,
+  TbClock,
+  TbDatabase,
+  TbFile,
   TbLoader2,
   TbMessage,
+  TbRobotFace,
+  TbScoreboard,
+  TbSettings,
+  TbSpider,
+  TbWorld,
 } from "react-icons/tb";
 import { useOpenScrape } from "~/landing/use-open-scrape";
 import { prisma } from "libs/prisma";
 import type { Route } from "./+types/page";
+import { Box, Text } from "@chakra-ui/react";
 
 export function meta() {
   return [
     {
       title: "CrawlChat - Your documentation with AI!",
-      description: "Deliver your documentation with AI",
+      description: "AI Chatbot for your knowledge base and documentation",
     },
   ];
 }
@@ -222,7 +239,7 @@ function Scrape() {
 
 function DemoWindow() {
   return (
-    <div className="max-w-[900px] w-full mx-auto border border-outline shadow-md bg-ash mt-8 px-4 py-3 rounded-2xl">
+    <div className="max-w-[900px] w-full mx-auto border border-outline shadow-md bg-ash mt-16 px-4 py-3 rounded-2xl">
       <div>
         <div className="flex items-center gap-1 mb-3">
           <div className="w-[10px] h-[10px] bg-red-500 rounded-full" />
@@ -263,7 +280,7 @@ function Stats({
   messagesMonth: number;
 }) {
   return (
-    <div className="flex flex-col md:flex-row gap-8 w-full mt-8 md:items-center">
+    <div className="flex flex-col md:flex-row gap-8 w-full mt-16 md:items-center">
       <div className="flex-1 flex flex-col gap-10">
         <div className="text-md md:text-xl font-medium px-6 py-3 shadow-md rounded-2xl bg-canvas w-fit flex items-center gap-4 -rotate-[4deg]">
           <div className="w-3 h-3 bg-green-500 rounded-full outline-2 outline-green-300 outline" />
@@ -347,7 +364,7 @@ function UsedBy() {
 
 function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className="text-center text-4xl md:text-6xl font-bold max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
+    <h3 className="text-center text-4xl md:text-5xl font-bold max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
       {children}
     </h3>
   );
@@ -377,7 +394,7 @@ function WorksBox({
   return (
     <div className="p-6 rounded-2xl bg-canvas shadow-md flex-1 pb-10">
       <h4 className="text-2xl font-bold mb-2 font-radio-grotesk">{title}</h4>
-      <p className="text opacity-60 mb-8 leading-tight">{description}</p>
+      <p className="opacity-60 mb-8 leading-tight">{description}</p>
 
       {children}
     </div>
@@ -419,6 +436,30 @@ function CustomiseIcon({ src, rotate }: { src: string; rotate: number }) {
   );
 }
 
+function WorksStep({
+  img,
+  title,
+  children,
+}: PropsWithChildren<{
+  img: string;
+  title: string;
+}>) {
+  return (
+    <div className="flex flex-col gap-4 flex-1 items-center max-w-[400px]">
+      <img src={img} alt="Works step 1" />
+
+      <h4 className="text-2xl font-bold">{title}</h4>
+      <p className="text-center text-lg">{children}</p>
+    </div>
+  );
+}
+
+function stepHighlightClassNames() {
+  return cn(
+    "border px-2 py-0.5 inline-flex items-center gap-1 rounded-full leading-none mx-1"
+  );
+}
+
 function Works() {
   return (
     <div className="mt-32" id="how-it-works">
@@ -431,8 +472,8 @@ function Works() {
         into LLM ready for your community in three simple steps.
       </HeadingDescription>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        <WorksBox
+      <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+        {/* <WorksBox
           title="Add knowledge"
           description="Bring your docs to CrawlChat as a knowledge base. The LLMs will answer your community questions with the provided knowledge without any hallucination."
         >
@@ -524,7 +565,68 @@ function Works() {
               </div>
             </div>
           </div>
-        </WorksBox>
+        </WorksBox> */}
+        <WorksStep img="/new-landing/knowledge.png" title="Make knowledge base">
+          Add your existing documents or web pages as knowledge base. You can{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-purple-500 border-purple-500"
+            )}
+          >
+            <TbSpider />
+            scrape
+          </span>{" "}
+          your online documentation or{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-green-500 border-green-500"
+            )}
+          >
+            <TbFile />
+            upload files
+          </span>{" "}
+          directly.
+        </WorksStep>
+        <WorksStep img="/new-landing/integrate.png" title="Integrate chatbot">
+          You can connect the AI chatbot to your website, Discord, Slack. You
+          can customise the bot UI and{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-purple-500 border-purple-500"
+            )}
+          >
+            <TbRobotFace />
+            behaviour
+          </span>{" "}
+          of the bot
+        </WorksStep>
+        <WorksStep img="/new-landing/analyse.png" title="Analyse performance">
+          View all the messages and conversations that the bot has had. You get
+          to see the performance,{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-green-500 border-green-500"
+            )}
+          >
+            <TbScoreboard />
+            scores
+          </span>
+          , and{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-blue-500 border-blue-500"
+            )}
+          >
+            <TbDatabase />
+            data gaps
+          </span>{" "}
+          as well.
+        </WorksStep>
       </div>
     </div>
   );
@@ -704,7 +806,7 @@ function IntegrationCard({
   return (
     <div
       className={
-        "p-4 shadow-md border border-outline rounded-xl bg-canvas flex flex-col gap-4"
+        "p-6 shadow-md border border-outline rounded-xl bg-canvas flex flex-col gap-6"
       }
       style={{ flex: flex }}
     >
@@ -717,7 +819,7 @@ function IntegrationCard({
       </div>
       <div className="flex flex-col gap-2">
         <h3 className="text-2xl font-bold font-radio-grotesk">{title}</h3>
-        <p className="opacity-50 font-medium leading-tight">{description}</p>
+        <p className="opacity-50 font-medium text-lg">{description}</p>
       </div>
     </div>
   );
@@ -820,7 +922,7 @@ function ChatWidget() {
         <div className="flex-1 flex flex-col gap-4">
           <ChatWidgetFeature
             active={activeTab === "sources"}
-            title="Your sources"
+            title="Custom knowledge base"
             description="All the answers on the chat widget are provided by the resources that the answer is fetched from so that your community can always go find more help if required."
             img="/new-landing/archive-active.png"
             onClick={() => setActiveTab("sources")}
@@ -834,8 +936,8 @@ function ChatWidget() {
           />
           <ChatWidgetFeature
             active={activeTab === "pin"}
-            title="Pin"
-            description="Your community can pin the important answers so that they can always come back and find the critical help with ease"
+            title="Pin & Share"
+            description="Your community can pin and share the important answers so that they can always come back and find the critical help with ease"
             img="/new-landing/pin.png"
             onClick={() => setActiveTab("pin")}
           />
@@ -862,7 +964,7 @@ function ToolItem({
 }: {
   title: string;
   description: string;
-  icon: string;
+  icon: string | ReactNode;
 }) {
   return (
     <div
@@ -872,7 +974,22 @@ function ToolItem({
       )}
     >
       <div className="flex flex-col gap-2">
-        <img src={icon} alt={title} className="w-6 h-6" />
+        {typeof icon === "string" ? (
+          <img src={icon} alt={title} className="w-6 h-6" />
+        ) : (
+          <Box>
+            <Text
+              fontSize={"32px"}
+              color={"brand.fg"}
+              bg={"brand.subtle"}
+              w="fit"
+              p={4}
+              rounded={"full"}
+            >
+              {icon}
+            </Text>
+          </Box>
+        )}
         <h3 className="text-xl font-bold font-radio-grotesk">{title}</h3>
       </div>
       <p className="opacity-50 font-medium leading-tight">{description}</p>
@@ -884,45 +1001,47 @@ function Tools() {
   return (
     <div className="mt-32" id="features">
       <Heading>
-        All the <HeadingHighlight>tools</HeadingHighlight> to improve your docs
+        All the <HeadingHighlight>tools</HeadingHighlight> to reduce your
+        support tickets
       </Heading>
 
       <HeadingDescription>
-        CrawlChat has quick to import options for multiple sources that cover
-        most of your use cases.
+        CrawlChat cuts support tickets by letting users instantly chat with your
+        docs, getting answers without needing human help right from your site,
+        Discord, or Slack.
       </HeadingDescription>
 
       <div className="bg-canvas rounded-2xl border border-outline">
         <ToolsRow>
           <ToolItem
-            title="Scoring"
-            description="All the answers and conversations are given a score that represent how relevant the sources are for the question asked. Low score means not enough data, a chance to improve"
-            icon="/new-landing/ring-chart.png"
+            title="Instant answers"
+            description="CrawlChat lets users ask questions and get immediate answers from your docs, guides, or FAQs, no searching or waiting. This reduces basic support requests and improves self-service."
+            icon={<TbMessage />}
+          />
+          <ToolItem
+            title="Less Repetitive Questions"
+            description="CrawlChat answers frequent questions directly from your documentation, reducing the need for users to contact support for the same issues and letting your team focus on complex tasks."
+            icon={<TbArrowsShuffle />}
+          />
+          <ToolItem
+            title="24/7 Availability"
+            description="CrawlChat is always active, helping users anytime—day or night—so they don’t have to wait for support teams, reducing off-hour ticket volume."
+            icon={<TbClock />}
           />
           <ToolItem
             title="Analytics"
             description="You get a wide range of analytics for your docs and community. The daily messages chart, score distribution and many more that give your more visibility into your docs and the community"
-            icon="/new-landing/graph-up.png"
+            icon={<TbChartBar />}
           />
           <ToolItem
-            title="Dense groups"
-            description="You get to know how each knowledge group is performing against the questions asked. You can always improve them if they are not performing as expected"
-            icon="/new-landing/heirarchy-square.png"
+            title="Discord & Slack bots"
+            description="CrawlChat works inside Discord and Slack, letting users ask questions and get instant answers from your docs—just by tagging the bot. It’s like support, right in chat."
+            icon={<TbBrandDiscord />}
           />
           <ToolItem
-            title="@CrawlChat to answer"
-            description="You don’t have to be available on the channels all the time. Members and just tag @crawlchat to get the answer for the questions they have."
-            icon="/new-landing/chat-bubble.png"
-          />
-          <ToolItem
-            title="Learn"
-            description="Turn the conversations you have on the channels into a knowledge base with just a @crawlchat learn message. The bot adds the whole conversation into the knowledge group so that it uses it in the upcoming answers"
-            icon="/new-landing/online-learning.png"
-          />
-          <ToolItem
-            title="Drafting"
-            description="Get more control on the help you provide on your channels. Use CrawlChat to draft answers for the questions so that you can minimise your efforts in answering them end to end. Automate manually!"
-            icon="/new-landing/edit-pen.png"
+            title="Customisation"
+            description="CrawlChat lets you customize the chat widget’s look and tone. With custom prompts, you guide how the AI responds—tailoring answers to fit your brand and support needs."
+            icon={<TbSettings />}
           />
         </ToolsRow>
       </div>
@@ -1028,8 +1147,8 @@ function Pricing() {
           description="For personal use"
           price="$0"
           items={[
-            { text: "100 messages per month" },
-            { text: "100 messages per month" },
+            { text: "100 page scrapes" },
+            { text: "100 message credits" },
             { text: "API not available", excluded: true },
             { text: "MCP not available", excluded: true },
             { text: "Discord bot", excluded: true },
@@ -1043,8 +1162,8 @@ function Pricing() {
           description="Start your journey with CrawlChat"
           price="$29"
           items={[
-            { text: "5000 messages per month" },
-            { text: "7000 messages per month" },
+            { text: "5000 scrapes/month" },
+            { text: "7000 message credits/month" },
             { text: "API available" },
             { text: "MCP available" },
             { text: "Discord bot" },
@@ -1059,8 +1178,8 @@ function Pricing() {
           popular
           price="$79"
           items={[
-            { text: "14,000 messages per month" },
-            { text: "20,000 messages per month" },
+            { text: "14,000 scrapes/month" },
+            { text: "20,000 message credits/month" },
             { text: "API available" },
             { text: "MCP available" },
             { text: "Discord bot" },
@@ -1155,8 +1274,8 @@ function Testimonials() {
 function CTA() {
   return (
     <div className="mt-32">
-      <div className="w-full bg-gradient-to-b from-canvas to-ash shadow-md rounded-2xl py-20 relative">
-        <div className="absolute top-[10%] md:top-[20%] left-[4%] md:left-[8%] rotate-[-24deg] scale-120 opacity-50">
+      <div className="w-full bg-gradient-to-b from-canvas to-ash shadow-md rounded-2xl py-20 px-10 relative">
+        {/* <div className="absolute top-[10%] md:top-[20%] left-[4%] md:left-[8%] rotate-[-24deg] scale-120 opacity-50">
           <IntegrateChip label="Ask AI" icon="/new-landing/ai.png" />
         </div>
 
@@ -1170,24 +1289,16 @@ function CTA() {
 
         <div className="absolute top-[80%] left-[8%] rotate-[-24deg] scale-150 opacity-50">
           <IntegrateChip icon="/new-landing/slack.png" />
-        </div>
+        </div> */}
 
-        <Heading>
-          Ready to make your <HeadingHighlight>docs</HeadingHighlight> LLM
-          ready?
-        </Heading>
+        <h2 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+          Make your documents and knowledge base be powered by AI now!
+        </h2>
 
-        <HeadingDescription>
-          Join users who are already having meaningful conversations with web
-          content using CrawlChat.
-        </HeadingDescription>
-
-        <div className="flex justify-center">
-          <a
-            href="/login"
-            className="px-12 py-4 bg-brand text-canvas font-medium rounded-2xl text-xl"
-          >
+        <div className="flex justify-center mt-8">
+          <a href="/login" className={ctaClassNames(true)}>
             Get started
+            <TbArrowRight />
           </a>
         </div>
       </div>
@@ -1210,13 +1321,20 @@ function Footer() {
         <div className="py-8 flex flex-col md:flex-row gap-10">
           <div className="flex-[2] flex flex-col gap-4">
             <Logo />
-            <p className="font-medium opacity-60">Deliver your docs with AI!</p>
+            <p className="font-medium opacity-60">
+              AI Chatbot for your knowledge base and documentation
+            </p>
             <p className="opacity-50 text-xs mt-4 font-medium">
               © 2025 CrawlChat
             </p>
           </div>
           <div className="flex-[2]">
             <ul className="flex flex-col gap-4">
+              <li>
+                <FooterLink href="/blog/boosting-developer-experience-with-crawlchat">
+                  Boosting Developer Experience - DX
+                </FooterLink>
+              </li>
               <li>
                 <FooterLink href="/blog/how-to-add-ask-ai-chatbot-to-docusaurus-site">
                   How to integrate with Docusaurus
@@ -1267,6 +1385,9 @@ function Footer() {
               </li>
               <li>
                 <FooterLink href="/blog">Blog</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/discord-bot">Discord bot</FooterLink>
               </li>
             </ul>
           </div>
@@ -1326,35 +1447,61 @@ function Nav() {
   );
 }
 
+function ctaClassNames(primary: boolean) {
+  return cn(
+    "text-2xl border-2 border-brand px-8 py-4 rounded-xl font-medium flex items-center gap-2 transition-all hover:translate-y-[-2px]",
+    !primary && "text-brand hover:bg-brand-subtle",
+    primary && "bg-brand text-canvas"
+  );
+}
+
 function Hero() {
+  function handleAskCrawlChat() {
+    (window as any).crawlchatEmbed.show();
+  }
+
   return (
     <div className="py-8">
-      <h1 className="font-radio-grotesk text-[42px] md:text-[80px] leading-[1.4] md:leading-[1.3] font-bold text-center max-w-[90%] mx-auto">
-        Deliver your{" "}
-        <span className="text-brand bg-brand-subtle px-3 rounded-lg relative inline-block">
-          documentation
-          <img
-            src="/new-landing/docs-h1.png"
-            alt="Docs"
-            className={cn(
-              "absolute left-[-34px] top-[-30px] w-[68px] h-[68px] ",
-              "md:w-[120px] md:h-[120px] md:top-[-50px] md:left-[-80px]"
-            )}
-          />
-        </span>{" "}
-        with{" "}
-        <span className="text-brand bg-brand-subtle px-3 rounded-lg">AI</span>
+      <h1 className="font-radio-grotesk text-[42px] md:text-[56px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+        <span className="text-brand">AI Chatbot</span> for your knowledge base
+        and documentation
       </h1>
 
-      <h2 className="text-center text-xl font-medium max-w-[800px] mx-auto py-8 opacity-60">
-        Add your existing docs as knowledge base and deliver it as Chatbot,
-        Discord bot, or as a MCP server for your community. Get visibility how
-        your community consumes it and make your documentation better!
+      <h2 className="text-center text-xl max-w-[600px] mx-auto mt-8">
+        CrawlChat turns your documentation and other knowledge sources into a AI
+        chatbot that you can connect on your{" "}
+        <span className="bg-red-50 text-red-500 border border-red-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
+          <TbWorld />
+          Website
+        </span>
+        <span className="hidden">,</span>{" "}
+        <a
+          className="bg-green-50 text-green-500 border border-green-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1"
+          href="/discord-bot"
+        >
+          <TbBrandDiscord />
+          Discord
+        </a>
+        <span className="hidden">,</span> or{" "}
+        <span className="bg-purple-50 text-purple-500 border border-purple-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
+          <TbBrandSlack />
+          Slack
+        </span>
+        <span className="hidden">.</span>
       </h2>
 
-      <Scrape />
+      <div className="flex justify-center gap-4 my-8 flex-wrap">
+        <button className={ctaClassNames(false)} onClick={handleAskCrawlChat}>
+          <TbMessage />
+          Ask CrawlChat
+        </button>
+        <a className={ctaClassNames(true)} href="/login">
+          Create your chatbot
+          <TbArrowRight />
+        </a>
+      </div>
 
-      <DemoWindow />
+      {/* <DemoWindow /> */}
     </div>
   );
 }
@@ -1391,9 +1538,9 @@ export default function LandingV2({ loaderData }: Route.ComponentProps) {
           <Works />
         </Container>
 
-        <Container>
+        {/* <Container>
           <ImportKnowledge />
-        </Container>
+        </Container> */}
 
         <Container>
           <Integrations />

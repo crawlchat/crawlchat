@@ -103,6 +103,12 @@ model Scrape {
   discordServerId       String?
   discordDraftConfig    DiscordDraftConfig?
   logoUrl               String?
+  ticketingEnabled      Boolean?
+  
+  resolveQuestion       String?
+  resolveDescription    String?
+  resolveYesLink        String?
+  resolveNoLink         String?
 
   analytics             ScrapeAnalytics?
   llmModel              LlmModel?
@@ -132,6 +138,21 @@ enum MessageChannel {
 enum MessageRating {
   up
   down
+  none
+}
+
+enum TicketAuthorRole {
+  user
+  agent
+}
+
+enum TicketEvent {
+  message
+}
+
+type TicketMessage {
+  role                      TicketAuthorRole
+  event                     TicketEvent
 }
 
 model Message {
@@ -146,6 +167,7 @@ model Message {
   channel                   MessageChannel?
   rating                    MessageRating?
   correctionItemId          String?  @db.ObjectId
+  ticketMessage             TicketMessage?
 
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
@@ -165,6 +187,11 @@ enum ResponseType {
   points
 }
 
+enum TicketStatus {
+  open
+  closed
+}
+
 model Thread {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId        String   @db.ObjectId
@@ -176,6 +203,13 @@ model Thread {
   openedAt        DateTime?
   isDefault       Boolean?
   lastMessageAt   DateTime?
+  title           String?
+
+  ticketNumber    Int?
+  ticketKey       String?
+  ticketStatus    TicketStatus?
+  ticketClosedAt  DateTime?
+  ticketUserEmail String?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   
@@ -310,6 +344,7 @@ model KnowledgeGroup {
   updateFrequency                           KnowledgeGroupUpdateFrequency?
   nextUpdateAt                              DateTime?
   lastUpdatedAt                             DateTime?
+  itemContext                               String?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt
@@ -318,4 +353,9 @@ model KnowledgeGroup {
   user                                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   scrapeItems                               ScrapeItem[]
+}
+
+model Counter {
+  id                                        String @id @map("_id")
+  count                                     Int
 }
