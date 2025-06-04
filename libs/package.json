@@ -56,13 +56,11 @@
       "knowledge-group": [
         "./dist/knowledge-group.d.ts"
       ],
-<<<<<<< HEAD
       "rich-message-block": [
         "./dist/rich-message-block.d.ts"
-=======
+      ],
       "mongo-counter": [
         "./dist/mongo-counter.d.ts"
->>>>>>> main
       ]
     }
   },
