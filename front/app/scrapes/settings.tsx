@@ -149,6 +149,11 @@ function CTABlock({
 
   return (
     <Stack>
+      <Text fontSize={"sm"} opacity={0.5} mt={8}>
+        CTA block contains a title, description and a link. It is used to
+        redirect the user to a specific page. You can mention the prompts to
+        fill details for title, description and link in below fields.
+      </Text>
       <Field label="Title">
         <Input
           name="title"
@@ -358,7 +363,7 @@ function RichBlocksSettings({ scrape }: { scrape: Scrape }) {
     <>
       <SettingsSection
         title="Rich Blocks"
-        description="Customize the rich blocks for this scrape."
+        description="Rich blocks are interactive UI elements that would be embedded in the AI response. You can add multiple blocks and customize them as per your needs."
         fetcher={richBlocksFetcher}
       >
         <input
