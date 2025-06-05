@@ -1,5 +1,6 @@
 import {
   Alert,
+  Badge,
   Box,
   Center,
   createListCollection,
@@ -362,7 +363,12 @@ function RichBlocksSettings({ scrape }: { scrape: Scrape }) {
   return (
     <>
       <SettingsSection
-        title="Rich Blocks"
+        title={
+          <Group>
+            <Text>Rich Blocks</Text>
+            <Badge variant={"surface"}>Experimental</Badge>
+          </Group>
+        }
         description="Rich blocks are interactive UI elements that would be embedded in the AI response. You can add multiple blocks and customize them as per your needs."
         fetcher={richBlocksFetcher}
       >
