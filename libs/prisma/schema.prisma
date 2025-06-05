@@ -88,6 +88,16 @@ enum LlmModel {
   gemini_2_5_flash
 }
 
+type RichBlockConfig {
+  key                 String
+  payload             Json
+  prompt              String
+}
+
+type RichBlocksConfig {
+  blocks              RichBlockConfig[]
+}
+
 model Scrape {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   userId                String   @db.ObjectId
@@ -113,6 +123,7 @@ model Scrape {
 
   analytics             ScrapeAnalytics?
   llmModel              LlmModel?
+  richBlocksConfig      RichBlocksConfig?
 
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
