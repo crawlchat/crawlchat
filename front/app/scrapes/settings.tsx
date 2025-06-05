@@ -197,7 +197,7 @@ function RichBlockDrawer({
   const contentRef = useRef<HTMLDivElement>(null);
 
   function handleClose() {
-    onClose(blockConfig);
+    onClose({ ...blockConfig, prompt: makeRichBlockPrompt(blockConfig) });
   }
 
   return (
@@ -323,7 +323,6 @@ function RichBlocksSettings({ scrape }: { scrape: Scrape }) {
     setRichBlocks((blocks) => {
       const newBlocks = [...blocks];
       newBlocks[idx] = config;
-      newBlocks[idx].prompt = makeRichBlockPrompt(config);
       return newBlocks;
     });
   }
