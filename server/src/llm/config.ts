@@ -35,6 +35,15 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       creditsPerMessage: 4,
     };
   }
+  if (model === LlmModel.gemini_2_5_flash) {
+    return {
+      model: "gemini-2.5-flash-preview-05-20",
+      apiKey: process.env.GEMINI_API_KEY!,
+      ragTopN: 4,
+      creditsPerMessage: 1,
+      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+    };
+  }
   return {
     model: "gpt-4o-mini",
     apiKey: process.env.OPENAI_API_KEY!,

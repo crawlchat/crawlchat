@@ -85,6 +85,7 @@ enum LlmModel {
   o3_mini
   sonnet_3_7
   sonnet_3_5
+  gemini_2_5_flash
 }
 
 model Scrape {

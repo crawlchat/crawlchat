@@ -11,11 +11,15 @@ import {
 } from "./github-api";
 import { SimpleAgent } from "./llm/agentic";
 import { handleStream } from "./llm/stream";
+import { getConfig } from "./llm/config";
 
 async function main() {
+  const config = getConfig("gemini_2_5_flash");
+
   const agent = new SimpleAgent({
     id: "agent",
     prompt: "You are a helpful assistant.",
+    ...config,
   });
 
   const stream = await agent.stream({

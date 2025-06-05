@@ -86,28 +86,36 @@ export function makeFlow(
 ) {
   const ragTool = makeRagTool(scrapeId, indexerKey, options);
 
-  const dkkd =
-    "Use the contacts block to display contact information like email, phone, address, website, social links, etc. Pass the details accordingly. Pass phone number only found. Use cards block to show information about any person, place, document, etc.";
+  const enabledRichBlocks = [
+    {
+      key: "cta",
+      usage:
+        "Use this block where there is no context for the query. Inform the user that it has no answer and it takes them to a Whatsapp support group. Here is the link https://whatsapp.group/12345",
+      schema: richMessageBlocks.cta.schema,
+    },
+    {
+      key: "cta",
+      usage:
+        "This block is to ask user to review the product CrawlChat on Shoppify. Here is the review link https://shopify.com/reviews/crawlchat. Use this block whenever there is context for the query.",
+      schema: richMessageBlocks.cta.schema,
+    },
+  ];
+
   const richBlocksPrompt = multiLinePrompt([
     "You can use rich message blocks as code language in the answer.",
     "Use the details only found in the context. Don't hallucinate.",
-    "Use the rich message blocks wherever applicable as per below mentioned usage requirement",
+    "This is how you use a block: ```json|<key>\n<json>\n``` Example: ```json|cta\n{...}\n```",
     "Available blocks are:",
 
-    richMessageBlocks
-      // .filter((b) => b.key === "contacts")
-      .map((block) =>
-        [
-          `key: ${block.key}`,
-          `schema: ${JSON.stringify(zodToJsonSchema(block.schema as any))}`,
-          `usage: ${dkkd}`,
-        ].join("\n\n")
-      )
-      .join("\n\n---\n\n"),
-    "This is how you use a block: ```json|<key>\n<json>\n``` Example: ```json|cards\n[{...}]\n```",
+    JSON.stringify(
+      enabledRichBlocks.map((block) => ({
+        ...block,
+        schema: zodToJsonSchema(block.schema as any),
+      })),
+      null,
+      2
+    ),
   ]);
-
-  console.log(richBlocksPrompt);
 
   const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
     id: "rag-agent",
