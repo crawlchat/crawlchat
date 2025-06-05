@@ -352,6 +352,7 @@ expressWs.app.ws("/", (ws: any, req) => {
               baseURL: llmConfig.baseURL,
               apiKey: llmConfig.apiKey,
               topN: llmConfig.ragTopN,
+              richBlocks: scrape.richBlocksConfig?.blocks,
             }
           );
 

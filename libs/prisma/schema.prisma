@@ -89,6 +89,7 @@ enum LlmModel {
 }
 
 type RichBlockConfig {
+  name                String
   key                 String
   payload             Json
   prompt              String

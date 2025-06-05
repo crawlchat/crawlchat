@@ -1,10 +1,13 @@
 import {
   Alert,
+  Box,
   Center,
   createListCollection,
   DataList,
+  Drawer,
   Group,
   Heading,
+  IconButton,
   Image,
   Input,
   Portal,
@@ -18,17 +21,25 @@ import { SettingsSection } from "~/dashboard/profile";
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/settings";
 import { getAuthUser } from "~/auth/middleware";
-import type { LlmModel, Prisma } from "libs/prisma";
+import type { LlmModel, Prisma, RichBlockConfig, Scrape } from "libs/prisma";
 import { getSession } from "~/session";
-import { TbPhoto, TbSettings, TbTrash } from "react-icons/tb";
+import { TbPencil, TbPhoto, TbPlus, TbSettings, TbTrash } from "react-icons/tb";
 import { Page } from "~/components/page";
 import moment from "moment";
 import { Button } from "~/components/ui/button";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getSessionScrapeId } from "./util";
 import { createToken } from "~/jwt";
 import { Switch } from "~/components/ui/switch";
 import { Field } from "~/components/ui/field";
+import {
+  SelectContent,
+  SelectItem,
+  SelectLabel,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "~/components/ui/select";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -103,6 +114,11 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("resolveNoLink")) {
     update.resolveNoLink = formData.get("resolveNoLink") as string;
   }
+  if (formData.has("richBlocksJsonString")) {
+    update.richBlocksConfig = {
+      blocks: JSON.parse(formData.get("richBlocksJsonString") as string),
+    };
+  }
 
   const scrape = await prisma.scrape.update({
     where: { id: scrapeId, userId: user!.id },
@@ -110,6 +126,299 @@ export async function action({ request }: Route.ActionArgs) {
   });
 
   return { scrape };
+}
+
+function CTABlock({
+  config,
+  onChange,
+}: {
+  config: RichBlockConfig;
+  onChange: (config: RichBlockConfig) => void;
+}) {
+  const [payload, setPayload] = useState(
+    config.payload as {
+      title: string;
+      description: string;
+      link: string;
+    }
+  );
+
+  useEffect(() => {
+    onChange({ ...config, payload });
+  }, [payload]);
+
+  return (
+    <Stack>
+      <Field label="Title">
+        <Input
+          name="title"
+          placeholder="Enter a title"
+          value={payload.title ?? ""}
+          onChange={(e) => setPayload({ ...payload, title: e.target.value })}
+        />
+      </Field>
+      <Field label="Description">
+        <Textarea
+          name="description"
+          placeholder="Enter a description"
+          value={payload.description ?? ""}
+          rows={4}
+          onChange={(e) =>
+            setPayload({ ...payload, description: e.target.value })
+          }
+        />
+      </Field>
+      <Field label="Link">
+        <Input
+          name="link"
+          placeholder="Enter a link"
+          value={payload.link ?? ""}
+          onChange={(e) => setPayload({ ...payload, link: e.target.value })}
+        />
+      </Field>
+    </Stack>
+  );
+}
+
+function RichBlockDrawer({
+  config,
+  onClose,
+}: {
+  config: RichBlockConfig;
+  onClose: (config: RichBlockConfig) => void;
+}) {
+  const typeCollection = useMemo(() => {
+    return createListCollection({
+      items: [{ label: "CTA", value: "cta" }],
+    });
+  }, []);
+  const [blockType, setBlockType] = useState<string>(config.key);
+  const [blockConfig, setBlockConfig] = useState<RichBlockConfig>(config);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  function handleClose() {
+    onClose(blockConfig);
+  }
+
+  return (
+    <Drawer.Root
+      open={true}
+      onOpenChange={(e) => {
+        if (!e.open) {
+          handleClose();
+        }
+      }}
+    >
+      <Portal>
+        <Drawer.Backdrop />
+        <Drawer.Positioner>
+          <Drawer.Content ref={contentRef}>
+            <Drawer.Header>
+              <Drawer.Title>Edit Block</Drawer.Title>
+            </Drawer.Header>
+            <Drawer.Body>
+              <Stack>
+                <SelectRoot
+                  collection={typeCollection}
+                  value={blockType ? [blockType] : []}
+                  onValueChange={(e) => setBlockType(e.value[0])}
+                >
+                  <SelectLabel>Type</SelectLabel>
+                  <SelectTrigger>
+                    <SelectValueText placeholder="Select collection" />
+                  </SelectTrigger>
+                  <SelectContent
+                    portalRef={contentRef as React.RefObject<HTMLElement>}
+                  >
+                    {typeCollection.items.map((item) => (
+                      <SelectItem item={item} key={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectRoot>
+
+                <Field label="Name">
+                  <Input
+                    name="name"
+                    placeholder="Enter a name"
+                    value={blockConfig.name}
+                    onChange={(e) =>
+                      setBlockConfig({
+                        ...blockConfig,
+                        name: e.target.value,
+                      })
+                    }
+                  />
+                </Field>
+
+                <Field label="When to use it">
+                  <Textarea
+                    name="usage"
+                    rows={4}
+                    placeholder="Ex: Use when there is no answer"
+                    value={(blockConfig.payload as any).usage}
+                    onChange={(e) =>
+                      setBlockConfig({
+                        ...blockConfig,
+                        payload: {
+                          ...(blockConfig.payload as any),
+                          usage: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </Field>
+
+                {blockType === "cta" && (
+                  <CTABlock
+                    config={blockConfig}
+                    onChange={(config) => setBlockConfig(config)}
+                  />
+                )}
+              </Stack>
+            </Drawer.Body>
+            <Drawer.Footer>
+              <Button variant="outline" onClick={() => onClose(config)}>
+                Cancel
+              </Button>
+              <Button onClick={() => onClose(blockConfig)}>Save</Button>
+            </Drawer.Footer>
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Portal>
+    </Drawer.Root>
+  );
+}
+
+function makeRichBlockPrompt(block: RichBlockConfig) {
+  if (block.key === "cta") {
+    const payload = block.payload as {
+      usage: string;
+      title: string;
+      description: string;
+      link: string;
+    };
+    return [
+      payload.usage,
+      `Title: ${payload.title}`,
+      `Description: ${payload.description}`,
+      `Link: ${payload.link}`,
+    ].join("\n");
+  }
+  return block.prompt;
+}
+
+function RichBlocksSettings({ scrape }: { scrape: Scrape }) {
+  const richBlocksFetcher = useFetcher();
+  const [richBlocks, setRichBlocks] = useState<RichBlockConfig[]>(
+    scrape.richBlocksConfig?.blocks ?? []
+  );
+  const [selectedIdx, setSelectedIdx] = useState<number>();
+  const selectedConfig = useMemo(() => {
+    return selectedIdx !== undefined ? richBlocks[selectedIdx] : undefined;
+  }, [richBlocks, selectedIdx]);
+
+  function handleUpdateBlock(config: RichBlockConfig, idx: number) {
+    setRichBlocks((blocks) => {
+      const newBlocks = [...blocks];
+      newBlocks[idx] = config;
+      newBlocks[idx].prompt = makeRichBlockPrompt(config);
+      return newBlocks;
+    });
+  }
+
+  function handleCloseBlock(config: RichBlockConfig) {
+    handleUpdateBlock(config, selectedIdx!);
+    setSelectedIdx(undefined);
+  }
+
+  function handleAddBlock() {
+    setRichBlocks((blocks) => {
+      const newBlocks = [...blocks];
+      newBlocks.push({
+        key: "cta",
+        prompt: "Add a CTA block",
+        name: `Block ${blocks.length + 1}`,
+        payload: {},
+      });
+      return newBlocks;
+    });
+    setSelectedIdx(richBlocks.length);
+  }
+
+  function handleDeleteBlock(idx: number) {
+    setRichBlocks((blocks) => {
+      const newBlocks = [...blocks];
+      newBlocks.splice(idx, 1);
+      return newBlocks;
+    });
+  }
+
+  return (
+    <>
+      <SettingsSection
+        title="Rich Blocks"
+        description="Customize the rich blocks for this scrape."
+        fetcher={richBlocksFetcher}
+      >
+        <input
+          type="hidden"
+          name="richBlocksJsonString"
+          value={JSON.stringify(richBlocks)}
+        />
+        <Stack>
+          {richBlocks.map((block, idx) => (
+            <Group
+              key={idx}
+              border={"1px solid"}
+              borderColor={"gray.200"}
+              rounded={"lg"}
+              py={2}
+              px={2}
+              pl={4}
+              maxW={"400px"}
+              w="full"
+              justifyContent={"space-between"}
+            >
+              <Stack gap={0}>
+                <Text>{block.name}</Text>
+                <Text fontSize={"xs"} opacity={0.5} lineHeight={0.6}>
+                  {block.key}
+                </Text>
+              </Stack>
+              <Group>
+                <IconButton
+                  variant={"subtle"}
+                  size={"sm"}
+                  onClick={() => setSelectedIdx(idx)}
+                >
+                  <TbPencil />
+                </IconButton>
+                <IconButton
+                  variant={"subtle"}
+                  size={"sm"}
+                  onClick={() => handleDeleteBlock(idx)}
+                  colorPalette={"red"}
+                >
+                  <TbTrash />
+                </IconButton>
+              </Group>
+            </Group>
+          ))}
+          <Box>
+            <Button variant={"subtle"} onClick={handleAddBlock}>
+              Add a Block
+              <TbPlus />
+            </Button>
+          </Box>
+        </Stack>
+      </SettingsSection>
+      {selectedConfig && (
+        <RichBlockDrawer config={selectedConfig} onClose={handleCloseBlock} />
+      )}
+    </>
+  );
 }
 
 export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
@@ -341,6 +650,8 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             )}
           </Stack>
         </SettingsSection>
+
+        <RichBlocksSettings scrape={loaderData.scrape} />
 
         <Stack
           border={"1px solid"}

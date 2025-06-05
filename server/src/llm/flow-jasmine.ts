@@ -1,4 +1,4 @@
-import { prisma } from "libs/prisma";
+import { prisma, RichBlockConfig } from "libs/prisma";
 import { makeIndexer } from "../indexer/factory";
 import {
   FlowMessage,
@@ -82,24 +82,18 @@ export function makeFlow(
     baseURL?: string;
     apiKey?: string;
     topN?: number;
+    richBlocks?: RichBlockConfig[];
   }
 ) {
   const ragTool = makeRagTool(scrapeId, indexerKey, options);
 
-  const enabledRichBlocks = [
-    {
-      key: "cta",
-      usage:
-        "Use this block where there is no context for the query. Inform the user that it has no answer and it takes them to a Whatsapp support group. Here is the link https://whatsapp.group/12345",
-      schema: richMessageBlocks.cta.schema,
-    },
-    {
-      key: "cta",
-      usage:
-        "This block is to ask user to review the product CrawlChat on Shoppify. Here is the review link https://shopify.com/reviews/crawlchat. Use this block whenever there is context for the query.",
-      schema: richMessageBlocks.cta.schema,
-    },
-  ];
+  const enabledRichBlocks = options?.richBlocks
+    ? options.richBlocks.map((rb) => ({
+        key: rb.key,
+        schema: richMessageBlocks[rb.key].schema,
+        usage: rb.prompt,
+      }))
+    : [];
 
   const richBlocksPrompt = multiLinePrompt([
     "You can use rich message blocks as code language in the answer.",
@@ -152,7 +146,7 @@ export function makeFlow(
       "Cite every fact that is used in the answer.",
       "Pick most relevant sources and cite them.",
 
-      richBlocksPrompt,
+      enabledRichBlocks.length > 0 ? richBlocksPrompt : "",
 
       "Don't ask more than 3 questions for the entire answering flow.",
       systemPrompt,
