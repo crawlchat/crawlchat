@@ -473,8 +473,8 @@ function TicketingSettings({ scrape }: { scrape: Scrape }) {
 
   return (
     <SettingsSection
-      title="Ticketing support"
-      description="Enable ticketing support for this collection. If enabled, users will be able to create support tickets and you can resolve them from Tickets section."
+      title="Resolved enquiry"
+      description="Enable resolved enquiry for this collection. If enabled, users will see a 'Issue resolved?' section end of the message. Users will be able to create support tickets and you can resolve them from Tickets section if they say no."
       fetcher={ticketingFetcher}
     >
       <input type="hidden" name="from-ticketing-enabled" value={"true"} />
