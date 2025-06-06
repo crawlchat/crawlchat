@@ -109,11 +109,37 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("resolveDescription")) {
     update.resolveDescription = formData.get("resolveDescription") as string;
   }
-  if (formData.has("resolveYesLink")) {
-    update.resolveYesLink = formData.get("resolveYesLink") as string;
+  if (
+    formData.get("customYes") === "on" &&
+    formData.has("resolveYesLink") &&
+    formData.has("resolveYesTitle") &&
+    formData.has("resolveYesDescription")
+  ) {
+    update.resolveYesConfig = {
+      title: formData.get("resolveYesTitle") as string,
+      description: formData.get("resolveYesDescription") as string,
+      link: formData.get("resolveYesLink") as string,
+      btnLabel: formData.get("resolveYesBtnLabel") as string,
+    };
   }
-  if (formData.has("resolveNoLink")) {
-    update.resolveNoLink = formData.get("resolveNoLink") as string;
+  if (
+    formData.get("customNo") === "on" &&
+    formData.has("resolveNoLink") &&
+    formData.has("resolveNoTitle") &&
+    formData.has("resolveNoDescription")
+  ) {
+    update.resolveNoConfig = {
+      title: formData.get("resolveNoTitle") as string,
+      description: formData.get("resolveNoDescription") as string,
+      link: formData.get("resolveNoLink") as string,
+      btnLabel: formData.get("resolveNoBtnLabel") as string,
+    };
+  }
+  if (formData.get("customYes") !== "on") {
+    update.resolveYesConfig = null;
+  }
+  if (formData.get("customNo") !== "on") {
+    update.resolveNoConfig = null;
   }
   if (formData.has("richBlocksJsonString")) {
     const blocks = JSON.parse(
@@ -437,21 +463,165 @@ function RichBlocksSettings({ scrape }: { scrape: Scrape }) {
   );
 }
 
+function TicketingSettings({ scrape }: { scrape: Scrape }) {
+  const ticketingFetcher = useFetcher();
+  const [ticketingEnabled, setTicketingEnabled] = useState(
+    scrape.ticketingEnabled ?? false
+  );
+  const [customYes, setCustomYes] = useState(!!scrape.resolveYesConfig);
+  const [customNo, setCustomNo] = useState(!!scrape.resolveNoConfig);
+
+  return (
+    <SettingsSection
+      title="Ticketing support"
+      description="Enable ticketing support for this collection. If enabled, users will be able to create support tickets and you can resolve them from Tickets section."
+      fetcher={ticketingFetcher}
+    >
+      <input type="hidden" name="from-ticketing-enabled" value={"true"} />
+      <Switch
+        name="ticketing"
+        defaultChecked={scrape.ticketingEnabled ?? false}
+        onCheckedChange={(e) => setTicketingEnabled(e.checked)}
+      >
+        Active
+      </Switch>
+      {ticketingEnabled && (
+        <Group>
+          <Field label="Question">
+            <Input
+              name="resolveQuestion"
+              defaultValue={scrape.resolveQuestion ?? ""}
+              placeholder="Enter the question to ask if issue resolved"
+            />
+          </Field>
+          <Field label="Description">
+            <Input
+              name="resolveDescription"
+              defaultValue={scrape.resolveDescription ?? ""}
+              placeholder="A description"
+            />
+          </Field>
+        </Group>
+      )}
+
+      {ticketingEnabled && (
+        <Stack>
+          <Switch
+            name="customYes"
+            defaultChecked={customYes}
+            onCheckedChange={(e) => setCustomYes(e.checked)}
+          >
+            Custom Yes
+          </Switch>
+          {customYes && (
+            <>
+              <Text fontSize={"sm"} opacity={0.5}>
+                It shows following details when user says the issue is resolved
+              </Text>
+              <Group>
+                <Field label="Title">
+                  <Input
+                    name="resolveYesTitle"
+                    defaultValue={scrape.resolveYesConfig?.title ?? ""}
+                    placeholder="Ex: Rate us"
+                  />
+                </Field>
+                <Field label="Description">
+                  <Input
+                    name="resolveYesDescription"
+                    defaultValue={scrape.resolveYesConfig?.description ?? ""}
+                    placeholder="Ex: Give us a rating"
+                  />
+                </Field>
+              </Group>
+              <Group>
+                <Field label="Button label">
+                  <Input
+                    name="resolveYesBtnLabel"
+                    defaultValue={scrape.resolveYesConfig?.btnLabel ?? ""}
+                    placeholder="Ex: Rate us"
+                  />
+                </Field>
+                <Field label="Link">
+                  <Input
+                    name="resolveYesLink"
+                    defaultValue={scrape.resolveYesConfig?.link ?? ""}
+                    placeholder="Ex: https://example.com/rate"
+                  />
+                </Field>
+              </Group>
+            </>
+          )}
+        </Stack>
+      )}
+
+      {ticketingEnabled && (
+        <Stack>
+          <Switch
+            name="customNo"
+            defaultChecked={customNo}
+            onCheckedChange={(e) => setCustomNo(e.checked)}
+          >
+            Custom No
+          </Switch>
+          {customNo && (
+            <>
+              <Text fontSize={"sm"} opacity={0.5}>
+                It shows following details when user says the issue is not
+                resolved
+              </Text>
+              <Group>
+                <Field label="Title">
+                  <Input
+                    name="resolveNoTitle"
+                    defaultValue={scrape.resolveNoConfig?.title ?? ""}
+                    placeholder="Example: https://example.com/support"
+                  />
+                </Field>
+                <Field label="Description">
+                  <Input
+                    name="resolveNoDescription"
+                    defaultValue={scrape.resolveNoConfig?.description ?? ""}
+                    placeholder="Ex: Give us a rating"
+                  />
+                </Field>
+              </Group>
+              <Group>
+                <Field label="Button label">
+                  <Input
+                    name="resolveNoBtnLabel"
+                    defaultValue={scrape.resolveNoConfig?.btnLabel ?? ""}
+                    placeholder="Ex: Rate us"
+                  />
+                </Field>
+                <Field label="Link">
+                  <Input
+                    name="resolveNoLink"
+                    defaultValue={scrape.resolveNoConfig?.link ?? ""}
+                    placeholder="Ex: https://example.com/support"
+                  />
+                </Field>
+              </Group>
+            </>
+          )}
+        </Stack>
+      )}
+    </SettingsSection>
+  );
+}
+
 export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const promptFetcher = useFetcher();
   const nameFetcher = useFetcher();
   const deleteFetcher = useFetcher();
   const modelFetcher = useFetcher();
   const logoFetcher = useFetcher();
-  const ticketingFetcher = useFetcher();
 
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [selectedModel, setSelectedModel] = useState<LlmModel>(
     loaderData.scrape.llmModel ?? "gpt_4o_mini"
   );
-  const [ticketingEnabled, setTicketingEnabled] = useState(
-    loaderData.scrape.ticketingEnabled ?? false
-  );
+
   const models = useMemo(() => {
     return createListCollection({
       items: [
@@ -552,64 +722,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
           />
         </SettingsSection>
 
-        <SettingsSection
-          title="Ticketing support"
-          description="Enable ticketing support for this collection. If enabled, users will be able to create support tickets and you can resolve them from Tickets section."
-          fetcher={ticketingFetcher}
-        >
-          <input type="hidden" name="from-ticketing-enabled" value={"true"} />
-          <Switch
-            name="ticketing"
-            defaultChecked={loaderData.scrape.ticketingEnabled ?? false}
-            onCheckedChange={(e) => setTicketingEnabled(e.checked)}
-          >
-            Active
-          </Switch>
-          {ticketingEnabled && (
-            <Input
-              name="resolveQuestion"
-              defaultValue={loaderData.scrape.resolveQuestion ?? ""}
-              placeholder="Enter the question to ask if issue resolved"
-            />
-          )}
-          {ticketingEnabled && (
-            <Input
-              name="resolveDescription"
-              defaultValue={loaderData.scrape.resolveDescription ?? ""}
-              placeholder="A description"
-            />
-          )}
-          {ticketingEnabled && (
-            <Stack mt={2} gap={1}>
-              <Field label="Yes link">
-                <Input
-                  name="resolveYesLink"
-                  defaultValue={loaderData.scrape.resolveYesLink ?? ""}
-                  placeholder="Example: https://example.com/rate"
-                />
-              </Field>
-              <Text fontSize={"sm"} opacity={0.5}>
-                If passed following link, it will redirect to it when user says
-                the issue is resolved
-              </Text>
-            </Stack>
-          )}
-          {ticketingEnabled && (
-            <Stack gap={1}>
-              <Field label="No link">
-                <Input
-                  name="resolveNoLink"
-                  defaultValue={loaderData.scrape.resolveNoLink ?? ""}
-                  placeholder="Example: https://example.com/support"
-                />
-              </Field>
-              <Text fontSize={"sm"} opacity={0.5}>
-                If passed following link, it will redirect to it when user says
-                the issue is not resolved
-              </Text>
-            </Stack>
-          )}
-        </SettingsSection>
+        <TicketingSettings scrape={loaderData.scrape} />
 
         <SettingsSection
           title="AI Model"

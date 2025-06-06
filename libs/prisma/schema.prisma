@@ -99,6 +99,13 @@ type RichBlocksConfig {
   blocks              RichBlockConfig[]
 }
 
+type ResolveBtnConfig {
+  btnLabel            String
+  title               String
+  description         String
+  link                String
+}
+
 model Scrape {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   userId                String   @db.ObjectId
@@ -119,8 +126,8 @@ model Scrape {
   
   resolveQuestion       String?
   resolveDescription    String?
-  resolveYesLink        String?
-  resolveNoLink         String?
+  resolveYesConfig      ResolveBtnConfig?
+  resolveNoConfig       ResolveBtnConfig?
 
   analytics             ScrapeAnalytics?
   llmModel              LlmModel?

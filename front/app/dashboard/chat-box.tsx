@@ -23,6 +23,7 @@ import type {
   Scrape,
   Thread,
   WidgetSize,
+  ResolveBtnConfig,
 } from "libs/prisma";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -41,6 +42,7 @@ import {
   TbCheck,
   TbX,
   TbTicket,
+  TbArrowRight,
 } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
@@ -233,33 +235,92 @@ export function Resolved({
   onCancel,
   resolveQuestion,
   resolveDescription,
+  resolveYesConfig,
+  resolveNoConfig,
 }: {
   onNo: () => void;
   onYes: () => void;
   onCancel: () => void;
   resolveQuestion?: string;
   resolveDescription?: string;
+  resolveYesConfig?: ResolveBtnConfig;
+  resolveNoConfig?: ResolveBtnConfig;
 }) {
+  const [screen, setScreen] = useState<"default" | "yes" | "no">("default");
+
+  function handleYes() {
+    if (resolveYesConfig) {
+      return setScreen("yes");
+    }
+    onYes();
+  }
+
+  function handleNo() {
+    if (resolveNoConfig) {
+      return setScreen("no");
+    }
+    onNo();
+  }
+
+  function handleCancel() {
+    if (screen !== "default") {
+      return setScreen("default");
+    }
+    onCancel();
+  }
+
+  function getTitleDescription() {
+    if (screen === "yes") {
+      return [resolveYesConfig?.title, resolveYesConfig?.description];
+    }
+    if (screen === "no") {
+      return [resolveNoConfig?.title, resolveNoConfig?.description];
+    }
+    return [
+      resolveQuestion || "Issue solved?",
+      resolveDescription || "Confirm if your issue is solved.",
+    ];
+  }
+
+  const [title, description] = getTitleDescription();
+
   return (
     <Stack borderBottom={"1px solid"} borderColor={"brand.outline"}>
       <Stack px={4} py={3} w="full">
         <Group justify={"space-between"} w="full">
           <Stack gap={0}>
             <Text fontSize={"xs"} lineClamp={1}>
-              {resolveQuestion || "Issue solved?"}
+              {title}
             </Text>
             <Text fontSize={"xs"} opacity={0.5} lineClamp={1}>
-              {resolveDescription || "Confirm if your issue is solved."}
+              {description}
             </Text>
           </Stack>
           <Group>
-            <Button size={"xs"} variant={"solid"} onClick={onYes}>
-              <TbThumbUp /> Yes
-            </Button>
-            <Button size={"xs"} variant={"outline"} onClick={onNo}>
-              <TbThumbDown /> No
-            </Button>
-            <IconButton size={"xs"} variant={"subtle"} onClick={onCancel}>
+            {screen === "default" && (
+              <Button size={"xs"} variant={"solid"} onClick={handleYes}>
+                <TbThumbUp /> Yes
+              </Button>
+            )}
+            {screen === "default" && (
+              <Button size={"xs"} variant={"outline"} onClick={handleNo}>
+                <TbThumbDown /> No
+              </Button>
+            )}
+            {screen === "yes" && (
+              <Button size={"xs"} onClick={onYes}>
+                {resolveYesConfig?.btnLabel || "Go"}
+                <TbArrowRight />
+              </Button>
+            )}
+            {screen === "no" && (
+              <Button size={"xs"} onClick={onNo}>
+                {resolveNoConfig?.btnLabel || "Go"}
+                <TbArrowRight />
+              </Button>
+            )}
+
+            <IconButton size={"xs"} variant={"subtle"} onClick={handleCancel}>
               <TbX />
             </IconButton>
           </Group>
@@ -309,6 +370,8 @@ function AssistantMessage({
   ticketingEnabled,
   resolveQuestion,
   resolveDescription,
+  resolveYesConfig,
+  resolveNoConfig,
 }: {
   id: string;
   content: string;
@@ -328,6 +391,8 @@ function AssistantMessage({
   ticketingEnabled?: boolean;
   resolveQuestion?: string;
   resolveDescription?: string;
+  resolveYesConfig?: ResolveBtnConfig;
+  resolveNoConfig?: ResolveBtnConfig;
 }) {
   const [cleanedLinks, cleanedContent, score] = useMemo(() => {
     const citation = extractCitations(content, links);
@@ -451,6 +516,8 @@ function AssistantMessage({
                 onCancel={() => handleResolved(null)}
                 resolveQuestion={resolveQuestion}
                 resolveDescription={resolveDescription}
+                resolveYesConfig={resolveYesConfig}
+                resolveNoConfig={resolveNoConfig}
               />
             )}
             {Object.entries(cleanedLinks)
@@ -996,8 +1063,8 @@ export default function ScrapeWidget({
   ticketingEnabled,
   resolveQuestion,
   resolveDescription,
-  resolveYesLink,
-  resolveNoLink,
+  resolveYesConfig,
+  resolveNoConfig,
 }: {
   thread: Thread;
   messages: Message[];
@@ -1016,8 +1083,8 @@ export default function ScrapeWidget({
   ticketingEnabled?: boolean;
   resolveQuestion?: string;
   resolveDescription?: string;
-  resolveYesLink?: string;
-  resolveNoLink?: string;
+  resolveYesConfig?: ResolveBtnConfig;
+  resolveNoConfig?: ResolveBtnConfig;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -1145,15 +1212,15 @@ export default function ScrapeWidget({
 
   function handleResolved(messageId: string, resolved: boolean | null) {
     if (resolved === false) {
-      if (resolveNoLink) {
-        window.open(resolveNoLink, "_blank");
+      if (resolveNoConfig?.link) {
+        window.open(resolveNoConfig.link, "_blank");
       } else {
         setScreen("ticket-create");
       }
     }
     if (resolved === true) {
-      if (resolveYesLink) {
-        window.open(resolveYesLink, "_blank");
+      if (resolveYesConfig?.link) {
+        window.open(resolveYesConfig.link, "_blank");
       }
     }
   }
@@ -1233,6 +1300,8 @@ export default function ScrapeWidget({
                       ticketingEnabled={ticketingEnabled}
                       resolveQuestion={resolveQuestion}
                       resolveDescription={resolveDescription}
+                      resolveYesConfig={resolveYesConfig}
+                      resolveNoConfig={resolveNoConfig}
                     />
                   )}
                   {(chat.askStage === "asked" ||

@@ -319,8 +319,8 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         ticketingEnabled={loaderData.scrape.ticketingEnabled ?? false}
         resolveQuestion={loaderData.scrape.resolveQuestion ?? undefined}
         resolveDescription={loaderData.scrape.resolveDescription ?? undefined}
-        resolveYesLink={loaderData.scrape.resolveYesLink ?? undefined}
-        resolveNoLink={loaderData.scrape.resolveNoLink ?? undefined}
+        resolveYesConfig={loaderData.scrape.resolveYesConfig ?? undefined}
+        resolveNoConfig={loaderData.scrape.resolveNoConfig ?? undefined}
       />
     </Stack>
   );
