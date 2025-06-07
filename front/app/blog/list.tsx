@@ -47,7 +47,11 @@ export default function BlogPage({ loaderData }: Route.ComponentProps) {
               className="flex flex-col bg-canvas rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-all duration-300"
             >
               <div className="flex items-center gap-2">
-                <img src={post.image} alt={post.title} className="w-full" />
+                <img
+                  src={post.image ?? "/blog-images/post/blog-post.png"}
+                  alt={post.title}
+                  className="w-full"
+                />
               </div>
               <div className="flex flex-col gap-2 p-6">
                 <h2 className="text-lg font-medium">{post.title}</h2>

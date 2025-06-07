@@ -2,7 +2,6 @@
 title: How to Set Up an MCP Server for Your Documentation
 date: 2025-03-30
 description: Configure an MCP server for your documentation so AI tools can access it.
-image: /blog-images/post/boosting-dx.png
 ---
 
 AI has changed the way we consume content. People now want the quickest way to access your documentation—right from their workflow. **MCP** enables us to extend the functionality of AI. **Model Context Protocol** is a standard for building AI applications so that anyone can integrate them into their AI workflow.
