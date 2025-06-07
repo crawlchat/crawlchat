@@ -2,6 +2,7 @@
 title: How Discord Bot helps?
 date: 2025-04-02
 description: Understand what and how the CrawlChat Discord Bot helps your Discord community
+image: /blog-images/post/how-discord-bot-helps.png
 ---
 
 ## What is CrawlChat?

@@ -2,6 +2,7 @@
 title: Comparison of Algolia and CrawlChat
 date: 2025-04-01
 description: Understand how Algolia and CrawlChat differs and pick one that suites your requirement
+image: /blog-images/post/comparison-of-algolia-crawlchat.png
 ---
 
 ## Algolia

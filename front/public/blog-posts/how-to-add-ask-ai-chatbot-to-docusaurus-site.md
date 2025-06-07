@@ -2,6 +2,7 @@
 title: How to add Ask AI Chatbot to Docusaurus site
 date: 2025-05-01
 description: Add an AI-powered “Ask” button to your Docusaurus docs for instant, smart user support.
+image: /blog-images/post/add-ask-ai-to-docusaurus.png
 ---
 
 If you're using [Docusaurus](https://docusaurus.io/) for your documentation, there’s a really smart and easy way to level up the experience for your readers — by adding an AI-powered chatbot with [CrawlChat](https://crawlchat.app/).

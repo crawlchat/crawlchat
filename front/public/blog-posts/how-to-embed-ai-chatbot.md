@@ -2,6 +2,7 @@
 title: How to add AI Chatbot for your docs
 date: 2025-04-22
 description: Learn how to add chatbot for your docs on your website and other channels
+image: /blog-images/post/embed-ai-chatbot.png
 ---
 
 We are currently living in a generation where embedding **AI** into our daily workflows is absolute mandatory. **AI** and **LLM**s are changing the way we do our day to day activities. This includes how people access and consume your documents and contents.
