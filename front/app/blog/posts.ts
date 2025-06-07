@@ -7,6 +7,7 @@ export type BlogPost = {
   meta: Record<string, string>;
   date: Date;
   description: string;
+  image?: string;
 };
 
 function getPostsPath() {
@@ -47,6 +48,7 @@ export function readPost(slug: string): BlogPost {
     date: new Date(frontMatter.date),
     meta: frontMatter,
     description: frontMatter.description,
+    image: frontMatter.image,
   };
 }
 

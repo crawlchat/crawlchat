@@ -2,6 +2,7 @@
 title: Boosting Developer Experience with CrawlChat
 date: 2025-05-25
 description: How CrawlChat makes docs easier to access and improves developer experience.
+image: /blog-images/post/boosting-dx.png
 ---
 If you are a developer, you probably know how frustrating it can be to find the right answer in the documentation. You may have questions like:
 

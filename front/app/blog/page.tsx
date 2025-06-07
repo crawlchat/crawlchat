@@ -1,12 +1,7 @@
-import { Group, Heading, Stack, Text } from "@chakra-ui/react";
-import { Container, CTA, Footer, Navbar } from "~/landing/page";
 import { readPost } from "./posts";
 import type { Route } from "./+types/page";
-import { TbArrowLeft, TbClock } from "react-icons/tb";
-import moment from "moment";
-import { MarkdownProse } from "~/widget/markdown-prose";
-import { Button } from "~/components/ui/button";
-import { Link, redirect } from "react-router";
+import { redirect } from "react-router";
+import { LandingPage, Container, Nav, CTA, Footer } from "~/landing-v2/page";
 
 export function loader({ params }: Route.LoaderArgs) {
   try {
@@ -27,45 +22,16 @@ export function meta({ data }: Route.MetaArgs) {
 
 export default function BlogPage({ loaderData }: Route.ComponentProps) {
   return (
-    <Stack gap={0} w="full">
-      <Navbar />
+    <LandingPage>
+      <Container>
+        <Nav />
+      </Container>
 
-      <Stack my={10} px={8}>
-        <Container>
-          <Stack w="full" maxW="800px" mx="auto">
-            <Stack w="full" gap={10} alignItems={"center"} maxW="800px">
-              <Stack w="full" alignItems={"center"}>
-                <Heading size={"5xl"} textAlign={"center"}>
-                  {loaderData.post.title}
-                </Heading>
-                <Group>
-                  <TbClock />
-                  <Text>
-                    {moment(loaderData.post.date).format("MMMM D, YYYY")}
-                  </Text>
-                </Group>
-                <Button variant={"subtle"} asChild>
-                  <Link to="/blog">
-                    <TbArrowLeft />
-                    All blog posts
-                  </Link>
-                </Button>
-              </Stack>
+      <Container>
+        <CTA />
+      </Container>
 
-              <Stack alignItems={"center"} w="full">
-                <Stack w="full">
-                  <MarkdownProse size="lg">
-                    {loaderData.post.markdown}
-                  </MarkdownProse>
-                </Stack>
-              </Stack>
-            </Stack>
-          </Stack>
-        </Container>
-      </Stack>
-
-      <CTA />
       <Footer />
-    </Stack>
+    </LandingPage>
   );
 }
