@@ -10,6 +10,7 @@ import {
   Spinner,
   Stack,
   Text,
+  Link as ChakraLink,
 } from "@chakra-ui/react";
 import {
   TbBook,
@@ -25,7 +26,12 @@ import {
   TbTicket,
   TbUser,
 } from "react-icons/tb";
-import { Link, NavLink, type FetcherWithComponents } from "react-router";
+import {
+  Link,
+  NavLink,
+  useFetcher,
+  type FetcherWithComponents,
+} from "react-router";
 import { Avatar } from "~/components/ui/avatar";
 import {
   MenuContent,
@@ -44,7 +50,14 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "~/components/ui/select";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  getPendingActions,
+  getSkippedActions,
+  setSkippedActions,
+  type SetupProgressInput,
+} from "./setup-progress";
+import { Button } from "~/components/ui/button";
 
 const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
@@ -153,6 +166,104 @@ function CreditProgress({
           <Progress.Range />
         </Progress.Track>
       </Progress.Root>
+    </Stack>
+  );
+}
+
+function SetupProgress({ scrapeId }: { scrapeId: string }) {
+  const fetcher = useFetcher<{
+    input: SetupProgressInput;
+  }>();
+
+  useEffect(() => {
+    fetcher.submit(null, {
+      method: "get",
+      action: "/setup-progress",
+    });
+  }, [scrapeId]);
+
+  const [skipped, setSkipped] = useState<string[] | undefined>(undefined);
+  const actions = useMemo(() => {
+    if (skipped === undefined || fetcher.data === undefined) {
+      return [];
+    }
+    return getPendingActions(fetcher.data.input, skipped);
+  }, [fetcher.data, skipped]);
+  const action = actions[0];
+
+  useEffect(() => {
+    setSkipped(getSkippedActions(scrapeId));
+  }, []);
+
+  useEffect(() => {
+    if (skipped === undefined) {
+      return;
+    }
+    setSkippedActions(scrapeId, skipped);
+  }, [skipped]);
+
+  function handleSkip() {
+    if (skipped === undefined) {
+      return;
+    }
+    setSkipped([...skipped, action.id]);
+  }
+
+  if (!action) {
+    return null;
+  }
+
+  return (
+    <Stack gap={1}>
+      <Group justify={"space-between"}>
+        <Text fontSize={"xs"} opacity={0.4}>
+          Out of {actions.length}
+        </Text>
+
+        {action.canSkip && (
+          <Text
+            fontSize={"xs"}
+            opacity={0.4}
+            onClick={handleSkip}
+            _hover={{ cursor: "pointer", textDecoration: "underline" }}
+          >
+            Skip
+          </Text>
+        )}
+      </Group>
+
+      <Group
+        bg="brand.subtle"
+        border="1px solid"
+        borderColor="brand.outline"
+        rounded="md"
+        p={3}
+        _hover={{ shadow: "xs" }}
+      >
+        <ChakraLink
+          href={action.url}
+          variant={"plain"}
+          _hover={{ textDecoration: "none" }}
+          outline={"none"}
+        >
+          <Stack flex={1} gap={0}>
+            <Text
+              fontSize={"sm"}
+              color="brand.fg"
+              fontWeight={"medium"}
+              fontStyle={"italic"}
+            >
+              {action.title}
+            </Text>
+            <Text fontSize={"xs"} opacity={0.5}>
+              {action.description}
+            </Text>
+          </Stack>
+          <Stack>
+            <TbChevronRight />
+          </Stack>
+        </ChakraLink>
+      </Group>
     </Stack>
   );
 }
@@ -311,6 +422,7 @@ export function SideMenu({
       </Stack>
 
       <Stack p={4} gap={4}>
+        {scrapeId && <SetupProgress scrapeId={scrapeId} />}
         <Stack bg="brand.gray.100" rounded="md" px={3} py={2}>
           <CreditProgress
             title="Messages"

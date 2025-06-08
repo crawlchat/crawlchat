@@ -55,6 +55,8 @@ export default [
     ]),
     route("knowledge", "knowledge/groups.tsx"),
     route("knowledge/item/:itemId", "knowledge/link-item.tsx"),
+
+    route("setup-progress", "dashboard/setup-progress-api.ts"),
   ]),
 
   route("blog/:slug", "blog/page.tsx"),

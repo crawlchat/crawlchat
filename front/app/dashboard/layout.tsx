@@ -14,7 +14,7 @@ import { useRef } from "react";
 import { PLAN_FREE } from "libs/user-plan";
 import { planMap } from "libs/user-plan";
 import { prisma } from "libs/prisma";
-import { commitSession, getSession } from "~/session";
+import { getSession } from "~/session";
 
 export function meta() {
   return [

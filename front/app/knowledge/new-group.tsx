@@ -209,14 +209,14 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
           longDescription:
             "Scrapes the Docusaurus based docs from the provided URL and turns them into the knowledge. It sets all required settings tailored for Docusaurus.",
         },
-        {
-          title: "GitHub Repo",
-          value: "scrape_github",
-          description: "Scrape a GitHub repository",
-          icon: <TbBrandGithub />,
-          longDescription:
-            "Scrapes the provided GitHub repository, reads the code from all the files and turns them into the knowledge.",
-        },
+        // {
+        //   title: "GitHub Repo",
+        //   value: "scrape_github",
+        //   description: "Scrape a GitHub repository",
+        //   icon: <TbBrandGithub />,
+        //   longDescription:
+        //     "Scrapes the provided GitHub repository, reads the code from all the files and turns them into the knowledge.",
+        // },
         {
           title: "GitHub Issues",
           value: "github_issues",
