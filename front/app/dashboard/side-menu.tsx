@@ -11,9 +11,11 @@ import {
   Stack,
   Text,
   Link as ChakraLink,
+  LinkBox,
 } from "@chakra-ui/react";
 import {
   TbBook,
+  TbChevronLeft,
   TbChevronRight,
   TbHome,
   TbLogout,
@@ -170,18 +172,30 @@ function CreditProgress({
   );
 }
 
+function SmallButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <Text
+      fontSize={"xs"}
+      opacity={0.4}
+      onClick={onClick}
+      _hover={{ cursor: "pointer", opacity: 1 }}
+    >
+      {children}
+    </Text>
+  );
+}
+
 function SetupProgress({ scrapeId }: { scrapeId: string }) {
   const fetcher = useFetcher<{
     input: SetupProgressInput;
   }>();
-
-  useEffect(() => {
-    fetcher.submit(null, {
-      method: "get",
-      action: "/setup-progress",
-    });
-  }, [scrapeId]);
-
+  const [index, setIndex] = useState(0);
   const [skipped, setSkipped] = useState<string[] | undefined>(undefined);
   const actions = useMemo(() => {
     if (skipped === undefined || fetcher.data === undefined) {
@@ -189,7 +203,15 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
     }
     return getPendingActions(fetcher.data.input, skipped);
   }, [fetcher.data, skipped]);
-  const action = actions[0];
+  const action = actions[index];
+  const topAction = actions[0];
+
+  useEffect(() => {
+    fetcher.submit(null, {
+      method: "get",
+      action: "/setup-progress",
+    });
+  }, [scrapeId]);
 
   useEffect(() => {
     setSkipped(getSkippedActions(scrapeId));
@@ -209,6 +231,14 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
     setSkipped([...skipped, action.id]);
   }
 
+  function handleNext() {
+    setIndex(Math.min(index + 1, actions.length - 1));
+  }
+
+  function handlePrevious() {
+    setIndex(Math.max(index - 1, 0));
+  }
+
   if (!action) {
     return null;
   }
@@ -217,19 +247,20 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
     <Stack gap={1}>
       <Group justify={"space-between"}>
         <Text fontSize={"xs"} opacity={0.4}>
-          Out of {actions.length}
+          {index + 1} / {actions.length}
         </Text>
 
-        {action.canSkip && (
-          <Text
-            fontSize={"xs"}
-            opacity={0.4}
-            onClick={handleSkip}
-            _hover={{ cursor: "pointer", textDecoration: "underline" }}
-          >
-            Skip
-          </Text>
-        )}
+        <Group gap={1}>
+          <SmallButton onClick={handlePrevious}>
+            <TbChevronLeft />
+          </SmallButton>
+          <SmallButton onClick={handleNext}>
+            <TbChevronRight />
+          </SmallButton>
+          {topAction.canSkip && index === 0 && (
+            <SmallButton onClick={handleSkip}>Skip</SmallButton>
+          )}
+        </Group>
       </Group>
 
       <Group
@@ -237,16 +268,19 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
         border="1px solid"
         borderColor="brand.outline"
         rounded="md"
-        p={3}
         _hover={{ shadow: "xs" }}
       >
-        <ChakraLink
-          href={action.url}
-          variant={"plain"}
-          _hover={{ textDecoration: "none" }}
-          outline={"none"}
+        <Link
+          to={action.url!}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            width: "100%",
+            gap: "10px",
+            padding: "10px 14px",
+          }}
         >
-          <Stack flex={1} gap={0}>
+          <Stack flex={1} gap={0} w="full">
             <Text
               fontSize={"sm"}
               color="brand.fg"
@@ -262,7 +296,7 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
           <Stack>
             <TbChevronRight />
           </Stack>
-        </ChakraLink>
+        </Link>
       </Group>
     </Stack>
   );

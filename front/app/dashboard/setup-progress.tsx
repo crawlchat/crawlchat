@@ -73,9 +73,18 @@ export function getPendingActions(
       id: "set-logo",
       priority: 5,
       title: "Set logo",
-      description: "Set the logo of the chatbot",
+      description: "Set the logo of the chatbot. Best for branding.",
       checker: (input) => !input.scrape.logoUrl,
-      url: "/settings#logo",
+      url: "/settings",
+    },
+    {
+      id: "set-promt",
+      priority: 5,
+      title: "Set prompt",
+      description:
+        "Set the system prompt. Customise the AI behaviour.",
+      checker: (input) => !input.scrape.chatPrompt,
+      url: "/settings",
     },
   ];
 
