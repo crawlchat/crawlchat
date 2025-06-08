@@ -142,6 +142,7 @@ export default function ScrapeIntegrations({
         </Button>
       </Group>
       <SettingsSection
+        id="discord-server-id"
         title={
           <Group>
             <Text>Discord Server Id</Text>

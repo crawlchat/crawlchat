@@ -303,6 +303,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   return (
     <Stack gap={6}>
       <SettingsSection
+        id="customise-widget"
         title="Customise widget"
         description="Configure the widget and copy paste the <script> tag below to your website."
         actionRight={

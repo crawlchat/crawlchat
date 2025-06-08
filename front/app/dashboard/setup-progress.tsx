@@ -49,7 +49,7 @@ export function getPendingActions(
       title: "Embed chatbot",
       description: "Embed the chatbot in your website",
       checker: (input) => input.nChatbotMessages === 0,
-      url: "/integrations",
+      url: "/integrations#customise-widget",
     },
     {
       id: "connect-discord",
@@ -57,7 +57,7 @@ export function getPendingActions(
       title: "Connect Discord",
       description: "Connect your Discord server to the chatbot",
       checker: (input) => input.nDiscordMessages === 0,
-      url: "/integrations/discord",
+      url: "/integrations/discord#discord-server-id",
       canSkip: true,
     },
     {
@@ -75,16 +75,16 @@ export function getPendingActions(
       title: "Set logo",
       description: "Set the logo of the chatbot. Best for branding.",
       checker: (input) => !input.scrape.logoUrl,
-      url: "/settings",
+      url: "/settings#logo",
     },
     {
-      id: "set-promt",
+      id: "set-prompt",
       priority: 5,
       title: "Set prompt",
       description:
         "Set the system prompt. Customise the AI behaviour.",
       checker: (input) => !input.scrape.chatPrompt,
-      url: "/settings",
+      url: "/settings#prompt",
     },
   ];
 

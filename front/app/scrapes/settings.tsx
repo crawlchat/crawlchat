@@ -693,6 +693,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
 
         <SettingsSection
+          id="logo"
           title="Logo"
           description="Set the logo URL for this collection. It will be shown on embed widget and other appropriate places."
           fetcher={logoFetcher}
@@ -723,6 +724,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
 
         <SettingsSection
+          id="prompt"
           title="Chat Prompt"
           description="Customize the chat prompt for this scrape."
           fetcher={promptFetcher}

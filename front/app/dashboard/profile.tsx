@@ -8,6 +8,7 @@ import { getAuthUser } from "~/auth/middleware";
 import type { UserSettings } from "libs/prisma";
 import { prisma } from "~/prisma";
 import { Switch } from "~/components/ui/switch";
+import { useEffect, useRef, useState } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -40,18 +41,34 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function SettingsSection({
+  id,
   children,
   fetcher,
   title,
   description,
   actionRight,
 }: {
+  id?: string;
   children: React.ReactNode;
   fetcher?: FetcherWithComponents<unknown>;
   title?: React.ReactNode;
   description?: string;
   actionRight?: React.ReactNode;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [targeted, setTargeted] = useState(false);
+  
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const hash = url.hash;
+    if (id && hash === `#${id}` && ref.current) {
+      const elementPosition = ref.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - 70;
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+      setTargeted(true);
+    }
+  }, [id]);
+
   function render() {
     return (
       <Stack
@@ -59,6 +76,10 @@ export function SettingsSection({
         borderColor={"brand.outline"}
         borderRadius={"md"}
         overflow={"hidden"}
+        ref={ref}
+        outline={targeted ? "3px solid" : "none"}
+        outlineColor={"brand.fg"}
+        outlineOffset={"2px"}
       >
         <Stack p={4} gap={4}>
           <Stack>
