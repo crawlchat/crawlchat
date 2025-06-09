@@ -483,6 +483,9 @@ function TicketingSettings({ scrape }: { scrape: Scrape }) {
   const [ticketingEnabled, setTicketingEnabled] = useState(
     scrape.ticketingEnabled ?? false
   );
+  const [customTitle, setCustomTitle] = useState(
+    !!(scrape.resolveQuestion || scrape.resolveDescription)
+  );
   const [customYes, setCustomYes] = useState(!!scrape.resolveYesConfig);
   const [customNo, setCustomNo] = useState(!!scrape.resolveNoConfig);
 
@@ -502,22 +505,33 @@ function TicketingSettings({ scrape }: { scrape: Scrape }) {
         Active
       </Switch>
       {ticketingEnabled && (
-        <Group>
-          <Field label="Question">
-            <Input
-              name="resolveQuestion"
-              defaultValue={scrape.resolveQuestion ?? ""}
-              placeholder="Enter the question to ask if issue resolved"
-            />
-          </Field>
-          <Field label="Description">
-            <Input
-              name="resolveDescription"
-              defaultValue={scrape.resolveDescription ?? ""}
-              placeholder="A description"
-            />
-          </Field>
-        </Group>
+        <Stack>
+          <Switch
+            name="customTitleDescription"
+            defaultChecked={customTitle}
+            onCheckedChange={(e) => setCustomTitle(e.checked)}
+          >
+            Custom Title & Description
+          </Switch>
+          {customTitle && (
+            <Group>
+              <Field label="Question">
+                <Input
+                  name="resolveQuestion"
+                  defaultValue={scrape.resolveQuestion ?? ""}
+                  placeholder="Enter the question to ask if issue resolved"
+                />
+              </Field>
+              <Field label="Description">
+                <Input
+                  name="resolveDescription"
+                  defaultValue={scrape.resolveDescription ?? ""}
+                  placeholder="A description"
+                />
+              </Field>
+            </Group>
+          )}
+        </Stack>
       )}
 
       {ticketingEnabled && (
@@ -527,7 +541,7 @@ function TicketingSettings({ scrape }: { scrape: Scrape }) {
             defaultChecked={customYes}
             onCheckedChange={(e) => setCustomYes(e.checked)}
           >
-            Custom Yes
+            Custom "Yes"
           </Switch>
           {customYes && (
             <>
@@ -578,7 +592,7 @@ function TicketingSettings({ scrape }: { scrape: Scrape }) {
             defaultChecked={customNo}
             onCheckedChange={(e) => setCustomNo(e.checked)}
           >
-            Custom No
+            Custom "No"
           </Switch>
           {customNo && (
             <>
