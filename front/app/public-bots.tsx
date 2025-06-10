@@ -5,7 +5,7 @@ import {
   Footer,
   CTA,
   ctaClassNames,
-} from "~/landing-v2/page";
+} from "~/landing/page";
 import type { Route } from "./+types/public-bots";
 import { TbArrowRight } from "react-icons/tb";
 import cn from "@meltdownjs/cn";

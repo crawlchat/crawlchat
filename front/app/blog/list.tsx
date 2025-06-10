@@ -3,7 +3,7 @@ import { Cache } from "~/cache";
 import type { Route } from "./+types/list";
 import { useMemo } from "react";
 import { TbClock, TbSignature } from "react-icons/tb";
-import { LandingPage, Container, Nav, CTA, Footer } from "~/landing-v2/page";
+import { LandingPage, Container, Nav, CTA, Footer } from "~/landing/page";
 import moment from "moment";
 
 const cache = new Cache(() => readPosts(), 5 * 60 * 1000);
