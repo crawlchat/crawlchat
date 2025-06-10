@@ -12,9 +12,6 @@ import {
   TbClock,
   TbDatabase,
   TbFile,
-  TbHeadphones,
-  TbHeadset,
-  TbHelp,
   TbMessage,
   TbRobotFace,
   TbScoreboard,
@@ -98,14 +95,14 @@ export function Container({ children }: PropsWithChildren) {
   );
 }
 
-function Logo() {
+export function Logo() {
   return (
-    <div className="flex items-center gap-2">
+    <a className="flex items-center gap-2" href="/">
       <img src="/logo.png" alt="CrawlChat" width={38} height={38} />
       <span className="text-2xl font-bold font-radio-grotesk text-brand">
         CrawlChat
       </span>
-    </div>
+    </a>
   );
 }
 
@@ -245,7 +242,7 @@ export function UsedBy() {
   );
 }
 
-function Heading({ children }: PropsWithChildren) {
+export function Heading({ children }: PropsWithChildren) {
   return (
     <h3 className="text-center text-4xl md:text-5xl font-bold max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
       {children}
@@ -1110,8 +1107,8 @@ export function Nav() {
       <div className="flex items-center gap-8">
         <div className="items-center gap-8 hidden md:flex">
           <NavLink href="/#how-it-works">How it works</NavLink>
-          <NavLink href="/#features">Features</NavLink>
           <NavLink href="/#pricing">Pricing</NavLink>
+          <NavLink href="/support-tickets">Support tickets</NavLink>
           <NavLink href="/public-bots">Public bots</NavLink>
         </div>
 
@@ -1135,12 +1132,21 @@ function Hero() {
   }
 
   return (
-    <div className="py-8">
-      <a className="flex justify-center mb-4 cursor-pointer hover:scale-[1.02] transition-all">
-        <div className="bg-red-50 text-xs px-1.5 py-1 rounded-full flex items-center gap-2 pr-2 border border-red-300 text-red-700">
-          <span className="px-2 bg-red-200 rounded-full font-medium border border-red-300">NEW</span>
-          <span className="leading-none">Added support to for support tickets</span>
-          <span><TbChevronRight/></span>
+    <div className="py-4">
+      <a
+        className="flex justify-center mb-8 cursor-pointer hover:scale-[1.02] transition-all"
+        href="/support-tickets"
+      >
+        <div className="bg-red-50 text-sm px-1.5 py-1 rounded-full flex items-center gap-2 pr-2 border border-red-300 text-red-700">
+          <span className="px-2 bg-red-200 rounded-full font-medium border border-red-300">
+            NEW
+          </span>
+          <span className="leading-none">
+            Added support to for support tickets
+          </span>
+          <span>
+            <TbChevronRight />
+          </span>
         </div>
       </a>
 
@@ -1200,7 +1206,7 @@ export function LandingPage({ children }: PropsWithChildren) {
   );
 }
 
-export default function LandingV2({ loaderData }: Route.ComponentProps) {
+export default function Landing({ loaderData }: Route.ComponentProps) {
   return (
     <LandingPage>
       <Container>

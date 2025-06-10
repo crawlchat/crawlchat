@@ -10,8 +10,7 @@ import {
   Spinner,
   Stack,
   Text,
-  Link as ChakraLink,
-  LinkBox,
+  Image,
 } from "@chakra-ui/react";
 import {
   TbBook,
@@ -42,7 +41,6 @@ import {
   MenuTrigger,
 } from "~/components/ui/menu";
 import type { Scrape, User } from "libs/prisma";
-import { LogoText } from "~/landing/page";
 import type { Plan } from "libs/user-plan";
 import { numberToKMB } from "~/number-util";
 import {
@@ -59,7 +57,6 @@ import {
   setSkippedActions,
   type SetupProgressInput,
 } from "./setup-progress";
-import { Button } from "~/components/ui/button";
 
 const links = [
   { label: "Home", to: "/app", icon: <TbHome /> },
@@ -389,7 +386,21 @@ export function SideMenu({
             asChild
           >
             <Group>
-              <LogoText />
+              <Group>
+                <Image src="/logo.png" alt="CrawlChat" w={8} h={8} />
+                <Text
+                  fontSize={"xl"}
+                  fontWeight={"bold"}
+                  bgGradient={"to-r"}
+                  gradientFrom={"brand.500"}
+                  gradientTo={"brand.300"}
+                  bgClip="text"
+                  color={"transparent"}
+                  asChild
+                >
+                  <Link to="/">CrawlChat</Link>
+                </Text>
+              </Group>
             </Group>
           </Heading>
         </Stack>

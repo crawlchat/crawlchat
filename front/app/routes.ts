@@ -17,8 +17,9 @@ export default [
   route("policy", "landing/policy.tsx"),
   route("embed-demo", "landing/embed-demo.tsx"),
   route("discord-bot", "landing/discord-bot.tsx"),
-  route("public-bots", "public-bots.tsx"),
-  route("shopify-app-bot", "shopify-app-bot.tsx"),
+  route("public-bots", "landing/public-bots.tsx"),
+  route("shopify-app-bot", "landing/shopify-app-bot.tsx"),
+  route("support-tickets", "landing/support-tickets.tsx"),
 
   route("payment/lemonsqueezy-webhook", "payment/lemonsqueezy-webhook.ts"),
 
