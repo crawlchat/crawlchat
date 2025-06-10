@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import type { Route } from "./+types/terms";
 import { Prose } from "~/components/ui/prose";
-import { Footer, Navbar } from "./page";
+import { LandingPage } from "./page";
 import { Stack } from "@chakra-ui/react";
 import { Container } from "./page";
 
@@ -25,8 +25,7 @@ export async function loader() {
 
 export default function Terms({ loaderData }: Route.ComponentProps) {
   return (
-    <>
-      <Navbar />
+    <LandingPage>
       <Stack py={12}>
         <Container>
           <Prose
@@ -36,7 +35,6 @@ export default function Terms({ loaderData }: Route.ComponentProps) {
           />
         </Container>
       </Stack>
-      <Footer />
-    </>
+    </LandingPage>
   );
 }

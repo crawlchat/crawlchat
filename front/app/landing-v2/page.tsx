@@ -1137,8 +1137,8 @@ function Hero() {
   return (
     <div className="py-8">
       <a className="flex justify-center mb-4 cursor-pointer hover:scale-[1.02] transition-all">
-        <div className="bg-green-100 text-xs px-1.5 py-1 rounded-full flex items-center gap-2 pr-2 border border-green-300 text-green-700">
-          <span className="px-2 bg-green-300 rounded-full font-medium">NEW</span>
+        <div className="bg-red-50 text-xs px-1.5 py-1 rounded-full flex items-center gap-2 pr-2 border border-red-300 text-red-700">
+          <span className="px-2 bg-red-200 rounded-full font-medium border border-red-300">NEW</span>
           <span className="leading-none">Added support to for support tickets</span>
           <span><TbChevronRight/></span>
         </div>

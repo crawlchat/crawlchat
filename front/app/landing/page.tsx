@@ -1,1270 +1,42 @@
-import {
-  Group,
-  Stack,
-  Text,
-  Link as ChakraLink,
-  Heading,
-  Input,
-  Spinner,
-  Box,
-  SimpleGrid,
-  GridItem,
-  Highlight,
-  Center,
-  List,
-  Badge,
-  Flex,
-  Image,
-  Icon,
-} from "@chakra-ui/react";
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type ElementType,
-  type PropsWithChildren,
-} from "react";
+import { useState, type PropsWithChildren, type ReactNode } from "react";
+import cn from "@meltdownjs/cn";
+import "../tailwind.css";
+import "../fonts.css";
 import {
   TbArrowRight,
+  TbArrowsShuffle,
   TbBrandDiscord,
-  TbBrandX,
-  TbCheck,
-  TbCircleCheck,
-  TbCode,
-  TbCrown,
-  TbFileAi,
-  TbFileX,
-  TbMail,
+  TbBrandSlack,
+  TbChartBar,
+  TbChevronRight,
+  TbClock,
+  TbDatabase,
+  TbFile,
+  TbHeadphones,
+  TbHeadset,
+  TbHelp,
   TbMessage,
-  TbMessage2,
   TbRobotFace,
+  TbScoreboard,
   TbSettings,
-  TbStarFilled,
+  TbSpider,
   TbWorld,
-  TbX,
-  TbFileInfo,
-  TbLink,
-  TbChartArea,
-  TbPlug,
-  TbBrandGithub,
-  TbBolt,
-  TbCodeCircle,
 } from "react-icons/tb";
-import { Link } from "react-router";
-import { Button } from "~/components/ui/button";
-import { useOpenScrape } from "./use-open-scrape";
-import { Toaster } from "~/components/ui/toaster";
-import { useColorMode } from "~/components/ui/color-mode";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import type { Route } from "./+types/page";
-import { Tooltip } from "~/components/ui/tooltip";
-
-const maxW = "1200px";
+import { Box, Text } from "@chakra-ui/react";
 
 export function meta() {
   return [
     {
-      title: "CrawlChat - Your documentation with AI!",
-      description: "AI Chatbot for your knowledge base and documentation",
+      title: "CrawlChat - AI Chatbot for your documentation and support",
+    },
+    {
+      name: "description",
+      content:
+        "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
     },
   ];
-}
-
-export function Container({ children }: PropsWithChildren) {
-  return (
-    <Group maxW={maxW} mx={"auto"} w="full" justifyContent={"space-between"}>
-      {children}
-    </Group>
-  );
-}
-
-export function LogoText() {
-  return (
-    <Group>
-      <Image src="/logo.png" alt="CrawlChat" w={8} h={8} />
-      <Text
-        fontSize={"xl"}
-        fontWeight={"bold"}
-        bgGradient={"to-r"}
-        gradientFrom={"brand.500"}
-        gradientTo={"brand.300"}
-        bgClip="text"
-        color={"transparent"}
-        asChild
-      >
-        <Link to="/">CrawlChat</Link>
-      </Text>
-    </Group>
-  );
-}
-
-export function Navbar() {
-  return (
-    <Stack
-      as="nav"
-      position={"sticky"}
-      top={0}
-      bg={"brand.white"}
-      zIndex={1}
-      borderBottom={"1px solid"}
-      borderColor={"brand.outline-subtle"}
-      p={4}
-      px={8}
-    >
-      <Container>
-        <Group>
-          <LogoText />
-        </Group>
-        <Group gap={6}>
-          <ChakraLink href={"/#use-cases"} display={["none", "flex"]}>
-            Use cases
-          </ChakraLink>
-          <ChakraLink href={"/#features"} display={["none", "flex"]}>
-            Features
-          </ChakraLink>
-          <ChakraLink href={"/#pricing"} display={["none", "flex"]}>
-            Pricing
-          </ChakraLink>
-          <Button
-            variant={"outline"}
-            colorPalette={"brand"}
-            size={"lg"}
-            asChild
-          >
-            <Link to={"/login"}>
-              Login
-              <TbArrowRight />
-            </Link>
-          </Button>
-        </Group>
-      </Container>
-    </Stack>
-  );
-}
-
-function TryItOut() {
-  const {
-    scrapeFetcher,
-    scraping,
-    stage,
-    roomId,
-    mpcCmd,
-    disable,
-    openChat,
-    downloadLlmTxt,
-    copyMcpCmd,
-  } = useOpenScrape();
-
-  return (
-    <Stack maxW={"500px"} w="full" gap={4} alignItems={"center"}>
-      {stage === "idle" && (
-        <scrapeFetcher.Form
-          className="w-full"
-          method="post"
-          action="/open-scrape"
-          style={{ width: "100%" }}
-        >
-          <Group w="full">
-            <input type="hidden" name="intent" value="scrape" />
-            <input type="hidden" name="roomId" value={roomId} />
-            <Input
-              name="url"
-              placeholder="Enter your website URL"
-              size={"2xl"}
-              disabled={disable}
-              flex={1}
-            />
-            <Button
-              size={"2xl"}
-              type="submit"
-              loading={disable}
-              colorPalette={"brand"}
-            >
-              Try it
-              <TbArrowRight />
-            </Button>
-          </Group>
-        </scrapeFetcher.Form>
-      )}
-
-      {stage !== "idle" && stage !== "saved" && (
-        <Spinner size={"xl"} color={"brand.fg"} />
-      )}
-      {stage === "saved" && (
-        <Text fontSize={"6xl"} color={"brand.fg"}>
-          <TbCircleCheck />
-        </Text>
-      )}
-
-      <Group justifyContent={"center"}>
-        <Text
-          fontSize={"sm"}
-          opacity={0.5}
-          truncate
-          maxW={["300px", "500px", "600px"]}
-        >
-          {scrapeFetcher.data?.error ? (
-            <span className="text-red-500">{scrapeFetcher.data?.error}</span>
-          ) : stage === "scraping" ? (
-            <span>Scraping {scraping?.url ?? "url..."}</span>
-          ) : stage === "saved" ? (
-            <span>Scraped and ready!</span>
-          ) : (
-            <span>Fetches 25 pages and makes it LLM ready!</span>
-          )}
-        </Text>
-      </Group>
-
-      <Stack w="full" direction={["column", "row"]}>
-        <Box flex={1}>
-          <Button
-            variant={"subtle"}
-            disabled={stage !== "saved"}
-            size={"2xl"}
-            onClick={openChat}
-            w="full"
-          >
-            <TbMessage />
-            Chat
-          </Button>
-        </Box>
-        <Box flex={1}>
-          <Button
-            w="full"
-            variant={"subtle"}
-            disabled={stage !== "saved"}
-            size={"2xl"}
-            onClick={copyMcpCmd}
-          >
-            <TbRobotFace />
-            MCP
-          </Button>
-        </Box>
-      </Stack>
-    </Stack>
-  );
-}
-
-function AnimatedGradient({ children }: PropsWithChildren) {
-  const [deg, setDeg] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDeg((deg) => deg + 1);
-    }, 10);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <Text
-      as="span"
-      className="gradient-text"
-      style={{
-        background: `linear-gradient(${deg}deg, var(--chakra-colors-brand-200), var(--chakra-colors-brand-300), var(--chakra-colors-brand-400), var(--chakra-colors-brand-500))`,
-      }}
-      fontWeight={"black"}
-    >
-      {children}
-    </Text>
-  );
-}
-
-function ChannelIcon({
-  icon,
-  rotate,
-  tooltip,
-}: {
-  icon: ElementType;
-  rotate: string;
-  tooltip: string;
-}) {
-  return (
-    <Tooltip content={tooltip} showArrow>
-      <Text
-        as={"span"}
-        display={"inline-flex"}
-        w={8}
-        h={8}
-        border={"1px solid"}
-        borderColor="brand.muted"
-        rounded={"xl"}
-        fontSize={"2xl"}
-        justifyContent={"center"}
-        alignItems={"center"}
-        bgGradient={"to-b"}
-        gradientFrom={"brand.muted"}
-        gradientTo={"brand.subtle"}
-        rotate={rotate}
-      >
-        <Icon as={icon} fontSize={"18px"} />
-      </Text>
-    </Tooltip>
-  );
-}
-
-function Hero() {
-  return (
-    <Stack w={"full"} px={8} py={12}>
-      <Container>
-        <Stack alignItems={"center"} w="full" gap={6}>
-          <Text
-            bg="brand.subtle"
-            p={2}
-            px={4}
-            fontSize={"sm"}
-            color={"brand.fg"}
-            fontWeight={"medium"}
-            rounded={"full"}
-          >
-            Connect documentation to MCP!
-          </Text>
-
-          <Heading
-            as="h1"
-            fontSize={["5xl", "6xl"]}
-            fontWeight={"bolder"}
-            lineHeight={1}
-            textAlign={"center"}
-          >
-            Deliver your documentation with{" "}
-            <AnimatedGradient>AI</AnimatedGradient>
-          </Heading>
-
-          <Text
-            as="h2"
-            fontSize={["lg", "xl"]}
-            textAlign={"center"}
-            maxW={"800px"}
-            opacity={0.8}
-          >
-            Add your existing documentation as knowledge base and deliver it
-            through multiple channels{" "}
-            <ChannelIcon
-              icon={TbMessage}
-              rotate={"10deg"}
-              tooltip="Embed chat widget"
-            />{" "}
-            <ChannelIcon
-              icon={TbBrandDiscord}
-              rotate={"-4deg"}
-              tooltip="Discord bot"
-            />{" "}
-            <ChannelIcon
-              icon={TbRobotFace}
-              rotate={"4deg"}
-              tooltip="MCP server"
-            />{" "}
-            for your community. Get visibility how your community consumes it
-            and make your documentation better!
-          </Text>
-
-          <TryItOut />
-        </Stack>
-      </Container>
-    </Stack>
-  );
-}
-
-function LandingHeading({ children }: PropsWithChildren) {
-  return (
-    <Heading
-      as="h2"
-      fontSize={"2xl"}
-      fontWeight={"bold"}
-      textAlign={"center"}
-      position={"relative"}
-      mb={4}
-    >
-      {children}
-      <Box
-        position={"absolute"}
-        bottom={-1.5}
-        left={"50%"}
-        w={6}
-        h={1}
-        bg="brand.fg"
-        rounded={"full"}
-        transform={"translateX(-50%)"}
-      />
-    </Heading>
-  );
-}
-
-function Demo() {
-  return (
-    <Stack w={"full"} px={8} py={12}>
-      <Container>
-        <Box
-          rounded={"2xl"}
-          overflow={"hidden"}
-          w={"full"}
-          h={"full"}
-          border="1px solid"
-          borderColor={"brand.outline"}
-        >
-          <video
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            poster="/demo-poster.png"
-            src="https://slickwid-public.s3.us-east-1.amazonaws.com/CrawlChat-Overview-2.mp4"
-            controls
-          >
-            Your browser does not support the video tag.
-          </video>
-        </Box>
-      </Container>
-    </Stack>
-  );
-}
-
-function HowItWorks() {
-  const steps = [
-    {
-      icon: <TbWorld />,
-      title: "Scrape",
-      description:
-        "Input your website URL and let CrawlChat crawl the content. We convert pages to markdown, create embeddings, and store them in a vector database.",
-    },
-    {
-      icon: <TbSettings />,
-      title: "Customise",
-      description:
-        "Once the content is scraped, you can customise how the content is to be used. Set custom rules, custom data, system prompts etc.",
-    },
-    {
-      icon: <TbPlug />,
-      title: "Integrate",
-      description:
-        "Deploy your documentation by integrating the Chat widget on your website, or add a Discord bot to your server, or share it with MCP server.",
-    },
-  ];
-  return (
-    <Stack w={"full"} px={8} py={12} bg="brand.gray.50">
-      <Container>
-        <Stack alignItems={"center"} w="full" gap={6}>
-          <LandingHeading>How it works</LandingHeading>
-          <SimpleGrid columns={[1, 2, 3]} gap={6} w={"full"}>
-            {steps.map((step, i) => (
-              <GridItem key={step.title}>
-                <Stack
-                  key={step.title}
-                  gap={2}
-                  bgGradient={"to-b"}
-                  gradientFrom={"brand.subtle"}
-                  gradientTo={"brand.muted"}
-                  p={6}
-                  px={8}
-                  rounded={"2xl"}
-                  h="full"
-                >
-                  <Text fontSize={"5xl"} color="brand.fg">
-                    {step.icon}
-                  </Text>
-                  <Text fontSize={"2xl"} fontWeight={"medium"}>
-                    {i + 1}. {step.title}
-                  </Text>
-                  <Text opacity={0.6}>{step.description}</Text>
-                </Stack>
-              </GridItem>
-            ))}
-          </SimpleGrid>
-        </Stack>
-      </Container>
-    </Stack>
-  );
-}
-
-function UseCases() {
-  const useCases = [
-    {
-      icon: <TbCode />,
-      title: "Embed Ask AI",
-      titleHighlight: "Ask AI",
-      description:
-        "It is quite common to have a heavy documentation or content for your service. It quickly gets complicated to create a chat bot that learns from all your content and answers users queries. CrawlChat takes care of it and let's you embed the chatbot with few clicks!",
-      points: [
-        { text: "Show sources" },
-        { text: "Embed or share URLs", highlight: ["Embed", "URLs"] },
-        { text: "No hallucinations" },
-      ],
-      link: "/use-case/embed",
-    },
-    {
-      icon: <TbRobotFace />,
-      title: "Data on MCP server",
-      titleHighlight: "MCP server",
-      description:
-        "Model Context Protocol (MCP) has been very well adopted by the LLM systems already. It is a way to connect external systems to the LLMs which are generic in nature and don't know much about your services and content. CrawlChat let's you get MCP server for your content without any extra effort!",
-      points: [
-        { text: "No extra setup" },
-        {
-          text: "Perfect for Cursor, Windsurf & Claude",
-          highlight: ["Cursor", "Windsurf", "Claude"],
-        },
-      ],
-      link: "/use-case/mcp",
-    },
-    {
-      icon: <TbBrandDiscord />,
-      title: "Connect Discord bot",
-      titleHighlight: "Discord bot",
-      description:
-        "Running a community on Discord and want to use AI to answer questions and learn from the conversations? CrawlChat Bot lets you automate query resolutions on your server with ease!",
-      points: [
-        { text: "Just tag @crawlchat", highlight: ["@crawlchat"] },
-        { text: "Answers repeated questions", highlight: ["Answers"] },
-        { text: "Learns from the conversations", highlight: ["Learns"] },
-      ],
-      link: "/use-case/discord-bot",
-    },
-  ];
-
-  return (
-    <Stack w={"full"} px={8} py={12} id="use-cases">
-      <Container>
-        <Stack alignItems={"center"} w="full" gap={6}>
-          <LandingHeading>Use cases</LandingHeading>
-
-          <SimpleGrid columns={[1, 1, 3]} gap={6} w={"full"}>
-            {useCases.map((useCase, i) => (
-              <GridItem key={i}>
-                <Stack
-                  bg="brand.gray.50"
-                  p={8}
-                  rounded={"lg"}
-                  borderTop={"6px solid"}
-                  borderColor="brand.emphasized"
-                  gap={8}
-                  shadow={"xs"}
-                  _hover={{
-                    shadow: "md",
-                  }}
-                  transition={"all 0.2s ease-in-out"}
-                  h="full"
-                >
-                  <Center
-                    w={"60px"}
-                    h={"60px"}
-                    bgGradient={"to-b"}
-                    gradientFrom={"brand.subtle"}
-                    gradientTo={"brand.muted"}
-                    rounded={"2xl"}
-                    mb={4}
-                    fontSize={"30px"}
-                  >
-                    {useCase.icon}
-                  </Center>
-                  <Heading size={"2xl"} color="brand.fg">
-                    <Highlight
-                      query={useCase.titleHighlight}
-                      styles={{
-                        bg: "brand.fg",
-                        color: "brand.white",
-                        px: 1,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {useCase.title}
-                    </Highlight>
-                  </Heading>
-                  <Text>{useCase.description}</Text>
-                  <List.Root gap="2" variant="plain" align="center">
-                    {useCase.points.map((point, i) => (
-                      <List.Item key={i} alignItems={"flex-start"}>
-                        <List.Indicator asChild color="brand.fg">
-                          <TbCircleCheck />
-                        </List.Indicator>
-                        <Text>
-                          <Highlight
-                            query={point.highlight ?? []}
-                            styles={{
-                              px: 1,
-                              mx: 1,
-                              bg: "brand.muted",
-                              display: "inline",
-                            }}
-                          >
-                            {point.text}
-                          </Highlight>
-                        </Text>
-                      </List.Item>
-                    ))}
-                  </List.Root>
-
-                  <Group>
-                    <Button
-                      colorPalette={"brand"}
-                      size={"xl"}
-                      variant={"outline"}
-                      asChild
-                    >
-                      <Link to={useCase.link}>
-                        Learn more
-                        <TbArrowRight />
-                      </Link>
-                    </Button>
-                  </Group>
-                </Stack>
-              </GridItem>
-            ))}
-          </SimpleGrid>
-        </Stack>
-      </Container>
-    </Stack>
-  );
-}
-
-type Feature = {
-  label: string;
-  excluded?: boolean;
-  new?: boolean;
-};
-
-function PriceBox({
-  price,
-  title,
-  description,
-  features,
-  popular,
-  href,
-  disabled,
-  newTab = false,
-}: {
-  price: number;
-  title: string;
-  description: string;
-  features: Feature[];
-  href: string;
-  popular?: boolean;
-  disabled?: boolean;
-  newTab?: boolean;
-}) {
-  return (
-    <Stack
-      flex={1}
-      p={8}
-      bg={popular ? "brand.subtle" : "brand.gray.50"}
-      rounded={"2xl"}
-      position={"relative"}
-      border={"2px solid"}
-      borderColor={popular ? "brand.emphasized" : "brand.subtle"}
-    >
-      {popular && (
-        <Group
-          position={"absolute"}
-          top={0}
-          left={"50%"}
-          transform={"translate(-50%, -50%)"}
-          bg="brand.fg"
-          p={1}
-          px={3}
-          rounded={"full"}
-          color="white"
-          fontSize={"xs"}
-          fontWeight={"bold"}
-        >
-          <TbCrown />
-          <Text>Popular</Text>
-        </Group>
-      )}
-
-      <Text fontSize={"2xl"} fontWeight={"bold"} lineHeight={1}>
-        {title}
-      </Text>
-      <Text opacity={0.6}>{description}</Text>
-
-      <Group alignItems={"flex-end"} gap={0} my={4}>
-        <Text fontSize={"4xl"} fontWeight={"bold"} lineHeight={1}>
-          ${price}
-        </Text>
-        <Text opacity={0.6}>/month</Text>
-      </Group>
-
-      <Stack>
-        {features.map((feature) => (
-          <Group
-            key={feature.label}
-            alignItems="center"
-            gap={2}
-            opacity={feature.excluded ? 0.5 : 1}
-          >
-            <Box color="brand.fg">
-              {feature.excluded ? <TbX /> : <TbCheck />}
-            </Box>
-            <Text>{feature.label}</Text>
-            {feature.new && (
-              <Badge colorPalette={"black"} variant={"solid"} fontSize={"xs"}>
-                <TbStarFilled />
-                New
-              </Badge>
-            )}
-          </Group>
-        ))}
-      </Stack>
-
-      <Button
-        w="full"
-        mt={4}
-        variant={price === 0 ? "outline" : "solid"}
-        colorPalette={"brand"}
-        asChild
-        disabled={disabled}
-      >
-        <a href={href} target={newTab ? "_blank" : "_self"}>
-          {price === 0 ? "Get started" : "Purchase"}
-          <TbArrowRight />
-        </a>
-      </Button>
-    </Stack>
-  );
-}
-
-export function Pricing() {
-  return (
-    <Stack w={"full"} px={8} py={12} id="pricing">
-      <Container>
-        <Stack alignItems={"center"} w="full" gap={6}>
-          <LandingHeading>Pricing</LandingHeading>
-          <Stack w={"full"} gap={6} direction={["column", "row"]}>
-            <PriceBox
-              price={0}
-              title="Free"
-              description="For personal use"
-              features={[
-                { label: "100 page scrapes" },
-                { label: "100 message credits" },
-                { label: "API not available", excluded: true },
-                { label: "MCP not available", excluded: true },
-                { label: "Discord bot", excluded: true },
-                { label: "Discord drafting", excluded: true },
-                { label: "GitHub issues", excluded: true },
-              ]}
-              href="/login"
-            />
-            <PriceBox
-              price={29}
-              title="Starter"
-              description="Start your journey with CrawlChat"
-              features={[
-                { label: "5000 site scrapes/month" },
-                { label: "7000 message credits/month" },
-                { label: "API available" },
-                { label: "MCP available" },
-                { label: "Discord bot" },
-                { label: "Discord drafting", excluded: true },
-                { label: "GitHub issues", excluded: true },
-              ]}
-              href="https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
-              newTab
-            />
-            <PriceBox
-              price={79}
-              title="Pro"
-              description="For power users and teams"
-              features={[
-                { label: "14,000 site scrapes per month" },
-                { label: "20,000 messages per month" },
-                { label: "API available" },
-                { label: "MCP available" },
-                { label: "Discord bot" },
-                { label: "Discord drafting", new: true },
-                { label: "GitHub issues", new: true },
-              ]}
-              href="https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
-              newTab
-              popular
-            />
-          </Stack>
-        </Stack>
-      </Container>
-    </Stack>
-  );
-}
-
-export function CTA() {
-  return (
-    <Stack w={"full"} px={8} py={12} bg="brand.subtle">
-      <Container>
-        <Stack alignItems={"center"} w="full" gap={6}>
-          <Heading
-            as="h2"
-            fontSize={"4xl"}
-            fontWeight={"bold"}
-            textAlign={"center"}
-            lineHeight={1.2}
-          >
-            Ready to make your documentation LLM ready?
-          </Heading>
-          <Text maxW={"500px"} textAlign={"center"} opacity={0.6}>
-            Join users who are already having meaningful conversations with web
-            content using CrawlChat.
-          </Text>
-          <Button colorPalette={"brand"} asChild size={"2xl"} rounded={"full"}>
-            <Link to="/login">
-              Get started
-              <TbArrowRight />
-            </Link>
-          </Button>
-        </Stack>
-      </Container>
-    </Stack>
-  );
-}
-
-export function Footer() {
-  return (
-    <Stack w={"full"} px={8} py={12}>
-      <Container>
-        <Flex
-          w="full"
-          alignItems={"flex-start"}
-          gap={[10, 10, 2]}
-          flexDir={["column", "column", "row"]}
-        >
-          <Stack flex={2}>
-            <LogoText />
-            <Text>Deliver your documentation with AI!</Text>
-            <Text fontSize={"sm"} opacity={0.5}>
-              © 2025 CrawlChat
-            </Text>
-          </Stack>
-          <Stack flex={2}>
-            <ChakraLink href={"/blog/how-to-embed-ai-chatbot"}>
-              How to add AI Chatbot for your docs
-            </ChakraLink>
-            <ChakraLink href={"/blog/how-remotion-uses-crawlchat"}>
-              Documentation - Use case
-            </ChakraLink>
-            <ChakraLink href={"/blog/how-to-setup-mcp-for-your-documentation"}>
-              Setup MCP server
-            </ChakraLink>
-            <ChakraLink href={"/blog/how-discord-bot-helps"}>
-              How Discord Bot helps?
-            </ChakraLink>
-          </Stack>
-          <Stack flex={1}>
-            <ChakraLink href={"/"}>Home</ChakraLink>
-            <ChakraLink href={"/#pricing"}>Pricing</ChakraLink>
-            <ChakraLink href={"/#use-cases"}>Use cases</ChakraLink>
-            <ChakraLink href={"/#features"}>Features</ChakraLink>
-            <ChakraLink href={"https://guides.crawlchat.app"}>
-              Guides
-            </ChakraLink>
-            <ChakraLink href={"https://crawlchat.features.vote/roadmap"}>
-              Roadmap
-            </ChakraLink>
-            <ChakraLink href={"/blog"}>Blog</ChakraLink>
-          </Stack>
-          <Stack flex={1}>
-            <ChakraLink href={"/terms"}>Terms</ChakraLink>
-            <ChakraLink href={"/policy"}>Privacy policy</ChakraLink>
-            <Group gap={4} fontSize={"xl"}>
-              <ChakraLink href={"mailto:support@crawlchat.app"}>
-                <TbMail />
-              </ChakraLink>
-              <ChakraLink href={"https://x.com/pramodk73"} target="_blank">
-                <TbBrandX />
-              </ChakraLink>
-            </Group>
-          </Stack>
-        </Flex>
-      </Container>
-    </Stack>
-  );
-}
-
-function MessagesCount({
-  title,
-  children,
-}: PropsWithChildren<{ title: string }>) {
-  return (
-    <Stack alignItems={"center"} gap={2}>
-      <Text fontSize={"7xl"} fontWeight={"bold"} lineHeight={1}>
-        {children}
-      </Text>
-      <Text opacity={0.3} maxW={160} textAlign={"center"}>
-        {title}
-      </Text>
-    </Stack>
-  );
-}
-
-function UsedBy({
-  messagesThisWeek,
-  messagesDay,
-  messagesMonth,
-}: {
-  messagesThisWeek: number;
-  messagesDay: number;
-  messagesMonth: number;
-}) {
-  const { colorMode } = useColorMode();
-  const [updatedAt, setUpdatedAt] = useState(new Date());
-  const companies = useMemo(() => {
-    return [
-      {
-        name: "Remotion",
-        image:
-          colorMode === "dark"
-            ? "/used-by/remotion-white.png"
-            : "/used-by/remotion.png",
-      },
-      {
-        name: "Konvajs",
-        image: "/used-by/konvajs.png",
-        text: "Konvajs",
-      },
-    ];
-  }, [colorMode, updatedAt]);
-
-  useEffect(() => {
-    setUpdatedAt(new Date());
-  }, []);
-
-  return (
-    <Stack w={"full"} px={8} py={12} key={updatedAt.getTime()}>
-      <Container>
-        <Stack alignItems={"center"} w="full" gap={20}>
-          <Stack alignItems={"center"} w="full" gap={6}>
-            <Text textAlign={"center"}>
-              Already being used by awesome companies!
-            </Text>
-            <Flex gap={10} alignItems={"center"}>
-              {companies.map((company) => (
-                <Group key={company.image}>
-                  <img
-                    src={company.image}
-                    alt={company.name}
-                    style={{
-                      maxWidth: "180px",
-                      maxHeight: "40px",
-                    }}
-                  />
-                  <Text fontWeight={"medium"}>{company.text}</Text>
-                </Group>
-              ))}
-            </Flex>
-          </Stack>
-
-          <Stack>
-            <Text textAlign={"center"}>Answering questions continuously</Text>
-            <Flex direction={["column", "row"]} gap={20}>
-              <MessagesCount title="Today">{messagesDay}</MessagesCount>
-              <MessagesCount title="In the last week">
-                {messagesThisWeek}
-              </MessagesCount>
-              <MessagesCount title="In the last month">
-                {messagesMonth}
-              </MessagesCount>
-            </Flex>
-          </Stack>
-        </Stack>
-      </Container>
-    </Stack>
-  );
-}
-
-function FeatureCard({ feature }: { feature: FeatureItem }) {
-  return (
-    <Stack
-      bg="brand.white"
-      p={3}
-      px={4}
-      rounded={"lg"}
-      shadow={"sm"}
-      outline={"2px solid"}
-      outlineColor="brand.muted"
-      shadowColor="brand.muted"
-      flex={1}
-      alignItems={"flex-start"}
-      h="fit-content"
-      position={"relative"}
-    >
-      <Text color="brand.fg" fontSize={"3xl"}>
-        {feature.icon}
-      </Text>
-      <Stack gap={2}>
-        <Text as="h4">{feature.title}</Text>
-        <Text fontSize={"sm"} opacity={0.6}>
-          {feature.description}
-        </Text>
-      </Stack>
-      {feature.comingSoon && (
-        <Box
-          position={"absolute"}
-          top={0}
-          right={0}
-          transform={"translate(14%, -40%)"}
-        >
-          <Badge variant={"solid"} fontSize={"xs"}>
-            Coming!
-          </Badge>
-        </Box>
-      )}
-      {feature.new && (
-        <Box
-          position={"absolute"}
-          top={0}
-          right={0}
-          transform={"translate(14%, -40%)"}
-        >
-          <Badge colorPalette={"brand"} variant={"solid"} fontSize={"xs"}>
-            <TbStarFilled />
-            New!
-          </Badge>
-        </Box>
-      )}
-    </Stack>
-  );
-}
-
-type FeatureItem = {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  comingSoon?: boolean;
-  new?: boolean;
-};
-
-function Features() {
-  const features = useMemo<FeatureItem[]>(
-    () => [
-      {
-        title: "Embed Ask AI",
-        icon: <TbCodeCircle />,
-        description:
-          "You can embed the popular Ask AI widget on your website without any hassle",
-      },
-      {
-        title: "Scrape from any website",
-        icon: <TbWorld />,
-        description:
-          "CrawlChat relies on scraping as a default way to fetch the content. So it supports anything on web by default!",
-      },
-      {
-        title: "MCP server",
-        icon: <TbRobotFace />,
-        description:
-          "Your technical documentation needs to be available through MCP in the AI era and CrawlChat gives that out of the box!",
-      },
-      {
-        title: "Discord bot",
-        icon: <TbBrandDiscord />,
-        description:
-          "Have a community on Discord? CrawlChat Discord Bot is here to answer all the questions for you.",
-      },
-      {
-        title: "APIs to integrate",
-        icon: <TbCode />,
-        description:
-          "Use the APIs to integrate the chat capabilitie into your own app.",
-        comingSoon: true,
-      },
-      {
-        title: "Sources of information",
-        icon: <TbFileInfo />,
-        description:
-          "AI hallucinations are irritating and CrawlChat eliminates it by making AI only answer from your own documentation. Thanks to RAG!",
-      },
-      {
-        title: "System prompts",
-        icon: <TbMessage2 />,
-        description:
-          "Get full control over the LLMs by giving system prompts that match your product's style.",
-      },
-      {
-        title: "Upload PDFs",
-        icon: <TbFileAi />,
-        comingSoon: true,
-        description:
-          "Also upload PDFs and other documents to your knowledge base.",
-      },
-      {
-        title: "Widget customization",
-        icon: <TbSettings />,
-        description:
-          "Customize the widget that matches your brand. Configure colors and welcome screens.",
-      },
-      {
-        title: "View conversations",
-        icon: <TbMessage />,
-        description:
-          "Get full visibility into the conversations happening on your website so that you can fine tune your documentation.",
-      },
-      {
-        title: "Find data gaps",
-        icon: <TbFileX />,
-        description:
-          "Find out what questions are not performing well using the scores. Use it to fill the gaps in your documentation.",
-      },
-      {
-        title: "Email notifications",
-        icon: <TbMail />,
-        description:
-          "Get notified about the conversations and stats regularly.",
-      },
-      {
-        title: "Shareable links",
-        icon: <TbLink />,
-        description:
-          "Quickly share the chat page links with your customers. Embedding the widget is not the only way to use CrawlChat!",
-      },
-      {
-        title: "Analytics",
-        icon: <TbChartArea />,
-        description:
-          "It's not a chatbot, it also provides you in-deep analytics to understand your customer queries and make your documentation better.",
-      },
-      {
-        title: "Discord drafting",
-        icon: <TbBrandDiscord />,
-        description:
-          "Use CrawlChat to draft answers manually yet taking help from AI!",
-        new: true,
-      },
-      {
-        title: "GitHub issues",
-        icon: <TbBrandGithub />,
-        description:
-          "Fetch the Github issues and add them to your knowledge base instantly!",
-        new: true,
-      },
-      {
-        title: "Multiple AI models",
-        icon: <TbBolt />,
-        description:
-          "Use different AI models that work better for your knowledge and requirement from 4o-mini, o3-mini, sonnet-3.5 and more.",
-        new: true,
-      },
-    ],
-    []
-  );
-  const [vw, setVw] = useState(1200);
-  const grouped = useMemo(() => {
-    const n = Math.max(1, Math.floor(vw / 400));
-    const groups: FeatureItem[][] = [];
-    for (let i = 0; i < n; i++) {
-      groups.push([]);
-    }
-
-    let nextIndex = 0;
-    for (let i = 0; i < features.length; i++) {
-      groups[nextIndex].push(features[i]);
-      nextIndex = (nextIndex + 1) % n;
-    }
-
-    return groups;
-  }, [features, vw]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setVw(window.innerWidth);
-    };
-
-    handleResize();
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return (
-    <Stack w={"full"} px={8} py={12} bg="brand.gray.50" id="features">
-      <Container>
-        <Stack alignItems={"center"} w="full" gap={6}>
-          <LandingHeading>Features</LandingHeading>
-          <Group alignItems={"flex-start"} gap={6} w="full">
-            {grouped.map((group, i) => (
-              <Stack key={i} flex={1} w="full" gap={6}>
-                {group.map((feature) => (
-                  <FeatureCard key={feature.title} feature={feature} />
-                ))}
-              </Stack>
-            ))}
-          </Group>
-        </Stack>
-      </Container>
-    </Stack>
-  );
-}
-
-function Testimonials() {
-  return (
-    <Stack w={"full"} px={8} py={12} bg="brand.gray.50" id="features">
-      <Container>
-        <Stack alignItems={"center"} w="full" gap={6}>
-          <LandingHeading>People love CrawlChat</LandingHeading>
-          <Flex flexDir={["column", "row"]} gap={6}>
-            <Stack>
-              <Box>
-                <blockquote className="twitter-tweet">
-                  <p lang="en" dir="ltr">
-                    MCP, llms.txt and{" "}
-                    <a href="https://t.co/wvTaGlv99L">
-                      https://t.co/wvTaGlv99L
-                    </a>{" "}
-                    are now live!
-                    <br />
-                    <br />
-                    Thanks to{" "}
-                    <a href="https://twitter.com/pramodk73?ref_src=twsrc%5Etfw">
-                      @pramodk73
-                    </a>{" "}
-                    and{" "}
-                    <a href="https://t.co/dv2PDLzt2V">
-                      https://t.co/dv2PDLzt2V
-                    </a>{" "}
-                    for getting us up to speed with AI integrations.{" "}
-                    <a href="https://t.co/Sornu9aIFi">
-                      https://t.co/Sornu9aIFi
-                    </a>
-                  </p>
-                  &mdash; Jonny Burger (@JNYBGR){" "}
-                  <a href="https://twitter.com/JNYBGR/status/1899786274635927674?ref_src=twsrc%5Etfw">
-                    March 12, 2025
-                  </a>
-                </blockquote>
-                <script async src="https://platform.twitter.com/widgets.js" />
-              </Box>
-            </Stack>
-            <Stack>
-              <Box>
-                <blockquote className="twitter-tweet">
-                  <p lang="en" dir="ltr">
-                    Integrated{" "}
-                    <a href="https://t.co/uKP4sKdbjV">
-                      https://t.co/uKP4sKdbjV
-                    </a>{" "}
-                    into the new Konva docs – hats off to{" "}
-                    <a href="https://twitter.com/pramodk73?ref_src=twsrc%5Etfw">
-                      @pramodk73
-                    </a>{" "}
-                    for making it insanely useful.
-                    <br />
-                    <br />
-                    It now powers:
-                    <br />- &quot;Ask AI&quot; widget on site
-                    <br />- MCP server for docs
-                    <br />- Discord bot for community
-                    <br />
-                    <br />
-                    Smarter docs. Better support.
-                  </p>
-                  &mdash; Anton Lavrenov (@lavrton){" "}
-                  <a href="https://twitter.com/lavrton/status/1915467775734350149?ref_src=twsrc%5Etfw">
-                    April 24, 2025
-                  </a>
-                </blockquote>{" "}
-                <script async src="https://platform.twitter.com/widgets.js" />
-              </Box>
-            </Stack>
-          </Flex>
-        </Stack>
-      </Container>
-    </Stack>
-  );
 }
 
 const cache = {
@@ -1318,25 +90,1168 @@ export async function loader() {
   };
 }
 
-export default function LandingPage({ loaderData }: Route.ComponentProps) {
+export function Container({ children }: PropsWithChildren) {
   return (
-    <Stack gap={0} w="full">
-      <Navbar />
-      <Hero />
-      <Demo />
-      <UsedBy
-        messagesThisWeek={loaderData.messagesThisWeek}
-        messagesDay={loaderData.messagesDay}
-        messagesMonth={loaderData.messagesMonth}
-      />
-      <HowItWorks />
-      <UseCases />
-      <Features />
-      <Pricing />
-      <Testimonials />
-      <CTA />
+    <div className="flex justify-center">
+      <div className="max-w-[1000px] w-full p-4">{children}</div>
+    </div>
+  );
+}
+
+function Logo() {
+  return (
+    <div className="flex items-center gap-2">
+      <img src="/logo.png" alt="CrawlChat" width={38} height={38} />
+      <span className="text-2xl font-bold font-radio-grotesk text-brand">
+        CrawlChat
+      </span>
+    </div>
+  );
+}
+
+function NavLink({ children, href }: PropsWithChildren<{ href: string }>) {
+  return (
+    <a href={href} className="font-medium hover:underline">
+      {children}
+    </a>
+  );
+}
+
+function Button({
+  children,
+  className,
+  variant = "outline",
+  href,
+}: PropsWithChildren & {
+  className?: string;
+  variant?: "solid" | "outline";
+  href?: string;
+}) {
+  return (
+    <a
+      className={cn(
+        "font-medium border text-brand border-brand rounded-xl px-6 py-1 flex items-center justify-center gap-2",
+        "cursor-pointer hover:bg-brand hover:text-canvas transition-all",
+        variant === "solid" && "bg-brand text-canvas",
+        className
+      )}
+      href={href}
+    >
+      {children}
+    </a>
+  );
+}
+
+function StatsItem({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex gap-4 py-6 px-6 items-center border-b border-outline last:border-b-0">
+      <div className="flex-1 text-5xl md:text-6xl font-bold font-radio-grotesk">
+        {value}
+      </div>
+      <div className="flex-1 flex justify-end">{label}</div>
+    </div>
+  );
+}
+
+function Stats({
+  messagesThisWeek,
+  messagesDay,
+  messagesMonth,
+}: {
+  messagesThisWeek: number;
+  messagesDay: number;
+  messagesMonth: number;
+}) {
+  return (
+    <div className="flex flex-col md:flex-row gap-8 w-full mt-16 md:items-center">
+      <div className="flex-1 flex flex-col gap-10">
+        <div className="text-md md:text-xl font-medium px-6 py-3 shadow-md rounded-2xl bg-canvas w-fit flex items-center gap-4 -rotate-[4deg]">
+          <div className="w-3 h-3 bg-green-500 rounded-full outline-2 outline-green-300 outline" />
+          Serving the community
+        </div>
+        <h3 className="text-4xl md:text-5xl font-radio-grotesk font-bold leading-[1.2]">
+          Answering <br />
+          <span className="text-brand">questions</span> <br />
+          continuously
+        </h3>
+      </div>
+
+      <div className="flex-1 shadow-md bg-canvas rounded-2xl">
+        <StatsItem label="Today" value={messagesDay} />
+        <StatsItem label="In the last week" value={messagesThisWeek} />
+        <StatsItem label="In the last month" value={messagesMonth} />
+      </div>
+    </div>
+  );
+}
+
+export function UsedBy() {
+  return (
+    <div className="flex flex-col gap-8">
+      <h3 className="text-center text-xl font-medium opacity-50">
+        Already used by awesome companies!
+      </h3>
+
+      <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
+        <img
+          src="/used-by/remotion.png"
+          alt="Remotion"
+          className="max-h-[38px] dark:hidden"
+        />
+
+        <img
+          src="/used-by/remotion-white.png"
+          alt="Remotion"
+          className="max-h-[38px] hidden dark:block"
+        />
+
+        <div className="flex items-center gap-2">
+          <img
+            src="/used-by/konvajs.png"
+            alt="Konva"
+            className="max-h-[38px]"
+          />
+          <div className="font-medium text-xl">Konvajs</div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <img
+            src="/used-by/270logo.svg"
+            alt="270Degrees.nl"
+            className="max-h-[38px]"
+          />
+          <div className="font-medium text-xl">270Degrees</div>
+        </div>
+
+        <div className="flex items-center gap-2 dark:hidden">
+          <img
+            src="/used-by/polotno.png"
+            alt="Polotno"
+            className="max-h-[38px]"
+          />
+          <div className="font-medium text-xl">Polotno</div>
+        </div>
+
+        <div className="items-center gap-2 hidden dark:flex">
+          <img
+            src="/used-by/polotno-white.png"
+            alt="Polotno"
+            className="max-h-[38px]"
+          />
+          <div className="font-medium text-xl">Polotno</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Heading({ children }: PropsWithChildren) {
+  return (
+    <h3 className="text-center text-4xl md:text-5xl font-bold max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
+      {children}
+    </h3>
+  );
+}
+
+function HeadingHighlight({ children }: PropsWithChildren) {
+  return (
+    <span className="text-brand bg-brand-subtle px-4 rounded-lg md:leading-[1.4]">
+      {children}
+    </span>
+  );
+}
+
+function HeadingDescription({ children }: PropsWithChildren) {
+  return (
+    <p className="text-center text-xl font-medium max-w-[760px] mx-auto py-8 opacity-60">
+      {children}
+    </p>
+  );
+}
+
+function WorksStep({
+  img,
+  title,
+  children,
+}: PropsWithChildren<{
+  img: string;
+  title: string;
+}>) {
+  return (
+    <div className="flex flex-col gap-4 flex-1 items-center max-w-[400px]">
+      <img src={img} alt="Works step 1" />
+
+      <h4 className="text-2xl font-bold">{title}</h4>
+      <p className="text-center text-lg">{children}</p>
+    </div>
+  );
+}
+
+function stepHighlightClassNames() {
+  return cn(
+    "border px-2 py-0.5 inline-flex items-center gap-1 rounded-full leading-none mx-1"
+  );
+}
+
+function Works() {
+  return (
+    <div className="mt-32" id="how-it-works">
+      <Heading>
+        Works in <HeadingHighlight>three</HeadingHighlight> simple steps
+      </Heading>
+
+      <HeadingDescription>
+        CrawlChat has a very simple workflow at its core. You can turn your docs
+        into LLM ready for your community in three simple steps.
+      </HeadingDescription>
+
+      <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
+        {/* <WorksBox
+          title="Add knowledge"
+          description="Bring your docs to CrawlChat as a knowledge base. The LLMs will answer your community questions with the provided knowledge without any hallucination."
+        >
+          <div className="flex flex-col gap-6">
+            <WorksChipRow>
+              <WorksChip
+                label="Knowledge Base"
+                icon="/new-landing/notion.png"
+              />
+              <WorksChip
+                label="Help Center"
+                icon="/new-landing/help-center.png"
+              />
+            </WorksChipRow>
+            <WorksChipRow>
+              <WorksChip label="Website" icon="/new-landing/globe.png" />
+              <WorksChip label="Documentation" icon="/new-landing/doc.png" />
+            </WorksChipRow>
+            <WorksChipRow>
+              <WorksChip
+                label="Technical Docs"
+                icon="/new-landing/github.png"
+              />
+              <WorksChip label="Forumns" icon="/new-landing/signal.png" />
+            </WorksChipRow>
+            <WorksChipRow>
+              <WorksChip
+                label="Discord Channels"
+                icon="/new-landing/discord.png"
+              />
+              <WorksChip label="Blog" icon="/new-landing/blogger.png" />
+            </WorksChipRow>
+          </div>
+        </WorksBox>
+        <WorksBox
+          title="Integrate"
+          description="You can integrate the LLM ready docs into your community as a “Ask AI” chat widget on your website, a Discord/Slack bot, and as a MCP server."
+        >
+          <div className="flex flex-col relative mb-8 md:mb-0">
+            <div className="flex justify-center">
+              <img
+                src="new-landing/integrate-lines.png"
+                className="w-[180px] translate-y-[32px] dark:opacity-20"
+              />
+            </div>
+
+            <img
+              src="/new-landing/docs.png"
+              alt="Docs"
+              className="w-20 h-20 absolute top-0 left-0 right-0 mx-auto"
+            />
+
+            <div className="flex justify-center gap-2 absolute left-[50%] bottom-0 translate-y-8 -translate-x-32">
+              <IntegrateChip label="Ask AI" icon="/new-landing/ai.png" />
+            </div>
+            <div className="flex justify-center gap-2 absolute right-[50%] bottom-0 translate-y-8 translate-x-32">
+              <IntegrateChip label="MCP" icon="/new-landing/mcp.png" />
+            </div>
+            <div className="flex justify-center gap-2 absolute left-[50%] -bottom-8 translate-y-6 -translate-x-10">
+              <IntegrateChip icon="/new-landing/discord.png" />
+            </div>
+            <div className="flex justify-center gap-2 absolute right-[50%] -bottom-8 translate-y-6 translate-x-10">
+              <IntegrateChip icon="/new-landing/slack.png" />
+            </div>
+          </div>
+        </WorksBox>
+        <WorksBox
+          title="Customise"
+          description="You get full control of how the integrations look like and also customise the AI behaviour with prompts, AI models, and multiple other settings."
+        >
+          <div className="flex flex-col gap-6">
+            <div className="flex gap-16 justify-center">
+              <CustomiseIcon src="/new-landing/chatgpt.png" rotate={10} />
+              <CustomiseIcon src="/new-landing/google.png" rotate={-14} />
+            </div>
+            <div className="flex gap-2 justify-between">
+              <CustomiseIcon src="/new-landing/grok.png" rotate={-16} />
+              <CustomiseIcon src="/new-landing/anthropic.png" rotate={14} />
+              <CustomiseIcon src="/new-landing/deepseek.png" rotate={8} />
+            </div>
+            <div className="bg-ash rounded-lg p-3 flex items-center gap-2 justify-between border border-outline border-dashed">
+              <div className="font-medium text-brand">Custom prompt</div>
+              <div>
+                <img
+                  src="/new-landing/square-setting.png"
+                  alt="Setting"
+                  className="w-6 h-6"
+                />
+              </div>
+            </div>
+          </div>
+        </WorksBox> */}
+        <WorksStep img="/new-landing/knowledge.png" title="Make knowledge base">
+          Add your existing documents or web pages as knowledge base. You can{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-purple-500 border-purple-500"
+            )}
+          >
+            <TbSpider />
+            scrape
+          </span>{" "}
+          your online documentation or{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-green-500 border-green-500"
+            )}
+          >
+            <TbFile />
+            upload files
+          </span>{" "}
+          directly.
+        </WorksStep>
+        <WorksStep img="/new-landing/integrate.png" title="Integrate chatbot">
+          You can connect the AI chatbot to your website, Discord, Slack. You
+          can customise the bot UI and{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-purple-500 border-purple-500"
+            )}
+          >
+            <TbRobotFace />
+            behaviour
+          </span>{" "}
+          of the bot
+        </WorksStep>
+        <WorksStep img="/new-landing/analyse.png" title="Analyse performance">
+          View all the messages and conversations that the bot has had. You get
+          to see the performance,{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-green-500 border-green-500"
+            )}
+          >
+            <TbScoreboard />
+            scores
+          </span>
+          , and{" "}
+          <span
+            className={cn(
+              stepHighlightClassNames(),
+              "text-blue-500 border-blue-500"
+            )}
+          >
+            <TbDatabase />
+            data gaps
+          </span>{" "}
+          as well.
+        </WorksStep>
+      </div>
+    </div>
+  );
+}
+
+function IntegrationCard({
+  flex,
+  title,
+  description,
+  img,
+}: {
+  flex: number;
+  title: string;
+  description: string;
+  img: string;
+}) {
+  return (
+    <div
+      className={
+        "p-6 shadow-md border border-outline rounded-xl bg-canvas flex flex-col gap-6"
+      }
+      style={{ flex: flex }}
+    >
+      <div className="aspect-video bg-ash rounded-lg">
+        <img
+          src={img}
+          alt={title}
+          className="w-full h-full object-cover rounded-md"
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-2xl font-bold font-radio-grotesk">{title}</h3>
+        <p className="opacity-50 font-medium text-lg">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function Integrations() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        Easy <HeadingHighlight>integrations</HeadingHighlight>
+      </Heading>
+
+      <HeadingDescription>
+        CrawlChat provides multiple options to bring your docs to your community
+        platforms easily. It takes only few minutes to integrate them
+      </HeadingDescription>
+
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          <IntegrationCard
+            flex={1}
+            title="Ask AI button"
+            description="A drop in embed code to add the Ask AI button on your docs website. All the visitors to your docs can now quickly ask their question."
+            img="/new-landing/integration-ask-ai.png"
+          />
+          <IntegrationCard
+            flex={1}
+            title="Discord bot"
+            description="CrawlChat focuses on giving a wholesome integration experience by providing Discord bot that can answer questions from your community by just tagging it."
+            img="/new-landing/integration-discord.png"
+          />
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          <IntegrationCard
+            flex={1}
+            title="Slack bot"
+            description="CrawlChat focuses on giving a wholesome integration experience by providing Slack bot that can answer questions from your community by just tagging it."
+            img="/new-landing/integration-slack.png"
+          />
+          <IntegrationCard
+            flex={1}
+            title="MCP server"
+            description="You will not be missed by the next gen developers. CrawlChat provides the MCP server out of the box."
+            img="/new-landing/integration-mcp.png"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatWidgetFeature({
+  active,
+  title,
+  description,
+  img,
+  onClick,
+}: {
+  active: boolean;
+  title: string;
+  description: string;
+  img: string;
+  onClick?: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-2xl p-4 border border-transparent hover:border-outline gap-2 flex flex-col",
+        "cursor-pointer",
+        active && "bg-canvas shadow-md hover:border-transparent"
+      )}
+      onClick={onClick}
+    >
+      <h3 className="text-2xl font-bold font-radio-grotesk flex items-center gap-2">
+        <img src={img} alt={title} className="w-6 h-6" />
+        {title}
+      </h3>
+      <p className="opacity-50 font-medium leading-tight">{description}</p>
+    </div>
+  );
+}
+
+function ChatWidget() {
+  const [activeTab, setActiveTab] = useState("sources");
+
+  return (
+    <div className="mt-32">
+      <Heading>
+        <HeadingHighlight>Chat</HeadingHighlight> widget
+      </Heading>
+
+      <HeadingDescription>
+        The chat widget comes with all tools required. Your community finds the
+        perfect answers right from your docs website from one click exactly what
+        they want
+      </HeadingDescription>
+
+      <div className="flex flex-col md:flex-row gap-10">
+        <div className="flex-1 flex flex-col gap-4">
+          <ChatWidgetFeature
+            active={activeTab === "sources"}
+            title="Custom knowledge base"
+            description="All the answers on the chat widget are provided by the resources that the answer is fetched from so that your community can always go find more help if required."
+            img="/new-landing/archive-active.png"
+            onClick={() => setActiveTab("sources")}
+          />
+          <ChatWidgetFeature
+            active={activeTab === "code"}
+            title="Code blocks"
+            description="CrawlChat supports showing code blocks and your community can just copy and paste the generated code to their workflow."
+            img="/new-landing/app-programming.png"
+            onClick={() => setActiveTab("code")}
+          />
+          <ChatWidgetFeature
+            active={activeTab === "pin"}
+            title="Pin & Share"
+            description="Your community can pin and share the important answers so that they can always come back and find the critical help with ease"
+            img="/new-landing/pin.png"
+            onClick={() => setActiveTab("pin")}
+          />
+        </div>
+        <div className="flex-1 bg-ash-strong rounded-2xl shadow-md border border-outline aspect-square overflow-hidden">
+          <img
+            src={`/new-landing/widget-${activeTab}.png`}
+            className="w-full h-full aspect-square"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToolsRow({ children }: PropsWithChildren) {
+  return <div className="grid grid-cols-1 md:grid-cols-3">{children}</div>;
+}
+
+function ToolItem({
+  title,
+  description,
+  icon,
+}: {
+  title: string;
+  description: string;
+  icon: string | ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex-1 flex flex-col gap-2 p-6 border-opacity-60 border-outline",
+        "md:border-r border-b no-border-last-3 no-border-every-3 last:border-b-0"
+      )}
+    >
+      <div className="flex flex-col gap-2">
+        {typeof icon === "string" ? (
+          <img src={icon} alt={title} className="w-6 h-6" />
+        ) : (
+          <Box>
+            <Text
+              fontSize={"32px"}
+              color={"brand.fg"}
+              bg={"brand.subtle"}
+              w="fit"
+              p={4}
+              rounded={"full"}
+            >
+              {icon}
+            </Text>
+          </Box>
+        )}
+        <h3 className="text-xl font-bold font-radio-grotesk">{title}</h3>
+      </div>
+      <p className="opacity-50 font-medium leading-tight">{description}</p>
+    </div>
+  );
+}
+
+function Tools() {
+  return (
+    <div className="mt-32" id="features">
+      <Heading>
+        All the <HeadingHighlight>tools</HeadingHighlight> to reduce your
+        support tickets
+      </Heading>
+
+      <HeadingDescription>
+        CrawlChat cuts support tickets by letting users instantly chat with your
+        docs, getting answers without needing human help right from your site,
+        Discord, or Slack.
+      </HeadingDescription>
+
+      <div className="bg-canvas rounded-2xl border border-outline">
+        <ToolsRow>
+          <ToolItem
+            title="Instant answers"
+            description="CrawlChat lets users ask questions and get immediate answers from your docs, guides, or FAQs, no searching or waiting. This reduces basic support requests and improves self-service."
+            icon={<TbMessage />}
+          />
+          <ToolItem
+            title="Less Repetitive Questions"
+            description="CrawlChat answers frequent questions directly from your documentation, reducing the need for users to contact support for the same issues and letting your team focus on complex tasks."
+            icon={<TbArrowsShuffle />}
+          />
+          <ToolItem
+            title="24/7 Availability"
+            description="CrawlChat is always active, helping users anytime—day or night—so they don’t have to wait for support teams, reducing off-hour ticket volume."
+            icon={<TbClock />}
+          />
+          <ToolItem
+            title="Analytics"
+            description="You get a wide range of analytics for your docs and community. The daily messages chart, score distribution and many more that give your more visibility into your docs and the community"
+            icon={<TbChartBar />}
+          />
+          <ToolItem
+            title="Discord & Slack bots"
+            description="CrawlChat works inside Discord and Slack, letting users ask questions and get instant answers from your docs—just by tagging the bot. It’s like support, right in chat."
+            icon={<TbBrandDiscord />}
+          />
+          <ToolItem
+            title="Customisation"
+            description="CrawlChat lets you customize the chat widget’s look and tone. With custom prompts, you guide how the AI responds—tailoring answers to fit your brand and support needs."
+            icon={<TbSettings />}
+          />
+        </ToolsRow>
+      </div>
+    </div>
+  );
+}
+
+type PricingItem = {
+  text: string;
+  excluded?: boolean;
+};
+
+function PricingBox({
+  popular,
+  title,
+  description,
+  price,
+  items,
+  free,
+  href,
+}: {
+  popular?: boolean;
+  title: string;
+  description: string;
+  price: string;
+  items: PricingItem[];
+  free?: boolean;
+  href?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex-1 bg-canvas shadow-md border border-outline rounded-2xl relative",
+        popular && "bg-brand-subtle bg-opacity-60 rounded-tl-none"
+      )}
+    >
+      {popular && (
+        <div
+          className={cn(
+            "bg-brand-subtle border border-outline absolute top-0 left-[-1px] translate-y-[-100%]",
+            "text-sm text-brand px-2 py-1 rounded-t-lg font-medium flex items-center gap-2"
+          )}
+        >
+          <img src="/new-landing/crown.png" alt="Popular" className="w-4 h-4" />
+          Popular
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "p-6 border-b border-outline",
+          popular && "border-brand border-opacity-10"
+        )}
+      >
+        <h4 className="text-2xl font-bold font-radio-grotesk">{title}</h4>
+        <p className="opacity-50 font-medium">{description}</p>
+      </div>
+      <div className="p-6 gap-6 flex flex-col">
+        <div className="flex gap-1 items-end">
+          <p className="text-4xl font-bold font-radio-grotesk">{price}</p>
+          <p className="opacity-50 font-medium mb-1">/month</p>
+        </div>
+        <ul className="flex flex-col gap-2">
+          {items.map((item) => (
+            <li key={item.text} className="flex gap-2 items-center">
+              <img
+                src={`/new-landing/${
+                  item.excluded ? "bold-cross" : "bold-check"
+                }.png`}
+                alt="Check"
+                className="w-4 h-4"
+              />
+              <span className="font-medium">{item.text}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="w-full">
+          <Button
+            className="w-full"
+            variant={popular ? "solid" : "outline"}
+            href={href}
+          >
+            {free ? "Get started" : "Purchase"}
+            <TbArrowRight />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Pricing() {
+  return (
+    <div className="mt-32" id="pricing">
+      <Heading>
+        <HeadingHighlight>Pricing</HeadingHighlight> for everyone
+      </Heading>
+
+      <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
+        <PricingBox
+          free
+          title="Free"
+          description="For personal use"
+          price="$0"
+          items={[
+            { text: "100 page scrapes" },
+            { text: "100 message credits" },
+            { text: "API not available", excluded: true },
+            { text: "MCP not available", excluded: true },
+            { text: "Discord bot", excluded: true },
+            { text: "Discord drafting", excluded: true },
+            { text: "GitHub issues", excluded: true },
+          ]}
+          href="/login"
+        />
+        <PricingBox
+          title="Starter"
+          description="Start your journey with CrawlChat"
+          price="$29"
+          items={[
+            { text: "5000 scrapes/month" },
+            { text: "7000 message credits/month" },
+            { text: "API available" },
+            { text: "MCP available" },
+            { text: "Discord bot" },
+            { text: "Discord drafting", excluded: true },
+            { text: "GitHub issues", excluded: true },
+          ]}
+          href="https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
+        />
+        <PricingBox
+          title="Pro"
+          description="For power users and teams"
+          popular
+          price="$79"
+          items={[
+            { text: "14,000 scrapes/month" },
+            { text: "20,000 message credits/month" },
+            { text: "API available" },
+            { text: "MCP available" },
+            { text: "Discord bot" },
+            { text: "Discord drafting" },
+            { text: "GitHub issues" },
+          ]}
+          href="https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
+        />
+      </div>
+    </div>
+  );
+}
+
+function Testimonials() {
+  return (
+    <div className="mt-32">
+      <Heading>
+        People <HeadingHighlight>love</HeadingHighlight> CrawlChat
+      </Heading>
+
+      <div className="flex flex-col md:flex-row gap-6 mt-20">
+        <div>
+          <div>
+            <blockquote className="twitter-tweet">
+              <p lang="en" dir="ltr">
+                MCP, llms.txt and{" "}
+                <a href="https://t.co/wvTaGlv99L">https://t.co/wvTaGlv99L</a>{" "}
+                are now live!
+                <br />
+                <br />
+                Thanks to{" "}
+                <a href="https://twitter.com/pramodk73?ref_src=twsrc%5Etfw">
+                  @pramodk73
+                </a>{" "}
+                and{" "}
+                <a href="https://t.co/dv2PDLzt2V">https://t.co/dv2PDLzt2V</a>{" "}
+                for getting us up to speed with AI integrations.{" "}
+                <a href="https://t.co/Sornu9aIFi">https://t.co/Sornu9aIFi</a>
+              </p>
+              &mdash; Jonny Burger (@JNYBGR){" "}
+              <a href="https://twitter.com/JNYBGR/status/1899786274635927674?ref_src=twsrc%5Etfw">
+                March 12, 2025
+              </a>
+            </blockquote>
+            <script async src="https://platform.twitter.com/widgets.js" />
+          </div>
+        </div>
+        <div>
+          <div>
+            <blockquote className="twitter-tweet">
+              <p lang="en" dir="ltr">
+                Integrated{" "}
+                <a href="https://t.co/uKP4sKdbjV">https://t.co/uKP4sKdbjV</a>{" "}
+                into the new Konva docs – hats off to{" "}
+                <a href="https://twitter.com/pramodk73?ref_src=twsrc%5Etfw">
+                  @pramodk73
+                </a>{" "}
+                for making it insanely useful.
+                <br />
+                <br />
+                It now powers:
+                <br />- &quot;Ask AI&quot; widget on site
+                <br />- MCP server for docs
+                <br />- Discord bot for community
+                <br />
+                <br />
+                Smarter docs. Better support.
+              </p>
+              &mdash; Anton Lavrenov (@lavrton){" "}
+              <a href="https://twitter.com/lavrton/status/1915467775734350149?ref_src=twsrc%5Etfw">
+                April 24, 2025
+              </a>
+            </blockquote>{" "}
+            <script async src="https://platform.twitter.com/widgets.js" />
+          </div>
+          <div>
+            <iframe
+              src="https://www.linkedin.com/embed/feed/update/urn:li:ugcPost:7323678686812020736"
+              height="879"
+              width="100%"
+              frameBorder="0"
+              allowFullScreen
+              title="Embedded post"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CTA() {
+  return (
+    <div className="mt-32">
+      <div className="w-full bg-gradient-to-b from-canvas to-ash shadow-md rounded-2xl py-20 px-10 relative">
+        {/* <div className="absolute top-[10%] md:top-[20%] left-[4%] md:left-[8%] rotate-[-24deg] scale-120 opacity-50">
+          <IntegrateChip label="Ask AI" icon="/new-landing/ai.png" />
+        </div>
+
+        <div className="absolute top-[80%] left-[80%] rotate-[24deg] scale-120 opacity-50">
+          <IntegrateChip label="MCP" icon="/new-landing/mcp.png" />
+        </div>
+
+        <div className="absolute top-[20%] left-[90%] rotate-[24deg] scale-150 opacity-50">
+          <IntegrateChip icon="/new-landing/discord.png" />
+        </div>
+
+        <div className="absolute top-[80%] left-[8%] rotate-[-24deg] scale-150 opacity-50">
+          <IntegrateChip icon="/new-landing/slack.png" />
+        </div> */}
+
+        <h2 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+          Make your documents and knowledge base be powered by AI now!
+        </h2>
+
+        <div className="flex justify-center mt-8">
+          <a href="/login" className={ctaClassNames(true)}>
+            Get started
+            <TbArrowRight />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FooterLink({ children, href }: PropsWithChildren<{ href: string }>) {
+  return (
+    <a href={href} className="opacity-60 font-medium hover:underline">
+      {children}
+    </a>
+  );
+}
+
+export function Footer() {
+  return (
+    <div className="bg-canvas mt-32 border-t border-outline">
+      <Container>
+        <div className="py-8 flex flex-col md:flex-row gap-10">
+          <div className="flex-[2] flex flex-col gap-4">
+            <Logo />
+            <p className="font-medium opacity-60">
+              AI Chatbot for your knowledge base and documentation
+            </p>
+            <p className="opacity-50 text-xs mt-4 font-medium">
+              © 2025 CrawlChat
+            </p>
+          </div>
+          <div className="flex-[2]">
+            <ul className="flex flex-col gap-4">
+              <li>
+                <FooterLink href="/blog/boosting-developer-experience-with-crawlchat">
+                  Boosting Developer Experience - DX
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/how-to-add-ask-ai-chatbot-to-docusaurus-site">
+                  How to integrate with Docusaurus
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/how-to-embed-ai-chatbot">
+                  How to add AI Chatbot for your docs
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/how-remotion-uses-crawlchat">
+                  Documentation - Use case
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/how-to-setup-mcp-for-your-documentation">
+                  Setup MCP server
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/how-discord-bot-helps">
+                  How Discord Bot helps?
+                </FooterLink>
+              </li>
+            </ul>
+          </div>
+          <div className="flex-[1]">
+            <ul className="flex flex-col gap-4">
+              <li>
+                <FooterLink href="/">Home</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/#pricing">Pricing</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/#features">Features</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="https://guides.crawlchat.app">
+                  Guides
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="https://crawlchat.features.vote/roadmap">
+                  Roadmap
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog">Blog</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/discord-bot">Discord bot</FooterLink>
+              </li>
+            </ul>
+          </div>
+          <div className="flex-[1]">
+            <ul className="flex flex-col gap-4">
+              <li>
+                <FooterLink href="/terms">Terms</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/policy">Privacy policy</FooterLink>
+              </li>
+            </ul>
+
+            <ul className="flex gap-6 mt-4">
+              <li>
+                <a href="mailto:support@crawlchat.app">
+                  <img
+                    src="/new-landing/mail.png"
+                    alt="Mail"
+                    className="w-4 h-4"
+                  />
+                </a>
+              </li>
+              <li>
+                <a href="https://x.com/pramodk73">
+                  <img src="/new-landing/x.png" alt="X" className="w-4 h-4" />
+                </a>
+              </li>
+              <li>
+                <a href="https://discord.gg/zW3YmCRJkC">
+                  <TbBrandDiscord />
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </Container>
+    </div>
+  );
+}
+
+export function Nav() {
+  return (
+    <nav className="flex items-center justify-between gap-2 lg:py-6">
+      <Logo />
+
+      <div className="flex items-center gap-8">
+        <div className="items-center gap-8 hidden md:flex">
+          <NavLink href="/#how-it-works">How it works</NavLink>
+          <NavLink href="/#features">Features</NavLink>
+          <NavLink href="/#pricing">Pricing</NavLink>
+          <NavLink href="/public-bots">Public bots</NavLink>
+        </div>
+
+        <Button href="/login">Login</Button>
+      </div>
+    </nav>
+  );
+}
+
+export function ctaClassNames(primary: boolean) {
+  return cn(
+    "text-2xl border-2 border-brand px-8 py-4 rounded-xl font-medium flex items-center gap-2 transition-all hover:translate-y-[-2px]",
+    !primary && "text-brand hover:bg-brand-subtle",
+    primary && "bg-brand text-canvas"
+  );
+}
+
+function Hero() {
+  function handleAskCrawlChat() {
+    (window as any).crawlchatEmbed.show();
+  }
+
+  return (
+    <div className="py-8">
+      <a className="flex justify-center mb-4 cursor-pointer hover:scale-[1.02] transition-all">
+        <div className="bg-red-50 text-xs px-1.5 py-1 rounded-full flex items-center gap-2 pr-2 border border-red-300 text-red-700">
+          <span className="px-2 bg-red-200 rounded-full font-medium border border-red-300">NEW</span>
+          <span className="leading-none">Added support to for support tickets</span>
+          <span><TbChevronRight/></span>
+        </div>
+      </a>
+
+      <h1 className="font-radio-grotesk text-[42px] md:text-[56px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+        <span className="text-brand">AI Chatbot</span> for your documentation
+        and <span className="text-brand">support</span>
+      </h1>
+
+      <h2 className="text-center text-xl max-w-[600px] mx-auto mt-8">
+        CrawlChat turns your documentation and other knowledge sources into a AI
+        chatbot that you can connect on your{" "}
+        <span className="bg-red-50 text-red-500 border border-red-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
+          <TbWorld />
+          Website
+        </span>
+        <span className="hidden">,</span>{" "}
+        <a
+          className="bg-green-50 text-green-500 border border-green-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1"
+          href="/discord-bot"
+        >
+          <TbBrandDiscord />
+          Discord
+        </a>
+        <span className="hidden">,</span> or{" "}
+        <span className="bg-purple-50 text-purple-500 border border-purple-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
+          <TbBrandSlack />
+          Slack
+        </span>
+        <span className="hidden">.</span>
+      </h2>
+
+      <div className="flex justify-center gap-4 my-8 flex-wrap">
+        <button className={ctaClassNames(false)} onClick={handleAskCrawlChat}>
+          <TbMessage />
+          Ask CrawlChat
+        </button>
+        <a className={ctaClassNames(true)} href="/login">
+          Create your chatbot
+          <TbArrowRight />
+        </a>
+      </div>
+
+      {/* <DemoWindow /> */}
+    </div>
+  );
+}
+
+export function LandingPage({ children }: PropsWithChildren) {
+  return (
+    <div className="bg-ash font-aeonik">
+      <div className="hidden md:block aspect-[1440/960] w-full bg-[url('/new-landing/clouds.png')] dark:bg-[url('/new-landing/clouds-dark.png')] bg-contain bg-no-repeat absolute top-0 left-0">
+        <div className="w-full h-full bg-gradient-to-b from-[rgba(246,246,245,0)] to-ash"></div>
+      </div>
+
+      <div className="relative">{children}</div>
+    </div>
+  );
+}
+
+export default function LandingV2({ loaderData }: Route.ComponentProps) {
+  return (
+    <LandingPage>
+      <Container>
+        <Nav />
+      </Container>
+
+      <Container>
+        <Hero />
+      </Container>
+
+      <Container>
+        <UsedBy />
+      </Container>
+
+      <Container>
+        <Stats
+          messagesThisWeek={loaderData.messagesThisWeek}
+          messagesDay={loaderData.messagesDay}
+          messagesMonth={loaderData.messagesMonth}
+        />
+      </Container>
+
+      <Container>
+        <Works />
+      </Container>
+
+      <Container>
+        <Integrations />
+      </Container>
+
+      <Container>
+        <ChatWidget />
+      </Container>
+
+      <Container>
+        <Tools />
+      </Container>
+
+      <Container>
+        <Pricing />
+      </Container>
+
+      <Container>
+        <Testimonials />
+      </Container>
+
+      <Container>
+        <CTA />
+      </Container>
+
       <Footer />
-      <Toaster />
-    </Stack>
+    </LandingPage>
   );
 }
