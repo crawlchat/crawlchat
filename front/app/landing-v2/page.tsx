@@ -1,8 +1,4 @@
-import {
-  useState,
-  type PropsWithChildren,
-  type ReactNode,
-} from "react";
+import { useState, type PropsWithChildren, type ReactNode } from "react";
 import cn from "@meltdownjs/cn";
 import "../tailwind.css";
 import "../fonts.css";
@@ -12,9 +8,13 @@ import {
   TbBrandDiscord,
   TbBrandSlack,
   TbChartBar,
+  TbChevronRight,
   TbClock,
   TbDatabase,
   TbFile,
+  TbHeadphones,
+  TbHeadset,
+  TbHelp,
   TbMessage,
   TbRobotFace,
   TbScoreboard,
@@ -1136,9 +1136,17 @@ function Hero() {
 
   return (
     <div className="py-8">
+      <a className="flex justify-center mb-4 cursor-pointer hover:scale-[1.02] transition-all">
+        <div className="bg-green-100 text-xs px-1.5 py-1 rounded-full flex items-center gap-2 pr-2 border border-green-300 text-green-700">
+          <span className="px-2 bg-green-300 rounded-full font-medium">NEW</span>
+          <span className="leading-none">Added support to for support tickets</span>
+          <span><TbChevronRight/></span>
+        </div>
+      </a>
+
       <h1 className="font-radio-grotesk text-[42px] md:text-[56px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
-        <span className="text-brand">AI Chatbot</span> for your knowledge base
-        and documentation
+        <span className="text-brand">AI Chatbot</span> for your documentation
+        and <span className="text-brand">support</span>
       </h1>
 
       <h2 className="text-center text-xl max-w-[600px] mx-auto mt-8">
