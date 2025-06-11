@@ -312,7 +312,10 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           </Button>
           {loaderData.scrape && (
             <Button variant={"subtle"} colorPalette={"brand"} asChild>
-              <a href={`/w/${loaderData.scrapeId}`} target="_blank">
+              <a
+                href={`/w/${loaderData.scrape.slug ?? loaderData.scrapeId}`}
+                target="_blank"
+              >
                 <TbMessage />
                 Chat
               </a>
