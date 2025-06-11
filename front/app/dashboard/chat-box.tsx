@@ -44,6 +44,7 @@ import {
   TbTicket,
   TbArrowRight,
   TbExternalLink,
+  TbMenu,
 } from "react-icons/tb";
 import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
@@ -63,6 +64,7 @@ import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp/setup";
 import { getScoreColor, getMessagesScore } from "~/score";
 import { RiChatVoiceAiFill } from "react-icons/ri";
 import { Field } from "~/components/ui/field";
+import { toaster } from "~/components/ui/toaster";
 
 function ChatInput({
   onAsk,
@@ -176,6 +178,7 @@ function ChatInput({
           onClick={handleAsk}
           size={"xs"}
           disabled={isDisabled}
+          variant={query.length > 0 ? "solid" : "subtle"}
         >
           <TbArrowUp />
         </IconButton>
@@ -541,9 +544,9 @@ function NoMessages({
 }) {
   const shouldShowDefaultTitle = !scrape.widgetConfig?.welcomeMessage;
   return (
-    <Stack p={4} justify={"center"} align={"center"} h="full" gap={4}>
+    <Stack p={4} gap={4}>
       {shouldShowDefaultTitle && (
-        <Stack align={"center"} mb={8}>
+        <Stack align={"center"} my={20}>
           <Text opacity={0.5}>
             <TbMessage size={"60px"} />
           </Text>
@@ -554,14 +557,14 @@ function NoMessages({
       )}
 
       {scrape.widgetConfig?.welcomeMessage && (
-        <Stack w="full" maxW={"400px"}>
+        <Stack w="full">
           <MarkdownProse>{scrape.widgetConfig?.welcomeMessage}</MarkdownProse>
         </Stack>
       )}
 
       {scrape.widgetConfig?.questions &&
         scrape.widgetConfig.questions.length > 0 && (
-          <Stack w="full" maxW={"400px"}>
+          <Stack w="full">
             <Heading size={"xs"} opacity={0.5}>
               QUICK QUESTIONS
             </Heading>
@@ -630,8 +633,8 @@ function MCPSetup({ scrape }: { scrape: Scrape }) {
 
   return (
     <Stack h="full" p={4}>
-      <Stack align={"center"} py={4}>
-        <Stack w="full" maxW={"400px"} gap={8}>
+      <Stack align={"center"}>
+        <Stack w="full" gap={8}>
           <Stack>
             <Heading>
               <Group>
@@ -751,7 +754,22 @@ function Toolbar({
   function handleShare() {
     navigator.clipboard.writeText(`${window.location.origin}/s/${threadId}`);
     setCopiedShareLink(true);
-    setTimeout(() => setCopiedShareLink(false), 2000);
+    toaster.create({
+      title: "Copied!",
+      description: "Share link copied to clipboard",
+    });
+  }
+
+  function handleMenuSelect(value: string) {
+    if (value === "clear") {
+      return onErase();
+    }
+    if (value === "share") {
+      return handleShare();
+    }
+    if (value === "mcp") {
+      return onScreenChange("mcp");
+    }
   }
 
   return (
@@ -796,7 +814,6 @@ function Toolbar({
           <Tooltip content="Go to ticket" showArrow>
             <IconButton
               size={"xs"}
-              rounded={"full"}
               variant={"subtle"}
               position={"relative"}
               colorPalette={"brand"}
@@ -808,18 +825,14 @@ function Toolbar({
             </IconButton>
           </Tooltip>
         )}
+
         {pinnedCount > 0 && (
           <MenuRoot
             positioning={{ placement: "bottom-end" }}
             onSelect={(e) => handlePinSelect(e.value)}
           >
             <MenuTrigger asChild>
-              <IconButton
-                size={"xs"}
-                rounded={"full"}
-                variant={"subtle"}
-                position={"relative"}
-              >
+              <IconButton size={"xs"} variant={"subtle"} position={"relative"}>
                 <TbPin />
                 <Badge
                   ml="1"
@@ -849,67 +862,44 @@ function Toolbar({
           </MenuRoot>
         )}
 
-        {screen === "chat" && (
-          <Tooltip
-            content={"Copied!"}
-            showArrow
-            open={copiedShareLink || undefined}
+        {screen === "mcp" && (
+          <Button
+            size={"xs"}
+            variant={"subtle"}
+            onClick={() => onScreenChange("chat")}
           >
-            <IconButton
-              size={"xs"}
-              rounded={"full"}
-              variant={"subtle"}
-              onClick={handleShare}
-            >
-              {copiedShareLink ? <TbCheck /> : <TbShare2 />}
-            </IconButton>
-          </Tooltip>
+            Switch to chat
+            <TbMessage />
+          </Button>
         )}
 
-        {screen === "chat" && (
-          <Tooltip
-            content={confirmDelete ? "Are you sure?" : "Clear chat"}
-            open={confirmDelete}
-            showArrow
-          >
-            <IconButton
-              size={"xs"}
-              rounded={"full"}
-              variant={confirmDelete ? "solid" : "subtle"}
-              colorPalette={confirmDelete ? "red" : undefined}
-              onClick={handleDelete}
-              disabled={disabled}
-            >
+        <MenuRoot
+          positioning={{ placement: "bottom-end" }}
+          onSelect={(e) => handleMenuSelect(e.value)}
+        >
+          <MenuTrigger asChild>
+            <IconButton size={"xs"} variant={"subtle"}>
+              <TbMenu />
+            </IconButton>
+          </MenuTrigger>
+          <MenuContent>
+            <MenuItem value={"clear"}>
               <TbEraser />
-            </IconButton>
-          </Tooltip>
-        )}
+              Clear chat
+            </MenuItem>
+            <MenuItem value={"share"}>
+              <TbShare2 />
+              Share chat
+            </MenuItem>
 
-        {!disabled && (scrape.widgetConfig?.showMcpSetup ?? true) && (
-          <>
-            {screen === "chat" && (
-              <Button
-                size={"xs"}
-                variant={"subtle"}
-                onClick={() => onScreenChange("mcp")}
-                display={["none", "none", "flex"]}
-              >
-                Setup MCP
+            {!disabled && (scrape.widgetConfig?.showMcpSetup ?? true) && (
+              <MenuItem value={"mcp"}>
                 <TbRobotFace />
-              </Button>
+                As MCP
+              </MenuItem>
             )}
-            {screen === "mcp" && (
-              <Button
-                size={"xs"}
-                variant={"subtle"}
-                onClick={() => onScreenChange("chat")}
-              >
-                Switch to chat
-                <TbMessage />
-              </Button>
-            )}
-          </>
-        )}
+          </MenuContent>
+        </MenuRoot>
       </Group>
     </Group>
   );
@@ -929,14 +919,14 @@ function useChatBoxDimensions(
 
     switch (size) {
       case "large":
-        width = Math.min(width, 800);
-        height = Math.min(height, 800);
+        width = Math.min(width, 640);
+        height = Math.min(height, 540);
         return { width: width, height: height };
-      case "full_screen":
-        return { width: width, height: height };
+      // case "full_screen":
+      //   return { width: width, height: height };
       default:
-        width = Math.min(width, 500);
-        height = Math.min(height, 500);
+        width = Math.min(width, 520);
+        height = Math.min(height, 420);
         return { width: width, height: height };
     }
   }
@@ -976,7 +966,7 @@ function PoweredBy({ embed }: { embed?: boolean }) {
         fontSize={"xs"}
         color={embed ? "white" : undefined}
         fontWeight={"semibold"}
-        opacity={0.8}
+        opacity={0.5}
         _hover={{
           opacity: 1,
           textDecor: "underline",
@@ -1263,7 +1253,7 @@ export default function ScrapeWidget({
         boxShadow={"rgba(100, 100, 111, 0.2) 0px 7px 29px 0px"}
         bg="brand.white"
         w={boxDimensions.width}
-        h={boxDimensions.height}
+        maxH={boxDimensions.height}
         gap={0}
         position={"relative"}
       >

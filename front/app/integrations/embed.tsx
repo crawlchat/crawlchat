@@ -128,7 +128,7 @@ const sizes = createListCollection({
   items: [
     { label: "Small", value: "small" },
     { label: "Large", value: "large" },
-    { label: "Full Screen", value: "full_screen" },
+    // { label: "Full Screen", value: "full_screen" },
   ],
 });
 
