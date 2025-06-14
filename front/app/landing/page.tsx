@@ -1,4 +1,9 @@
-import { useState, type PropsWithChildren, type ReactNode } from "react";
+import {
+  useState,
+  type PropsWithChildren,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import cn from "@meltdownjs/cn";
 import "../tailwind.css";
 import "../fonts.css";
@@ -13,6 +18,8 @@ import {
   TbDatabase,
   TbFile,
   TbMessage,
+  TbPlug,
+  TbPlugConnected,
   TbRobotFace,
   TbScoreboard,
   TbSettings,
@@ -22,6 +29,7 @@ import {
 import { prisma } from "libs/prisma";
 import type { Route } from "./+types/page";
 import { Box, Text } from "@chakra-ui/react";
+import type { IconType } from "react-icons/lib";
 
 export function meta() {
   return [
@@ -267,16 +275,25 @@ function HeadingDescription({ children }: PropsWithChildren) {
 }
 
 function WorksStep({
-  img,
+  icon,
   title,
   children,
 }: PropsWithChildren<{
-  img: string;
+  icon: any;
   title: string;
 }>) {
+  const ic = { icon };
   return (
     <div className="flex flex-col gap-4 flex-1 items-center max-w-[400px]">
-      <img src={img} alt="Works step 1" />
+      <div
+        className={cn(
+          "aspect-square rounded-2xl flex items-center",
+          "justify-center border border-outline w-[80%] shadow-sm",
+          "text-brand"
+        )}
+      >
+        <ic.icon size={124} />
+      </div>
 
       <h4 className="text-2xl font-bold">{title}</h4>
       <p className="text-center text-lg">{children}</p>
@@ -303,100 +320,7 @@ function Works() {
       </HeadingDescription>
 
       <div className="flex flex-col md:flex-row gap-8 items-center md:items-start">
-        {/* <WorksBox
-          title="Add knowledge"
-          description="Bring your docs to CrawlChat as a knowledge base. The LLMs will answer your community questions with the provided knowledge without any hallucination."
-        >
-          <div className="flex flex-col gap-6">
-            <WorksChipRow>
-              <WorksChip
-                label="Knowledge Base"
-                icon="/new-landing/notion.png"
-              />
-              <WorksChip
-                label="Help Center"
-                icon="/new-landing/help-center.png"
-              />
-            </WorksChipRow>
-            <WorksChipRow>
-              <WorksChip label="Website" icon="/new-landing/globe.png" />
-              <WorksChip label="Documentation" icon="/new-landing/doc.png" />
-            </WorksChipRow>
-            <WorksChipRow>
-              <WorksChip
-                label="Technical Docs"
-                icon="/new-landing/github.png"
-              />
-              <WorksChip label="Forumns" icon="/new-landing/signal.png" />
-            </WorksChipRow>
-            <WorksChipRow>
-              <WorksChip
-                label="Discord Channels"
-                icon="/new-landing/discord.png"
-              />
-              <WorksChip label="Blog" icon="/new-landing/blogger.png" />
-            </WorksChipRow>
-          </div>
-        </WorksBox>
-        <WorksBox
-          title="Integrate"
-          description="You can integrate the LLM ready docs into your community as a “Ask AI” chat widget on your website, a Discord/Slack bot, and as a MCP server."
-        >
-          <div className="flex flex-col relative mb-8 md:mb-0">
-            <div className="flex justify-center">
-              <img
-                src="new-landing/integrate-lines.png"
-                className="w-[180px] translate-y-[32px] dark:opacity-20"
-              />
-            </div>
-
-            <img
-              src="/new-landing/docs.png"
-              alt="Docs"
-              className="w-20 h-20 absolute top-0 left-0 right-0 mx-auto"
-            />
-
-            <div className="flex justify-center gap-2 absolute left-[50%] bottom-0 translate-y-8 -translate-x-32">
-              <IntegrateChip label="Ask AI" icon="/new-landing/ai.png" />
-            </div>
-            <div className="flex justify-center gap-2 absolute right-[50%] bottom-0 translate-y-8 translate-x-32">
-              <IntegrateChip label="MCP" icon="/new-landing/mcp.png" />
-            </div>
-            <div className="flex justify-center gap-2 absolute left-[50%] -bottom-8 translate-y-6 -translate-x-10">
-              <IntegrateChip icon="/new-landing/discord.png" />
-            </div>
-            <div className="flex justify-center gap-2 absolute right-[50%] -bottom-8 translate-y-6 translate-x-10">
-              <IntegrateChip icon="/new-landing/slack.png" />
-            </div>
-          </div>
-        </WorksBox>
-        <WorksBox
-          title="Customise"
-          description="You get full control of how the integrations look like and also customise the AI behaviour with prompts, AI models, and multiple other settings."
-        >
-          <div className="flex flex-col gap-6">
-            <div className="flex gap-16 justify-center">
-              <CustomiseIcon src="/new-landing/chatgpt.png" rotate={10} />
-              <CustomiseIcon src="/new-landing/google.png" rotate={-14} />
-            </div>
-            <div className="flex gap-2 justify-between">
-              <CustomiseIcon src="/new-landing/grok.png" rotate={-16} />
-              <CustomiseIcon src="/new-landing/anthropic.png" rotate={14} />
-              <CustomiseIcon src="/new-landing/deepseek.png" rotate={8} />
-            </div>
-            <div className="bg-ash rounded-lg p-3 flex items-center gap-2 justify-between border border-outline border-dashed">
-              <div className="font-medium text-brand">Custom prompt</div>
-              <div>
-                <img
-                  src="/new-landing/square-setting.png"
-                  alt="Setting"
-                  className="w-6 h-6"
-                />
-              </div>
-            </div>
-          </div>
-        </WorksBox> */}
-        <WorksStep img="/new-landing/knowledge.png" title="Make knowledge base">
+        <WorksStep icon={TbDatabase} title="Make knowledge base">
           Add your existing documents or web pages as knowledge base. You can{" "}
           <span
             className={cn(
@@ -419,7 +343,7 @@ function Works() {
           </span>{" "}
           directly.
         </WorksStep>
-        <WorksStep img="/new-landing/integrate.png" title="Integrate chatbot">
+        <WorksStep icon={TbPlugConnected} title="Integrate chatbot">
           You can connect the AI chatbot to your website, Discord, Slack. You
           can customise the bot UI and{" "}
           <span
@@ -433,7 +357,7 @@ function Works() {
           </span>{" "}
           of the bot
         </WorksStep>
-        <WorksStep img="/new-landing/analyse.png" title="Analyse performance">
+        <WorksStep icon={TbChartBar} title="Analyse performance">
           View all the messages and conversations that the bot has had. You get
           to see the performance,{" "}
           <span

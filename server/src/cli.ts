@@ -39,4 +39,5 @@ async function main() {
 }
 
 console.log("Starting...");
-main();
+// main();
+cleanupThreads();
