@@ -118,7 +118,6 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("primaryColor")) {
     update.primaryColor = formData.get("primaryColor") as string;
   }
-
   if (formData.has("buttonText")) {
     update.buttonText = formData.get("buttonText") as string;
   }
