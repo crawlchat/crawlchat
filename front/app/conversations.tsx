@@ -1,5 +1,6 @@
 import {
   Badge,
+  Box,
   Center,
   EmptyState,
   Flex,
@@ -236,6 +237,17 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
                 <Text opacity={0.5} fontSize={"sm"}>
                   {moment(thread.createdAt).fromNow()}
                 </Text>
+                <Stack gap={0.2}>
+                  {thread.customTags &&
+                    Object.keys(thread.customTags).map((key) => (
+                      <Box key={key}>
+                        <Badge variant={"surface"}>
+                          {key}:{" "}
+                          {(thread.customTags as Record<string, any>)[key]}
+                        </Badge>
+                      </Box>
+                    ))}
+                </Stack>
               </Stack>
             ))}
           </Stack>

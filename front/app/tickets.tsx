@@ -7,6 +7,7 @@ import type { Thread, Prisma, TicketStatus } from "libs/prisma";
 import { getSessionScrapeId } from "./scrapes/util";
 import {
   Badge,
+  Box,
   EmptyState,
   Group,
   Link,
@@ -119,6 +120,16 @@ function Ticket({ thread }: { thread: Thread }) {
           {moment(thread.lastMessageAt).format("MMM D, YYYY h:mm A")}
         </Text>
       </Group>
+      <Stack gap={0}>
+        {thread.customTags &&
+          Object.keys(thread.customTags).map((key) => (
+            <Box key={key}>
+              <Badge variant={"surface"}>
+                {key}: {(thread.customTags as Record<string, any>)[key]}
+              </Badge>
+            </Box>
+          ))}
+      </Stack>
     </Stack>
   );
 }

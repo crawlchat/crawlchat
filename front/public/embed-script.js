@@ -12,16 +12,29 @@ class CrawlChatEmbed {
     this.widgetConfig = {};
   }
 
-  async getWidgetConfig() {
-    const response = await fetch(`${this.host}/w/${this.scrapeId}/config`);
-    const data = await response.json();
-    return data.widgetConfig;
+  getCustomTags() {
+    const script = document.getElementById(this.scriptId);
+    const allTags = script
+      .getAttributeNames()
+      .filter((name) => name.startsWith("data-tag-"))
+      .map((name) => [
+        name.replace("data-tag-", ""),
+        script.getAttribute(name),
+      ]);
+    return Object.fromEntries(allTags);
   }
 
   async mount() {
     const iframe = document.createElement("iframe");
     iframe.id = this.iframeId;
-    iframe.src = `${this.host}/w/${this.scrapeId}?embed=true`;
+
+    let src = `${this.host}/w/${this.scrapeId}?embed=true`;
+    const customTags = this.getCustomTags();
+    if (Object.keys(customTags).length > 0) {
+      src += `&tags=${btoa(JSON.stringify(customTags))}`;
+    }
+
+    iframe.src = src;
     iframe.style.width = "100%";
     iframe.style.height = "100%";
     iframe.style.border = "none";
@@ -198,7 +211,7 @@ class CrawlChatEmbed {
       logo.style.width = "40px";
       logo.style.height = "40px";
       div.appendChild(logo);
-      
+
       div.style.borderRadius = "10px";
       div.style.border = `1px solid ${color}`;
     }
