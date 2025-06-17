@@ -19,6 +19,13 @@ function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
 }
 
+function getCustomTags(url: URL): Record<string, any> | null {
+  try {
+    return JSON.parse(atob(url.searchParams.get("tags") ?? ""));
+  } catch (error) {}
+  return null;
+}
+
 export async function loader({ params, request }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findFirst({
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
@@ -43,9 +50,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   session.set("chatSessionKeys", chatSessionKeys);
 
   const userToken = createToken(chatSessionKeys[scrape.id], {
-    expiresInSeconds: 60 * 60,
+    expiresInSeconds: 60 * 60 * 24,
   });
 
+  const customTags = getCustomTags(new URL(request.url));
   const thread = await prisma.thread.upsert({
     where: { id: chatSessionKeys[scrape.id] },
     update: {
@@ -55,6 +63,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       id: chatSessionKeys[scrape.id],
       scrapeId: scrape.id,
       openedAt: new Date(),
+      customTags,
+      ticketUserEmail: customTags?.email,
     },
   });
 
@@ -131,9 +141,12 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   if (intent === "erase") {
+    const customTags = getCustomTags(new URL(request.url));
     const thread = await prisma.thread.create({
       data: {
         scrapeId: scrapeId,
+        ticketUserEmail: customTags?.email,
+        customTags,
       },
     });
     chatSessionKeys[scrapeId] = thread.id;
@@ -238,9 +251,12 @@ export async function action({ request, params }: Route.ActionArgs) {
       );
     }
 
+    const customTags = getCustomTags(new URL(request.url));
     const thread = await prisma.thread.create({
       data: {
         scrapeId: scrapeId,
+        ticketUserEmail: customTags?.email,
+        customTags,
       },
     });
     chatSessionKeys[scrapeId] = thread.id;

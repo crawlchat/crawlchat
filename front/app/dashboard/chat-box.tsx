@@ -375,6 +375,7 @@ function AssistantMessage({
   resolveNoConfig,
   onTicketCreate,
   ticketCreateLoading,
+  customTags,
 }: {
   id: string;
   content: string;
@@ -398,6 +399,7 @@ function AssistantMessage({
   resolveNoConfig?: ResolveBtnConfig;
   onTicketCreate?: (title: string, description: string, email: string) => void;
   ticketCreateLoading?: boolean;
+  customTags?: Record<string, any>;
 }) {
   const [cleanedLinks, cleanedContent, score] = useMemo(() => {
     const citation = extractCitations(content, links);
@@ -442,6 +444,7 @@ function AssistantMessage({
             onTicketCreate,
             ticketCreateLoading,
             disabled,
+            customTags,
           }}
         >
           {cleanedContent}
@@ -992,12 +995,14 @@ function TicketCreate({
   onCancel,
   onSubmit,
   loading,
+  customTags,
 }: {
   onCancel: () => void;
   onSubmit: (email: string, title: string, message: string) => void;
   loading?: boolean;
+  customTags?: Record<string, any>;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(customTags?.email ?? "");
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
 
@@ -1018,7 +1023,7 @@ function TicketCreate({
             placeholder="youremail@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={loading}
+            disabled={loading || customTags?.email}
           />
         </Field>
         <Field label="Title">
@@ -1331,6 +1336,7 @@ export default function ScrapeWidget({
                       resolveNoConfig={resolveNoConfig}
                       onTicketCreate={handleTicketCreate}
                       ticketCreateLoading={ticketCreationLoading}
+                      customTags={thread.customTags as Record<string, any>}
                     />
                   )}
                   {(chat.askStage === "asked" ||
@@ -1350,6 +1356,7 @@ export default function ScrapeWidget({
               onCancel={handleTicketCreateCancel}
               onSubmit={handleTicketCreate}
               loading={ticketCreationLoading}
+              customTags={thread.customTags as Record<string, any>}
             />
           )}
         </Stack>
