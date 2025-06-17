@@ -388,16 +388,7 @@ export function SideMenu({
             <Group>
               <Group>
                 <Image src="/logo.png" alt="CrawlChat" w={8} h={8} />
-                <Text
-                  fontSize={"xl"}
-                  fontWeight={"bold"}
-                  bgGradient={"to-r"}
-                  gradientFrom={"brand.500"}
-                  gradientTo={"brand.300"}
-                  bgClip="text"
-                  color={"transparent"}
-                  asChild
-                >
+                <Text fontSize={"xl"} asChild>
                   <Link to="/">CrawlChat</Link>
                 </Text>
               </Group>

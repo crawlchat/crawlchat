@@ -100,7 +100,7 @@ export function Logo() {
   return (
     <a className="flex items-center gap-2" href="/">
       <img src="/logo.png" alt="CrawlChat" width={38} height={38} />
-      <span className="text-2xl font-bold font-radio-grotesk text-brand">
+      <span className="text-2xl font-radio-grotesk text-brand">
         CrawlChat
       </span>
     </a>
@@ -245,7 +245,7 @@ export function UsedBy() {
 
 export function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className="text-center text-4xl md:text-5xl font-bold max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
+    <h3 className="text-center text-4xl md:text-5xl max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
       {children}
     </h3>
   );
@@ -288,7 +288,7 @@ function WorksStep({
         <ic.icon size={124} />
       </div>
 
-      <h4 className="text-2xl font-bold">{title}</h4>
+      <h4 className="text-2xl font-radio-grotesk">{title}</h4>
       <p className="text-center text-lg">{children}</p>
     </div>
   );
@@ -401,7 +401,7 @@ function ChatWidgetFeature({
       )}
       onClick={onClick}
     >
-      <h3 className="text-2xl font-bold font-radio-grotesk flex items-center gap-2">
+      <h3 className="text-2xl font-radio-grotesk flex items-center gap-2">
         <img src={img} alt={title} className="w-6 h-6" />
         {title}
       </h3>
@@ -497,7 +497,7 @@ function ToolItem({
             </Text>
           </Box>
         )}
-        <h3 className="text-xl font-bold font-radio-grotesk">{title}</h3>
+        <h3 className="text-xl font-radio-grotesk">{title}</h3>
       </div>
       <p className="opacity-50 font-medium leading-tight">{description}</p>
     </div>
@@ -782,7 +782,7 @@ export function CTA({ text }: { text?: string }) {
   return (
     <div className="mt-32">
       <div className="w-full bg-gradient-to-b from-canvas to-ash shadow-md rounded-2xl py-20 px-10 relative">
-        <h2 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+        <h2 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2] font-medium text-center max-w-[800px] mx-auto">
           {text ||
             "Make your documents and knowledge base be powered by AI now!"}
         </h2>
@@ -972,7 +972,7 @@ function Hero() {
         </div>
       </a>
 
-      <h1 className="font-radio-grotesk text-[42px] md:text-[56px] leading-[1.2] font-bold text-center max-w-[800px] mx-auto">
+      <h1 className="font-radio-grotesk text-[42px] md:text-[64px] leading-[1.2] text-center max-w-[800px] mx-auto">
         <span className="text-brand">AI Chatbot</span> for your documentation
         and <span className="text-brand">support</span>
       </h1>
