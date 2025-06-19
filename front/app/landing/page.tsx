@@ -99,9 +99,7 @@ export function Logo() {
   return (
     <a className="flex items-center gap-2" href="/">
       <img src="/logo.png" alt="CrawlChat" width={38} height={38} />
-      <span className="text-2xl font-radio-grotesk text-brand">
-        CrawlChat
-      </span>
+      <span className="text-2xl font-radio-grotesk text-brand">CrawlChat</span>
     </a>
   );
 }
@@ -310,7 +308,10 @@ function Works() {
       </HeadingDescription>
 
       <div className="flex flex-col md:flex-row gap-16 items-center md:items-start">
-        <WorksStep img="/new-landing/knowledge-base.png" title="Make knowledge base">
+        <WorksStep
+          img="/new-landing/knowledge-base.png"
+          title="Make knowledge base"
+        >
           Add your existing documents or web pages as knowledge base. You can{" "}
           <span
             className={cn(
@@ -333,7 +334,10 @@ function Works() {
           </span>{" "}
           directly.
         </WorksStep>
-        <WorksStep img="/new-landing/integrate-chatbot.png" title="Integrate chatbot">
+        <WorksStep
+          img="/new-landing/integrate-chatbot.png"
+          title="Integrate chatbot"
+        >
           You can connect the AI chatbot to your website, Discord, Slack. You
           can customise the bot UI and{" "}
           <span
@@ -347,7 +351,10 @@ function Works() {
           </span>{" "}
           of the bot
         </WorksStep>
-        <WorksStep img="/new-landing/analyse-performance.png" title="Analyse performance">
+        <WorksStep
+          img="/new-landing/analyse-performance.png"
+          title="Analyse performance"
+        >
           View all the messages and conversations that the bot has had. You get
           to see the performance,{" "}
           <span
@@ -819,6 +826,11 @@ export function Footer() {
           </div>
           <div className="flex-[2]">
             <ul className="flex flex-col gap-4">
+              <li>
+                <FooterLink href="/blog/v">
+                  How Polotno uses CrawlChat
+                </FooterLink>
+              </li>
               <li>
                 <FooterLink href="/blog/boosting-developer-experience-with-crawlchat">
                   Boosting Developer Experience - DX
