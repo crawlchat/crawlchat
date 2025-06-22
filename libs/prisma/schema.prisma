@@ -157,6 +157,7 @@ type MessageSourceLink {
   scrapeItemId            String?     @db.ObjectId
   knowledgeGroupId        String?     @db.ObjectId
   fetchUniqueId           String?
+  searchQuery             String?
 }
 
 enum MessageChannel {

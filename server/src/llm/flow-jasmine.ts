@@ -19,6 +19,7 @@ export type RAGAgentCustomMessage = {
     score: number;
     scrapeItemId?: string;
     fetchUniqueId?: string;
+    query?: string;
   }[];
 };
 
@@ -71,6 +72,7 @@ export function makeRagTool(
             : "No relevant information found. Don't answer the query. Inform that you don't know the answer.",
         customMessage: {
           result: processed,
+          query,
         },
       };
     },

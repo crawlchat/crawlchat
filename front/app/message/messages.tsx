@@ -19,6 +19,7 @@ import {
   Highlight,
   Icon,
   Button,
+  Table,
 } from "@chakra-ui/react";
 import {
   TbBox,
@@ -151,7 +152,7 @@ function ChannelIcon({ channel }: { channel?: MessageChannel | null }) {
   }, [channel]);
 
   return (
-    <Badge colorPalette={color}>
+    <Badge colorPalette={color} variant={"surface"}>
       <Icon as={icon} />
       {text}
     </Badge>
@@ -266,105 +267,6 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
         )}
         {loaderData.messagePairs.length > 0 && (
           <Stack>
-            {/* <Flex justifyContent={"flex-end"} gap={2}>
-              <Popover.Root>
-                <Popover.Trigger asChild>
-                  <IconButton variant={"ghost"}>
-                    <TbHelp />
-                  </IconButton>
-                </Popover.Trigger>
-                <Portal>
-                  <Popover.Positioner>
-                    <Popover.Content>
-                      <Popover.Arrow>
-                        <Popover.ArrowTip />
-                      </Popover.Arrow>
-                      <Popover.Body>
-                        <Stack>
-                          <Text>
-                            <Highlight
-                              query={["0 and 1", "0 is worst", "1 is best"]}
-                              styles={{ color: "brand.fg", fontWeight: "bold" }}
-                            >
-                              When the AI tries to answer a question, it fetches
-                              relavent records from the collection. Each record
-                              is given a score between 0 and 1 dependending on
-                              the relavence of the record to the query. 0 is
-                              worst and 1 is best.
-                            </Highlight>
-                          </Text>
-                          <Text>
-                            <Highlight
-                              query={["max"]}
-                              styles={{ color: "brand.fg", fontWeight: "bold" }}
-                            >
-                              Each query can have multiple such records fetched
-                              to answer the query. The score shown next to the
-                              question is the max of all the scores of the
-                              records fetched.
-                            </Highlight>
-                          </Text>
-                        </Stack>
-                      </Popover.Body>
-                    </Popover.Content>
-                  </Popover.Positioner>
-                </Portal>
-              </Popover.Root>
-
-              <Box>
-                <SelectRoot
-                  collection={channelCollection}
-                  w="200px"
-                  value={channels}
-                  onValueChange={(e) => setChannels(e.value)}
-                >
-                  <SelectTrigger>
-                    <SelectValueText placeholder="Select collection" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {channelCollection.items.map((item) => (
-                      <SelectItem item={item} key={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </SelectRoot>
-              </Box>
-            </Flex> */}
-
-            {/* <Flex gap={2}>
-              <MetricCheckbox
-                label="Worst"
-                value={metrics.worst}
-                onToggle={(checked) =>
-                  setFilters({ ...filters, worst: checked })
-                }
-                tooltip="0 - 0.25"
-              />
-              <MetricCheckbox
-                label="Bad"
-                value={metrics.bad}
-                onToggle={(checked) => setFilters({ ...filters, bad: checked })}
-                tooltip="0.25 - 0.5"
-              />
-              <MetricCheckbox
-                label="Good"
-                value={metrics.good}
-                onToggle={(checked) =>
-                  setFilters({ ...filters, good: checked })
-                }
-                tooltip="0.5 - 0.75"
-              />
-              <MetricCheckbox
-                label="Best"
-                value={metrics.best}
-                onToggle={(checked) =>
-                  setFilters({ ...filters, best: checked })
-                }
-                tooltip="0.75 - 1"
-              />
-            </Flex> */}
-
             <Text opacity={0.5} mb={2}>
               Showing messages in last 7 days
             </Text>
@@ -381,7 +283,6 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
             {pairs.length > 0 && (
               <AccordionRoot
                 collapsible
-                defaultValue={["b"]}
                 variant={"enclosed"}
               >
                 {pairs.map((pair, index) => (
@@ -408,6 +309,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                                     ? "green"
                                     : "red"
                                 }
+                                variant={"surface"}
                               >
                                 {pair.responseMessage.rating === "up" ? (
                                   <TbThumbUp />
@@ -444,29 +346,46 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                         </MarkdownProse>
                         {pair.uniqueLinks.length > 0 && (
                           <Stack>
-                            <Heading>Resources</Heading>
-                            <List.Root variant={"plain"}>
-                              {pair.uniqueLinks.map((link) => (
-                                <List.Item key={link.scrapeItemId}>
-                                  <List.Indicator asChild color="brand.fg">
-                                    <TbLink />
-                                  </List.Indicator>
-                                  <Link
-                                    href={`/knowledge/item/${link.scrapeItemId}`}
-                                    target="_blank"
-                                  >
-                                    {link.title || link.url}{" "}
-                                    <Badge
-                                      colorPalette={getScoreColor(
-                                        link.score ?? 0
-                                      )}
-                                    >
-                                      {link.score?.toFixed(2)}
-                                    </Badge>
-                                  </Link>
-                                </List.Item>
-                              ))}
-                            </List.Root>
+                            <Table.Root variant={"outline"}>
+                              <Table.Header>
+                                <Table.Row>
+                                  <Table.ColumnHeader>
+                                    Knowledge Item
+                                  </Table.ColumnHeader>
+                                  <Table.ColumnHeader>Query</Table.ColumnHeader>
+                                  <Table.ColumnHeader textAlign="end">
+                                    Score
+                                  </Table.ColumnHeader>
+                                </Table.Row>
+                              </Table.Header>
+                              <Table.Body background={"brand.white"}>
+                                {pair.uniqueLinks.map((link, index) => (
+                                  <Table.Row key={index}>
+                                    <Table.Cell>
+                                      <Link
+                                        href={`/knowledge/item/${link.scrapeItemId}`}
+                                        target="_blank"
+                                      >
+                                        {link.title || link.url}
+                                      </Link>
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                      {link.searchQuery ?? "-"}
+                                    </Table.Cell>
+                                    <Table.Cell textAlign="end">
+                                      <Badge
+                                        colorPalette={getScoreColor(
+                                          link.score ?? 0
+                                        )}
+                                        variant={"surface"}
+                                      >
+                                        {link.score?.toFixed(2)}
+                                      </Badge>
+                                    </Table.Cell>
+                                  </Table.Row>
+                                ))}
+                              </Table.Body>
+                            </Table.Root>
                           </Stack>
                         )}
 

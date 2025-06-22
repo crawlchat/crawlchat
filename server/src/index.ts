@@ -32,7 +32,6 @@ import { chunk } from "libs/chunk";
 import { retry } from "./retry";
 import { Flow } from "./llm/flow";
 import { z } from "zod";
-import { RichMessageBlock } from "libs/rich-message-block";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -90,6 +89,7 @@ async function collectSourceLinks(
         scrapeItemId: item.id,
         fetchUniqueId: match.fetchUniqueId ?? null,
         knowledgeGroupId: item.knowledgeGroupId,
+        searchQuery: match.query ?? null,
       });
     }
   }

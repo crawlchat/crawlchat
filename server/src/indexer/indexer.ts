@@ -26,6 +26,7 @@ export interface Indexer {
       fetchUniqueId: string;
       id: string;
       scrapeItemId?: string;
+      query?: string;
     }[]
   >;
 }
