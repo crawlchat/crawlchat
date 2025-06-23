@@ -111,7 +111,7 @@ function ChatInput({
   );
 
   useEffect(() => {
-    if (connected && threadId) {
+    if (connected && threadId && query.length) {
       handleAsk();
     }
   }, [connected]);
