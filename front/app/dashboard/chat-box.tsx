@@ -1069,6 +1069,7 @@ export default function ScrapeWidget({
   ticketNumber,
   customerEmail,
   makeThreadId,
+  eraseAt,
 }: {
   threadId?: string;
   messages: Message[];
@@ -1092,6 +1093,7 @@ export default function ScrapeWidget({
   ticketNumber?: number;
   customerEmail?: string;
   makeThreadId?: () => Promise<void>;
+  eraseAt?: number;
 }) {
   const chat = useScrapeChat({
     token: userToken,
@@ -1155,6 +1157,13 @@ export default function ScrapeWidget({
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
+
+  useEffect(() => {
+    if (eraseAt) {
+      chat.erase();
+      setScreen("chat");
+    }
+  }, [eraseAt]);
 
   async function handleAsk(query: string) {
     chat.ask(query);
@@ -1236,6 +1245,12 @@ export default function ScrapeWidget({
 
   function handleTicketCreate(email: string, title: string, message: string) {
     onTicketCreate?.(email, title, message);
+  }
+
+  async function handleCreateThread() {
+    chat.setMakingThreadId();
+    makeThreadId?.();
+    await scroll();
   }
 
   return (
@@ -1352,7 +1367,7 @@ export default function ScrapeWidget({
             embed={embed}
             connected={chat.connected}
             threadId={threadId}
-            onCreateThread={makeThreadId}
+            onCreateThread={handleCreateThread}
           />
         )}
         <Group

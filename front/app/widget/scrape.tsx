@@ -287,17 +287,28 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
   const rateFetcher = useFetcher();
   const ticketCreateFetcher = useFetcher();
   const createThreadFetcher = useFetcher();
-  const thread = useMemo<Thread | undefined>(
-    () => createThreadFetcher.data?.thread ?? loaderData.thread,
-    [createThreadFetcher.data, loaderData.thread]
-  );
-  const userToken = useMemo<string | undefined>(
-    () =>
-      ticketCreateFetcher.data?.userToken ??
-      createThreadFetcher.data?.userToken ??
-      loaderData.userToken,
-    [createThreadFetcher.data, ticketCreateFetcher.data, loaderData.userToken]
-  );
+  const [eraseAt, setEraseAt] = useState<number>();
+
+  const [thread, setThread] = useState<Thread | null>(loaderData.thread);
+  const [token, setToken] = useState<string | null>(loaderData.userToken);
+
+  useEffect(() => {
+    if (createThreadFetcher.data) {
+      setThread(createThreadFetcher.data.thread);
+      setToken(createThreadFetcher.data.userToken);
+    }
+  }, [createThreadFetcher.data]);
+
+  useEffect(() => {
+    if (eraseFetcher.data) {
+      setThread(null);
+      setToken(null);
+    }
+  }, [eraseFetcher.data]);
+
+  useEffect(() => {
+    setEraseAt(new Date().getTime());
+  }, [ticketCreateFetcher.data]);
 
   useEffect(() => {
     if (loaderData.embed && window.parent) {
@@ -399,7 +410,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
       <Toaster />
       <ChatBox
         scrape={loaderData.scrape!}
-        userToken={userToken}
+        userToken={token ?? undefined}
         onBgClick={handleClose}
         onPin={handlePin}
         onUnpin={handleUnpin}
@@ -422,6 +433,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
           null
         }
         makeThreadId={createThread}
+        eraseAt={eraseAt}
       />
     </Stack>
   );

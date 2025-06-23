@@ -204,6 +204,10 @@ export function useScrapeChat({
     return messages.find((message) => message.id === id);
   }
 
+  function setMakingThreadId() {
+    setAskStage("asked");
+  }
+
   return {
     connect,
     disconnect,
@@ -221,5 +225,6 @@ export function useScrapeChat({
     searchQuery,
     getMessage,
     connected,
+    setMakingThreadId,
   };
 }
