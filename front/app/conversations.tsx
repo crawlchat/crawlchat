@@ -256,7 +256,6 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
               {selectedThread && (
                 <ChatBox
                   scrape={loaderData.scrape!}
-                  userToken={"NA"}
                   key={selectedThread!.id}
                   messages={selectedThread.messages}
                   showScore

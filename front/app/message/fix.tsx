@@ -287,7 +287,6 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
           <Center h="full" w="full">
             <ChatBox
               scrape={loaderData.scrape}
-              userToken={"NA"}
               key={loaderData.thread.id}
               messages={loaderData.messages}
               showScore

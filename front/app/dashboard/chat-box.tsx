@@ -728,7 +728,6 @@ function Toolbar({
   onPinSelect,
   screen,
   onScreenChange,
-  disabled,
   overallScore,
   ticketNumber,
 }: {
@@ -739,7 +738,6 @@ function Toolbar({
   onPinSelect: (id: string) => void;
   screen: "chat" | "mcp" | "ticket-create";
   onScreenChange: (screen: "chat" | "mcp" | "ticket-create") => void;
-  disabled: boolean;
   overallScore?: number;
   ticketNumber?: number;
 }) {
@@ -915,7 +913,7 @@ function Toolbar({
               Share chat
             </MenuItem>
 
-            {!disabled && (scrape.widgetConfig?.showMcpSetup ?? true) && (
+            {(scrape.widgetConfig?.showMcpSetup ?? true) && (
               <MenuItem value={"mcp"}>
                 <TbRobotFace />
                 As MCP
@@ -1104,7 +1102,6 @@ export default function ScrapeWidget({
   const [screen, setScreen] = useState<"chat" | "mcp" | "ticket-create">(
     "chat"
   );
-  const readOnly = useMemo(() => userToken === "NA", [userToken]);
   const overallScore = useMemo(() => getMessagesScore(messages), [messages]);
   const containerRef = useRef<HTMLDivElement>(null);
   const boxDimensions = useChatBoxDimensions(
@@ -1112,6 +1109,7 @@ export default function ScrapeWidget({
     containerRef
   );
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const readOnly = useMemo(() => !onTicketCreate, []);
 
   useEffect(() => {
     if (userToken) {
@@ -1262,7 +1260,6 @@ export default function ScrapeWidget({
           screen={screen}
           onScreenChange={setScreen}
           scrape={scrape}
-          disabled={readOnly}
           overallScore={showScore ? overallScore : undefined}
           ticketNumber={ticketNumber}
         />
