@@ -255,18 +255,12 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
             <Center h="full" w="full">
               {selectedThread && (
                 <ChatBox
-                  thread={selectedThread}
                   scrape={loaderData.scrape!}
                   userToken={"NA"}
                   key={selectedThread!.id}
-                  onBgClick={() => {}}
-                  onPin={() => {}}
-                  onUnpin={() => {}}
-                  onErase={() => {}}
-                  onDelete={() => {}}
-                  onRate={() => {}}
                   messages={selectedThread.messages}
                   showScore
+                  ticketNumber={selectedThread.ticketNumber ?? undefined}
                 />
               )}
             </Center>

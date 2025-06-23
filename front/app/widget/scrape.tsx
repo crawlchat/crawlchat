@@ -5,9 +5,9 @@ import { createToken } from "~/jwt";
 import "highlight.js/styles/vs.css";
 import ChatBox from "~/dashboard/chat-box";
 import { commitSession, getSession } from "~/session";
-import { data, redirect, useFetcher } from "react-router";
-import { useEffect } from "react";
-import type { MessageRating } from "libs/prisma";
+import { data, redirect, useFetcher, type Session } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import type { Message, MessageRating, Thread } from "libs/prisma";
 import { randomUUID } from "crypto";
 import { getNextNumber } from "libs/mongo-counter";
 import { sendReactEmail } from "~/email";
@@ -26,6 +26,21 @@ function getCustomTags(url: URL): Record<string, any> | null {
   return null;
 }
 
+async function updateSessionThreadId(
+  session: Session,
+  scrapeId: string,
+  threadId: string
+) {
+  const chatSessionKeys = session.get("chatSessionKeys") ?? {};
+
+  if (!chatSessionKeys[scrapeId]) {
+    chatSessionKeys[scrapeId] = threadId;
+  }
+
+  session.set("chatSessionKeys", chatSessionKeys);
+  return session;
+}
+
 export async function loader({ params, request }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findFirst({
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
@@ -35,58 +50,34 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     return redirect("/w/not-found");
   }
 
+  let messages: Message[] = [];
+  let thread: Thread | null = null;
+  let userToken: string | null = null;
+
   const session = await getSession(request.headers.get("cookie"));
   const chatSessionKeys = session.get("chatSessionKeys") ?? {};
 
-  if (!chatSessionKeys[scrape.id]) {
-    const thread = await prisma.thread.create({
-      data: {
-        scrapeId: scrape.id,
-      },
+  if (chatSessionKeys[scrape.id]) {
+    thread = await prisma.thread.findFirstOrThrow({
+      where: { id: chatSessionKeys[scrape.id] },
     });
-    chatSessionKeys[scrape.id] = thread.id;
+
+    messages = await prisma.message.findMany({
+      where: { threadId: thread.id },
+    });
+
+    userToken = createToken(chatSessionKeys[scrape.id], {
+      expiresInSeconds: 60 * 60 * 24,
+    });
   }
 
-  session.set("chatSessionKeys", chatSessionKeys);
-
-  const userToken = createToken(chatSessionKeys[scrape.id], {
-    expiresInSeconds: 60 * 60 * 24,
-  });
-
-  const customTags = getCustomTags(new URL(request.url));
-  const thread = await prisma.thread.upsert({
-    where: { id: chatSessionKeys[scrape.id] },
-    update: {
-      customTags,
-      openedAt: new Date(),
-    },
-    create: {
-      id: chatSessionKeys[scrape.id],
-      scrapeId: scrape.id,
-      openedAt: new Date(),
-      customTags,
-      ticketUserEmail: customTags?.email,
-    },
-  });
-
-  const messages = await prisma.message.findMany({
-    where: { threadId: thread.id },
-  });
-
-  return data(
-    {
-      scrape,
-      userToken,
-      thread,
-      messages,
-      embed: new URL(request.url).searchParams.get("embed") === "true",
-    },
-    {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    }
-  );
+  return {
+    scrape,
+    userToken,
+    thread,
+    messages,
+    embed: new URL(request.url).searchParams.get("embed") === "true",
+  };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -115,6 +106,30 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const threadId = chatSessionKeys[scrapeId];
 
+  if (intent === "create-thread") {
+    const customTags = getCustomTags(new URL(request.url));
+    const thread = await prisma.thread.create({
+      data: {
+        scrapeId: scrape.id,
+        openedAt: new Date(),
+        customTags,
+        ticketUserEmail: customTags?.email,
+      },
+    });
+    await updateSessionThreadId(session, scrapeId, thread.id);
+    const userToken = createToken(thread.id, {
+      expiresInSeconds: 60 * 60 * 24,
+    });
+    return data(
+      { thread, userToken },
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+      }
+    );
+  }
+
   if (!threadId) {
     throw redirect("/");
   }
@@ -142,21 +157,10 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   if (intent === "erase") {
-    const customTags = getCustomTags(new URL(request.url));
-    const thread = await prisma.thread.create({
-      data: {
-        scrapeId: scrapeId,
-        ticketUserEmail: customTags?.email,
-        customTags,
-      },
-    });
-    chatSessionKeys[scrapeId] = thread.id;
+    delete chatSessionKeys[scrapeId];
     session.set("chatSessionKeys", chatSessionKeys);
-    const userToken = createToken(chatSessionKeys[scrapeId], {
-      expiresInSeconds: 60 * 60,
-    });
     return data(
-      { userToken, thread },
+      { userToken: null },
       {
         headers: {
           "Set-Cookie": await commitSession(session),
@@ -260,8 +264,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         customTags,
       },
     });
-    chatSessionKeys[scrapeId] = thread.id;
-    session.set("chatSessionKeys", chatSessionKeys);
+    await updateSessionThreadId(session, scrapeId, thread.id);
     const userToken = createToken(chatSessionKeys[scrapeId], {
       expiresInSeconds: 60 * 60,
     });
@@ -283,6 +286,15 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
   const deleteFetcher = useFetcher();
   const rateFetcher = useFetcher();
   const ticketCreateFetcher = useFetcher();
+  const createThreadFetcher = useFetcher();
+  const thread = useMemo<Thread | undefined>(
+    () => createThreadFetcher.data?.thread ?? loaderData.thread,
+    [createThreadFetcher.data, loaderData.thread]
+  );
+  const userToken = useMemo<string | undefined>(
+    () => createThreadFetcher.data?.userToken ?? loaderData.userToken,
+    [createThreadFetcher.data, loaderData.userToken]
+  );
 
   useEffect(() => {
     if (loaderData.embed && window.parent) {
@@ -372,6 +384,10 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
     );
   }
 
+  async function createThread() {
+    createThreadFetcher.submit({ intent: "create-thread" }, { method: "post" });
+  }
+
   return (
     <Stack
       h="100dvh"
@@ -379,10 +395,8 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
     >
       <Toaster />
       <ChatBox
-        thread={loaderData.thread}
         scrape={loaderData.scrape!}
-        userToken={loaderData.userToken}
-        key={loaderData.thread.id}
+        userToken={userToken}
         onBgClick={handleClose}
         onPin={handlePin}
         onUnpin={handleUnpin}
@@ -398,6 +412,13 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
         resolveDescription={loaderData.scrape.resolveDescription ?? undefined}
         resolveYesConfig={loaderData.scrape.resolveYesConfig ?? undefined}
         resolveNoConfig={loaderData.scrape.resolveNoConfig ?? undefined}
+        threadId={thread?.id}
+        customerEmail={
+          thread?.ticketUserEmail ??
+          (thread?.customTags as Record<string, any>)?.email ??
+          null
+        }
+        makeThreadId={createThread}
       />
     </Stack>
   );
