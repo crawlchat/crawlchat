@@ -266,7 +266,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
     await updateSessionThreadId(session, scrapeId, thread.id);
     const userToken = createToken(chatSessionKeys[scrapeId], {
-      expiresInSeconds: 60 * 60,
+      expiresInSeconds: 60 * 60 * 24,
     });
     return data(
       { userToken, thread },
@@ -292,8 +292,11 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
     [createThreadFetcher.data, loaderData.thread]
   );
   const userToken = useMemo<string | undefined>(
-    () => createThreadFetcher.data?.userToken ?? loaderData.userToken,
-    [createThreadFetcher.data, loaderData.userToken]
+    () =>
+      ticketCreateFetcher.data?.userToken ??
+      createThreadFetcher.data?.userToken ??
+      loaderData.userToken,
+    [createThreadFetcher.data, ticketCreateFetcher.data, loaderData.userToken]
   );
 
   useEffect(() => {
