@@ -2,11 +2,10 @@ import { prisma } from "~/prisma";
 import type { Route } from "./+types/scrape";
 import { Stack } from "@chakra-ui/react";
 import { createToken } from "~/jwt";
-import "highlight.js/styles/vs.css";
 import ChatBox from "~/dashboard/chat-box";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, useFetcher, type Session } from "react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Message, MessageRating, Thread } from "libs/prisma";
 import { randomUUID } from "crypto";
 import { getNextNumber } from "libs/mongo-counter";
@@ -14,6 +13,7 @@ import { sendReactEmail } from "~/email";
 import TicketUserCreateEmail from "emails/ticket-user-create";
 import { Toaster, toaster } from "~/components/ui/toaster";
 import TicketAdminCreateEmail from "emails/ticket-admin-create";
+import "highlight.js/styles/vs.css";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
