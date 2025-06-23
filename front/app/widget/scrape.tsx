@@ -307,7 +307,9 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
   }, [eraseFetcher.data]);
 
   useEffect(() => {
-    setEraseAt(new Date().getTime());
+    if (ticketCreateFetcher.data) {
+      setEraseAt(new Date().getTime());
+    }
   }, [ticketCreateFetcher.data]);
 
   useEffect(() => {
