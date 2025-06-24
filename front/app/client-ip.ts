@@ -1,6 +1,5 @@
 export function getClientIp(req: Request) {
   const headers = req.headers;
-  return "49.43.242.250";
   return headers.get("x-forwarded-for") || headers.get("x-real-ip");
 }
 
