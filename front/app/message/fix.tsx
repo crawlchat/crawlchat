@@ -286,18 +286,11 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
         <Stack h="full" flex={1} bg="brand.gray.100">
           <Center h="full" w="full">
             <ChatBox
-              thread={loaderData.thread}
               scrape={loaderData.scrape}
-              userToken={"NA"}
               key={loaderData.thread.id}
-              onBgClick={() => {}}
-              onPin={() => {}}
-              onUnpin={() => {}}
-              onErase={() => {}}
-              onDelete={() => {}}
-              onRate={() => {}}
               messages={loaderData.messages}
               showScore
+              ticketNumber={loaderData.thread.ticketNumber ?? undefined}
             />
           </Center>
         </Stack>

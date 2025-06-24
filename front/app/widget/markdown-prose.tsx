@@ -71,16 +71,16 @@ const RichCreateTicket = ({
   onTicketCreate,
   loading,
   disabled,
-  customTags,
+  customerEmail,
 }: {
   title: string;
   message: string;
   onTicketCreate: (email: string, title: string, message: string) => void;
   loading?: boolean;
   disabled?: boolean;
-  customTags?: Record<string, any>;
+  customerEmail?: string;
 }) => {
-  const [email, setEmail] = useState(customTags?.email ?? "");
+  const [email, setEmail] = useState(customerEmail ?? "");
   const [title, setTitle] = useState(initialTitle);
   const [message, setMessage] = useState(initialMessage);
 
@@ -128,7 +128,7 @@ const RichCreateTicket = ({
             defaultValue={email}
             onChange={(e) => setEmail(e.target.value)}
             size="xs"
-            disabled={disabled || customTags?.email}
+            disabled={disabled || !!customerEmail}
           />
           <Group justifyContent={"flex-end"}>
             <Button
@@ -170,7 +170,7 @@ export function MarkdownProse({
     ) => void;
     ticketCreateLoading?: boolean;
     disabled?: boolean;
-    customTags?: Record<string, any>;
+    customerEmail?: string;
   };
 }>) {
   return (
@@ -203,7 +203,7 @@ export function MarkdownProse({
                       onTicketCreate={options.onTicketCreate}
                       loading={options.ticketCreateLoading}
                       disabled={options.disabled}
-                      customTags={options.customTags}
+                      customerEmail={options.customerEmail}
                     />
                   );
                 }

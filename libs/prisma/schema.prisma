@@ -222,6 +222,12 @@ enum TicketStatus {
   closed
 }
 
+type Location {
+  country         String?
+  region          String?
+  city            String?
+}
+
 model Thread {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId        String   @db.ObjectId
@@ -241,6 +247,7 @@ model Thread {
   ticketClosedAt  DateTime?
   ticketUserEmail String?
   customTags      Json?
+  location        Location?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   

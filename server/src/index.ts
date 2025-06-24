@@ -7,7 +7,7 @@ import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
-import { joinRoom, broadcast } from "./socket-room";
+import { joinRoom } from "./socket-room";
 import { getRoomIds } from "./socket-room";
 import { authenticate, verifyToken } from "./jwt";
 import { splitMarkdown } from "./scrape/markdown-splitter";
@@ -156,18 +156,10 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       return undefined;
     }
 
-    const broadcastRoom = (type: string, data: any) => {
-      getRoomIds({
-        userKey: userId,
-        roomId,
-        knowledgeGroupId,
-      }).forEach((roomId) => broadcast(roomId, makeMessage(type, data)));
-    };
-
     const listener = new BaseKbProcesserListener(
       scrape,
       knowledgeGroup,
-      broadcastRoom,
+      () => {},
       {
         includeMarkdown,
       }
@@ -297,6 +289,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         getRoomIds({ userKey: userKey! }).forEach((roomId) =>
           joinRoom(roomId, ws)
         );
+        ws.send(makeMessage("connected", { message: "Connected" }));
         return;
       }
 
