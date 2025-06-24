@@ -6,6 +6,7 @@ import {
   Flex,
   Group,
   IconButton,
+  Image,
   Stack,
   Text,
   VStack,
@@ -205,7 +206,26 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
               >
                 <Group justifyContent={"space-between"}>
                   <Group>
-                    <TbMessages />
+                    {thread.location?.country && (
+                      <Tooltip
+                        content={[
+                          thread.location.city,
+                          thread.location.region,
+                          thread.location.country,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                        positioning={{ placement: "top" }}
+                        showArrow
+                      >
+                        <Image
+                          src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${thread.location.country.toUpperCase()}.svg`}
+                          alt={thread.location?.country}
+                          h={3}
+                          aspectRatio={"3/2"}
+                        />
+                      </Tooltip>
+                    )}
                     <Text opacity={0.8}>
                       {thread.id.substring(thread.id.length - 4)}
                     </Text>

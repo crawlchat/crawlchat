@@ -14,6 +14,7 @@ import TicketUserCreateEmail from "emails/ticket-user-create";
 import { Toaster, toaster } from "~/components/ui/toaster";
 import TicketAdminCreateEmail from "emails/ticket-admin-create";
 import "highlight.js/styles/vs.css";
+import { fetchIpDetails, getClientIp } from "~/client-ip";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -108,12 +109,19 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   if (intent === "create-thread") {
     const customTags = getCustomTags(new URL(request.url));
+    const ip = getClientIp(request);
+    const ipDetails = ip ? await fetchIpDetails(ip) : null;
     const thread = await prisma.thread.create({
       data: {
         scrapeId: scrape.id,
         openedAt: new Date(),
         customTags,
         ticketUserEmail: customTags?.email,
+        location: {
+          country: ipDetails?.country,
+          city: ipDetails?.city,
+          region: ipDetails?.region,
+        },
       },
     });
     await updateSessionThreadId(session, scrapeId, thread.id);
