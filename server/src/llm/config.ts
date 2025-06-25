@@ -37,6 +37,15 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
   }
   if (model === LlmModel.gemini_2_5_flash) {
     return {
+      model: "gemini-2.5-flash",
+      apiKey: process.env.GEMINI_API_KEY!,
+      ragTopN: 2,
+      creditsPerMessage: 2,
+      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+    };
+  }
+  if (model === LlmModel.gemini_2_5_flash_lite) {
+    return {
       model: "gemini-2.5-flash-lite-preview-06-17",
       apiKey: process.env.GEMINI_API_KEY!,
       ragTopN: 4,

@@ -19,7 +19,7 @@ import { makeRagTool } from "./llm/flow-jasmine";
 
 async function main() {
   const ragTool = makeRagTool("67c1d700cb1ec09c237bab8a", "mars").make();
-  const config = getConfig("gemini_2_5_flash");
+  const config = getConfig("gemini_2_5_flash_lite");
   // const config = getConfig("gpt_4o_mini");
 
   const planner = new SimpleAgent({
@@ -103,12 +103,12 @@ Use code examples if available.
           content:
             // "is that true that the frame number on <Player> is different than the frame number in the @remotion/renderer. I noticed that frame 1 on the Player is frame 0 in the renderer. It's like the start frame from the renderer is 0, and the player is 1",
             "Do I need to install @tailwindcss/postcss myself when using remotion tailwind?",
-            // "if I render a video without setting the color space option, I see the output video has colorSpace=bt470bg, is that the default color space? Or something else affected it?",
-            // "Can I dynamic-link a remotion project to Adobe Premiere Pro, like After Effects, without rendering the whole video before importing to Premiere?"
-            // "How do I load my files from zustand store to composition in order to render the video, right now its empty black frame."
-            // "does @remotion/media-parser not work for parsing audio files?"
-            // "How do I set the scaling to text based on video resolution to get the same text across differnt resolutions"
-            // "How can I get the silence parts of a video using Remotion so I can then remove them. I want to find the places where the person is the video is not speaking."
+          // "if I render a video without setting the color space option, I see the output video has colorSpace=bt470bg, is that the default color space? Or something else affected it?",
+          // "Can I dynamic-link a remotion project to Adobe Premiere Pro, like After Effects, without rendering the whole video before importing to Premiere?"
+          // "How do I load my files from zustand store to composition in order to render the video, right now its empty black frame."
+          // "does @remotion/media-parser not work for parsing audio files?"
+          // "How do I set the scaling to text based on video resolution to get the same text across differnt resolutions"
+          // "How can I get the silence parts of a video using Remotion so I can then remove them. I want to find the places where the person is the video is not speaking."
         },
       },
     ],
@@ -121,7 +121,7 @@ Use code examples if available.
   ).queries;
   console.log("Queries: ", queries);
   for (const query of queries) {
-    console.log("-----")
+    console.log("-----");
     console.log("Query: ", query);
 
     flow.addMessage({
@@ -151,7 +151,7 @@ Use code examples if available.
       },
     });
   }
-  console.log("-----")
+  console.log("-----");
   flow.addNextAgents(["summarizer"]);
   while (await flow.stream()) {}
   console.log(flow.getLastMessage().llmMessage.content);
