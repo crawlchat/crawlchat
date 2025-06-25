@@ -58,7 +58,7 @@ export function makeRagTool(
       const filtered = processed.filter(
         (r) => options?.minScore === undefined || r.score >= options.minScore
       );
-
+      console.log("Filtered", filtered.length);
       return {
         content:
           filtered.length > 0

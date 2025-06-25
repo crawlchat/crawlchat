@@ -670,9 +670,8 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
     return createListCollection({
       items: [
         { label: "GPT-4o-mini", value: "gpt_4o_mini" },
-        // { label: "o3-mini", value: "o3_mini" },
-        // { label: "Sonnet-3.5", value: "sonnet_3_5" },
         { label: "Gemini-2.5-flash", value: "gemini_2_5_flash" },
+        { label: "Gemini-2.5-flash-lite", value: "gemini_2_5_flash_lite" },
       ],
     });
   }, []);

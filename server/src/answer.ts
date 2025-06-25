@@ -170,7 +170,10 @@ export const baseAnswerer: Answerer = async (
     answer = {
       type: "answer-complete",
       content: lastMessage.llmMessage.content as string,
-      sources: await collectSourceLinks(scrape.id, messages),
+      sources: await collectSourceLinks(
+        scrape.id,
+        flow.flowState.state.messages
+      ),
       llmCalls: 1,
     };
     options?.listen?.(answer);
