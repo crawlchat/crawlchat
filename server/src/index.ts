@@ -374,8 +374,15 @@ expressWs.app.ws("/", (ws: any, req) => {
           return;
         }
 
+        const agentEnabledScrapeIds = ["67bca5b7b57f15a3a6f8eac6"];
+
+        let answerer = baseAnswerer;
+        if (agentEnabledScrapeIds.includes(scrape.id)) {
+          answerer = agenticAnswerer;
+        }
+
         await retry(async () => {
-          baseAnswerer(
+          answerer(
             scrape,
             message.data.query,
             thread.messages.map((message) => ({
