@@ -31,7 +31,7 @@ import { chunk } from "libs/chunk";
 import { retry } from "./retry";
 import { Flow } from "./llm/flow";
 import { z } from "zod";
-import { baseAnswerer, AnswerListener } from "./answer";
+import { baseAnswerer, AnswerListener, agenticAnswerer } from "./answer";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -375,7 +375,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         }
 
         await retry(async () => {
-          baseAnswerer(
+          agenticAnswerer(
             scrape,
             message.data.query,
             thread.messages.map((message) => ({

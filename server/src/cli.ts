@@ -61,28 +61,6 @@ Search about above mentioned query using the rag tool.
     ...config,
   });
 
-  const factChecker = new SimpleAgent({
-    id: "factChecker",
-    prompt: `
-You are a fact checker agent in a Retrieval-Augmented Generation (RAG) system.
-Check if the information is correct and relevant to the user's query.
-You should check every single point mentioned in the answer and check it against the context if it is mentioned as used in the answer.
-Consider the user intent and the answer and find if the answer is correct or not.
-Wording is very important. You cannot cherry pick information.
-
-    `,
-    tools: [ragTool],
-    schema: z.object({
-      incorrectPoints: z.array(
-        z.object({
-          point: z.string(),
-          correctAnswer: z.string(),
-        })
-      ),
-    }),
-    ...config,
-  });
-
   const summarizer = new SimpleAgent({
     id: "summarizer",
     prompt: `
@@ -95,7 +73,7 @@ Use code examples if available.
     ...config,
   });
 
-  const flow = new Flow([planner, retriever, factChecker, summarizer], {
+  const flow = new Flow([planner, retriever, summarizer], {
     messages: [
       {
         llmMessage: {
