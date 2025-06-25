@@ -397,9 +397,15 @@ function AssistantMessage({
   customerEmail?: string;
 }) {
   const [cleanedLinks, cleanedContent, score] = useMemo(() => {
-    const citation = extractCitations(content, links);
+    const citation = extractCitations(content, links, { cleanCitations: true });
     const score = Math.max(...links.map((l) => l.score ?? 0), 0);
-    return [citation.citedLinks, citation.content, score];
+    const uniqueLinks = links.filter(
+      (link, index, self) => index === self.findIndex((t) => t.url === link.url)
+    );
+    const topLinks = uniqueLinks
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      .splice(0, 4);
+    return [topLinks, citation.content, score];
   }, [links]);
   const [currentRating, setCurrentRating] = useState<MessageRating | null>(
     rating

@@ -375,7 +375,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         }
 
         await retry(async () => {
-          agenticAnswerer(
+          baseAnswerer(
             scrape,
             message.data.query,
             thread.messages.map((message) => ({
