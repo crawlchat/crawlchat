@@ -17,21 +17,21 @@ import {
   Message,
   MessageSourceLink,
   Prisma,
-  RichBlockConfig,
+  MessageChannel,
 } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
-import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
+import { RAGAgentCustomMessage } from "./llm/flow-jasmine";
 import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
 import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
-import { getConfig } from "./llm/config";
 import { chunk } from "libs/chunk";
 import { retry } from "./retry";
 import { Flow } from "./llm/flow";
 import { z } from "zod";
+import { baseAnswerer, AnswerListener } from "./answer";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -104,13 +104,65 @@ async function updateLastMessageAt(threadId: string) {
   });
 }
 
-const createTicketRichBlock: RichBlockConfig = {
-  name: "Create support ticket",
-  key: "create-ticket",
-  payload: {},
-  prompt: `Use this whenever you say contact the support team.
-This is the way they can contact the support team. This is mandatory.`,
-};
+function answerListener(
+  scrapeId: string,
+  userId: string,
+  threadId: string,
+  options?: {
+    ws?: WebSocket;
+    channel?: MessageChannel;
+  }
+): AnswerListener {
+  return async (event) => {
+    const { ws, channel } = options ?? {};
+    switch (event.type) {
+      case "init":
+        const newQueryMessage = await prisma.message.create({
+          data: {
+            threadId,
+            scrapeId,
+            llmMessage: { role: "user", content: event.query },
+            ownerUserId: userId,
+            channel: channel ?? null,
+          },
+        });
+        await updateLastMessageAt(threadId);
+        ws?.send(makeMessage("query-message", newQueryMessage));
+        break;
+
+      case "stream-delta":
+        ws?.send(makeMessage("llm-chunk", { content: event.delta }));
+        break;
+
+      case "tool-call":
+        ws?.send(
+          makeMessage("stage", { stage: "tool-call", query: event.query })
+        );
+        break;
+
+      case "answer-complete":
+        await consumeCredits(userId, "messages", event.llmCalls);
+        const newAnswerMessage = await prisma.message.create({
+          data: {
+            threadId,
+            scrapeId,
+            llmMessage: { role: "assistant", content: event.content },
+            links: event.sources,
+            ownerUserId: userId,
+            channel: channel ?? null,
+          },
+        });
+        await updateLastMessageAt(threadId);
+        ws?.send(
+          makeMessage("llm-chunk", {
+            end: true,
+            content: event.content,
+            message: newAnswerMessage,
+          })
+        );
+    }
+  };
+}
 
 app.get("/", function (req: Request, res: Response) {
   res.json({ message: "ok" });
@@ -322,91 +374,18 @@ expressWs.app.ws("/", (ws: any, req) => {
           return;
         }
 
-        const newQueryMessage = await prisma.message.create({
-          data: {
-            threadId,
-            scrapeId: scrape.id,
-            llmMessage: { role: "user", content: message.data.query },
-            ownerUserId: scrape.userId,
-          },
-        });
-        await updateLastMessageAt(threadId);
-
-        ws.send(makeMessage("query-message", newQueryMessage));
-
-        await retry(async (nTime) => {
-          const llmConfig = getConfig(scrape.llmModel);
-
-          const richBlocks = scrape.richBlocksConfig?.blocks ?? [];
-          if (scrape.ticketingEnabled) {
-            richBlocks.push(createTicketRichBlock);
-          }
-
-          const flow = makeFlow(
-            scrape.id,
-            scrape.chatPrompt ?? "",
+        await retry(async () => {
+          baseAnswerer(
+            scrape,
             message.data.query,
             thread.messages.map((message) => ({
               llmMessage: message.llmMessage as any,
             })),
-            scrape.indexer,
             {
-              onPreSearch: async (query) => {
-                ws.send(
-                  makeMessage("stage", {
-                    stage: "tool-call",
-                    query,
-                  })
-                );
-              },
-              model: llmConfig.model,
-              baseURL: llmConfig.baseURL,
-              apiKey: llmConfig.apiKey,
-              topN: llmConfig.ragTopN,
-              richBlocks,
-              minScore: scrape.minScore ?? undefined,
+              listen: answerListener(scrape.id, scrape.userId, threadId, {
+                ws,
+              }),
             }
-          );
-
-          while (
-            await flow.stream({
-              onDelta: ({ delta }) => {
-                if (delta !== undefined && delta !== null) {
-                  ws.send(makeMessage("llm-chunk", { content: delta }));
-                }
-              },
-            })
-          ) {}
-
-          const content =
-            (flow.getLastMessage().llmMessage.content as string) ?? "";
-
-          const links = await collectSourceLinks(
-            scrape.id,
-            flow.flowState.state.messages
-          );
-
-          await consumeCredits(
-            scrape.userId,
-            "messages",
-            llmConfig.creditsPerMessage
-          );
-          const newAnswerMessage = await prisma.message.create({
-            data: {
-              threadId,
-              scrapeId: scrape.id,
-              llmMessage: { role: "assistant", content },
-              links,
-              ownerUserId: scrape.userId,
-            },
-          });
-          await updateLastMessageAt(threadId);
-          ws.send(
-            makeMessage("llm-chunk", {
-              end: true,
-              content,
-              message: newAnswerMessage,
-            })
           );
         });
       }
@@ -589,33 +568,19 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     });
   }
   let query = req.body.query as string;
-  const reqPrompt = req.body.prompt as string;
-  const channel = req.body.channel;
+
   const messages = req.body.messages as { role: string; content: string }[];
   if (messages && messages.length > 0) {
     query = messages[messages.length - 1].content;
   }
 
-  await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "user", content: query },
-      ownerUserId: scrape.userId,
-      channel,
-    },
-  });
-  await updateLastMessageAt(thread.id);
-
+  const reqPrompt = req.body.prompt as string;
   const prompt = [scrape.chatPrompt ?? "", reqPrompt ?? ""]
     .filter(Boolean)
     .join("\n\n");
 
-  const llmConfig = getConfig("gpt_4o_mini");
-
-  const flow = makeFlow(
-    scrape.id,
-    prompt,
+  const answer = await baseAnswerer(
+    scrape,
     query,
     messages.map((m) => ({
       llmMessage: {
@@ -623,37 +588,21 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
         content: m.content,
       },
     })),
-    scrape.indexer,
     {
-      model: llmConfig.model,
-      baseURL: llmConfig.baseURL,
-      apiKey: llmConfig.apiKey,
-      topN: llmConfig.ragTopN,
-      minScore: scrape.minScore ?? undefined,
+      listen: answerListener(scrape.id, scrape.userId, thread.id, {
+        channel: req.body.channel as MessageChannel,
+      }),
+      prompt,
     }
   );
 
-  while (await flow.stream()) {}
+  if (!answer) {
+    res.status(400).json({ message: "Failed to answer" });
+    return;
+  }
 
-  const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
-
-  const links = await collectSourceLinks(
-    scrape.id,
-    flow.flowState.state.messages
-  );
-
-  await consumeCredits(scrape.userId, "messages", llmConfig.creditsPerMessage);
-  const newAnswerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content },
-      links,
-      ownerUserId: scrape.userId,
-    },
-  });
-  await updateLastMessageAt(thread.id);
-  const citation = extractCitations(content, links, { cleanCitations: true });
+  const { content, sources } = answer;
+  const citation = extractCitations(content, sources, { cleanCitations: true });
 
   let updatedContent = citation.content;
   if (Object.keys(citation.citedLinks).length > 0) {
@@ -664,7 +613,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
         .join("\n");
   }
 
-  res.json({ message: newAnswerMessage, content: updatedContent });
+  res.json({ content: updatedContent });
 });
 
 app.get("/discord/:channelId", async (req, res) => {

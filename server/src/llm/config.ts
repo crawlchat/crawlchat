@@ -37,7 +37,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
   }
   if (model === LlmModel.gemini_2_5_flash) {
     return {
-      model: "gemini-2.5-flash-preview-05-20",
+      model: "gemini-2.5-flash-lite-preview-06-17",
       apiKey: process.env.GEMINI_API_KEY!,
       ragTopN: 4,
       creditsPerMessage: 1,
