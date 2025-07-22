@@ -135,10 +135,11 @@ export function makeFlow(
       "Example: If the topic is about a tool called 'Remotion', turn the query 'What is it?' into 'What is Remotion?'",
       "These queries are for a vector database. Don't use extra words that do not add any value in vectorisation.",
       "Example: If the query is 'How to make a composition?', better you use 'make a composition'",
-      "The query should not be more than 3 words. Keep only the most important words.",
+      "The query should not be more than 5 words. Keep only the most important words.",
       "Don't repeat the same or similar queries.",
       "Break multi level queries as well. For example: 'What is the average score?' should be split into 'score list' and then calculate the average.",
       "You need to find indirect questions. For example: 'What is the cheapest pricing plan?' should be converted into 'pricing plans' and then find cheapest",
+      "Don't use the search_data tool if the latest message is answer for a follow up question. Ex: yes, no.",
 
       "Don't repeat the question in the answer.",
       "Don't inform about searching using the RAG tool. Just fetch and answer.",
@@ -150,16 +151,11 @@ export function makeFlow(
 
       "Once you have the context,",
       `Given above context, answer the query "${query}".`,
-      "Cite the sources in the format of !!<fetchUniqueId>!! at the end of the sentance or paragraph. Example: !!123!!",
-      "<fetchUniqueId> should be the 'fetchUniqueId' mentioned above context json.",
-      "Cite only for the sources that are used to answer the query.",
-      "Cite every fact that is used in the answer.",
-      "Pick most relevant sources and cite them.",
 
       enabledRichBlocks.length > 0 ? richBlocksPrompt : "",
 
       "Don't ask more than 3 questions for the entire answering flow.",
-      "Be polite when you don't have the answer, exlain in a friendly way and inform that it is better to reach out the support team.",
+      "Be polite when you don't have the answer, explain in a friendly way and inform that it is better to reach out the support team.",
       systemPrompt,
     ]),
     tools: [ragTool.make()],

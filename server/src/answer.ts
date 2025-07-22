@@ -64,7 +64,9 @@ const createTicketRichBlock: RichBlockConfig = {
   key: "create-ticket",
   payload: {},
   prompt: `Use this whenever you say contact the support team.
-This is the way they can contact the support team. This is mandatory.`,
+This is the way they can contact the support team. This is mandatory.
+Use this if customer wants to contact the support team.
+Don't tell user to reach out to support team, instead use this block.`,
 };
 
 async function collectSourceLinks(
