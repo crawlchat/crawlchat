@@ -95,6 +95,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
       "67e312247a822a2303f2b8a7",
       "683dbed123465b65fecc4fbe",
       "683e89a77d51a04cd9711bf7",
+      "680e1be3148c99bff1f7711b", // 270degrees
+      "6875d6818d356651a9d4a41e", // guideroll
     ];
 
     const shouldTrack = trackingExcludedScrapeIds.every(
