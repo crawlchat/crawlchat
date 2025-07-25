@@ -25,7 +25,8 @@ import {
 } from "react-icons/tb";
 import { prisma } from "libs/prisma";
 import type { Route } from "./+types/page";
-import { Box, Text } from "@chakra-ui/react";
+import { Badge, Box, Text } from "@chakra-ui/react";
+import { Tooltip } from "~/components/ui/tooltip";
 
 export function meta() {
   return [
@@ -84,6 +85,8 @@ export async function loader() {
     });
   }
 
+  
+
   return {
     messagesThisWeek: cache.messagesThisWeek,
     messagesDay: cache.messagesDay,
@@ -108,10 +111,29 @@ export function Logo() {
   );
 }
 
-function NavLink({ children, href }: PropsWithChildren<{ href: string }>) {
+function NavLink({
+  children,
+  href,
+  tooltip,
+}: PropsWithChildren<{ href: string; tooltip?: string }>) {
   return (
-    <a href={href} className="font-medium hover:underline">
+    <a href={href} className="font-medium hover:underline relative">
       {children}
+      {tooltip && (
+        <Tooltip content="New" positioning={{ placement: "top" }}>
+          <Badge
+            position={"absolute"}
+            top={0}
+            right={0}
+            colorPalette={"red"}
+            variant={"solid"}
+            size={"xs"}
+            transform={"translate(20%, -80%)"}
+          >
+            {tooltip}
+          </Badge>
+        </Tooltip>
+      )}
     </a>
   );
 }
@@ -937,7 +959,7 @@ export function Footer() {
   );
 }
 
-export function Nav() {
+export function Nav({ changeLogDate }: { changeLogDate?: string }) {
   return (
     <nav className="flex items-center justify-between gap-2 lg:py-6">
       <Logo />
@@ -946,7 +968,9 @@ export function Nav() {
         <div className="items-center gap-8 hidden md:flex">
           <NavLink href="/#how-it-works">How it works</NavLink>
           <NavLink href="/#pricing">Pricing</NavLink>
-          <NavLink href="/changelog">Changelog</NavLink>
+          <NavLink href="/changelog" tooltip={changeLogDate}>
+            Changelog
+          </NavLink>
           <NavLink href="/public-bots">Public bots</NavLink>
         </div>
 
@@ -1422,11 +1446,7 @@ function FAQ() {
 
 export default function Landing({ loaderData }: Route.ComponentProps) {
   return (
-    <LandingPage>
-      <Container>
-        <Nav />
-      </Container>
-
+    <>
       <Container>
         <Hero />
       </Container>
@@ -1474,12 +1494,6 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
       <Container>
         <FAQ />
       </Container>
-
-      <Container>
-        <CTA />
-      </Container>
-
-      <Footer />
-    </LandingPage>
+    </>
   );
 }

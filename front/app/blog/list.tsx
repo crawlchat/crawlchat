@@ -25,11 +25,7 @@ export function meta() {
 
 export default function BlogPage({ loaderData }: Route.ComponentProps) {
   return (
-    <LandingPage>
-      <Container>
-        <Nav />
-      </Container>
-
+    <>
       <Container>
         <h2 className="text-2xl font-medium flex items-center gap-2 mb-8">
           <TbSignature />
@@ -62,12 +58,6 @@ export default function BlogPage({ loaderData }: Route.ComponentProps) {
           ))}
         </div>
       </Container>
-
-      <Container>
-        <CTA />
-      </Container>
-
-      <Footer />
-    </LandingPage>
+    </>
   );
 }

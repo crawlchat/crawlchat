@@ -12,14 +12,11 @@ export default [
     route("verify", "auth/verify.ts"),
   ]),
 
-  index("landing/page.tsx"),
   route("terms", "landing/terms.tsx"),
   route("policy", "landing/policy.tsx"),
   route("embed-demo", "landing/embed-demo.tsx"),
-  route("discord-bot", "landing/discord-bot.tsx"),
-  route("public-bots", "landing/public-bots.tsx"),
+
   route("shopify-app-bot", "landing/shopify-app-bot.tsx"),
-  route("support-tickets", "landing/support-tickets.tsx"),
 
   route("payment/lemonsqueezy-webhook", "payment/lemonsqueezy-webhook.ts"),
 
@@ -55,9 +52,16 @@ export default [
     route("setup-progress", "dashboard/setup-progress-api.ts"),
   ]),
 
-  route("blog/:slug", "blog/page.tsx"),
-  route("blog", "blog/list.tsx"),
-  route("changelog", "changelog/list.tsx"),
+  layout("landing/layout.tsx", [
+    index("landing/page.tsx"),
+    route("blog/:slug", "blog/page.tsx"),
+    route("blog", "blog/list.tsx"),
+    route("changelog", "changelog/list.tsx"),
+    route("public-bots", "landing/public-bots.tsx"),
+
+    route("discord-bot", "landing/discord-bot.tsx"),
+    route("support-tickets", "landing/support-tickets.tsx"),
+  ]),
 
   route("w/:id", "widget/scrape.tsx"),
   route("s/:id", "widget/share.tsx"),

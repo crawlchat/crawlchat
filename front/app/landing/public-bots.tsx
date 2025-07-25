@@ -49,11 +49,7 @@ export function loader() {
 
 export default function PublicBots({ loaderData }: Route.ComponentProps) {
   return (
-    <LandingPage>
-      <Container>
-        <Nav />
-      </Container>
-
+    <>
       <Container>
         <div className="opacity-60">
           CrawlChat lets you create AI chatbots that are powered by your own
@@ -92,12 +88,6 @@ export default function PublicBots({ loaderData }: Route.ComponentProps) {
           ))}
         </div>
       </Container>
-
-      <Container>
-        <CTA />
-      </Container>
-
-      <Footer />
-    </LandingPage>
+    </>
   );
 }

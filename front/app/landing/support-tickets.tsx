@@ -67,16 +67,12 @@ export default function PublicBots() {
   ];
 
   return (
-    <LandingPage>
-      <Container>
-        <Nav />
-      </Container>
-
+    <>
       <Container>
         <div className="flex flex-col md:flex-row gap-16 mt-16">
           <div className="flex-1">
             <h1 className="text-6xl font-bold font-radio-grotesk leading-[1.1]">
-              <span className="text-brand">Support tickets</span> right from the 
+              <span className="text-brand">Support tickets</span> right from the
               chatbot
             </h1>
             <h2 className="text-xl mt-4">
@@ -136,12 +132,6 @@ export default function PublicBots() {
           image="/ticket-resolve.png"
         />
       </Container>
-
-      <Container>
-        <CTA />
-      </Container>
-
-      <Footer />
-    </LandingPage>
+    </>
   );
 }

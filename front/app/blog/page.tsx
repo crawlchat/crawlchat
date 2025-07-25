@@ -26,11 +26,7 @@ export function meta({ data }: Route.MetaArgs) {
 
 export default function BlogPage({ loaderData }: Route.ComponentProps) {
   return (
-    <LandingPage>
-      <Container>
-        <Nav />
-      </Container>
-
+    <>
       <Container>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 max-w-[760px] mx-auto">
@@ -53,12 +49,6 @@ export default function BlogPage({ loaderData }: Route.ComponentProps) {
           </div>
         </div>
       </Container>
-
-      <Container>
-        <CTA />
-      </Container>
-
-      <Footer />
-    </LandingPage>
+    </>
   );
 }
