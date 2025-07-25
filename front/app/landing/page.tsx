@@ -879,6 +879,9 @@ export function Footer() {
                 <FooterLink href="/#features">Features</FooterLink>
               </li>
               <li>
+                <FooterLink href="/changelog">Changelog</FooterLink>
+              </li>
+              <li>
                 <FooterLink href="https://guides.crawlchat.app">
                   Guides
                 </FooterLink>
@@ -943,7 +946,7 @@ export function Nav() {
         <div className="items-center gap-8 hidden md:flex">
           <NavLink href="/#how-it-works">How it works</NavLink>
           <NavLink href="/#pricing">Pricing</NavLink>
-          <NavLink href="/support-tickets">Support tickets</NavLink>
+          <NavLink href="/changelog">Changelog</NavLink>
           <NavLink href="/public-bots">Public bots</NavLink>
         </div>
 
@@ -1387,9 +1390,7 @@ function FAQ() {
 
   return (
     <div className="flex flex-col mt-32">
-      <Heading>
-        Frequently Asked Questions
-      </Heading>
+      <Heading>Frequently Asked Questions</Heading>
 
       <div className="mt-20">
         {questions.map((question, index) => (

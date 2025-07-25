@@ -57,6 +57,7 @@ export default [
 
   route("blog/:slug", "blog/page.tsx"),
   route("blog", "blog/list.tsx"),
+  route("changelog", "changelog/list.tsx"),
 
   route("w/:id", "widget/scrape.tsx"),
   route("s/:id", "widget/share.tsx"),

@@ -1,12 +1,14 @@
 import { readPosts } from "./posts";
 import { Cache } from "~/cache";
 import type { Route } from "./+types/list";
-import { useMemo } from "react";
 import { TbClock, TbSignature } from "react-icons/tb";
 import { LandingPage, Container, Nav, CTA, Footer } from "~/landing/page";
 import moment from "moment";
 
-const cache = new Cache(() => readPosts(), 5 * 60 * 1000);
+const cache = new Cache(
+  () => readPosts().filter((b) => b.type === "blog"),
+  5 * 60 * 1000
+);
 
 export function loader() {
   return { posts: cache.get() };
@@ -22,11 +24,6 @@ export function meta() {
 }
 
 export default function BlogPage({ loaderData }: Route.ComponentProps) {
-  const randomNumbers = useMemo(
-    () => Array.from(Array(100)).map(() => Math.floor(Math.random() * 6)),
-    []
-  );
-
   return (
     <LandingPage>
       <Container>
