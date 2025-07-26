@@ -561,7 +561,7 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
 
 app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   console.log("Answer request for", req.params.scrapeId);
-  
+
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: req.params.scrapeId },
   });
@@ -617,15 +617,14 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   }
 
   const { content, sources } = answer;
-  const citation = extractCitations(content, sources, { cleanCitations: true });
 
-  let updatedContent = citation.content;
-  if (Object.keys(citation.citedLinks).length > 0) {
+  let updatedContent = content;
+  if (sources && sources.length > 0) {
+    const uniqueSources = sources.filter(
+      (s, index, self) => index === self.findIndex((t) => t.url === s.url)
+    );
     updatedContent +=
-      "\n\nSources:\n" +
-      Object.values(citation.citedLinks)
-        .map((l) => l.url)
-        .join("\n");
+      "\n\nSources:\n" + uniqueSources.map((s) => s.url).join("\n");
   }
 
   res.json({ content: updatedContent });
