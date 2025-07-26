@@ -6,17 +6,9 @@ import {
   EmptyState,
   VStack,
   Heading,
-  List,
   Link,
-  Flex,
   Box,
   Center,
-  createListCollection,
-  CheckboxCard,
-  IconButton,
-  Popover,
-  Portal,
-  Highlight,
   Icon,
   Button,
   Table,
@@ -24,8 +16,6 @@ import {
 import {
   TbBox,
   TbBrandDiscord,
-  TbHelp,
-  TbLink,
   TbMessage,
   TbRobotFace,
   TbSettingsBolt,
@@ -45,14 +35,7 @@ import {
 } from "~/components/ui/accordion";
 import moment from "moment";
 import { truncate } from "~/util";
-import { useEffect, useMemo, useState } from "react";
-import {
-  SelectContent,
-  SelectItem,
-  SelectRoot,
-  SelectTrigger,
-  SelectValueText,
-} from "~/components/ui/select";
+import { useMemo } from "react";
 import { makeMessagePairs } from "./analyse";
 import { Tooltip } from "~/components/ui/tooltip";
 import { getSessionScrapeId } from "~/scrapes/util";
@@ -60,6 +43,7 @@ import type { Message, MessageChannel } from "libs/prisma";
 import { getScoreColor } from "~/score";
 import { Link as RouterLink } from "react-router";
 import { ViewSwitch } from "./view-switch";
+import { CountryFlag } from "./country-flag";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -103,44 +87,6 @@ function getMessageContent(message?: Message) {
   return (message?.llmMessage as any)?.content ?? "-";
 }
 
-const MetricCheckbox = ({
-  label,
-  value,
-  onToggle,
-  tooltip,
-}: {
-  label: string;
-  value: number;
-  onToggle: (checked: boolean) => void;
-  tooltip?: string;
-}) => {
-  return (
-    <CheckboxCard.Root onCheckedChange={(e) => onToggle(!!e.checked)}>
-      <CheckboxCard.HiddenInput />
-      <CheckboxCard.Control>
-        <CheckboxCard.Content>
-          <Group>
-            <Text opacity={0.5}>{label}</Text>
-            <Tooltip
-              content={tooltip}
-              showArrow
-              positioning={{ placement: "top" }}
-            >
-              <Icon opacity={0.5}>
-                <TbHelp />
-              </Icon>
-            </Tooltip>
-          </Group>
-          <Text fontSize={"2xl"} fontWeight={"bold"}>
-            {value}
-          </Text>
-        </CheckboxCard.Content>
-        <CheckboxCard.Indicator />
-      </CheckboxCard.Control>
-    </CheckboxCard.Root>
-  );
-};
-
 function ChannelIcon({ channel }: { channel?: MessageChannel | null }) {
   const [text, icon, color] = useMemo(() => {
     if (channel === "discord") {
@@ -161,92 +107,6 @@ function ChannelIcon({ channel }: { channel?: MessageChannel | null }) {
 }
 
 export default function Messages({ loaderData }: Route.ComponentProps) {
-  const [pairs, setPairs] = useState(loaderData.messagePairs);
-  const [channels, setChannels] = useState<string[]>(["all"]);
-  const baseFilteredPairs = useMemo(() => {
-    return loaderData.messagePairs.filter(
-      (pair) =>
-        channels.includes("all") ||
-        channels.includes(pair.queryMessage?.channel ?? "chatbot")
-    );
-  }, [channels, loaderData.messagePairs]);
-  const metrics = useMemo(
-    () => ({
-      worst: baseFilteredPairs.filter((p) => p.maxScore < 0.25).length,
-      bad: baseFilteredPairs.filter(
-        (p) => p.maxScore >= 0.25 && p.maxScore < 0.5
-      ).length,
-      good: baseFilteredPairs.filter(
-        (p) => p.maxScore >= 0.5 && p.maxScore < 0.75
-      ).length,
-      best: baseFilteredPairs.filter((p) => p.maxScore >= 0.75).length,
-    }),
-    [baseFilteredPairs]
-  );
-  const channelCollection = useMemo(
-    () =>
-      createListCollection({
-        items: [
-          {
-            label: "All",
-            value: "all",
-          },
-          {
-            label: "Discord",
-            value: "discord",
-          },
-          {
-            label: "MCP",
-            value: "mcp",
-          },
-          {
-            label: "Chatbot",
-            value: "chatbot",
-          },
-        ],
-      }),
-    []
-  );
-  const [filters, setFilters] = useState<{
-    worst?: boolean;
-    bad?: boolean;
-    good?: boolean;
-    best?: boolean;
-  }>({});
-
-  useEffect(() => {
-    let pairs = baseFilteredPairs;
-
-    let scores = [[-10, 10]];
-    if (Object.values(filters).filter(Boolean).length > 0) {
-      scores = [];
-
-      const filterToScore: Record<string, number[]> = {
-        best: [0.75, 10],
-        good: [0.5, 0.75],
-        bad: [0.25, 0.5],
-        worst: [-10, 0.25],
-      };
-
-      for (const filter of Object.keys(filters)) {
-        if (filters[filter as keyof typeof filters]) {
-          scores.push(filterToScore[filter]);
-        }
-      }
-    }
-
-    let filteredPairs = [];
-    for (const pair of pairs) {
-      const score = pair.maxScore;
-      for (const [min, max] of scores) {
-        if (score >= min && score < max) {
-          filteredPairs.push(pair);
-        }
-      }
-    }
-    setPairs(filteredPairs);
-  }, [channels, baseFilteredPairs, filters]);
-
   return (
     <Page title="Messages" icon={<TbMessage />} right={<ViewSwitch />}>
       <Stack>
@@ -272,7 +132,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
               Showing messages in last 7 days
             </Text>
 
-            {pairs.length === 0 && (
+            {loaderData.messagePairs.length === 0 && (
               <Center my={8} flexDir={"column"} gap={2}>
                 <Text fontSize={"6xl"} opacity={0.5}>
                   <TbBox />
@@ -281,13 +141,18 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
               </Center>
             )}
 
-            {pairs.length > 0 && (
+            {loaderData.messagePairs.length > 0 && (
               <AccordionRoot collapsible variant={"enclosed"}>
-                {pairs.map((pair, index) => (
+                {loaderData.messagePairs.map((pair, index) => (
                   <AccordionItem key={index} value={index.toString()}>
                     <AccordionItemTrigger>
                       <Group justifyContent={"space-between"} flex={1}>
                         <Group>
+                          {pair.queryMessage?.thread.location && (
+                            <CountryFlag
+                              location={pair.queryMessage.thread.location}
+                            />
+                          )}
                           <Text maxW={"50vw"} truncate>
                             {truncate(
                               getMessageContent(pair.queryMessage),

@@ -460,14 +460,20 @@ function RichBlocksSettings({ scrape }: { scrape: Scrape }) {
 }
 
 function TicketingSettings({ scrape }: { scrape: Scrape }) {
-  const ticketingFetcher = useFetcher();
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    if (fetcher.data) {
+      window.location.reload();
+    }
+  }, [fetcher.data]);
 
   return (
     <SettingsSection
       id="resolved-enquiry"
       title="Support tickets"
       description="Enable the support tickets for this collection to start receiving support tickets either when the AI has no answer for a given question or the user choses to create a ticket."
-      fetcher={ticketingFetcher}
+      fetcher={fetcher}
     >
       <input type="hidden" name="from-ticketing-enabled" value={"true"} />
       <Switch
@@ -735,6 +741,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
               name="chatPrompt"
               defaultValue={loaderData.scrape.chatPrompt ?? ""}
               placeholder="Enter a custom chat prompt for this scrape."
+              rows={5}
             />
           </SettingsSection>
 
