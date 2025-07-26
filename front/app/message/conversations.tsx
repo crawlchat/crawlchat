@@ -6,12 +6,11 @@ import {
   Flex,
   Group,
   IconButton,
-  Image,
   Stack,
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { Page } from "./components/page";
+import { Page } from "~/components/page";
 import {
   TbChevronLeft,
   TbChevronRight,
@@ -20,16 +19,18 @@ import {
   TbTicket,
 } from "react-icons/tb";
 import type { Route } from "./+types/conversations";
-import { getAuthUser } from "./auth/middleware";
-import { getSessionScrapeId } from "./scrapes/util";
+import { getAuthUser } from "~/auth/middleware";
+import { getSessionScrapeId } from "~/scrapes/util";
 import type { Prisma } from "libs/prisma";
-import { prisma } from "libs/prisma";
+import { prisma } from "~/prisma";
 import moment from "moment";
 import { useState } from "react";
-import ChatBox from "./dashboard/chat-box";
-import { getMessagesScore, getScoreColor } from "./score";
-import { Tooltip } from "./components/ui/tooltip";
+import ChatBox from "~/dashboard/chat-box";
+import { getMessagesScore, getScoreColor } from "~/score";
+import { Tooltip } from "~/components/ui/tooltip";
 import { Link, redirect } from "react-router";
+import { ViewSwitch } from "./view-switch";
+import { CountryFlag } from "./country-flag";
 
 type ThreadWithMessages = Prisma.ThreadGetPayload<{
   include: {
@@ -110,7 +111,12 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
   >(loaderData.threads[0]);
 
   return (
-    <Page title="Conversations" icon={<TbMessages />} noPadding>
+    <Page
+      title="Conversations"
+      icon={<TbMessages />}
+      noPadding
+      right={<ViewSwitch />}
+    >
       {loaderData.threads.length === 0 && (
         <EmptyState.Root>
           <EmptyState.Content>
@@ -207,24 +213,7 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
                 <Group justifyContent={"space-between"}>
                   <Group>
                     {thread.location?.country && (
-                      <Tooltip
-                        content={[
-                          thread.location.city,
-                          thread.location.region,
-                          thread.location.country,
-                        ]
-                          .filter(Boolean)
-                          .join(", ")}
-                        positioning={{ placement: "top" }}
-                        showArrow
-                      >
-                        <Image
-                          src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${thread.location.country.toUpperCase()}.svg`}
-                          alt={thread.location?.country}
-                          h={3}
-                          aspectRatio={"3/2"}
-                        />
-                      </Tooltip>
+                      <CountryFlag location={thread.location} />
                     )}
                     <Text opacity={0.8}>
                       {thread.id.substring(thread.id.length - 4)}

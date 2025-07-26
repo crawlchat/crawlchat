@@ -31,9 +31,10 @@ export default [
     route("profile", "dashboard/profile.tsx"),
     route("messages", "message/messages.tsx"),
     route("messages/:messageId/fix", "message/fix.tsx"),
-    route("conversations", "conversations.tsx"),
+    route("messages/conversations", "message/conversations.tsx"),
     route("settings", "scrapes/settings.tsx"),
-    route("tickets", "tickets.tsx"),
+    route("tickets", "tickets/list.tsx"),
+    route("tickets/settings", "tickets/settings.tsx"),
 
     route("integrations", "integrations/page.tsx", [
       index("integrations/embed.tsx"),

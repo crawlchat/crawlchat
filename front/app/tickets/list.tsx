@@ -2,14 +2,15 @@ import {
   TbChevronLeft,
   TbChevronRight,
   TbCopy,
+  TbSettings,
   TbTicket,
 } from "react-icons/tb";
-import { Page } from "./components/page";
-import { getAuthUser } from "./auth/middleware";
-import type { Route } from "./+types/tickets";
+import { Page } from "~/components/page";
+import { getAuthUser } from "~/auth/middleware";
+import type { Route } from "./+types/list";
 import { prisma } from "libs/prisma";
 import type { Thread, Prisma, TicketStatus } from "libs/prisma";
-import { getSessionScrapeId } from "./scrapes/util";
+import { getSessionScrapeId } from "~/scrapes/util";
 import {
   Badge,
   Box,
@@ -27,7 +28,7 @@ import { Button } from "~/components/ui/button";
 import { redirect } from "react-router";
 import { Link as RouterLink } from "react-router";
 import { useMemo } from "react";
-import { toaster } from "./components/ui/toaster";
+import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -242,7 +243,17 @@ export default function Tickets({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <Page title="Tickets" icon={<TbTicket />}>
+    <Page
+      title="Tickets"
+      icon={<TbTicket />}
+      right={
+        <IconButton variant={"subtle"} asChild>
+          <RouterLink to={"/tickets/settings"}>
+            <TbSettings />
+          </RouterLink>
+        </IconButton>
+      }
+    >
       <Stack>
         <Group justifyContent={"space-between"}>
           <Group />

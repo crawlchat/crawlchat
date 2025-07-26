@@ -62,6 +62,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
+  const scrape = scrapes.find((s) => s.id === scrapeId);
+
   return {
     user: user!,
     plan,
@@ -69,6 +71,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     scrapeId,
     toBeFixedMessages,
     openTickets,
+    scrape,
   };
 }
 
@@ -93,6 +96,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           scrapeIdFetcher={scrapeIdFetcher}
           toBeFixedMessages={loaderData.toBeFixedMessages}
           openTickets={loaderData.openTickets}
+          scrape={loaderData.scrape}
         />
 
         <DrawerRoot

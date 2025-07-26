@@ -58,27 +58,6 @@ import {
   type SetupProgressInput,
 } from "./setup-progress";
 
-const links = [
-  { label: "Home", to: "/app", icon: <TbHome /> },
-  { label: "Knowledge", to: "/knowledge", icon: <TbBook />, forScrape: true },
-  {
-    label: "Conversations",
-    to: "/conversations",
-    icon: <TbMessages />,
-    forScrape: true,
-  },
-  { label: "Messages", to: "/messages", icon: <TbMessage />, forScrape: true },
-  { label: "Tickets", to: "/tickets", icon: <TbTicket />, forScrape: true },
-  { label: "Settings", to: "/settings", icon: <TbSettings />, forScrape: true },
-  {
-    label: "Integrations",
-    to: "/integrations",
-    icon: <TbPlug />,
-    forScrape: true,
-  },
-  { label: "Profile", to: "/profile", icon: <TbUser /> },
-];
-
 function SideMenuItem({
   link,
   number,
@@ -310,6 +289,7 @@ export function SideMenu({
   scrapeIdFetcher,
   toBeFixedMessages,
   openTickets,
+  scrape,
 }: {
   fixed: boolean;
   width: number;
@@ -321,7 +301,49 @@ export function SideMenu({
   scrapeIdFetcher: FetcherWithComponents<any>;
   toBeFixedMessages: number;
   openTickets: number;
+  scrape?: Scrape;
 }) {
+  const links = useMemo(() => {
+    const links = [
+      { label: "Home", to: "/app", icon: <TbHome /> },
+      {
+        label: "Knowledge",
+        to: "/knowledge",
+        icon: <TbBook />,
+        forScrape: true,
+      },
+      {
+        label: "Messages",
+        to: "/messages",
+        icon: <TbMessage />,
+        forScrape: true,
+      },
+      {
+        label: "Tickets",
+        to: "/tickets",
+        icon: <TbTicket />,
+        forScrape: true,
+        ticketingEnabled: true,
+      },
+      {
+        label: "Integrations",
+        to: "/integrations",
+        icon: <TbPlug />,
+        forScrape: true,
+      },
+      {
+        label: "Settings",
+        to: "/settings",
+        icon: <TbSettings />,
+        forScrape: true,
+      },
+      { label: "Profile", to: "/profile", icon: <TbUser /> },
+    ];
+
+    return links
+      .filter((link) => !link.forScrape || scrapeId)
+      .filter((link) => !link.ticketingEnabled || scrape?.ticketingEnabled);
+  }, []);
   const formRef = useRef<HTMLFormElement>(null);
   const collections = useMemo(
     () =>
@@ -424,15 +446,13 @@ export function SideMenu({
         </Box>
 
         <Stack gap={1} w="full" px={3}>
-          {links
-            .filter((link) => !link.forScrape || scrapeId)
-            .map((link, index) => (
-              <SideMenuItem
-                key={index}
-                link={link}
-                number={getLinkNumber(link.label)}
-              />
-            ))}
+          {links.map((link, index) => (
+            <SideMenuItem
+              key={index}
+              link={link}
+              number={getLinkNumber(link.label)}
+            />
+          ))}
         </Stack>
 
         <Separator />
