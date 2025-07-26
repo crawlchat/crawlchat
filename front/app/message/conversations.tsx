@@ -11,7 +11,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { Page } from "./components/page";
+import { Page } from "~/components/page";
 import {
   TbChevronLeft,
   TbChevronRight,
@@ -20,16 +20,17 @@ import {
   TbTicket,
 } from "react-icons/tb";
 import type { Route } from "./+types/conversations";
-import { getAuthUser } from "./auth/middleware";
-import { getSessionScrapeId } from "./scrapes/util";
+import { getAuthUser } from "~/auth/middleware";
+import { getSessionScrapeId } from "~/scrapes/util";
 import type { Prisma } from "libs/prisma";
-import { prisma } from "libs/prisma";
+import { prisma } from "~/prisma";
 import moment from "moment";
 import { useState } from "react";
-import ChatBox from "./dashboard/chat-box";
-import { getMessagesScore, getScoreColor } from "./score";
-import { Tooltip } from "./components/ui/tooltip";
+import ChatBox from "~/dashboard/chat-box";
+import { getMessagesScore, getScoreColor } from "~/score";
+import { Tooltip } from "~/components/ui/tooltip";
 import { Link, redirect } from "react-router";
+import { ViewSwitch } from "./view-switch";
 
 type ThreadWithMessages = Prisma.ThreadGetPayload<{
   include: {
@@ -110,7 +111,12 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
   >(loaderData.threads[0]);
 
   return (
-    <Page title="Conversations" icon={<TbMessages />} noPadding>
+    <Page
+      title="Conversations"
+      icon={<TbMessages />}
+      noPadding
+      right={<ViewSwitch />}
+    >
       {loaderData.threads.length === 0 && (
         <EmptyState.Root>
           <EmptyState.Content>

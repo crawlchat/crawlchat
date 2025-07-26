@@ -59,6 +59,7 @@ import { getSessionScrapeId } from "~/scrapes/util";
 import type { Message, MessageChannel } from "libs/prisma";
 import { getScoreColor } from "~/score";
 import { Link as RouterLink } from "react-router";
+import { ViewSwitch } from "./view-switch";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -247,7 +248,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
   }, [channels, baseFilteredPairs, filters]);
 
   return (
-    <Page title="Messages" icon={<TbMessage />}>
+    <Page title="Messages" icon={<TbMessage />} right={<ViewSwitch />}>
       <Stack>
         {loaderData.messagePairs.length === 0 && (
           <EmptyState.Root>
@@ -281,10 +282,7 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
             )}
 
             {pairs.length > 0 && (
-              <AccordionRoot
-                collapsible
-                variant={"enclosed"}
-              >
+              <AccordionRoot collapsible variant={"enclosed"}>
                 {pairs.map((pair, index) => (
                   <AccordionItem key={index} value={index.toString()}>
                     <AccordionItemTrigger>

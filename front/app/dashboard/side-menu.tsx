@@ -313,12 +313,6 @@ export function SideMenu({
         forScrape: true,
       },
       {
-        label: "Conversations",
-        to: "/conversations",
-        icon: <TbMessages />,
-        forScrape: true,
-      },
-      {
         label: "Messages",
         to: "/messages",
         icon: <TbMessage />,
@@ -332,15 +326,15 @@ export function SideMenu({
         ticketingEnabled: true,
       },
       {
-        label: "Settings",
-        to: "/settings",
-        icon: <TbSettings />,
-        forScrape: true,
-      },
-      {
         label: "Integrations",
         to: "/integrations",
         icon: <TbPlug />,
+        forScrape: true,
+      },
+      {
+        label: "Settings",
+        to: "/settings",
+        icon: <TbSettings />,
         forScrape: true,
       },
       { label: "Profile", to: "/profile", icon: <TbUser /> },
