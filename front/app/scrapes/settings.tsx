@@ -122,50 +122,6 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("from-ticketing-enabled")) {
     update.ticketingEnabled = formData.get("ticketing") === "on";
   }
-  if (formData.has("resolveQuestion")) {
-    update.resolveQuestion = formData.get("resolveQuestion") as string;
-  }
-  if (formData.has("resolveDescription")) {
-    update.resolveDescription = formData.get("resolveDescription") as string;
-  }
-  if (
-    formData.get("customYes") === "on" &&
-    formData.has("resolveYesLink") &&
-    formData.has("resolveYesTitle") &&
-    formData.has("resolveYesDescription")
-  ) {
-    update.resolveYesConfig = {
-      title: formData.get("resolveYesTitle") as string,
-      description: formData.get("resolveYesDescription") as string,
-      link: formData.get("resolveYesLink") as string,
-      btnLabel: formData.get("resolveYesBtnLabel") as string,
-    };
-  }
-  if (
-    formData.get("customNo") === "on" &&
-    formData.has("resolveNoLink") &&
-    formData.has("resolveNoTitle") &&
-    formData.has("resolveNoDescription")
-  ) {
-    update.resolveNoConfig = {
-      title: formData.get("resolveNoTitle") as string,
-      description: formData.get("resolveNoDescription") as string,
-      link: formData.get("resolveNoLink") as string,
-      btnLabel: formData.get("resolveNoBtnLabel") as string,
-    };
-  }
-  if (
-    formData.has("from-ticketing-enabled") &&
-    formData.get("customYes") !== "on"
-  ) {
-    update.resolveYesConfig = null;
-  }
-  if (
-    formData.has("from-ticketing-enabled") &&
-    formData.get("customNo") !== "on"
-  ) {
-    update.resolveNoConfig = null;
-  }
   if (formData.has("richBlocksJsonString")) {
     const blocks = JSON.parse(
       formData.get("richBlocksJsonString") as string
@@ -505,162 +461,21 @@ function RichBlocksSettings({ scrape }: { scrape: Scrape }) {
 
 function TicketingSettings({ scrape }: { scrape: Scrape }) {
   const ticketingFetcher = useFetcher();
-  const [ticketingEnabled, setTicketingEnabled] = useState(
-    scrape.ticketingEnabled ?? false
-  );
-  const [customTitle, setCustomTitle] = useState(
-    !!(scrape.resolveQuestion || scrape.resolveDescription)
-  );
-  const [customYes, setCustomYes] = useState(!!scrape.resolveYesConfig);
-  const [customNo, setCustomNo] = useState(!!scrape.resolveNoConfig);
 
   return (
     <SettingsSection
       id="resolved-enquiry"
-      title="Resolved enquiry"
-      description="Enable resolved enquiry for this collection. If enabled, users will see a 'Issue resolved?' section end of the message. Users will be able to create support tickets and you can resolve them from Tickets section if they say no."
+      title="Support tickets"
+      description="Enable the support tickets for this collection to start receiving support tickets either when the AI has no answer for a given question or the user choses to create a ticket."
       fetcher={ticketingFetcher}
     >
       <input type="hidden" name="from-ticketing-enabled" value={"true"} />
       <Switch
         name="ticketing"
         defaultChecked={scrape.ticketingEnabled ?? false}
-        onCheckedChange={(e) => setTicketingEnabled(e.checked)}
       >
         Active
       </Switch>
-      {ticketingEnabled && (
-        <Stack>
-          <Switch
-            name="customTitleDescription"
-            defaultChecked={customTitle}
-            onCheckedChange={(e) => setCustomTitle(e.checked)}
-          >
-            Custom Title & Description
-          </Switch>
-          {customTitle && (
-            <Group>
-              <Field label="Question">
-                <Input
-                  name="resolveQuestion"
-                  defaultValue={scrape.resolveQuestion ?? ""}
-                  placeholder="Enter the question to ask if issue resolved"
-                />
-              </Field>
-              <Field label="Description">
-                <Input
-                  name="resolveDescription"
-                  defaultValue={scrape.resolveDescription ?? ""}
-                  placeholder="A description"
-                />
-              </Field>
-            </Group>
-          )}
-        </Stack>
-      )}
-
-      {ticketingEnabled && (
-        <Stack>
-          <Switch
-            name="customYes"
-            defaultChecked={customYes}
-            onCheckedChange={(e) => setCustomYes(e.checked)}
-          >
-            Custom "Yes"
-          </Switch>
-          {customYes && (
-            <>
-              <Text fontSize={"sm"} opacity={0.5}>
-                It shows following details when user says the issue is resolved
-              </Text>
-              <Group>
-                <Field label="Title">
-                  <Input
-                    name="resolveYesTitle"
-                    defaultValue={scrape.resolveYesConfig?.title ?? ""}
-                    placeholder="Ex: Rate us"
-                  />
-                </Field>
-                <Field label="Description">
-                  <Input
-                    name="resolveYesDescription"
-                    defaultValue={scrape.resolveYesConfig?.description ?? ""}
-                    placeholder="Ex: Give us a rating"
-                  />
-                </Field>
-              </Group>
-              <Group>
-                <Field label="Button label">
-                  <Input
-                    name="resolveYesBtnLabel"
-                    defaultValue={scrape.resolveYesConfig?.btnLabel ?? ""}
-                    placeholder="Ex: Rate us"
-                  />
-                </Field>
-                <Field label="Link">
-                  <Input
-                    name="resolveYesLink"
-                    defaultValue={scrape.resolveYesConfig?.link ?? ""}
-                    placeholder="Ex: https://example.com/rate"
-                  />
-                </Field>
-              </Group>
-            </>
-          )}
-        </Stack>
-      )}
-
-      {ticketingEnabled && (
-        <Stack>
-          <Switch
-            name="customNo"
-            defaultChecked={customNo}
-            onCheckedChange={(e) => setCustomNo(e.checked)}
-          >
-            Custom "No"
-          </Switch>
-          {customNo && (
-            <>
-              <Text fontSize={"sm"} opacity={0.5}>
-                It shows following details when user says the issue is not
-                resolved
-              </Text>
-              <Group>
-                <Field label="Title">
-                  <Input
-                    name="resolveNoTitle"
-                    defaultValue={scrape.resolveNoConfig?.title ?? ""}
-                    placeholder="Example: https://example.com/support"
-                  />
-                </Field>
-                <Field label="Description">
-                  <Input
-                    name="resolveNoDescription"
-                    defaultValue={scrape.resolveNoConfig?.description ?? ""}
-                    placeholder="Ex: Give us a rating"
-                  />
-                </Field>
-              </Group>
-              <Group>
-                <Field label="Button label">
-                  <Input
-                    name="resolveNoBtnLabel"
-                    defaultValue={scrape.resolveNoConfig?.btnLabel ?? ""}
-                    placeholder="Ex: Rate us"
-                  />
-                </Field>
-                <Field label="Link">
-                  <Input
-                    name="resolveNoLink"
-                    defaultValue={scrape.resolveNoConfig?.link ?? ""}
-                    placeholder="Ex: https://example.com/support"
-                  />
-                </Field>
-              </Group>
-            </>
-          )}
-        </Stack>
-      )}
     </SettingsSection>
   );
 }
