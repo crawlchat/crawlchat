@@ -1057,7 +1057,6 @@ export default function ScrapeWidget({
   customerEmail,
   makeThreadId,
   eraseAt,
-  showSources,
 }: {
   threadId?: string;
   messages: Message[];
@@ -1082,7 +1081,6 @@ export default function ScrapeWidget({
   customerEmail?: string;
   makeThreadId?: () => Promise<void>;
   eraseAt?: number;
-  showSources?: boolean;
 }) {
   const chat = useScrapeChat({
     token: userToken,
