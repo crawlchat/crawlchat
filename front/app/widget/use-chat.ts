@@ -1,5 +1,5 @@
 import type { Message } from "libs/prisma";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { makeMessage } from "~/dashboard/socket-util";
 
 export type AskStage = "idle" | "asked" | "answering" | "searching";
@@ -164,34 +164,6 @@ export function useScrapeChat({
     return messagesCount + 1;
   }
 
-  function pinMessage(id: string) {
-    setMessages((prev) => {
-      const index = prev.findIndex((message) => message.id === id);
-      if (index === -1) {
-        return prev;
-      }
-      return [
-        ...prev.slice(0, index),
-        { ...prev[index], pinnedAt: new Date() },
-        ...prev.slice(index + 1),
-      ];
-    });
-  }
-
-  function unpinMessage(id: string) {
-    setMessages((prev) => {
-      const index = prev.findIndex((message) => message.id === id);
-      if (index === -1) {
-        return prev;
-      }
-      return [
-        ...prev.slice(0, index),
-        { ...prev[index], pinnedAt: null },
-        ...prev.slice(index + 1),
-      ];
-    });
-  }
-
   function erase() {
     setMessages([]);
   }
@@ -218,8 +190,6 @@ export function useScrapeChat({
     ask,
     allMessages,
     askStage,
-    pinMessage,
-    unpinMessage,
     erase,
     deleteMessage,
     searchQuery,

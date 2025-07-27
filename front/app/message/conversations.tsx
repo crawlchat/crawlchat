@@ -25,12 +25,13 @@ import type { Prisma } from "libs/prisma";
 import { prisma } from "~/prisma";
 import moment from "moment";
 import { useState } from "react";
-import ChatBox from "~/dashboard/chat-box";
+import ChatBox from "~/widget/chat-box";
 import { getMessagesScore, getScoreColor } from "~/score";
 import { Tooltip } from "~/components/ui/tooltip";
 import { Link, redirect } from "react-router";
 import { ViewSwitch } from "./view-switch";
 import { CountryFlag } from "./country-flag";
+import { ChatBoxProvider } from "~/widget/use-chat-box";
 
 type ThreadWithMessages = Prisma.ThreadGetPayload<{
   include: {
@@ -263,13 +264,17 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
           <Stack h="full" flex={1} bg="brand.gray.100">
             <Center h="full" w="full">
               {selectedThread && (
-                <ChatBox
+                <ChatBoxProvider
+                  key={selectedThread.id}
                   scrape={loaderData.scrape!}
-                  key={selectedThread!.id}
+                  thread={selectedThread}
                   messages={selectedThread.messages}
-                  showScore
-                  ticketNumber={selectedThread.ticketNumber ?? undefined}
-                />
+                  embed={false}
+                  admin={true}
+                  token={null}
+                >
+                  <ChatBox />
+                </ChatBoxProvider>
               )}
             </Center>
           </Stack>

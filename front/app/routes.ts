@@ -64,7 +64,7 @@ export default [
     route("support-tickets", "landing/support-tickets.tsx"),
   ]),
 
-  route("w/:id", "widget/scrape.tsx"),
+  route("w/:id", "widget/page.tsx"),
   route("s/:id", "widget/share.tsx"),
   route("w/:id/config", "widget/config.tsx"),
   route("ticket/:number", "widget/ticket.tsx"),

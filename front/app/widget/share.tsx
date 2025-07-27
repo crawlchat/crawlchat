@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { extractCitations } from "libs/citation";
 import { MarkdownProse } from "./markdown-prose";
 import { RiChatVoiceAiFill } from "react-icons/ri";
-import { SourceLink } from "~/dashboard/chat-box";
+import { SourceLink } from "~/widget/chat-box";
 import { TbAlertCircle } from "react-icons/tb";
 
 export async function loader({ params }: Route.LoaderArgs) {
