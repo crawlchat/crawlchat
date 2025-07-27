@@ -25,13 +25,13 @@ import type { Prisma } from "libs/prisma";
 import { prisma } from "~/prisma";
 import moment from "moment";
 import { useState } from "react";
-import ChatBox from "~/chat-box/chat-box";
+import ChatBox from "~/widget/chat-box";
 import { getMessagesScore, getScoreColor } from "~/score";
 import { Tooltip } from "~/components/ui/tooltip";
 import { Link, redirect } from "react-router";
 import { ViewSwitch } from "./view-switch";
 import { CountryFlag } from "./country-flag";
-import { ChatBoxProvider } from "~/chat-box/use-chat-box";
+import { ChatBoxProvider } from "~/widget/use-chat-box";
 
 type ThreadWithMessages = Prisma.ThreadGetPayload<{
   include: {

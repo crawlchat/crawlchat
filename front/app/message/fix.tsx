@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { TbArrowRight, TbCheck, TbSettingsBolt } from "react-icons/tb";
 import { Page } from "~/components/page";
-import ChatBox from "~/chat-box/chat-box";
+import ChatBox from "~/widget/chat-box";
 import type { Route } from "./+types/fix";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
@@ -22,7 +22,7 @@ import { Field } from "~/components/ui/field";
 import type { ScrapeItem } from "@prisma/client";
 import { useEffect } from "react";
 import { toaster } from "~/components/ui/toaster";
-import { ChatBoxProvider } from "~/chat-box/use-chat-box";
+import { ChatBoxProvider } from "~/widget/use-chat-box";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

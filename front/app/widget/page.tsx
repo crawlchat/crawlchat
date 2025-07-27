@@ -2,7 +2,7 @@ import { prisma } from "~/prisma";
 import type { Route } from "./+types/scrape";
 import { Stack } from "@chakra-ui/react";
 import { createToken } from "~/jwt";
-import ChatBox from "~/chat-box/chat-box";
+import ChatBox from "~/widget/chat-box";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, type Session } from "react-router";
 import type { Message, MessageRating, Thread } from "libs/prisma";
@@ -14,7 +14,7 @@ import { Toaster } from "~/components/ui/toaster";
 import TicketAdminCreateEmail from "emails/ticket-admin-create";
 import "highlight.js/styles/vs.css";
 import { fetchIpDetails, getClientIp } from "~/client-ip";
-import { ChatBoxProvider } from "~/chat-box/use-chat-box";
+import { ChatBoxProvider } from "~/widget/use-chat-box";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
