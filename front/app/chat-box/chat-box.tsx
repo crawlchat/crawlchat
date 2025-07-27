@@ -14,16 +14,11 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
-import { useTheme } from "next-themes";
 import type {
-  Message,
   MessageSourceLink,
   MessageRating,
-  Scrape,
-  WidgetSize,
-  ResolveBtnConfig,
 } from "libs/prisma";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   TbArrowUp,
   TbChevronRight,
@@ -42,7 +37,6 @@ import {
   TbArrowRight,
   TbMenu,
 } from "react-icons/tb";
-import { useScrapeChat, type AskStage } from "~/widget/use-chat";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { InputGroup } from "~/components/ui/input-group";
 import { Tooltip } from "~/components/ui/tooltip";
@@ -57,27 +51,15 @@ import { track } from "~/pirsch";
 import { extractCitations } from "libs/citation";
 import { Button } from "~/components/ui/button";
 import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp/setup";
-import { getScoreColor, getMessagesScore } from "~/score";
+import { getScoreColor } from "~/score";
 import { Field } from "~/components/ui/field";
 import { toaster } from "~/components/ui/toaster";
+import { useChatBoxContext } from "./use-chat-box";
 
-function ChatInput({
-  onAsk,
-  stage,
-  searchQuery,
-  disabled,
-  scrape,
-  inputRef,
-  embed,
-}: {
-  onAsk: (query: string) => void;
-  stage: AskStage;
-  searchQuery?: string;
-  disabled?: boolean;
-  scrape: Scrape;
-  inputRef: React.RefObject<HTMLTextAreaElement | null>;
-  embed?: boolean;
-}) {
+function ChatInput() {
+  const { ask, chat, screen, readOnly, scrape, inputRef, embed } =
+    useChatBoxContext();
+
   const [query, setQuery] = useState("");
   const [height, setHeight] = useState(60);
   const cleanedQuery = useMemo(() => {
@@ -108,19 +90,19 @@ function ChatInput({
 
   function handleAsk() {
     if (!cleanedQuery.length) return;
-    onAsk(query);
+    ask(query);
     setQuery("");
     track("chat_ask", { query });
   }
 
   function getPlaceholder() {
-    switch (stage) {
+    switch (chat.askStage) {
       case "asked":
         return "😇 Thinking...";
       case "answering":
         return "🤓 Answering...";
       case "searching":
-        return `🔍 Searching for "${searchQuery ?? "answer"}"`;
+        return `🔍 Searching for "${chat.searchQuery ?? "answer"}"`;
     }
     return scrape.widgetConfig?.textInputPlaceholder ?? "Ask your question";
   }
@@ -140,7 +122,7 @@ function ChatInput({
     }
   }
 
-  const isDisabled = disabled || stage !== "idle";
+  const isDisabled = screen !== "chat" || readOnly || chat.askStage !== "idle";
 
   return (
     <Group
@@ -236,56 +218,47 @@ export function SourceLink({
   );
 }
 
-export function Resolved({
-  onNo,
-  onYes,
-  onCancel,
-  resolveQuestion,
-  resolveDescription,
-  resolveYesConfig,
-  resolveNoConfig,
-}: {
-  onNo: () => void;
-  onYes: () => void;
-  onCancel: () => void;
-  resolveQuestion?: string;
-  resolveDescription?: string;
-  resolveYesConfig?: ResolveBtnConfig;
-  resolveNoConfig?: ResolveBtnConfig;
-}) {
+export function Resolved({ messageId }: { messageId: string }) {
+  const { resolved, scrape } = useChatBoxContext();
   const [screen, setScreen] = useState<"default" | "yes" | "no">("default");
 
   function handleYes() {
-    if (resolveYesConfig) {
+    if (scrape.resolveYesConfig) {
       return setScreen("yes");
     }
-    onYes();
+    resolved(messageId, true);
   }
 
   function handleNo() {
-    if (resolveNoConfig) {
+    if (scrape.resolveNoConfig) {
       return setScreen("no");
     }
-    onNo();
+    resolved(messageId, false);
   }
 
   function handleCancel() {
     if (screen !== "default") {
       return setScreen("default");
     }
-    onCancel();
+    resolved(messageId, null);
   }
 
   function getTitleDescription() {
     if (screen === "yes") {
-      return [resolveYesConfig?.title, resolveYesConfig?.description];
+      return [
+        scrape.resolveYesConfig?.title,
+        scrape.resolveYesConfig?.description,
+      ];
     }
     if (screen === "no") {
-      return [resolveNoConfig?.title, resolveNoConfig?.description];
+      return [
+        scrape.resolveNoConfig?.title,
+        scrape.resolveNoConfig?.description,
+      ];
     }
     return [
-      resolveQuestion || "Issue solved?",
-      resolveDescription || "Confirm if your issue is solved.",
+      scrape.resolveQuestion || "Issue solved?",
+      scrape.resolveDescription || "Confirm if your issue is solved.",
     ];
   }
 
@@ -315,14 +288,22 @@ export function Resolved({
               </Button>
             )}
             {screen === "yes" && (
-              <Button size={"xs"} onClick={onYes} variant={"outline"}>
-                {resolveYesConfig?.btnLabel || "Go"}
+              <Button
+                size={"xs"}
+                onClick={() => resolved(messageId, true)}
+                variant={"outline"}
+              >
+                {scrape.resolveYesConfig?.btnLabel || "Go"}
                 <TbArrowRight />
               </Button>
             )}
             {screen === "no" && (
-              <Button size={"xs"} onClick={onNo} variant={"outline"}>
-                {resolveNoConfig?.btnLabel || "Go"}
+              <Button
+                size={"xs"}
+                onClick={() => resolved(messageId, false)}
+                variant={"outline"}
+              >
+                {scrape.resolveNoConfig?.btnLabel || "Go"}
                 <TbArrowRight />
               </Button>
             )}
@@ -354,58 +335,41 @@ function UserMessage({ content }: { content: string }) {
 
 function AssistantMessage({
   id,
+  questionId,
   content,
   links,
   pinned,
   rating,
-  onPin,
-  onUnpin,
-  onDelete,
-  onRefresh,
-  onRate,
-  size,
-  disabled,
-  showScore,
-  onResolved,
   last,
-  ticketingEnabled,
-  resolveQuestion,
-  resolveDescription,
-  resolveYesConfig,
-  resolveNoConfig,
-  onTicketCreate,
-  ticketCreateLoading,
-  customerEmail,
 }: {
   id: string;
+  questionId: string;
   content: string;
   links: MessageSourceLink[];
   pinned: boolean;
   rating: MessageRating | null;
-  onPin: () => void;
-  onUnpin: () => void;
-  onDelete: () => void;
-  onRefresh: () => void;
-  onRate: (rating: MessageRating) => void;
-  size?: WidgetSize;
-  disabled?: boolean;
-  showScore?: boolean;
-  onResolved: (messageId: string, resolved: boolean | null) => void;
   last: boolean;
-  ticketingEnabled?: boolean;
-  resolveQuestion?: string;
-  resolveDescription?: string;
-  resolveYesConfig?: ResolveBtnConfig;
-  resolveNoConfig?: ResolveBtnConfig;
-  onTicketCreate?: (title: string, description: string, email: string) => void;
-  ticketCreateLoading?: boolean;
-  customerEmail?: string;
 }) {
-  const [cleanedLinks, cleanedContent, score] = useMemo(() => {
-    const citation = extractCitations(content, links);
-    const score = Math.max(...links.map((l) => l.score ?? 0), 0);
-    return [citation.citedLinks, citation.content, score];
-  }, [links]);
+  const {
+    pin,
+    unpin,
+    refresh,
+    rate,
+    readOnly,
+    admin,
+    createTicket,
+    ticketCreateFetcher,
+    customerEmail,
+    scrape,
+  } = useChatBoxContext();
+  const citation = useMemo(
+    () => extractCitations(content, links),
+    [content, links]
+  );
+  const score = useMemo(
+    () => Math.max(...links.map((l) => l.score ?? 0), 0),
+    [links]
+  );
   const [currentRating, setCurrentRating] = useState<MessageRating | null>(
     rating
   );
@@ -414,71 +378,47 @@ function AssistantMessage({
     setCurrentRating(rating);
     if (rating !== currentRating) {
       track("chat_rate", { rating, messageId: id });
-      onRate(rating);
+      rate(id, rating);
     }
-  }
-
-  function handleResolved(resolved: boolean | null) {
-    if (resolved === true) {
-      handleRate("up");
-    }
-    if (resolved === false) {
-      handleRate("down");
-    }
-    if (resolved === null) {
-      handleRate("none");
-    }
-    onResolved(id, resolved);
   }
 
   return (
     <Stack>
       <Stack px={4} gap={0}>
         <MarkdownProse
-          size={size === "large" ? "lg" : "md"}
-          sources={Object.values(cleanedLinks).map((link) => ({
+          size={scrape.widgetConfig?.size === "large" ? "lg" : "md"}
+          sources={Object.values(citation.citedLinks).map((link) => ({
             title: link?.title ?? link?.url ?? "Source",
             url: link?.url ?? undefined,
           }))}
           options={{
-            onTicketCreate,
-            ticketCreateLoading,
-            disabled,
+            onTicketCreate: createTicket,
+            ticketCreateLoading: ticketCreateFetcher.state !== "idle",
+            disabled: readOnly,
             customerEmail,
           }}
         >
-          {cleanedContent}
+          {citation.content}
         </MarkdownProse>
-        <Group pb={Object.keys(cleanedLinks).length === 0 ? 4 : 0}>
+        <Group pb={Object.keys(citation.citedLinks).length === 0 ? 4 : 0}>
           <Tooltip content="Pin message" showArrow>
             <IconButton
               size={"xs"}
               rounded={"full"}
               variant={pinned ? "solid" : "subtle"}
-              onClick={pinned ? onUnpin : onPin}
-              disabled={disabled}
+              onClick={pinned ? () => unpin(id) : () => pin(id)}
+              disabled={readOnly}
             >
               <TbPin />
             </IconButton>
           </Tooltip>
-          {/* <Tooltip content="Delete message" showArrow>
-            <IconButton
-              size={"xs"}
-              rounded={"full"}
-              variant={"subtle"}
-              onClick={onDelete}
-              disabled={disabled}
-            >
-              <TbTrash />
-            </IconButton>
-          </Tooltip> */}
           <Tooltip content="Regenerate message" showArrow>
             <IconButton
               size={"xs"}
               rounded={"full"}
               variant={"subtle"}
-              onClick={onRefresh}
-              disabled={disabled}
+              onClick={() => refresh(questionId, id)}
+              disabled={readOnly}
             >
               <TbRefresh />
             </IconButton>
@@ -492,7 +432,7 @@ function AssistantMessage({
               rounded={"full"}
               variant={currentRating === "up" ? "solid" : "subtle"}
               onClick={() => handleRate("up")}
-              disabled={disabled}
+              disabled={readOnly}
             >
               <TbThumbUp />
             </IconButton>
@@ -504,13 +444,13 @@ function AssistantMessage({
               rounded={"full"}
               variant={currentRating === "down" ? "solid" : "subtle"}
               onClick={() => handleRate("down")}
-              disabled={disabled}
+              disabled={readOnly}
             >
               <TbThumbDown />
             </IconButton>
           </Tooltip>
 
-          {showScore && (
+          {admin && (
             <Tooltip content="Score of this message" showArrow>
               <Badge colorPalette={getScoreColor(score)} variant={"surface"}>
                 {score.toFixed(2)}
@@ -522,18 +462,10 @@ function AssistantMessage({
 
       <Stack gap={0}>
         <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
-          {last && !disabled && ticketingEnabled && !currentRating && (
-            <Resolved
-              onNo={() => handleResolved(false)}
-              onYes={() => handleResolved(true)}
-              onCancel={() => handleResolved(null)}
-              resolveQuestion={resolveQuestion}
-              resolveDescription={resolveDescription}
-              resolveYesConfig={resolveYesConfig}
-              resolveNoConfig={resolveNoConfig}
-            />
+          {last && !readOnly && scrape.ticketingEnabled && !currentRating && (
+            <Resolved messageId={id} />
           )}
-          {Object.entries(cleanedLinks)
+          {Object.entries(citation.citedLinks)
             .filter(([_, link]) => link)
             .map(([index, link]) => (
               <SourceLink key={index} link={link} index={Number(index)} />
@@ -544,13 +476,8 @@ function AssistantMessage({
   );
 }
 
-function NoMessages({
-  scrape,
-  onQuestionClick,
-}: {
-  scrape: Scrape;
-  onQuestionClick: (question: string) => void;
-}) {
+function NoMessages() {
+  const { ask, scrape } = useChatBoxContext();
   const shouldShowDefaultTitle = !scrape.widgetConfig?.welcomeMessage;
   return (
     <Stack p={4} gap={4}>
@@ -593,7 +520,7 @@ function NoMessages({
                   transition={"background-color 200ms ease-in-out"}
                   cursor={"pointer"}
                   alignItems={"flex-start"}
-                  onClick={() => onQuestionClick(question.text)}
+                  onClick={() => ask(question.text)}
                 >
                   <Box mt={1}>
                     <TbHelp />
@@ -618,7 +545,8 @@ function LoadingMessage() {
   );
 }
 
-function MCPSetup({ scrape }: { scrape: Scrape }) {
+function MCPSetup() {
+  const { scrape } = useChatBoxContext();
   const [section, setSection] = useState<string>("mcp-command");
   const sections = useMemo(
     () => [
@@ -707,32 +635,22 @@ function MCPSetup({ scrape }: { scrape: Scrape }) {
   );
 }
 
-function Toolbar({
-  threadId,
-  scrape,
-  messages,
-  onErase,
-  onPinSelect,
-  screen,
-  onScreenChange,
-  overallScore,
-  ticketNumber,
-}: {
-  threadId?: string;
-  scrape: Scrape;
-  messages: Message[];
-  onErase: () => void;
-  onPinSelect: (id: string) => void;
-  screen: "chat" | "mcp" | "ticket-create";
-  onScreenChange: (screen: "chat" | "mcp" | "ticket-create") => void;
-  overallScore?: number;
-  ticketNumber?: number;
-}) {
+function Toolbar() {
+  const {
+    erase,
+    thread,
+    screen,
+    setScreen,
+    overallScore,
+    scrape,
+    chat,
+    scrollToMessage,
+    readOnly,
+  } = useChatBoxContext();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [copiedShareLink, setCopiedShareLink] = useState(false);
   const pinnedCount = useMemo(() => {
-    return messages.filter((message) => message.pinnedAt).length;
-  }, [messages]);
+    return chat.messages.filter((message) => message.pinnedAt).length;
+  }, [chat.messages]);
 
   useEffect(
     function () {
@@ -746,21 +664,12 @@ function Toolbar({
     [confirmDelete]
   );
 
-  function handleDelete() {
-    if (!confirmDelete) {
-      setConfirmDelete(true);
-      return;
-    }
-    onErase();
-  }
-
   function handlePinSelect(id: string) {
-    onPinSelect(id);
+    scrollToMessage(id);
   }
 
   function handleShare() {
-    navigator.clipboard.writeText(`${window.location.origin}/s/${threadId}`);
-    setCopiedShareLink(true);
+    navigator.clipboard.writeText(`${window.location.origin}/s/${thread?.id}`);
     toaster.create({
       title: "Copied!",
       description: "Share link copied to clipboard",
@@ -769,13 +678,13 @@ function Toolbar({
 
   function handleMenuSelect(value: string) {
     if (value === "clear") {
-      return onErase();
+      return erase();
     }
     if (value === "share") {
       return handleShare();
     }
     if (value === "mcp") {
-      return onScreenChange("mcp");
+      return setScreen("mcp");
     }
   }
 
@@ -818,22 +727,6 @@ function Toolbar({
         </Group>
       </Group>
       <Group>
-        {ticketNumber && (
-          <Tooltip content="Go to ticket" showArrow>
-            <IconButton
-              size={"xs"}
-              variant={"subtle"}
-              position={"relative"}
-              colorPalette={"brand"}
-              asChild
-            >
-              <a href={`/ticket/${ticketNumber}`} target="_blank">
-                <TbTicket />
-              </a>
-            </IconButton>
-          </Tooltip>
-        )}
-
         {pinnedCount > 0 && (
           <MenuRoot
             positioning={{ placement: "bottom-end" }}
@@ -858,7 +751,7 @@ function Toolbar({
             </MenuTrigger>
             <MenuContent>
               <MenuItemGroup title="Pinned messages">
-                {messages
+                {chat.messages
                   .filter((m) => m.pinnedAt)
                   .map((message) => (
                     <MenuItem key={message.id} value={message.id}>
@@ -874,7 +767,7 @@ function Toolbar({
           <Button
             size={"xs"}
             variant={"subtle"}
-            onClick={() => onScreenChange("chat")}
+            onClick={() => setScreen("chat")}
           >
             Switch to chat
             <TbMessage />
@@ -891,7 +784,7 @@ function Toolbar({
             </IconButton>
           </MenuTrigger>
           <MenuContent>
-            <MenuItem value={"clear"} disabled={!threadId}>
+            <MenuItem value={"clear"} disabled={readOnly}>
               <TbEraser />
               Clear chat
             </MenuItem>
@@ -913,68 +806,22 @@ function Toolbar({
   );
 }
 
-function useChatBoxDimensions(
-  size: WidgetSize | null,
-  ref: React.RefObject<HTMLDivElement | null>
-) {
-  const [width, setWidth] = useState<number>(0);
-  const [height, setHeight] = useState<number>(0);
-
-  function getDimensionsForSize(width: number, height: number) {
-    const padding = 32;
-    width -= padding * 2;
-    height -= padding * 2;
-
-    switch (size) {
-      case "large":
-        width = Math.min(width, 700);
-        height = Math.min(height, 600);
-        return { width: width, height: height };
-      // case "full_screen":
-      //   return { width: width, height: height };
-      default:
-        width = Math.min(width, 520);
-        height = Math.min(height, 460);
-        return { width: width, height: height };
-    }
-  }
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (ref.current) {
-        const rect = ref.current.getBoundingClientRect();
-        const dims = getDimensionsForSize(rect.width, rect.height);
-        setWidth(dims.width);
-        setHeight(dims.height);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-
-    handleResize();
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  return { width, height };
-}
-
-function TicketCreate({
-  onCancel,
-  onSubmit,
-  loading,
-  customerEmail,
-}: {
-  onCancel: () => void;
-  onSubmit: (email: string, title: string, message: string) => void;
-  loading?: boolean;
-  customerEmail?: string;
-}) {
+function TicketCreate() {
+  const {
+    cancelTicketCreate,
+    createTicket,
+    ticketCreateFetcher,
+    customerEmail,
+  } = useChatBoxContext();
   const [email, setEmail] = useState(customerEmail ?? "");
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
 
   function handleSubmit() {
-    onSubmit(email, title, message);
+    createTicket(email, title, message);
   }
+
+  const loading = ticketCreateFetcher.state !== "idle";
 
   return (
     <Stack p={4} flex="1">
@@ -1016,7 +863,11 @@ function TicketCreate({
         </Text>
       </Stack>
       <Group justify={"flex-end"}>
-        <Button variant={"subtle"} onClick={onCancel} disabled={loading}>
+        <Button
+          variant={"subtle"}
+          onClick={cancelTicketCreate}
+          disabled={loading}
+        >
           Cancel
           <TbX />
         </Button>
@@ -1033,222 +884,14 @@ function TicketCreate({
   );
 }
 
-export default function ScrapeWidget({
-  threadId,
-  messages,
-  scrape,
-  userToken,
-  onBgClick,
-  onPin,
-  onUnpin,
-  onErase,
-  onDelete,
-  onRate,
-  showScore,
-  embed,
-  onTicketCreate,
-  ticketCreationLoading,
-  ticketingEnabled,
-  resolveQuestion,
-  resolveDescription,
-  resolveYesConfig,
-  resolveNoConfig,
-  ticketNumber,
-  customerEmail,
-  makeThreadId,
-  eraseAt,
-}: {
-  threadId?: string;
-  messages: Message[];
-  scrape: Scrape;
-  userToken?: string;
-  onBgClick?: () => void;
-  onPin?: (id: string) => void;
-  onUnpin?: (id: string) => void;
-  onErase?: () => void;
-  onDelete?: (ids: string[]) => void;
-  onRate?: (id: string, rating: MessageRating) => void;
-  showScore?: boolean;
-  embed?: boolean;
-  onTicketCreate?: (email: string, title: string, message: string) => void;
-  ticketCreationLoading?: boolean;
-  ticketingEnabled?: boolean;
-  resolveQuestion?: string;
-  resolveDescription?: string;
-  resolveYesConfig?: ResolveBtnConfig;
-  resolveNoConfig?: ResolveBtnConfig;
-  ticketNumber?: number;
-  customerEmail?: string;
-  makeThreadId?: () => Promise<void>;
-  eraseAt?: number;
-}) {
-  const chat = useScrapeChat({
-    token: userToken,
-    scrapeId: scrape.id,
-    defaultMessages: messages,
-    threadId,
-  });
-  const [screen, setScreen] = useState<"chat" | "mcp" | "ticket-create">(
-    "chat"
-  );
-  const overallScore = useMemo(() => getMessagesScore(messages), [messages]);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const boxDimensions = useChatBoxDimensions(
-    scrape.widgetConfig?.size ?? null,
-    containerRef
-  );
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const readOnly = useMemo(() => !onTicketCreate, []);
-  const [pendingQuery, setPendingQuery] = useState<string>();
-  const titleAsSlug = useMemo(() => {
-    return scrape.title?.toLowerCase().replace(/[^a-z0-9]/g, "-");
-  }, [scrape.title]);
-
-  useEffect(() => {
-    if (userToken) {
-      chat.connect();
-      return () => chat.disconnect();
-    }
-  }, [userToken]);
-
-  useEffect(function () {
-    scroll();
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        handleClose();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  const { setTheme } = useTheme();
-
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data === "focus") {
-        scroll();
-        document.querySelector("html")?.style.setProperty("color-scheme", "");
-      }
-
-      if (event.data === "dark-mode") {
-        setTheme("dark");
-      }
-
-      if (event.data === "light-mode") {
-        setTheme("light");
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
-
-  useEffect(() => {
-    if (chat.connected && threadId && pendingQuery) {
-      handleAsk(pendingQuery);
-      setPendingQuery(undefined);
-    }
-  }, [chat.connected]);
-
-  useEffect(() => {
-    if (eraseAt) {
-      chat.erase();
-      setScreen("chat");
-    }
-  }, [eraseAt]);
-
-  async function handleAsk(query: string) {
-    if (!threadId) {
-      chat.setMakingThreadId();
-      makeThreadId?.();
-      setPendingQuery(query);
-      return;
-    }
-    chat.ask(query);
-    await scroll();
-  }
-
-  async function scroll(selector = ".user-message") {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    const message = document.querySelectorAll(selector);
-    if (message) {
-      message[message.length - 1]?.scrollIntoView({ behavior: "smooth" });
-    }
-  }
+export default function ScrapeWidget() {
+  const { close, titleSlug, containerRef, boxDimensions, screen, chat } =
+    useChatBoxContext();
 
   function handleBgClick(event: React.MouseEvent<HTMLDivElement>) {
     if (event.target === event.currentTarget) {
-      handleClose();
+      close();
     }
-  }
-
-  function handleClose() {
-    onBgClick?.();
-    inputRef.current?.blur();
-  }
-
-  function handlePin(id: string) {
-    onPin?.(id);
-    chat.pinMessage(id);
-  }
-
-  function handleUnpin(id: string) {
-    onUnpin?.(id);
-    chat.unpinMessage(id);
-  }
-
-  function handleErase() {
-    onErase?.();
-    chat.erase();
-  }
-
-  function handlePinSelect(id: string) {
-    scroll(`#message-${id}`);
-  }
-
-  function handleDelete(ids: string[]) {
-    onDelete?.(ids);
-    chat.deleteMessage(ids);
-  }
-
-  async function handleRefresh(questionId: string, answerId: string) {
-    const message = chat.getMessage(questionId);
-    if (!message) return;
-
-    onDelete?.([questionId, answerId]);
-    chat.deleteMessage([questionId, answerId]);
-    chat.ask((message.llmMessage as any).content as string);
-    await scroll();
-  }
-
-  function handleResolved(messageId: string, resolved: boolean | null) {
-    if (resolved === false) {
-      if (resolveNoConfig?.link) {
-        window.open(resolveNoConfig.link, "_blank");
-      } else {
-        setScreen("ticket-create");
-      }
-    }
-    if (resolved === true) {
-      if (resolveYesConfig?.link) {
-        window.open(resolveYesConfig.link, "_blank");
-      }
-    }
-  }
-
-  function handleTicketCreateCancel() {
-    setScreen("chat");
-    scroll();
-  }
-
-  function handleTicketCreate(email: string, title: string, message: string) {
-    onTicketCreate?.(email, title, message);
   }
 
   return (
@@ -1265,23 +908,11 @@ export default function ScrapeWidget({
         position={"relative"}
         overflow={"hidden"}
       >
-        <Toolbar
-          threadId={threadId}
-          messages={chat.messages}
-          onErase={handleErase}
-          onPinSelect={handlePinSelect}
-          screen={screen}
-          onScreenChange={setScreen}
-          scrape={scrape}
-          overallScore={showScore ? overallScore : undefined}
-          ticketNumber={ticketNumber}
-        />
+        <Toolbar />
         <Stack flex="1" overflow={"auto"} gap={0}>
           {screen === "chat" && (
             <>
-              {chat.allMessages.length === 0 && (
-                <NoMessages scrape={scrape} onQuestionClick={handleAsk} />
-              )}
+              {chat.allMessages.length === 0 && <NoMessages />}
               {chat.allMessages.map((message, index) => (
                 <Stack
                   key={index}
@@ -1297,40 +928,12 @@ export default function ScrapeWidget({
                   ) : (
                     <AssistantMessage
                       id={message.id}
-                      size={scrape.widgetConfig?.size}
+                      questionId={chat.allMessages[index - 1]?.id}
                       content={message.content}
                       links={message.links}
                       pinned={chat.allMessages[index - 1]?.pinned}
                       rating={message.rating}
-                      onPin={() => handlePin(chat.allMessages[index - 1]?.id)}
-                      disabled={readOnly}
-                      showScore={showScore}
-                      onUnpin={() =>
-                        handleUnpin(chat.allMessages[index - 1]?.id)
-                      }
-                      onDelete={() =>
-                        handleDelete([
-                          chat.allMessages[index - 1]?.id,
-                          message.id,
-                        ])
-                      }
-                      onRefresh={() =>
-                        handleRefresh(
-                          chat.allMessages[index - 1]?.id,
-                          message.id
-                        )
-                      }
-                      onRate={(rating) => onRate?.(message.id, rating)}
-                      onResolved={handleResolved}
                       last={index === chat.allMessages.length - 1}
-                      ticketingEnabled={ticketingEnabled}
-                      resolveQuestion={resolveQuestion}
-                      resolveDescription={resolveDescription}
-                      resolveYesConfig={resolveYesConfig}
-                      resolveNoConfig={resolveNoConfig}
-                      onTicketCreate={handleTicketCreate}
-                      ticketCreateLoading={ticketCreationLoading}
-                      customerEmail={customerEmail}
                     />
                   )}
                   {(chat.askStage === "asked" ||
@@ -1344,27 +947,10 @@ export default function ScrapeWidget({
               ))}
             </>
           )}
-          {screen === "mcp" && <MCPSetup scrape={scrape} />}
-          {screen === "ticket-create" && (
-            <TicketCreate
-              onCancel={handleTicketCreateCancel}
-              onSubmit={handleTicketCreate}
-              loading={ticketCreationLoading}
-              customerEmail={customerEmail}
-            />
-          )}
+          {screen === "mcp" && <MCPSetup />}
+          {screen === "ticket-create" && <TicketCreate />}
         </Stack>
-        {screen === "chat" && (
-          <ChatInput
-            inputRef={inputRef}
-            onAsk={handleAsk}
-            stage={chat.askStage}
-            searchQuery={chat.searchQuery}
-            disabled={screen !== "chat" || readOnly}
-            scrape={scrape}
-            embed={embed}
-          />
-        )}
+        {screen === "chat" && <ChatInput />}
         <Group
           px={4}
           py={2}
@@ -1377,7 +963,7 @@ export default function ScrapeWidget({
               Powered by{" "}
             </Text>
             <Link
-              href={`https://crawlchat.app?ref=powered-by-${titleAsSlug}`}
+              href={`https://crawlchat.app?ref=powered-by-${titleSlug}`}
               target="_blank"
               color={"brand.fg"}
             >

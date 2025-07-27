@@ -15,7 +15,7 @@ import {
   TbSettingsBolt,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
-import ChatBox from "~/dashboard/chat-box";
+import ChatBox from "~/chat-box/chat-box";
 import type { Route } from "./+types/fix";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";

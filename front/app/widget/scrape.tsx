@@ -2,19 +2,19 @@ import { prisma } from "~/prisma";
 import type { Route } from "./+types/scrape";
 import { Stack } from "@chakra-ui/react";
 import { createToken } from "~/jwt";
-import ChatBox from "~/dashboard/chat-box";
+import ChatBox from "~/chat-box/chat-box";
 import { commitSession, getSession } from "~/session";
-import { data, redirect, useFetcher, type Session } from "react-router";
-import { useEffect, useState } from "react";
+import { data, redirect, type Session } from "react-router";
 import type { Message, MessageRating, Thread } from "libs/prisma";
 import { randomUUID } from "crypto";
 import { getNextNumber } from "libs/mongo-counter";
 import { sendReactEmail } from "~/email";
 import TicketUserCreateEmail from "emails/ticket-user-create";
-import { Toaster, toaster } from "~/components/ui/toaster";
+import { Toaster } from "~/components/ui/toaster";
 import TicketAdminCreateEmail from "emails/ticket-admin-create";
 import "highlight.js/styles/vs.css";
 import { fetchIpDetails, getClientIp } from "~/client-ip";
+import { ChatBoxProvider } from "~/chat-box/use-chat-box";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -290,163 +290,21 @@ export async function action({ request, params }: Route.ActionArgs) {
 }
 
 export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
-  const pinFetcher = useFetcher();
-  const unpinFetcher = useFetcher();
-  const eraseFetcher = useFetcher();
-  const deleteFetcher = useFetcher();
-  const rateFetcher = useFetcher();
-  const ticketCreateFetcher = useFetcher();
-  const createThreadFetcher = useFetcher();
-  const [eraseAt, setEraseAt] = useState<number>();
-
-  const [thread, setThread] = useState<Thread | null>(loaderData.thread);
-  const [token, setToken] = useState<string | null>(loaderData.userToken);
-
-  useEffect(() => {
-    if (createThreadFetcher.data) {
-      setThread(createThreadFetcher.data.thread);
-      setToken(createThreadFetcher.data.userToken);
-    }
-  }, [createThreadFetcher.data]);
-
-  useEffect(() => {
-    if (eraseFetcher.data) {
-      setThread(null);
-      setToken(null);
-    }
-  }, [eraseFetcher.data]);
-
-  useEffect(() => {
-    if (ticketCreateFetcher.data) {
-      setEraseAt(new Date().getTime());
-    }
-  }, [ticketCreateFetcher.data]);
-
-  useEffect(() => {
-    if (loaderData.embed && window.parent) {
-      window.parent.postMessage(
-        JSON.stringify({
-          type: "embed-ready",
-          widgetConfig: {
-            ...loaderData.scrape.widgetConfig,
-            logoUrl: loaderData.scrape.logoUrl,
-          },
-        }),
-        "*"
-      );
-    }
-  }, [loaderData.embed]);
-
-  useEffect(() => {
-    if (loaderData.embed) {
-      document.documentElement.style.background = "transparent";
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      window.parent.postMessage(
-        JSON.stringify({
-          type: "keydown",
-          data: {
-            key: event.key,
-            shiftKey: event.shiftKey,
-            ctrlKey: event.ctrlKey,
-            altKey: event.altKey,
-            metaKey: event.metaKey,
-          },
-        }),
-        "*"
-      );
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [loaderData.embed]);
-
-  useEffect(() => {
-    if (ticketCreateFetcher.data) {
-      toaster.create({
-        title: "Ticket created",
-        description: "You will be notified on email on updates!",
-      });
-    }
-  }, [ticketCreateFetcher.data]);
-
-  function handleClose() {
-    if (loaderData.embed) {
-      window.parent.postMessage("close", "*");
-    }
-  }
-
-  function handlePin(id: string) {
-    pinFetcher.submit({ intent: "pin", id }, { method: "post" });
-  }
-
-  function handleUnpin(id: string) {
-    unpinFetcher.submit({ intent: "unpin", id }, { method: "post" });
-  }
-
-  function handleErase() {
-    eraseFetcher.submit({ intent: "erase" }, { method: "post" });
-  }
-
-  function handleDelete(ids: string[]) {
-    deleteFetcher.submit({ intent: "delete", ids }, { method: "post" });
-  }
-
-  function handleRate(id: string, rating: MessageRating) {
-    toaster.create({
-      title: "Rating submitted",
-      description: "Thank you for your feedback!",
-    });
-    rateFetcher.submit({ intent: "rate", id, rating }, { method: "post" });
-  }
-
-  function handleTicketCreate(email: string, title: string, message: string) {
-    ticketCreateFetcher.submit(
-      { intent: "ticket-create", email, title, message },
-      { method: "post" }
-    );
-  }
-
-  async function createThread() {
-    createThreadFetcher.submit({ intent: "create-thread" }, { method: "post" });
-  }
-
   return (
-    <Stack
-      h="100dvh"
-      bg={loaderData.embed ? "blackAlpha.700" : "brand.gray.100"}
+    <ChatBoxProvider
+      scrape={loaderData.scrape}
+      thread={loaderData.thread}
+      messages={loaderData.messages}
+      embed={loaderData.embed}
+      admin={false}
     >
-      <Toaster />
-      <ChatBox
-        scrape={loaderData.scrape!}
-        userToken={token ?? undefined}
-        onBgClick={handleClose}
-        onPin={handlePin}
-        onUnpin={handleUnpin}
-        onErase={handleErase}
-        onDelete={handleDelete}
-        messages={loaderData.messages}
-        embed={loaderData.embed}
-        onRate={handleRate}
-        onTicketCreate={handleTicketCreate}
-        ticketCreationLoading={ticketCreateFetcher.state !== "idle"}
-        ticketingEnabled={loaderData.scrape.ticketingEnabled ?? false}
-        resolveQuestion={loaderData.scrape.resolveQuestion ?? undefined}
-        resolveDescription={loaderData.scrape.resolveDescription ?? undefined}
-        resolveYesConfig={loaderData.scrape.resolveYesConfig ?? undefined}
-        resolveNoConfig={loaderData.scrape.resolveNoConfig ?? undefined}
-        threadId={thread?.id}
-        customerEmail={
-          thread?.ticketUserEmail ??
-          (thread?.customTags as Record<string, any>)?.email ??
-          null
-        }
-        makeThreadId={createThread}
-        eraseAt={eraseAt}
-      />
-    </Stack>
+      <Stack
+        h="100dvh"
+        bg={loaderData.embed ? "blackAlpha.700" : "brand.gray.100"}
+      >
+        <Toaster />
+        <ChatBox/>
+      </Stack>
+    </ChatBoxProvider>
   );
 }

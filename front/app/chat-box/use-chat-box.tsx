@@ -1,0 +1,419 @@
+import type {
+  Message,
+  MessageRating,
+  Scrape,
+  Thread,
+  WidgetSize,
+} from "libs/prisma";
+import { useTheme } from "next-themes";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useFetcher } from "react-router";
+import { toaster } from "~/components/ui/toaster";
+import { getMessagesScore } from "~/score";
+import { useScrapeChat } from "~/widget/use-chat";
+
+function useChatBoxDimensions(
+  size: WidgetSize | null,
+  ref: React.RefObject<HTMLDivElement | null>
+) {
+  const [width, setWidth] = useState<number>(0);
+  const [height, setHeight] = useState<number>(0);
+
+  function getDimensionsForSize(width: number, height: number) {
+    const padding = 32;
+    width -= padding * 2;
+    height -= padding * 2;
+
+    switch (size) {
+      case "large":
+        width = Math.min(width, 700);
+        height = Math.min(height, 600);
+        return { width: width, height: height };
+      default:
+        width = Math.min(width, 520);
+        height = Math.min(height, 460);
+        return { width: width, height: height };
+    }
+  }
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (ref.current) {
+        const rect = ref.current.getBoundingClientRect();
+        const dims = getDimensionsForSize(rect.width, rect.height);
+        setWidth(dims.width);
+        setHeight(dims.height);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return { width, height };
+}
+
+export function useChatBox({
+  scrape,
+  thread: initialThread,
+  messages,
+  embed,
+  admin,
+}: {
+  scrape: Scrape;
+  thread: Thread | null;
+  messages: Message[];
+  embed: boolean;
+  admin: boolean;
+}) {
+  const pinFetcher = useFetcher();
+  const unpinFetcher = useFetcher();
+  const eraseFetcher = useFetcher();
+  const deleteFetcher = useFetcher();
+  const rateFetcher = useFetcher();
+  const ticketCreateFetcher = useFetcher();
+  const createThreadFetcher = useFetcher();
+  const [eraseAt, setEraseAt] = useState<number>();
+  const [thread, setThread] = useState<Thread | null>(initialThread);
+  const [token, setToken] = useState<string | null>(null);
+  const readOnly = !token;
+
+  const { setTheme } = useTheme();
+  const chat = useScrapeChat({
+    token: token ?? undefined,
+    scrapeId: scrape.id,
+    defaultMessages: messages,
+    threadId: thread?.id,
+  });
+
+  const [screen, setScreen] = useState<"chat" | "mcp" | "ticket-create">(
+    "chat"
+  );
+  const overallScore = useMemo(() => getMessagesScore(messages), [messages]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const boxDimensions = useChatBoxDimensions(
+    scrape.widgetConfig?.size ?? null,
+    containerRef
+  );
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [pendingQuery, setPendingQuery] = useState<string>();
+  const titleSlug = useMemo(() => {
+    return scrape.title?.toLowerCase().replace(/[^a-z0-9]/g, "-");
+  }, [scrape.title]);
+  const customerEmail = useMemo(
+    () =>
+      thread?.ticketUserEmail ??
+      (thread?.customTags as Record<string, any>)?.email ??
+      null,
+    [thread]
+  );
+
+  useEffect(() => {
+    if (token) {
+      chat.connect();
+      return () => chat.disconnect();
+    }
+  }, [token]);
+
+  useEffect(function () {
+    scroll();
+  }, []);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        close();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (createThreadFetcher.data) {
+      setThread(createThreadFetcher.data.thread);
+      setToken(createThreadFetcher.data.userToken);
+    }
+  }, [createThreadFetcher.data]);
+
+  useEffect(() => {
+    if (eraseFetcher.data) {
+      setThread(null);
+      setToken(null);
+    }
+  }, [eraseFetcher.data]);
+
+  useEffect(() => {
+    if (ticketCreateFetcher.data) {
+      setEraseAt(new Date().getTime());
+    }
+  }, [ticketCreateFetcher.data]);
+
+  useEffect(() => {
+    if (embed && window.parent) {
+      window.parent.postMessage(
+        JSON.stringify({
+          type: "embed-ready",
+          widgetConfig: {
+            ...scrape.widgetConfig,
+            logoUrl: scrape.logoUrl,
+          },
+        }),
+        "*"
+      );
+    }
+  }, [embed]);
+
+  useEffect(() => {
+    if (embed) {
+      document.documentElement.style.background = "transparent";
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      window.parent.postMessage(
+        JSON.stringify({
+          type: "keydown",
+          data: {
+            key: event.key,
+            shiftKey: event.shiftKey,
+            ctrlKey: event.ctrlKey,
+            altKey: event.altKey,
+            metaKey: event.metaKey,
+          },
+        }),
+        "*"
+      );
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [embed]);
+
+  useEffect(() => {
+    if (ticketCreateFetcher.data) {
+      toaster.create({
+        title: "Ticket created",
+        description: "You will be notified on email on updates!",
+      });
+    }
+  }, [ticketCreateFetcher.data]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === "focus") {
+        scroll();
+        document.querySelector("html")?.style.setProperty("color-scheme", "");
+      }
+
+      if (event.data === "dark-mode") {
+        setTheme("dark");
+      }
+
+      if (event.data === "light-mode") {
+        setTheme("light");
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  useEffect(() => {
+    if (chat.connected && thread?.id && pendingQuery) {
+      ask(pendingQuery);
+      setPendingQuery(undefined);
+    }
+  }, [chat.connected]);
+
+  useEffect(() => {
+    if (eraseAt) {
+      chat.erase();
+      setScreen("chat");
+    }
+  }, [eraseAt]);
+
+  function rate(id: string, rating: MessageRating) {
+    toaster.create({
+      title: "Rating submitted",
+      description: "Thank you for your feedback!",
+    });
+    rateFetcher.submit({ intent: "rate", id, rating }, { method: "post" });
+  }
+
+  async function ask(query: string) {
+    if (!thread?.id) {
+      chat.setMakingThreadId();
+      createThreadFetcher.submit(
+        { intent: "create-thread" },
+        { method: "post" }
+      );
+      setPendingQuery(query);
+      return;
+    }
+    chat.ask(query);
+    await scroll();
+  }
+
+  async function scroll(selector = ".user-message") {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const message = document.querySelectorAll(selector);
+    if (message) {
+      message[message.length - 1]?.scrollIntoView({ behavior: "smooth" });
+    }
+  }
+
+  function close() {
+    if (embed) {
+      window.parent.postMessage("close", "*");
+    }
+    inputRef.current?.blur();
+  }
+
+  function pin(id: string) {
+    pinFetcher.submit({ intent: "pin", id }, { method: "post" });
+    chat.pinMessage(id);
+  }
+
+  function unpin(id: string) {
+    unpinFetcher.submit({ intent: "unpin", id }, { method: "post" });
+    chat.unpinMessage(id);
+  }
+
+  function erase() {
+    eraseFetcher.submit({ intent: "erase" }, { method: "post" });
+    chat.erase();
+  }
+
+  function scrollToMessage(id: string) {
+    scroll(`#message-${id}`);
+  }
+
+  function deleteMessages(ids: string[]) {
+    deleteFetcher.submit({ intent: "delete", ids }, { method: "post" });
+    chat.deleteMessage(ids);
+  }
+
+  async function refresh(questionId: string, answerId: string) {
+    const message = chat.getMessage(questionId);
+    if (!message) return;
+
+    chat.deleteMessage([questionId, answerId]);
+    chat.ask((message.llmMessage as any).content as string);
+    await scroll();
+  }
+
+  function resolved(messageId: string, resolved: boolean | null) {
+    if (resolved === false) {
+      rate(messageId, "down");
+      if (scrape.resolveNoConfig?.link) {
+        window.open(scrape.resolveNoConfig.link, "_blank");
+      } else {
+        setScreen("ticket-create");
+      }
+    } else if (resolved === true) {
+      rate(messageId, "up");
+      if (scrape.resolveYesConfig?.link) {
+        window.open(scrape.resolveYesConfig.link, "_blank");
+      }
+    } else if (resolved === null) {
+      rate(messageId, "none");
+    }
+  }
+
+  function cancelTicketCreate() {
+    setScreen("chat");
+    scroll();
+  }
+
+  function createTicket(email: string, title: string, message: string) {
+    ticketCreateFetcher.submit(
+      { intent: "ticket-create", email, title, message },
+      { method: "post" }
+    );
+  }
+
+  return {
+    scrape,
+    thread,
+    messages,
+    embed,
+    token,
+    pinFetcher,
+    unpinFetcher,
+    eraseFetcher,
+    deleteFetcher,
+    rateFetcher,
+    ticketCreateFetcher,
+    createThreadFetcher,
+    eraseAt,
+    chat,
+    boxDimensions,
+    inputRef,
+    readOnly,
+    screen,
+    overallScore,
+    admin,
+    customerEmail,
+    titleSlug,
+    containerRef,
+    close,
+    pin,
+    unpin,
+    erase,
+    deleteMessages,
+    rate,
+    ask,
+    createTicket,
+    cancelTicketCreate,
+    resolved,
+    refresh,
+    scrollToMessage,
+    scroll,
+    setScreen
+  };
+}
+
+export type ChatBoxState = ReturnType<typeof useChatBox>;
+export const ChatBoxContext = createContext<ChatBoxState | null>(null);
+export const useChatBoxContext = () => {
+  const context = useContext(ChatBoxContext);
+  if (!context) {
+    throw new Error("useChatBoxContext must be used within a ChatBoxProvider");
+  }
+  return context;
+};
+
+export function ChatBoxProvider({
+  children,
+  scrape,
+  thread,
+  messages,
+  embed,
+  admin,
+}: {
+  children: React.ReactNode;
+  scrape: Scrape;
+  thread: Thread | null;
+  messages: Message[];
+  embed: boolean;
+  admin: boolean;
+}) {
+  const chatBox = useChatBox({ scrape, thread, messages, embed, admin });
+  return (
+    <ChatBoxContext.Provider value={chatBox}>
+      {children}
+    </ChatBoxContext.Provider>
+  );
+}
