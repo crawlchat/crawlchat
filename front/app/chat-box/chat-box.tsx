@@ -213,39 +213,60 @@ export function SourceLink({
   );
 }
 
-export function Resolved({ messageId }: { messageId: string }) {
-  const { resolved, scrape } = useChatBoxContext();
-  const [screen, setScreen] = useState<"default" | "yes" | "no">("default");
+export function Resolved({
+  onRate,
+}: {
+  onRate: (rating: MessageRating) => void;
+}) {
+  const { scrape, setScreen } = useChatBoxContext();
+  const [view, setView] = useState<"default" | "yes" | "no">("default");
+
+  function resolved(resolved: boolean | null) {
+    if (resolved === false) {
+      if (scrape.resolveNoConfig?.link) {
+        window.open(scrape.resolveNoConfig.link, "_blank");
+      } else {
+        setScreen("ticket-create");
+      }
+    } else if (resolved === true) {
+      if (scrape.resolveYesConfig?.link) {
+        window.open(scrape.resolveYesConfig.link, "_blank");
+      }
+    }
+  }
 
   function handleYes() {
     if (scrape.resolveYesConfig) {
-      return setScreen("yes");
+      return setView("yes");
     }
-    resolved(messageId, true);
+    resolved(true);
+    onRate("up");
   }
 
   function handleNo() {
     if (scrape.resolveNoConfig) {
-      return setScreen("no");
+      return setView("no");
     }
-    resolved(messageId, false);
+    resolved(false);
+    onRate("down");
   }
 
   function handleCancel() {
-    if (screen !== "default") {
-      return setScreen("default");
+    if (view !== "default") {
+      return setView("default");
     }
-    resolved(messageId, null);
+    resolved(null);
+    onRate("none");
   }
 
   function getTitleDescription() {
-    if (screen === "yes") {
+    if (view === "yes") {
       return [
         scrape.resolveYesConfig?.title,
         scrape.resolveYesConfig?.description,
       ];
     }
-    if (screen === "no") {
+    if (view === "no") {
       return [
         scrape.resolveNoConfig?.title,
         scrape.resolveNoConfig?.description,
@@ -272,30 +293,30 @@ export function Resolved({ messageId }: { messageId: string }) {
             </Text>
           </Stack>
           <Group>
-            {screen === "default" && (
+            {view === "default" && (
               <Button size={"xs"} variant={"outline"} onClick={handleYes}>
                 <TbThumbUp /> Yes
               </Button>
             )}
-            {screen === "default" && (
+            {view === "default" && (
               <Button size={"xs"} variant={"subtle"} onClick={handleNo}>
                 <TbThumbDown /> No
               </Button>
             )}
-            {screen === "yes" && (
+            {view === "yes" && (
               <Button
                 size={"xs"}
-                onClick={() => resolved(messageId, true)}
+                onClick={() => resolved(true)}
                 variant={"outline"}
               >
                 {scrape.resolveYesConfig?.btnLabel || "Go"}
                 <TbArrowRight />
               </Button>
             )}
-            {screen === "no" && (
+            {view === "no" && (
               <Button
                 size={"xs"}
-                onClick={() => resolved(messageId, false)}
+                onClick={() => resolved(false)}
                 variant={"outline"}
               >
                 {scrape.resolveNoConfig?.btnLabel || "Go"}
@@ -443,7 +464,7 @@ function AssistantMessage({
       <Stack gap={0}>
         <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
           {last && !readOnly && scrape.ticketingEnabled && !currentRating && (
-            <Resolved messageId={id} />
+            <Resolved onRate={handleRate} />
           )}
           {Object.entries(citation.citedLinks)
             .filter(([_, link]) => link)

@@ -306,24 +306,6 @@ export function useChatBox({
     await scroll();
   }
 
-  function resolved(messageId: string, resolved: boolean | null) {
-    if (resolved === false) {
-      rate(messageId, "down");
-      if (scrape.resolveNoConfig?.link) {
-        window.open(scrape.resolveNoConfig.link, "_blank");
-      } else {
-        setScreen("ticket-create");
-      }
-    } else if (resolved === true) {
-      rate(messageId, "up");
-      if (scrape.resolveYesConfig?.link) {
-        window.open(scrape.resolveYesConfig.link, "_blank");
-      }
-    } else if (resolved === null) {
-      rate(messageId, "none");
-    }
-  }
-
   function cancelTicketCreate() {
     setScreen("chat");
     scroll();
@@ -367,7 +349,6 @@ export function useChatBox({
     ask,
     createTicket,
     cancelTicketCreate,
-    resolved,
     refresh,
     scrollToMessage,
     scroll,

@@ -540,6 +540,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
     >
       <Stack>
         <RadioCard.Root
+          name="llmModel"
           defaultValue={scrape.llmModel ?? "gpt_4o_mini"}
           onValueChange={(e) => setSelectedModel(e.value as LlmModel)}
         >
