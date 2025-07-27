@@ -8,12 +8,7 @@ import {
   Text,
   Textarea,
 } from "@chakra-ui/react";
-import {
-  TbArrowRight,
-  TbCheck,
-  TbExternalLink,
-  TbSettingsBolt,
-} from "react-icons/tb";
+import { TbArrowRight, TbCheck, TbSettingsBolt } from "react-icons/tb";
 import { Page } from "~/components/page";
 import ChatBox from "~/chat-box/chat-box";
 import type { Route } from "./+types/fix";
@@ -27,6 +22,7 @@ import { Field } from "~/components/ui/field";
 import type { ScrapeItem } from "@prisma/client";
 import { useEffect } from "react";
 import { toaster } from "~/components/ui/toaster";
+import { ChatBoxProvider } from "~/chat-box/use-chat-box";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -285,13 +281,16 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
         </Stack>
         <Stack h="full" flex={1} bg="brand.gray.100">
           <Center h="full" w="full">
-            <ChatBox
+            <ChatBoxProvider
               scrape={loaderData.scrape}
-              key={loaderData.thread.id}
+              thread={loaderData.thread}
               messages={loaderData.messages}
-              showScore
-              ticketNumber={loaderData.thread.ticketNumber ?? undefined}
-            />
+              embed={false}
+              admin={true}
+              token={null}
+            >
+              <ChatBox />
+            </ChatBoxProvider>
           </Center>
         </Stack>
       </Flex>
