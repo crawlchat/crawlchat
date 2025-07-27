@@ -67,12 +67,14 @@ export function useChatBox({
   messages,
   embed,
   admin,
+  token: initialToken,
 }: {
   scrape: Scrape;
   thread: Thread | null;
   messages: Message[];
   embed: boolean;
   admin: boolean;
+  token: string | null;
 }) {
   const pinFetcher = useFetcher();
   const unpinFetcher = useFetcher();
@@ -83,8 +85,8 @@ export function useChatBox({
   const createThreadFetcher = useFetcher();
   const [eraseAt, setEraseAt] = useState<number>();
   const [thread, setThread] = useState<Thread | null>(initialThread);
-  const [token, setToken] = useState<string | null>(null);
-  const readOnly = !token;
+  const [token, setToken] = useState<string | null>(initialToken);
+  const readOnly = admin;
 
   const { setTheme } = useTheme();
   const chat = useScrapeChat({
@@ -281,16 +283,6 @@ export function useChatBox({
     inputRef.current?.blur();
   }
 
-  function pin(id: string) {
-    pinFetcher.submit({ intent: "pin", id }, { method: "post" });
-    chat.pinMessage(id);
-  }
-
-  function unpin(id: string) {
-    unpinFetcher.submit({ intent: "unpin", id }, { method: "post" });
-    chat.unpinMessage(id);
-  }
-
   function erase() {
     eraseFetcher.submit({ intent: "erase" }, { method: "post" });
     chat.erase();
@@ -369,8 +361,6 @@ export function useChatBox({
     titleSlug,
     containerRef,
     close,
-    pin,
-    unpin,
     erase,
     deleteMessages,
     rate,
@@ -381,7 +371,7 @@ export function useChatBox({
     refresh,
     scrollToMessage,
     scroll,
-    setScreen
+    setScreen,
   };
 }
 
@@ -402,6 +392,7 @@ export function ChatBoxProvider({
   messages,
   embed,
   admin,
+  token,
 }: {
   children: React.ReactNode;
   scrape: Scrape;
@@ -409,8 +400,9 @@ export function ChatBoxProvider({
   messages: Message[];
   embed: boolean;
   admin: boolean;
+  token: string | null;
 }) {
-  const chatBox = useChatBox({ scrape, thread, messages, embed, admin });
+  const chatBox = useChatBox({ scrape, thread, messages, embed, admin, token });
   return (
     <ChatBoxContext.Provider value={chatBox}>
       {children}

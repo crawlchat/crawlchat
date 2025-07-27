@@ -14,10 +14,7 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
-import type {
-  MessageSourceLink,
-  MessageRating,
-} from "libs/prisma";
+import type { MessageSourceLink, MessageRating } from "libs/prisma";
 import { useEffect, useMemo, useState } from "react";
 import {
   TbArrowUp,
@@ -25,7 +22,6 @@ import {
   TbEraser,
   TbHelp,
   TbMessage,
-  TbPin,
   TbRefresh,
   TbRobotFace,
   TbPointer,
@@ -43,7 +39,6 @@ import { Tooltip } from "~/components/ui/tooltip";
 import {
   MenuContent,
   MenuItem,
-  MenuItemGroup,
   MenuRoot,
   MenuTrigger,
 } from "~/components/ui/menu";
@@ -338,7 +333,6 @@ function AssistantMessage({
   questionId,
   content,
   links,
-  pinned,
   rating,
   last,
 }: {
@@ -346,13 +340,10 @@ function AssistantMessage({
   questionId: string;
   content: string;
   links: MessageSourceLink[];
-  pinned: boolean;
   rating: MessageRating | null;
   last: boolean;
 }) {
   const {
-    pin,
-    unpin,
     refresh,
     rate,
     readOnly,
@@ -401,17 +392,6 @@ function AssistantMessage({
           {citation.content}
         </MarkdownProse>
         <Group pb={Object.keys(citation.citedLinks).length === 0 ? 4 : 0}>
-          <Tooltip content="Pin message" showArrow>
-            <IconButton
-              size={"xs"}
-              rounded={"full"}
-              variant={pinned ? "solid" : "subtle"}
-              onClick={pinned ? () => unpin(id) : () => pin(id)}
-              disabled={readOnly}
-            >
-              <TbPin />
-            </IconButton>
-          </Tooltip>
           <Tooltip content="Regenerate message" showArrow>
             <IconButton
               size={"xs"}
@@ -643,14 +623,10 @@ function Toolbar() {
     setScreen,
     overallScore,
     scrape,
-    chat,
-    scrollToMessage,
     readOnly,
+    admin,
   } = useChatBoxContext();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const pinnedCount = useMemo(() => {
-    return chat.messages.filter((message) => message.pinnedAt).length;
-  }, [chat.messages]);
 
   useEffect(
     function () {
@@ -663,10 +639,6 @@ function Toolbar() {
     },
     [confirmDelete]
   );
-
-  function handlePinSelect(id: string) {
-    scrollToMessage(id);
-  }
 
   function handleShare() {
     navigator.clipboard.writeText(`${window.location.origin}/s/${thread?.id}`);
@@ -714,7 +686,7 @@ function Toolbar() {
                 : scrape.title ?? "Ask AI"}
             </Text>
           </Stack>
-          {overallScore !== undefined && (
+          {admin && overallScore !== undefined && (
             <Tooltip content="Avg score of all messages" showArrow>
               <Badge
                 colorPalette={getScoreColor(overallScore)}
@@ -727,42 +699,6 @@ function Toolbar() {
         </Group>
       </Group>
       <Group>
-        {pinnedCount > 0 && (
-          <MenuRoot
-            positioning={{ placement: "bottom-end" }}
-            onSelect={(e) => handlePinSelect(e.value)}
-          >
-            <MenuTrigger asChild>
-              <IconButton size={"xs"} variant={"subtle"} position={"relative"}>
-                <TbPin />
-                <Badge
-                  ml="1"
-                  colorScheme="red"
-                  variant="solid"
-                  borderRadius="full"
-                  position={"absolute"}
-                  top={-1}
-                  right={-1}
-                  size={"xs"}
-                >
-                  {pinnedCount}
-                </Badge>
-              </IconButton>
-            </MenuTrigger>
-            <MenuContent>
-              <MenuItemGroup title="Pinned messages">
-                {chat.messages
-                  .filter((m) => m.pinnedAt)
-                  .map((message) => (
-                    <MenuItem key={message.id} value={message.id}>
-                      {(message.llmMessage as any)?.content}
-                    </MenuItem>
-                  ))}
-              </MenuItemGroup>
-            </MenuContent>
-          </MenuRoot>
-        )}
-
         {screen === "mcp" && (
           <Button
             size={"xs"}
@@ -931,7 +867,6 @@ export default function ScrapeWidget() {
                       questionId={chat.allMessages[index - 1]?.id}
                       content={message.content}
                       links={message.links}
-                      pinned={chat.allMessages[index - 1]?.pinned}
                       rating={message.rating}
                       last={index === chat.allMessages.length - 1}
                     />

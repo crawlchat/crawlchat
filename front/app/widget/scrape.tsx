@@ -297,6 +297,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
       messages={loaderData.messages}
       embed={loaderData.embed}
       admin={false}
+      token={loaderData.userToken}
     >
       <Stack
         h="100dvh"
