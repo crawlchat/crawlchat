@@ -37,6 +37,7 @@ export class WebKbProcesser extends BaseKbProcesser {
       limit?: number;
       skipRegex?: RegExp[];
       allowOnlyRegex?: RegExp;
+      scrollSelector?: string;
     }
   ) {
     super(listener, options);
@@ -76,9 +77,10 @@ export class WebKbProcesser extends BaseKbProcesser {
       limit: this.options.limit,
       skipRegex: this.options.skipRegex,
       allowOnlyRegex: this.options.allowOnlyRegex,
+      scrollSelector: this.options.scrollSelector,
       onComplete: () => this.onComplete(),
       shouldScrape: async () => {
-        if (!this.options.hasCredits()) {
+        if (!(await this.options.hasCredits())) {
           return false;
         }
         const group = await prisma.knowledgeGroup.findFirstOrThrow({
@@ -97,7 +99,7 @@ export class WebKbProcesser extends BaseKbProcesser {
           {
             text: markdown,
             error,
-            metaTags,
+            metaTags: [],
             title: getMetaTitle(metaTags),
           },
           progress

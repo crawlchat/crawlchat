@@ -7,10 +7,10 @@ export function makeKbProcesser(
   listener: KbProcesserListener,
   scrape: Scrape,
   knowledgeGroup: KnowledgeGroup,
-  options: { hasCredits: () => Promise<boolean>; limit?: number }
+  options: { hasCredits: () => Promise<boolean>; limit?: number; url?: string }
 ): KbProcesser {
   if (knowledgeGroup.type === "scrape_web") {
-    const url = knowledgeGroup.url;
+    const url = options.url ?? knowledgeGroup.url;
     if (!url) {
       throw new Error("URL is required");
     }
@@ -33,6 +33,7 @@ export function makeKbProcesser(
         skipRegex: knowledgeGroup.skipPageRegex
           ? knowledgeGroup.skipPageRegex.split(",").map((r) => new RegExp(r))
           : undefined,
+        scrollSelector: knowledgeGroup.scrollSelector ?? undefined,
       }
     );
 

@@ -10,8 +10,6 @@ import {
   Input,
   DialogCloseTrigger,
   Center,
-  SimpleGrid,
-  Flex,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/page";
 import {
@@ -22,6 +20,8 @@ import {
   TbMessage,
   TbPlus,
   TbStack,
+  TbThumbDown,
+  TbThumbUp,
 } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
@@ -39,7 +39,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
-import { redirect, useFetcher } from "react-router";
+import { Link, redirect, useFetcher } from "react-router";
 import { Button } from "~/components/ui/button";
 import {
   DialogBackdrop,
@@ -143,6 +143,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     };
   }
 
+  const ratingUpCount = messages.filter((m) => m.rating === "up").length;
+  const ratingDownCount = messages.filter((m) => m.rating === "down").length;
+
   return {
     user,
     scrapes,
@@ -152,6 +155,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     scrapeId,
     scoreDestribution,
     scrape: scrapes.find((s) => s.id === scrapeId),
+    ratingUpCount,
+    ratingDownCount,
   };
 }
 
@@ -205,20 +210,45 @@ export function StatCard({
   label,
   value,
   icon,
+  href,
+  color,
 }: {
   label: string;
   value: number;
   icon: React.ReactNode;
+  href?: string;
+  color?: string;
 }) {
-  return (
-    <Stat.Root flex={1} borderWidth="1px" p="4" rounded="md">
-      <HStack justify="space-between">
-        <Stat.Label>{label}</Stat.Label>
-        <Icon color="fg.muted">{icon}</Icon>
-      </HStack>
-      <Stat.ValueText>{numberToKMB(value)}</Stat.ValueText>
-    </Stat.Root>
-  );
+  function render() {
+    return (
+      <Stat.Root
+        flex={1}
+        borderWidth="1px"
+        p="4"
+        rounded="md"
+        _hover={{ bg: href ? "brand.gray.50" : undefined }}
+        transition={"background-color 0.2s ease-in-out"}
+      >
+        <HStack justify="space-between" align={"start"}>
+          <Stat.Label>{label}</Stat.Label>
+          <Icon color={color ?? "fg.muted"} size={"xl"}>
+            {icon}
+          </Icon>
+        </HStack>
+        <Stat.ValueText fontSize={"3xl"}>{numberToKMB(value)}</Stat.ValueText>
+      </Stat.Root>
+    );
+  }
+
+  if (href) {
+    return (
+      <Link to={href} style={{ flex: 1 }}>
+        {render()}
+      </Link>
+    );
+  }
+
+  return render();
 }
 
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
@@ -280,12 +310,17 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             <TbPlus />
             New collection
           </Button>
-          <Button variant={"subtle"} colorPalette={"brand"} asChild>
-            <a href={`/w/${loaderData.scrapeId}`} target="_blank">
-              <TbMessage />
-              Chat
-            </a>
-          </Button>
+          {loaderData.scrape && (
+            <Button variant={"subtle"} colorPalette={"brand"} asChild>
+              <a
+                href={`/w/${loaderData.scrape.slug ?? loaderData.scrapeId}`}
+                target="_blank"
+              >
+                <TbMessage />
+                Chat
+              </a>
+            </Button>
+          )}
         </Group>
       }
     >
@@ -322,6 +357,20 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 0
               )}
               icon={<TbMessage />}
+            />
+            <StatCard
+              label="Helpful"
+              value={loaderData.ratingUpCount}
+              icon={<TbThumbUp />}
+              href={`/messages?rating=up`}
+              color="green.500"
+            />
+            <StatCard
+              label="Not helpful"
+              value={loaderData.ratingDownCount}
+              icon={<TbThumbDown />}
+              href={`/messages?rating=down`}
+              color="red.600"
             />
           </Group>
 
@@ -387,63 +436,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               />
             </BarChart>
           </Stack>
-
-          {loaderData.scrape && loaderData.scrape.analytics?.categories && (
-            <Stack>
-              <Heading>
-                <Group>
-                  <TbStack />
-                  <Text>Categories</Text>
-                  <ChakraTooltip
-                    showArrow
-                    content={
-                      "These are the categories of the messages received in the last 7 days across all the channels"
-                    }
-                  >
-                    <Icon opacity={0.5}>
-                      <TbHelp />
-                    </Icon>
-                  </ChakraTooltip>
-                </Group>
-              </Heading>
-
-              <SimpleGrid columns={[1, 2, 3]} gap={4}>
-                {loaderData.scrape.analytics.categories
-                  .sort((a, b) => b.messageIds.length - a.messageIds.length)
-                  .map((c) => (
-                    <Group
-                      key={c.key}
-                      border="1px solid"
-                      borderColor={"brand.outline"}
-                      p={4}
-                      rounded={"lg"}
-                      justifyContent={"space-between"}
-                    >
-                      <Stack gap={1}>
-                        <Text fontWeight={"bold"}>{c.name}</Text>
-                        <Text fontSize={"sm"} opacity={0.4}>
-                          {c.description}
-                        </Text>
-                      </Stack>
-                      <Group>
-                        <Center
-                          w={10}
-                          h={10}
-                          rounded={"full"}
-                          bg={"brand.subtle"}
-                          color={"brand.fg"}
-                          fontWeight={"bold"}
-                          border={"1px solid"}
-                          borderColor={"brand.outline"}
-                        >
-                          <Text>{c.messageIds.length}</Text>
-                        </Center>
-                      </Group>
-                    </Group>
-                  ))}
-              </SimpleGrid>
-            </Stack>
-          )}
         </Stack>
       )}
 

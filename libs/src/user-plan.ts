@@ -20,8 +20,8 @@ export const PLAN_FREE: Plan = {
   price: 0,
   type: "ONE_TIME",
   credits: {
-    messages: 100,
     scrapes: 100,
+    messages: 40,
   },
   resetType: "one-time",
   category: "BASE",
@@ -34,7 +34,7 @@ export const PLAN_STARTER: Plan = {
   type: "SUBSCRIPTION",
   credits: {
     scrapes: 3000,
-    messages: 15000,
+    messages: 2000,
   },
   resetType: "monthly",
   category: "BASE",
@@ -47,7 +47,7 @@ export const PLAN_PRO: Plan = {
   type: "SUBSCRIPTION",
   credits: {
     scrapes: 10000,
-    messages: 50000,
+    messages: 7000,
   },
   resetType: "monthly",
   category: "BASE",

@@ -38,12 +38,18 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
   private openai: OpenAI;
   private model: string;
 
-  constructor(id: string) {
+  constructor(
+    id: string,
+    options?: { model?: string; baseURL?: string; apiKey?: string }
+  ) {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: options?.apiKey ?? process.env.OPENAI_API_KEY,
+      baseURL: options?.baseURL,
     });
-    this.model = "gpt-4o-mini";
+    this.model = options?.model ?? "gpt-4o-mini";
     this.id = id;
+
+    console.log("Created agent", this.id, this.model);
   }
 
   async stream(
@@ -54,7 +60,19 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
       content: await this.getSystemPrompt(state),
     };
 
+    let developerMessages: ChatCompletionMessageParam[] = [];
+
+    if (this.model === "o1-mini") {
+      developerMessages = [
+        {
+          role: "developer",
+          content: "Formatting re-enabled",
+        } as ChatCompletionMessageParam,
+      ];
+    }
+
     const messages = [
+      ...developerMessages,
       ...state.messages.map((m) => m.llmMessage),
       systemPromptMessage,
     ];
@@ -104,13 +122,19 @@ export class SimpleAgent<CustomMessage> extends Agent<{}, CustomMessage> {
     prompt,
     schema,
     tools,
+    model,
+    baseURL,
+    apiKey,
   }: {
     id: string;
     prompt: string;
     schema?: ZodSchema<any>;
     tools?: LlmTool<any, CustomMessage>[];
+    model?: string;
+    baseURL?: string;
+    apiKey?: string;
   }) {
-    super(id);
+    super(id, { model, baseURL, apiKey });
     this.prompt = prompt;
     this.schema = schema;
     this.tools = tools;

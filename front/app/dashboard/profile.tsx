@@ -1,13 +1,17 @@
 import { Page } from "~/components/page";
-import { TbCheck, TbSettings } from "react-icons/tb";
-import { Group, Heading, Stack, Text } from "@chakra-ui/react";
-import { useFetcher, type FetcherWithComponents } from "react-router";
-import { Button } from "~/components/ui/button";
+import { TbSettings } from "react-icons/tb";
+import { Stack } from "@chakra-ui/react";
+import { useFetcher } from "react-router";
 import type { Route } from "./+types/profile";
 import { getAuthUser } from "~/auth/middleware";
 import type { UserSettings } from "libs/prisma";
 import { prisma } from "~/prisma";
 import { Switch } from "~/components/ui/switch";
+import {
+  SettingsContainer,
+  SettingsSection,
+  SettingsSectionProvider,
+} from "~/settings-section";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -30,6 +34,9 @@ export async function action({ request }: Route.ActionArgs) {
   if (intent === "weekly-updates") {
     update.weeklyUpdates = weeklyUpdates === "on";
   }
+  if (intent === "ticket-updates") {
+    update.ticketEmailUpdates = formData.get("ticketUpdates") === "on";
+  }
 
   await prisma.user.update({
     where: { id: user!.id },
@@ -39,77 +46,54 @@ export async function action({ request }: Route.ActionArgs) {
   return Response.json({ success: true });
 }
 
-export function SettingsSection({
-  children,
-  fetcher,
-  title,
-  description,
-}: {
-  children: React.ReactNode;
-  fetcher: FetcherWithComponents<unknown>;
-  title?: React.ReactNode;
-  description?: string;
-}) {
-  return (
-    <fetcher.Form method="post">
-      <Stack
-        border={"1px solid"}
-        borderColor={"brand.outline"}
-        borderRadius={"md"}
-        overflow={"hidden"}
-      >
-        <Stack p={4} gap={4}>
-          <Stack>
-            {title && <Heading size={"md"}>{title}</Heading>}
-            {description && (
-              <Text opacity={0.5} fontSize={"sm"}>
-                {description}
-              </Text>
-            )}
-          </Stack>
-          {children}
-        </Stack>
-        <Group
-          p={4}
-          py={3}
-          borderTop={"1px solid"}
-          borderColor={"brand.outline"}
-          bg="brand.gray.100"
-          w="full"
-          justifyContent={"space-between"}
-        >
-          <Group></Group>
-          <Button type="submit" size={"xs"} loading={fetcher.state !== "idle"}>
-            Save
-            <TbCheck />
-          </Button>
-        </Group>
-      </Stack>
-    </fetcher.Form>
-  );
-}
-
 export default function SettingsPage({ loaderData }: Route.ComponentProps) {
-  const openaiApiKeyFetcher = useFetcher();
+  const weeklyUpdatesFetcher = useFetcher();
+  const ticketUpdatesFetcher = useFetcher();
 
   return (
     <Page title="Profile" icon={<TbSettings />}>
-      <Stack gap={8}>
-        <SettingsSection
-          fetcher={openaiApiKeyFetcher}
-          title="Weekly Updates"
-          description="Enable weekly updates to be sent to your email."
-        >
-          <Stack>
-            <input type="hidden" name="intent" value="weekly-updates" />
-            <Switch
-              name="weeklyUpdates"
-              defaultChecked={loaderData.user.settings?.weeklyUpdates ?? true}
+      <Stack w="full">
+        <SettingsSectionProvider>
+          <SettingsContainer>
+            <SettingsSection
+              id="weekly-updates"
+              fetcher={weeklyUpdatesFetcher}
+              title="Weekly Updates"
+              description="Enable weekly updates to be sent to your email."
             >
-              Receive weekly email summary
-            </Switch>
-          </Stack>
-        </SettingsSection>
+              <Stack>
+                <input type="hidden" name="intent" value="weekly-updates" />
+                <Switch
+                  name="weeklyUpdates"
+                  defaultChecked={
+                    loaderData.user.settings?.weeklyUpdates ?? true
+                  }
+                >
+                  Receive weekly email summary
+                </Switch>
+              </Stack>
+            </SettingsSection>
+
+            <SettingsSection
+              id="ticket-updates"
+              fetcher={ticketUpdatesFetcher}
+              title="Ticket Updates"
+              description="Enable ticket updates to be sent to your email."
+            >
+              <Stack>
+                <input type="hidden" name="intent" value="ticket-updates" />
+                <Switch
+                  name="ticketUpdates"
+                  defaultChecked={
+                    loaderData.user.settings?.ticketEmailUpdates ?? true
+                  }
+                >
+                  Receive ticket updates
+                </Switch>
+              </Stack>
+            </SettingsSection>
+          </SettingsContainer>
+        </SettingsSectionProvider>
       </Stack>
     </Page>
   );

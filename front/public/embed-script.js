@@ -7,42 +7,57 @@ class CrawlChatEmbed {
     this.host = "https://crawlchat.app";
     this.scrapeId = this.getScrapeId();
     this.askAIButtonId = "crawlchat-ask-ai-button";
-
-    const script = document.getElementById(this.scriptId);
-    this.askAIEnabled = script.getAttribute("data-ask-ai") === "true";
+    this.lastScrollTop = 0;
+    this.lastBodyStyle = {};
+    this.widgetConfig = {};
   }
 
-  mount() {
+  getCustomTags() {
+    const script = document.getElementById(this.scriptId);
+    const allTags = script
+      .getAttributeNames()
+      .filter((name) => name.startsWith("data-tag-"))
+      .map((name) => [
+        name.replace("data-tag-", ""),
+        script.getAttribute(name),
+      ]);
+    return Object.fromEntries(allTags);
+  }
+
+  async mount() {
+    const style = document.createElement("link");
+    style.rel = "stylesheet";
+    style.href = `${this.host}/embed.css`;
+    document.head.appendChild(style);
+
     const iframe = document.createElement("iframe");
     iframe.id = this.iframeId;
-    iframe.src = `${this.host}/w/${this.scrapeId}?embed=true`;
-    iframe.style.width = "100%";
-    iframe.style.height = "100%";
-    iframe.style.border = "none";
-    iframe.style.backgroundColor = "transparent";
-    iframe.style.background = "transparent";
+
+    const params = new URLSearchParams({
+      embed: "true",
+    });
+    const customTags = this.getCustomTags();
+    if (Object.keys(customTags).length > 0) {
+      params.set("tags", btoa(JSON.stringify(customTags)));
+    }
+    if (window.innerWidth < 700) {
+      params.set("width", window.innerWidth.toString() + "px");
+      params.set("height", window.innerHeight.toString() + "px");
+      params.set("fullscreen", "true");
+    }
+    const src = `${this.host}/w/${this.scrapeId}?${params.toString()}`;
+
+    iframe.src = src;
     iframe.allowTransparency = "true";
-    iframe.style.opacity = "1";
+    iframe.allow = "clipboard-write";
+    iframe.className = "crawlchat-embed";
 
     const div = document.createElement("div");
     div.id = this.embedDivId;
-    div.style.position = "fixed";
-    div.style.top = "0px";
-    div.style.left = "0px";
-    div.style.width = "0px";
-    div.style.height = "0px";
-    div.style.border = "none";
-    div.style.zIndex = "1000";
-    div.style.transition = `opacity ${this.transitionDuration}ms ease`;
-    div.style.opacity = "0";
 
     div.appendChild(iframe);
     document.body.appendChild(div);
-    window.addEventListener("message", this.handleOnMessage);
-
-    if (this.askAIEnabled) {
-      this.showAskAIButton();
-    }
+    window.addEventListener("message", (e) => this.handleOnMessage(e));
   }
 
   getScrapeId() {
@@ -52,26 +67,30 @@ class CrawlChatEmbed {
 
   show() {
     const div = document.getElementById(this.embedDivId);
-    div.style.width = "100%";
-    div.style.height = "100%";
-    setTimeout(() => {
-      div.style.opacity = "1";
-    }, 0);
+    div.classList.add("open");
+
+    this.lastScrollTop = window.scrollY;
+    this.lastBodyStyle = document.body.style;
+    document.body.style.position = "fixed";
+    document.body.style.overflowY = "scroll";
+    document.body.style.width = "100%";
+    document.body.style.top = `-${this.lastScrollTop}px`;
+
     const iframe = document.getElementById(this.iframeId);
     iframe.contentWindow.postMessage("focus", "*");
   }
 
-  hide() {
+  async hide() {
+    document.body.style = this.lastBodyStyle;
+    window.scrollTo(0, this.lastScrollTop);
+
     const div = document.getElementById(this.embedDivId);
-    div.style.opacity = "0";
+    div.classList.remove("open");
     setTimeout(() => {
-      div.style.width = "0px";
-      div.style.height = "0px";
+      window.focus();
     }, this.transitionDuration);
 
-    if (this.askAIEnabled) {
-      this.showAskAIButton();
-    }
+    await this.showAskAIButton();
   }
 
   isWidgetOpen() {
@@ -79,33 +98,55 @@ class CrawlChatEmbed {
     return div.style.width === "100%";
   }
 
-  handleOnMessage(event) {
+  async handleOnMessage(event) {
     if (event.data === "close") {
-      window.crawlchatEmbed.hide();
+      return window.crawlchatEmbed.hide();
+    }
+    if (event.origin !== this.host) {
+      return;
+    }
+    let data;
+    try {
+      data = JSON.parse(event.data);
+    } catch (e) {
+      return;
+    }
+    if (data.type === "embed-ready") {
+      this.widgetConfig = data.widgetConfig;
+      await this.showAskAIButton();
     }
   }
 
   hideAskAIButton() {
     const button = document.getElementById(this.askAIButtonId);
-    button.style.opacity = "0";
+    button.classList.add("hidden");
   }
 
-  showAskAIButton() {
+  async showAskAIButton() {
     const script = document.getElementById(this.scriptId);
 
     if (!script) {
       return;
     }
 
-    const text = script.getAttribute("data-ask-ai-text") ?? "💬 Ask AI";
+    const text =
+      this.widgetConfig.buttonText ??
+      script.getAttribute("data-ask-ai-text") ??
+      "💬 Ask AI";
     const backgroundColor =
-      script.getAttribute("data-ask-ai-background-color") ?? "#7b2cbf";
-    const color = script.getAttribute("data-ask-ai-color") ?? "white";
+      this.widgetConfig.primaryColor ??
+      script.getAttribute("data-ask-ai-background-color") ??
+      "#7b2cbf";
+    const color =
+      this.widgetConfig.buttonTextColor ??
+      script.getAttribute("data-ask-ai-color") ??
+      "white";
     const position = script.getAttribute("data-ask-ai-position") ?? "br";
     const marginX = script.getAttribute("data-ask-ai-margin-x") ?? "20px";
     const marginY = script.getAttribute("data-ask-ai-margin-y") ?? "20px";
     const radius = script.getAttribute("data-ask-ai-radius") ?? "20px";
     const fontSize = script.getAttribute("data-ask-ai-font-size");
+    const logoUrl = this.widgetConfig.logoUrl;
 
     let bottom = undefined;
     let right = undefined;
@@ -128,42 +169,57 @@ class CrawlChatEmbed {
 
     const div = document.createElement("div");
     div.id = this.askAIButtonId;
-    div.style.position = "fixed";
     div.style.bottom = bottom;
     div.style.right = right;
     div.style.left = left;
     div.style.top = top;
-    div.style.padding = "8px 20px";
 
     div.style.backgroundColor = backgroundColor;
     div.style.color = color;
     div.style.borderRadius = radius;
-    div.style.cursor = "pointer";
-    // div.style.fontWeight = "bold";
-    div.style.transition = "scale 0.1s ease, opacity 0.3s ease";
     div.style.fontSize = fontSize;
 
-    div.style.scale = "1";
-    div.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.2)";
+    if (logoUrl && this.widgetConfig.showLogo) {
+      const logo = document.createElement("img");
+      logo.className = "logo";
+      logo.src = logoUrl;
+      div.appendChild(logo);
 
-    div.addEventListener("mouseover", function () {
-      div.style.scale = "1.05";
-    });
+      div.classList.add("with-logo");
+      div.style.border = `1px solid ${color}`;
+    }
 
-    div.addEventListener("mouseout", function () {
-      div.style.scale = "1";
-    });
+    const span = document.createElement("span");
+    span.innerText = text;
+    div.appendChild(span);
 
-    div.innerText = text;
+    if (this.widgetConfig.tooltip) {
+      div.appendChild(this.makeTooltip(this.widgetConfig.tooltip));
+    }
 
     div.addEventListener("click", function () {
       window.crawlchatEmbed.show();
-      div.style.opacity = "0";
+      div.classList.add("hidden");
     });
 
     document.body.appendChild(div);
   }
+
+  makeTooltip(text) {
+    const div = document.createElement("div");
+    div.innerText = text;
+    div.className = "tooltip";
+    return div;
+  }
 }
 
-window.crawlchatEmbed = new CrawlChatEmbed();
-window.crawlchatEmbed.mount();
+async function setupCrawlChat() {
+  window.crawlchatEmbed = new CrawlChatEmbed();
+  await window.crawlchatEmbed.mount();
+}
+
+if (document.readyState === "complete" || window.frameElement) {
+  setupCrawlChat();
+} else {
+  window.addEventListener("load", setupCrawlChat);
+}

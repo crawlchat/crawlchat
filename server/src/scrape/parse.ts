@@ -73,13 +73,7 @@ function cleanA($: cheerio.CheerioAPI) {
     if (href?.includes("?")) {
       $(a).attr("href", href.split("?")[0]);
     }
-    if ($(a).text().trim().length === 0) {
-      $(a).remove();
-    }
-    if ($(a).attr("href")?.startsWith("#")) {
-      $(a).remove();
-    }
-    if (!$(a).attr("href")) {
+    if ($(a).text().trim().length === 0 && $(a).find("img").length === 0) {
       $(a).remove();
     }
   });
@@ -151,10 +145,10 @@ export function parseHtml(
   cleanScriptStyles($);
   safeClean($);
 
-  $('table tr:first-child td').each((_, cell) => {
+  $("table tr:first-child td").each((_, cell) => {
     const $cell = $(cell);
     const content = $cell.html();
-    const $th = $('<th></th>').html(content ?? '');
+    const $th = $("<th></th>").html(content ?? "");
     $cell.replaceWith($th);
   });
 
@@ -193,13 +187,24 @@ export function parseHtml(
       return ` ${cleanedContent} |`;
     },
   });
+  turndownService.addRule("link-trim", {
+    filter: ["a"],
+    replacement: function (content, node) {
+      const href = (node as HTMLElement).getAttribute("href");
+      const text = content.replace(/^\n*/g, "").replace(/\n*$/g, "");
+      let result = `[${text}](${href})`;
+      if (content.endsWith("\n")) {
+        result += "\n";
+      }
+      return result;
+    },
+  });
 
   let content = $("main").html() ?? $("body").html();
   if (!content) {
     content = $("body").html();
   }
-  let markdown = turndownService.turndown(content ?? "");
-  markdown = removeConsecutiveLinks(markdown);
+  const markdown = turndownService.turndown(content ?? "");
 
   return {
     markdown,

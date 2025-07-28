@@ -6,16 +6,19 @@ import {
   HStack,
   IconButton,
   Input,
-  NativeSelect,
   parseColor,
-  Slider,
+  SegmentGroup,
   Stack,
   Text,
   Textarea,
 } from "@chakra-ui/react";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import { SettingsSection } from "~/dashboard/profile";
+import {
+  SettingsContainer,
+  SettingsSection,
+  SettingsSectionProvider,
+} from "~/settings-section";
 import { useFetcher } from "react-router";
 import {
   SelectContent,
@@ -26,14 +29,8 @@ import {
 } from "~/components/ui/select";
 import type { WidgetConfig, WidgetQuestion, WidgetSize } from "libs/prisma";
 import { Button } from "~/components/ui/button";
-import { TbPlus, TbSettings, TbSettings2, TbTrash } from "react-icons/tb";
+import { TbCode, TbEye, TbCopy, TbPlus, TbTrash } from "react-icons/tb";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  AccordionItem,
-  AccordionItemContent,
-  AccordionItemTrigger,
-  AccordionRoot,
-} from "~/components/ui/accordion";
 import {
   ColorPickerArea,
   ColorPickerContent,
@@ -50,6 +47,7 @@ import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
 import type { Route } from "./+types/embed";
 import { getSessionScrapeId } from "../scrapes/util";
 import { Switch } from "~/components/ui/switch";
+import { SiDocusaurus } from "react-icons/si";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -90,22 +88,45 @@ export async function action({ request }: Route.ActionArgs) {
     questions: [],
     welcomeMessage: null,
     showMcpSetup: null,
+    textInputPlaceholder: null,
+    primaryColor: null,
+    buttonText: null,
+    buttonTextColor: null,
+    showLogo: null,
+    tooltip: null,
   };
 
   if (size) {
     update.size = size as WidgetSize;
   }
-
   if (formData.has("from-questions")) {
     update.questions = questions.map((text) => ({ text: text as string }));
   }
-
   if (welcomeMessage !== null && welcomeMessage !== undefined) {
     update.welcomeMessage = welcomeMessage as string;
   }
-
   if (formData.has("from-mcp-setup")) {
     update.showMcpSetup = formData.get("showMcpSetup") === "on";
+  }
+  if (formData.has("textInputPlaceholder")) {
+    update.textInputPlaceholder = formData.get(
+      "textInputPlaceholder"
+    ) as string;
+  }
+  if (formData.has("primaryColor")) {
+    update.primaryColor = formData.get("primaryColor") as string;
+  }
+  if (formData.has("buttonText")) {
+    update.buttonText = formData.get("buttonText") as string;
+  }
+  if (formData.has("buttonTextColor")) {
+    update.buttonTextColor = formData.get("buttonTextColor") as string;
+  }
+  if (formData.has("from-widget")) {
+    update.showLogo = formData.get("showLogo") === "on";
+  }
+  if (formData.has("tooltip")) {
+    update.tooltip = formData.get("tooltip") as string;
   }
 
   await prisma.scrape.update({
@@ -124,73 +145,34 @@ const sizes = createListCollection({
   items: [
     { label: "Small", value: "small" },
     { label: "Large", value: "large" },
-    { label: "Full Screen", value: "full_screen" },
   ],
 });
 
-type EmbedProps = {
-  button?: boolean;
-  text?: string;
-  buttonColor?: string;
-  buttonTextColor?: string;
-  buttonText?: string;
-  position?: string;
-  radius: number;
-};
-
-function makeScriptCode(props: EmbedProps, scrapeId: string) {
+function makeScriptCode(scrapeId: string) {
   if (typeof window === "undefined") {
-    return "";
+    return { script: "", docusaurusConfig: "" };
   }
 
   const origin = window.location.origin;
 
-  const attributes: Record<string, string> = {};
-  const {
-    button,
-    text,
-    buttonColor,
-    buttonTextColor,
-    buttonText,
-    position,
-    radius,
-  } = props;
-
-  if (text) {
-    attributes["data-ask-ai-text"] = text;
-  }
-
-  if (button) {
-    attributes["data-ask-ai"] = "true";
-  }
-
-  if (buttonColor) {
-    attributes["data-ask-ai-background-color"] = buttonColor;
-  }
-
-  if (buttonTextColor) {
-    attributes["data-ask-ai-color"] = buttonTextColor;
-  }
-
-  if (buttonText) {
-    attributes["data-ask-ai-text"] = buttonText;
-  }
-
-  if (position) {
-    attributes["data-ask-ai-position"] = position;
-  }
-
-  if (radius) {
-    attributes["data-ask-ai-radius"] = `${radius}px`;
-  }
-
-  return `<script src="${origin}/embed.js" 
+  const script = `<script 
+  src="${origin}/embed.js" 
   id="crawlchat-script" 
-  data-id="${scrapeId}" 
-  ${Object.entries(attributes)
-    .map(([key, value]) => `${key}="${value}"`)
-    .join(" ")}
+  data-id="${scrapeId}"
 ></script>`;
+
+  const docusaurusConfig = `headTags: [
+  {
+      "tagName": "script",
+      "attributes": {
+        "src": "${origin}/embed.js",
+        "id": "crawlchat-script",
+        "data-id": "${scrapeId}"
+      },
+    },
+],`;
+
+  return { script, docusaurusConfig };
 }
 
 function PreviewEmbed({ scriptCode }: { scriptCode: string }) {
@@ -214,9 +196,6 @@ function PreviewEmbed({ scriptCode }: { scriptCode: string }) {
           </style>
         </head>
         <body>
-          <div>
-            Preview
-          </div>
           ${scriptCode}
         </body>
       </html>`);
@@ -227,22 +206,25 @@ function PreviewEmbed({ scriptCode }: { scriptCode: string }) {
   );
 }
 
+const widgetConfigTabs = createListCollection({
+  items: [
+    { label: "Preview", value: "preview", icon: <TbEye /> },
+    { label: "Code", value: "code", icon: <TbCode /> },
+    { label: "Docusaurus", value: "docusaurus", icon: <SiDocusaurus /> },
+  ],
+});
+
 export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const sizeFetcher = useFetcher();
   const questionsFetcher = useFetcher();
   const welcomeMessageFetcher = useFetcher();
   const mcpSetupFetcher = useFetcher();
-  const [embedProps, setEmbedProps] = useState<EmbedProps>({
-    button: true,
-    buttonColor: "#7b2cbf",
-    buttonTextColor: "#ffffff",
-    buttonText: "💬 Ask AI",
-    position: "br",
-    radius: 20,
-  });
+  const textInputPlaceholderFetcher = useFetcher();
+  const widgetConfigFetcher = useFetcher();
+  const [tab, setTab] = useState<"preview" | "code" | "docusaurus">("preview");
   const scriptCode = useMemo(
-    () => makeScriptCode(embedProps, loaderData.scrape?.id ?? ""),
-    [embedProps, loaderData.scrape?.id]
+    () => makeScriptCode(loaderData.scrape?.id ?? ""),
+    [loaderData.scrape?.id]
   );
 
   const [questions, setQuestions] = useState<WidgetQuestion[]>(
@@ -262,30 +244,28 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <Stack gap={6}>
-      <Text>
-        Configure the widget and copy paste the <Code>&lt;script&gt;</Code> tag
-        below to your website.
-      </Text>
-
-      <Group alignItems={"flex-start"}>
-        <Stack flex={2}>
-          <AccordionRoot defaultValue={["basic"]} variant={"enclosed"}>
-            <AccordionItem value={"basic"}>
-              <AccordionItemTrigger>
-                <TbSettings />
-                Basic
-              </AccordionItemTrigger>
-              <AccordionItemContent>
-                <Stack gap={6}>
+    <SettingsSectionProvider>
+      <SettingsContainer>
+        <SettingsSection
+          id="customise-widget"
+          title="Customise widget"
+          description="Configure the widget and copy paste the <script> tag below to your website."
+          fetcher={widgetConfigFetcher}
+        >
+          <input type="hidden" name="from-widget" value={"true"} />
+          <Group alignItems={"flex-start"} gap={10}>
+            <Stack flex={1}>
+              <Stack gap={6}>
+                <Group>
                   <ColorPickerRoot
-                    maxW="200px"
-                    value={parseColor(embedProps.buttonColor ?? "")}
-                    onValueChange={(e) =>
-                      setEmbedProps({
-                        ...embedProps,
-                        buttonColor: e.valueAsString,
-                      })
+                    flex={1}
+                    name="primaryColor"
+                    defaultValue={
+                      loaderData.scrape?.widgetConfig?.primaryColor
+                        ? parseColor(
+                            loaderData.scrape.widgetConfig.primaryColor
+                          )
+                        : undefined
                     }
                   >
                     <ColorPickerLabel>Button color</ColorPickerLabel>
@@ -303,13 +283,14 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
                   </ColorPickerRoot>
 
                   <ColorPickerRoot
-                    maxW="200px"
-                    value={parseColor(embedProps.buttonTextColor ?? "")}
-                    onValueChange={(e) =>
-                      setEmbedProps({
-                        ...embedProps,
-                        buttonTextColor: e.valueAsString,
-                      })
+                    flex={1}
+                    name="buttonTextColor"
+                    defaultValue={
+                      loaderData.scrape?.widgetConfig?.buttonTextColor
+                        ? parseColor(
+                            loaderData.scrape.widgetConfig.buttonTextColor
+                          )
+                        : undefined
                     }
                   >
                     <ColorPickerLabel>Button text color</ColorPickerLabel>
@@ -325,109 +306,155 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
                       </HStack>
                     </ColorPickerContent>
                   </ColorPickerRoot>
-                </Stack>
-              </AccordionItemContent>
-            </AccordionItem>
-            <AccordionItem value={"advanced"}>
-              <AccordionItemTrigger>
-                <TbSettings2 />
-                Advanced
-              </AccordionItemTrigger>
-              <AccordionItemContent>
-                <Stack gap={4}>
+                </Group>
+
+                <Group>
                   <Field label="Button text">
                     <Input
                       placeholder="Button text"
-                      value={embedProps.buttonText}
-                      onChange={(e) =>
-                        setEmbedProps({
-                          ...embedProps,
-                          buttonText: e.target.value,
-                        })
+                      name="buttonText"
+                      defaultValue={
+                        loaderData.scrape?.widgetConfig?.buttonText ?? ""
                       }
                     />
                   </Field>
+                </Group>
 
-                  <Field label="Position">
-                    <NativeSelect.Root width="100%">
-                      <NativeSelect.Field
-                        value={embedProps.position}
-                        onChange={(e) =>
-                          setEmbedProps({
-                            ...embedProps,
-                            position: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="br">Bottom right</option>
-                        <option value="bl">Bottom left</option>
-                        <option value="tr">Top right</option>
-                        <option value="tl">Top left</option>
-                      </NativeSelect.Field>
-                      <NativeSelect.Indicator />
-                    </NativeSelect.Root>
+                <Group>
+                  <Field label="Tooltip">
+                    <Input
+                      placeholder="Ex: Ask AI or reach out to us!"
+                      name="tooltip"
+                      defaultValue={
+                        loaderData.scrape?.widgetConfig?.tooltip ?? ""
+                      }
+                    />
                   </Field>
+                </Group>
 
-                  <Slider.Root
-                    value={[embedProps.radius]}
-                    min={0}
-                    max={25}
-                    step={1}
-                    onValueChange={(e) =>
-                      setEmbedProps({ ...embedProps, radius: e.value[0] })
+                <Group>
+                  <Switch
+                    name="showLogo"
+                    defaultChecked={
+                      loaderData.scrape?.widgetConfig?.showLogo ?? false
                     }
                   >
-                    <Slider.Label>Roundness</Slider.Label>
-                    <Slider.Control>
-                      <Slider.Track>
-                        <Slider.Range />
-                      </Slider.Track>
-                      <Slider.Thumb index={0} />
-                    </Slider.Control>
-                  </Slider.Root>
+                    Show logo
+                  </Switch>
+                </Group>
+              </Stack>
+            </Stack>
+
+            <Stack flex={1}>
+              <Box>
+                <SegmentGroup.Root
+                  value={tab}
+                  onValueChange={(e) =>
+                    setTab(e.value as "preview" | "code" | "docusaurus")
+                  }
+                >
+                  <SegmentGroup.Indicator />
+                  {widgetConfigTabs.items.map((item) => (
+                    <SegmentGroup.Item key={item.value} value={item.value}>
+                      <SegmentGroup.ItemText>
+                        <HStack>
+                          {item.icon}
+                          {item.label}
+                        </HStack>
+                      </SegmentGroup.ItemText>
+                      <SegmentGroup.ItemHiddenInput />
+                    </SegmentGroup.Item>
+                  ))}
+                </SegmentGroup.Root>
+              </Box>
+              {tab === "preview" && (
+                <Stack
+                  flex={1}
+                  bg="brand.outline-subtle"
+                  p={2}
+                  rounded={"md"}
+                  overflow={"hidden"}
+                  alignSelf={"stretch"}
+                >
+                  <PreviewEmbed
+                    key={widgetConfigFetcher.state}
+                    scriptCode={scriptCode.script}
+                  />
                 </Stack>
-              </AccordionItemContent>
-            </AccordionItem>
-          </AccordionRoot>
-        </Stack>
+              )}
 
-        <Stack
-          flex={1}
-          bg="brand.outline-subtle"
-          p={4}
-          rounded={"md"}
-          overflow={"hidden"}
-          alignSelf={"stretch"}
-        >
-          <PreviewEmbed
-            key={JSON.stringify(embedProps)}
-            scriptCode={scriptCode}
-          />
-        </Stack>
+              {tab === "code" && (
+                <Stack>
+                  <Stack
+                    flex={1}
+                    border={"1px solid"}
+                    borderColor="brand.outline"
+                    rounded={"md"}
+                    alignSelf={"stretch"}
+                  >
+                    <Stack
+                      p={4}
+                      h="full"
+                      alignItems={"flex-start"}
+                      flexDir={"column"}
+                    >
+                      <Text fontSize={"sm"} flex={1} whiteSpace={"pre-wrap"}>
+                        {scriptCode.script}
+                      </Text>
 
-        <Stack
-          flex={1}
-          border={"1px solid"}
-          borderColor="brand.outline"
-          rounded={"md"}
-          alignSelf={"stretch"}
-        >
-          <Stack p={4} h="full" alignItems={"flex-start"} flexDir={"column"}>
-            <Text fontSize={"sm"} flex={1}>
-              {scriptCode}
-            </Text>
+                      <Group justifyContent={"flex-end"} w="full">
+                        <ClipboardRoot value={scriptCode.script}>
+                          <ClipboardIconButton />
+                        </ClipboardRoot>
+                      </Group>
+                    </Stack>
+                  </Stack>
+                  <Text fontSize={"sm"}>
+                    Copy and paste the above code inside the{" "}
+                    <Code>&lt;head&gt;</Code> tag of your website to embed the
+                    widget.
+                  </Text>
+                </Stack>
+              )}
 
-            <Group justifyContent={"flex-end"} w="full">
-              <ClipboardRoot value={scriptCode}>
-                <ClipboardIconButton />
-              </ClipboardRoot>
-            </Group>
-          </Stack>
-        </Stack>
-      </Group>
+              {tab === "docusaurus" && (
+                <Stack>
+                  <Stack
+                    flex={1}
+                    border={"1px solid"}
+                    borderColor="brand.outline"
+                    rounded={"md"}
+                    alignSelf={"stretch"}
+                  >
+                    <Stack
+                      p={4}
+                      h="full"
+                      alignItems={"flex-start"}
+                      flexDir={"column"}
+                    >
+                      <Text fontSize={"sm"} flex={1} whiteSpace={"pre-wrap"}>
+                        {scriptCode.docusaurusConfig}
+                      </Text>
 
-      <Stack gap={4}>
+                      <Group justifyContent={"flex-end"} w="full">
+                        <ClipboardRoot value={scriptCode.docusaurusConfig}>
+                          <ClipboardIconButton />
+                        </ClipboardRoot>
+                      </Group>
+                    </Stack>
+                  </Stack>
+                  <Text fontSize={"sm"}>
+                    Copy and paste the above config inside your{" "}
+                    <Code>docusaurus.config.js</Code> file to embed the widget.
+                  </Text>
+                </Stack>
+              )}
+            </Stack>
+          </Group>
+        </SettingsSection>
+
         <SettingsSection
+          id="widget-size"
           title="Widget size"
           description="Set the size of the widget to be when it's embedded on your website"
           fetcher={sizeFetcher}
@@ -452,6 +479,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
 
         <SettingsSection
+          id="welcome-message"
           title="Welcome message"
           description="Add your custom welcome message to the widget. Supports markdown."
           fetcher={welcomeMessageFetcher}
@@ -465,6 +493,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
 
         <SettingsSection
+          id="example-questions"
           title="Example questions"
           description="Show few example questions when a user visits the widget for the first time"
           fetcher={questionsFetcher}
@@ -493,8 +522,25 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
             </Button>
           </Box>
         </SettingsSection>
+
         <SettingsSection
-          title="MCP client setup instructions"
+          id="text-input-placeholder"
+          title="Text input placeholder"
+          description="Set the placeholder text for the text input field"
+          fetcher={textInputPlaceholderFetcher}
+        >
+          <Input
+            name="textInputPlaceholder"
+            defaultValue={
+              loaderData.scrape?.widgetConfig?.textInputPlaceholder ?? ""
+            }
+            placeholder="Ex: Ask me anything about the product"
+          />
+        </SettingsSection>
+
+        <SettingsSection
+          id="mcp-setup"
+          title="MCP setup instructions"
           description="Show the MCP client setup instrctions on the widget"
           fetcher={mcpSetupFetcher}
         >
@@ -508,7 +554,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
             Show it
           </Switch>
         </SettingsSection>
-      </Stack>
-    </Stack>
+      </SettingsContainer>
+    </SettingsSectionProvider>
   );
 }

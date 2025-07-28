@@ -19,18 +19,24 @@ export function ActionButton({
   useEffect(() => {
     if (refreshFetcher.data?.success) {
       toaster.success({
-        title: "Refresh initiated!",
+        title: "Initiated!",
+        description: "This group is added to fetch queue",
       });
     }
   }, [refreshFetcher.data]);
 
   useEffect(() => {
-    if (refreshFetcher.data?.success) {
+    if (stopFetcher.data?.success) {
       toaster.success({
-        title: "Group stopped!",
+        title: "Stopped!",
+        description: "This group fetch is stopped",
       });
     }
   }, [stopFetcher.data]);
+
+  if (["learn_discord", "answer_corrections", "upload"].includes(group.type)) {
+    return null;
+  }
 
   return (
     <>

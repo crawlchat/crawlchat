@@ -21,6 +21,22 @@
     "./citation": {
       "default": "./dist/citation.js",
       "types": "./dist/citation.d.ts"
+    },
+    "./chunk": {
+      "default": "./dist/chunk.js",
+      "types": "./dist/chunk.d.ts"
+    },
+    "./knowledge-group": {
+      "default": "./dist/knowledge-group.js",
+      "types": "./dist/knowledge-group.d.ts"
+    },
+    "./rich-message-block": {
+      "default": "./dist/rich-message-block.js",
+      "types": "./dist/rich-message-block.d.ts"
+    },
+    "./mongo-counter": {
+      "default": "./dist/mongo-counter.js",
+      "types": "./dist/mongo-counter.d.ts"
     }
   },
   "typesVersions": {
@@ -33,6 +49,18 @@
       ],
       "citation": [
         "./dist/citation.d.ts"
+      ],
+      "chunk": [
+        "./dist/chunk.d.ts"
+      ],
+      "knowledge-group": [
+        "./dist/knowledge-group.d.ts"
+      ],
+      "rich-message-block": [
+        "./dist/rich-message-block.d.ts"
+      ],
+      "mongo-counter": [
+        "./dist/mongo-counter.d.ts"
       ]
     }
   },
@@ -49,6 +77,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^9.6.0",
-    "@prisma/client": "^6.4.1"
+    "@prisma/client": "^6.4.1",
+    "zod": "^3.25.51"
   }
 }

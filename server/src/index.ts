@@ -7,24 +7,31 @@ import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
-import { joinRoom, broadcast } from "./socket-room";
+import { joinRoom } from "./socket-room";
 import { getRoomIds } from "./socket-room";
 import { authenticate, verifyToken } from "./jwt";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
-import { MessageSourceLink, Prisma } from "libs/prisma";
+import {
+  Message,
+  MessageSourceLink,
+  Prisma,
+  MessageChannel,
+} from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
-import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
+import { RAGAgentCustomMessage } from "./llm/flow-jasmine";
 import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
-import { FlowMessage } from "./llm/agentic";
-import { assignCategory } from "./collection";
-import { effect } from "./effect";
-import { makeTestQueryFlow } from "./llm/flow-test-query";
+import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
+import { chunk } from "libs/chunk";
+import { retry } from "./retry";
+import { Flow } from "./llm/flow";
+import { z } from "zod";
+import { baseAnswerer, AnswerListener, agenticAnswerer } from "./answer";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -42,14 +49,6 @@ function cleanUrl(url: string) {
     url = "https://" + url;
   }
   return url.toLowerCase();
-}
-
-function chunk<T>(array: T[], size: number) {
-  const chunks: T[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
 }
 
 async function collectSourceLinks(
@@ -90,11 +89,79 @@ async function collectSourceLinks(
         scrapeItemId: item.id,
         fetchUniqueId: match.fetchUniqueId ?? null,
         knowledgeGroupId: item.knowledgeGroupId,
+        searchQuery: match.query ?? null,
       });
     }
   }
 
   return links;
+}
+
+async function updateLastMessageAt(threadId: string) {
+  await prisma.thread.update({
+    where: { id: threadId },
+    data: { lastMessageAt: new Date() },
+  });
+}
+
+function answerListener(
+  scrapeId: string,
+  userId: string,
+  threadId: string,
+  options?: {
+    ws?: WebSocket;
+    channel?: MessageChannel;
+  }
+): AnswerListener {
+  return async (event) => {
+    const { ws, channel } = options ?? {};
+    switch (event.type) {
+      case "init":
+        const newQueryMessage = await prisma.message.create({
+          data: {
+            threadId,
+            scrapeId,
+            llmMessage: { role: "user", content: event.query },
+            ownerUserId: userId,
+            channel: channel ?? null,
+          },
+        });
+        await updateLastMessageAt(threadId);
+        ws?.send(makeMessage("query-message", newQueryMessage));
+        break;
+
+      case "stream-delta":
+        ws?.send(makeMessage("llm-chunk", { content: event.delta }));
+        break;
+
+      case "tool-call":
+        ws?.send(
+          makeMessage("stage", { stage: "tool-call", query: event.query })
+        );
+        break;
+
+      case "answer-complete":
+        await consumeCredits(userId, "messages", event.llmCalls);
+        const newAnswerMessage = await prisma.message.create({
+          data: {
+            threadId,
+            scrapeId,
+            llmMessage: { role: "assistant", content: event.content },
+            links: event.sources,
+            ownerUserId: userId,
+            channel: channel ?? null,
+          },
+        });
+        await updateLastMessageAt(threadId);
+        ws?.send(
+          makeMessage("llm-chunk", {
+            end: true,
+            content: event.content,
+            message: newAnswerMessage,
+          })
+        );
+    }
+  };
 }
 
 app.get("/", function (req: Request, res: Response) {
@@ -132,27 +199,19 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       if (req.body.maxLinks) {
         return parseInt(req.body.maxLinks);
       }
-      if (knowledgeGroup.maxPages !== null) {
-        return knowledgeGroup.maxPages;
-      }
       if (url) {
         return 1;
+      }
+      if (knowledgeGroup.maxPages !== null) {
+        return knowledgeGroup.maxPages;
       }
       return undefined;
     }
 
-    const broadcastRoom = (type: string, data: any) => {
-      getRoomIds({
-        userKey: userId,
-        roomId,
-        knowledgeGroupId,
-      }).forEach((roomId) => broadcast(roomId, makeMessage(type, data)));
-    };
-
     const listener = new BaseKbProcesserListener(
       scrape,
       knowledgeGroup,
-      broadcastRoom,
+      () => {},
       {
         includeMarkdown,
       }
@@ -161,6 +220,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
       hasCredits: () => hasEnoughCredits(userId, "scrapes"),
       limit: getLimit(),
+      url,
     });
 
     await processer.start();
@@ -193,6 +253,32 @@ app.delete(
       const indexer = makeIndexer({ key: scrape.indexer });
       await deleteScrape(indexer.getKey(), scrapeId);
     } catch (error) {}
+    res.json({ message: "ok" });
+  }
+);
+
+app.delete(
+  "/scrape-item",
+  authenticate,
+  async function (req: Request, res: Response) {
+    const scrapeItemId = req.body.scrapeItemId;
+
+    const scrapeItem = await prisma.scrapeItem.findFirstOrThrow({
+      where: { id: scrapeItemId },
+      include: {
+        scrape: true,
+      },
+    });
+
+    const indexer = makeIndexer({ key: scrapeItem.scrape.indexer });
+    await deleteByIds(
+      indexer.getKey(),
+      scrapeItem.embeddings.map((e) => e.id)
+    );
+
+    await prisma.scrapeItem.delete({
+      where: { id: scrapeItemId },
+    });
     res.json({ message: "ok" });
   }
 );
@@ -255,6 +341,7 @@ expressWs.app.ws("/", (ws: any, req) => {
         getRoomIds({ userKey: userKey! }).forEach((roomId) =>
           joinRoom(roomId, ws)
         );
+        ws.send(makeMessage("connected", { message: "Connected" }));
         return;
       }
 
@@ -287,77 +374,30 @@ expressWs.app.ws("/", (ws: any, req) => {
           return;
         }
 
-        const newQueryMessage = await prisma.message.create({
-          data: {
-            threadId,
-            scrapeId: scrape.id,
-            llmMessage: { role: "user", content: message.data.query },
-            ownerUserId: scrape.userId,
-          },
+        const answerer = baseAnswerer;
+
+        await retry(async () => {
+          answerer(
+            scrape,
+            message.data.query,
+            thread.messages.map((message) => ({
+              llmMessage: message.llmMessage as any,
+            })),
+            {
+              listen: answerListener(scrape.id, scrape.userId, threadId, {
+                ws,
+              }),
+            }
+          );
         });
-
-        ws.send(makeMessage("query-message", newQueryMessage));
-
-        const flow = makeFlow(
-          scrape.id,
-          scrape.chatPrompt ?? "",
-          message.data.query,
-          thread.messages.map((message) => ({
-            llmMessage: message.llmMessage as any,
-          })),
-          scrape.indexer,
-          {
-            onPreSearch: async (query) => {
-              ws.send(
-                makeMessage("stage", {
-                  stage: "tool-call",
-                  query,
-                })
-              );
-            },
-          }
-        );
-
-        while (
-          await flow.stream({
-            onDelta: ({ delta }) => {
-              if (delta !== undefined && delta !== null) {
-                ws.send(makeMessage("llm-chunk", { content: delta }));
-              }
-            },
-          })
-        ) {}
-
-        const content =
-          (flow.getLastMessage().llmMessage.content as string) ?? "";
-
-        const links = await collectSourceLinks(
-          scrape.id,
-          flow.flowState.state.messages
-        );
-
-        await consumeCredits(scrape.userId, "messages", 1);
-        const newAnswerMessage = await prisma.message.create({
-          data: {
-            threadId,
-            scrapeId: scrape.id,
-            llmMessage: { role: "assistant", content },
-            links,
-            ownerUserId: scrape.userId,
-          },
-        });
-        ws.send(
-          makeMessage("llm-chunk", {
-            end: true,
-            content,
-            message: newAnswerMessage,
-          })
-        );
-        effect(assignCategory(scrape.id, newQueryMessage.id));
       }
     } catch (error) {
       console.error(error);
-      ws.send(makeMessage("error", { message: "Authentication failed" }));
+      ws.send(
+        makeMessage("error", {
+          message: "Something went wrong! Please refresh and try again.",
+        })
+      );
       ws.close();
     }
   });
@@ -392,7 +432,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   }
   const query = req.query.query as string;
 
-  const userMessage = await prisma.message.create({
+  await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -401,6 +441,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
       channel: "mcp",
     },
   });
+  await updateLastMessageAt(thread.id);
 
   const indexer = makeIndexer({ key: scrape.indexer });
   const result = await indexer.search(scrape.id, query);
@@ -419,7 +460,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   };
   const links = await collectSourceLinks(scrape.id, [message]);
 
-  const newAnswerMessage = await prisma.message.create({
+  await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -429,9 +470,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
       channel: "mcp",
     },
   });
-
-  effect(assignCategory(scrape.id, userMessage.id));
-
+  await updateLastMessageAt(thread.id);
   res.json(processed);
 });
 
@@ -448,8 +487,13 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
+  if (!(await hasEnoughCredits(userId, "scrapes"))) {
+    res.status(400).json({ message: "Not enough credits" });
+    return;
+  }
+
   let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
-    where: { userId, type: knowledgeGroupType },
+    where: { userId, scrapeId, type: knowledgeGroupType },
   });
 
   if (!knowledgeGroup) {
@@ -499,10 +543,14 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     },
   });
 
+  await consumeCredits(userId, "scrapes", 1);
+
   res.json({ scrapeItem });
 });
 
 app.post("/answer/:scrapeId", authenticate, async (req, res) => {
+  console.log("Answer request for", req.params.scrapeId);
+
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: req.params.scrapeId },
   });
@@ -524,30 +572,19 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     });
   }
   let query = req.body.query as string;
-  const reqPrompt = req.body.prompt as string;
-  const channel = req.body.channel;
+
   const messages = req.body.messages as { role: string; content: string }[];
   if (messages && messages.length > 0) {
     query = messages[messages.length - 1].content;
   }
 
-  const userMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "user", content: query },
-      ownerUserId: scrape.userId,
-      channel,
-    },
-  });
-
+  const reqPrompt = req.body.prompt as string;
   const prompt = [scrape.chatPrompt ?? "", reqPrompt ?? ""]
     .filter(Boolean)
     .join("\n\n");
 
-  const flow = makeFlow(
-    scrape.id,
-    prompt,
+  const answer = await baseAnswerer(
+    scrape,
     query,
     messages.map((m) => ({
       llmMessage: {
@@ -555,43 +592,25 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
         content: m.content,
       },
     })),
-    scrape.indexer
+    {
+      listen: answerListener(scrape.id, scrape.userId, thread.id, {
+        channel: req.body.channel as MessageChannel,
+      }),
+      prompt,
+    }
   );
 
-  while (await flow.stream()) {}
-
-  const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
-
-  const links = await collectSourceLinks(
-    scrape.id,
-    flow.flowState.state.messages
-  );
-
-  await consumeCredits(scrape.userId, "messages", 1);
-  const newAnswerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content },
-      links,
-      ownerUserId: scrape.userId,
-    },
-  });
-
-  const citation = extractCitations(content, links, { cleanCitations: true });
-
-  let updatedContent = citation.content;
-  if (Object.keys(citation.citedLinks).length > 0) {
-    updatedContent +=
-      "\n\nSources:\n" +
-      Object.values(citation.citedLinks)
-        .map((l) => l.url)
-        .join("\n");
+  if (!answer) {
+    res.status(400).json({ message: "Failed to answer" });
+    return;
   }
 
-  effect(assignCategory(scrape.id, userMessage.id));
+  const citation = extractCitations(answer.content, answer.sources, {
+    cleanCitations: true,
+    addSourcesToMessage: true,
+  });
 
-  res.json({ message: newAnswerMessage, content: updatedContent });
+  res.json({ content: citation.content });
 });
 
 app.get("/discord/:channelId", async (req, res) => {
@@ -607,55 +626,96 @@ app.get("/discord/:channelId", async (req, res) => {
   res.json({
     scrapeId: scrape.id,
     userId: scrape.userId,
-    autoAnswerChannelIds: scrape.discordAnswerConfig?.channels
-      .map((c) => c.channelId)
-      .flatMap((c) => c.split(","))
-      .map((c) => c.trim()),
-    answerEmoji: scrape.discordAnswerConfig?.emoji ?? "✋🏻",
+    draftChannelIds: scrape.discordDraftConfig?.sourceChannelIds ?? [],
+    draftEmoji: scrape.discordDraftConfig?.emoji,
+    draftDestinationChannelId: scrape.discordDraftConfig?.destinationChannelId,
   });
 });
 
-app.post("/test-query/:scrapeId", authenticate, async (req, res) => {
-  const scrape = await prisma.scrape.findFirstOrThrow({
-    where: { id: req.params.scrapeId },
+app.post("/fix-message", authenticate, async (req, res) => {
+  const userId = req.user!.id;
+  const messageId = req.body.messageId as string;
+  const answer = req.body.answer as string;
+
+  const message = await prisma.message.findFirstOrThrow({
+    where: { id: messageId, ownerUserId: userId },
   });
 
-  let canAnswer = false;
-  const flow = makeTestQueryFlow(req.body.text);
-
-  while (await flow.stream()) {}
-  const message = JSON.parse((flow.getLastMessage().llmMessage as any).content);
-
-  if (
-    scrape.discordAnswerConfig &&
-    message.isQuestion &&
-    message.confidence > 0.6
-  ) {
-    const flow = makeFlow(
-      scrape.id,
-      scrape.chatPrompt ?? "",
-      req.body.text,
-      [],
-      scrape.indexer
-    );
-
-    while (await flow.stream()) {}
-
-    const links = await collectSourceLinks(
-      scrape.id,
-      flow.flowState.state.messages
-    );
-
-    const maxScore = Math.max(...links.map((l) => l.score ?? 0));
-
-    if (maxScore >= scrape.discordAnswerConfig.minScore) {
-      canAnswer = true;
-    }
+  if (!message) {
+    res.status(404).json({ message: "Message not found" });
+    return;
   }
 
-  res.json({
-    canAnswer,
+  if (!(await hasEnoughCredits(userId, "messages"))) {
+    res.status(400).json({ message: "Not enough credits" });
+    return;
+  }
+
+  const thread = await prisma.thread.findFirstOrThrow({
+    where: { id: message.threadId },
+    include: {
+      messages: true,
+    },
   });
+
+  const messageIndex = thread.messages.findIndex((m) => m.id === messageId);
+
+  const messages = thread.messages.slice(0, messageIndex + 1);
+
+  const agent = new SimpleAgent<RAGAgentCustomMessage>({
+    id: "fix-agent",
+    prompt: multiLinePrompt([
+      "You are a helpful assistant who fixes the wrongly answer with provided context.",
+      "Here is the context for the conversation:",
+      messages.map(massageToText).join("\n\n"),
+    ]),
+    schema: z.object({
+      correctAnswer: z.string({
+        description: "The correct answer. Can be markdown",
+      }),
+      title: z.string({
+        description: "The short title of the answer under 6 words",
+      }),
+    }),
+  });
+
+  function massageToText(message: Message) {
+    const role = (message.llmMessage as any).role as string;
+    const content = (message.llmMessage as any).content as string;
+    if (role === "user") {
+      return `Question: ${content}`;
+    }
+    return `Answer: ${content}\n---`;
+  }
+
+  const flow = new Flow([agent], {
+    messages: [
+      {
+        llmMessage: {
+          role: "user",
+          content: multiLinePrompt([
+            "Fix the above wrongly answered question with the below context and summarise the entire conversation under 200 words.",
+            "Add only those details that are relevant to the below question.",
+            "Elaborate the answer to be more detailed and accurate.",
+            "Give the correctAnswer in markdown format.",
+            "Wrong answer: " + (message.llmMessage as any).content,
+            "Correct answer: " + answer,
+          ]),
+        },
+      },
+    ],
+  });
+
+  flow.addNextAgents(["fix-agent"]);
+
+  while (await flow.stream()) {}
+
+  const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
+  const { correctAnswer, title } = JSON.parse(content);
+
+  await consumeCredits(userId, "messages", 1);
+
+  res.json({ content: correctAnswer, title });
 });
 
 app.listen(port, async () => {

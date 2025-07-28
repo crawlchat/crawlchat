@@ -3,26 +3,180 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import hljs from "highlight.js";
 import "highlight.js/styles/vs.css";
-import { Box, Image, Link, Text } from "@chakra-ui/react";
+import {
+  Badge,
+  Box,
+  Center,
+  Group,
+  Image,
+  Input,
+  Spinner,
+  Stack,
+  Text,
+  Textarea,
+} from "@chakra-ui/react";
 import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
-import type { PropsWithChildren } from "react";
+import { useState, type PropsWithChildren } from "react";
 import { Tooltip } from "~/components/ui/tooltip";
+import { Button } from "~/components/ui/button";
+import { TbArrowRight } from "react-icons/tb";
+import { jsonrepair } from "jsonrepair";
 const linkifyRegex = require("remark-linkify-regex");
+
+const RichCTA = ({
+  title,
+  description,
+  link,
+  ctaButtonLabel,
+}: {
+  title: string;
+  description: string;
+  link: string;
+  ctaButtonLabel: string;
+}) => {
+  return (
+    <Stack
+      border="4px solid"
+      borderColor={"brand.outline"}
+      p={4}
+      rounded={"2xl"}
+      w="fit"
+      maxW="500px"
+      my={8}
+    >
+      <Text fontWeight={"bold"} m={0}>
+        {title}
+      </Text>
+      <Text m={0}>{description}</Text>
+      <Box>
+        <Button
+          asChild
+          textDecoration={"none"}
+          color={"brand.black"}
+          variant={"subtle"}
+        >
+          <a href={link} target="_blank">
+            {ctaButtonLabel || "Do it"}
+            <TbArrowRight />
+          </a>
+        </Button>
+      </Box>
+    </Stack>
+  );
+};
+
+const RichCreateTicket = ({
+  title: initialTitle,
+  message: initialMessage,
+  onTicketCreate,
+  loading,
+  disabled,
+  customerEmail,
+}: {
+  title: string;
+  message: string;
+  onTicketCreate: (email: string, title: string, message: string) => void;
+  loading?: boolean;
+  disabled?: boolean;
+  customerEmail?: string;
+}) => {
+  const [email, setEmail] = useState(customerEmail ?? "");
+  const [title, setTitle] = useState(initialTitle);
+  const [message, setMessage] = useState(initialMessage);
+
+  function handleSubmit() {
+    if (!email || !title || !message) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    onTicketCreate(email, title, message);
+  }
+
+  return (
+    <Stack
+      border="4px solid"
+      borderColor={"brand.outline"}
+      p={4}
+      rounded={"2xl"}
+      maxW="400px"
+      w="full"
+      my={8}
+    >
+      {!loading && (
+        <>
+          <Text fontWeight={"bold"} m={0}>
+            Create a support ticket
+          </Text>
+          <Input
+            placeholder="Title"
+            defaultValue={title}
+            onChange={(e) => setTitle(e.target.value)}
+            size="xs"
+            disabled={disabled}
+          />
+          <Textarea
+            placeholder="Message"
+            defaultValue={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={4}
+            disabled={disabled}
+            size="xs"
+          />
+          <Input
+            placeholder="Email"
+            defaultValue={email}
+            onChange={(e) => setEmail(e.target.value)}
+            size="xs"
+            disabled={disabled || !!customerEmail}
+          />
+          <Group justifyContent={"flex-end"}>
+            <Button
+              variant={"subtle"}
+              size="xs"
+              loading={loading}
+              onClick={handleSubmit}
+              disabled={disabled}
+            >
+              Create <TbArrowRight />
+            </Button>
+          </Group>
+        </>
+      )}
+      {loading && (
+        <Center>
+          <Spinner />
+        </Center>
+      )}
+    </Stack>
+  );
+};
 
 export function MarkdownProse({
   children,
   noMarginCode,
   sources,
   size = "md",
+  options,
 }: PropsWithChildren<{
   noMarginCode?: boolean;
   sources?: Array<{ title: string; url?: string }>;
   size?: "md" | "lg";
+  options?: {
+    onTicketCreate?: (
+      title: string,
+      description: string,
+      email: string
+    ) => void;
+    ticketCreateLoading?: boolean;
+    disabled?: boolean;
+    customerEmail?: string;
+  };
 }>) {
   return (
     <Prose maxW="full" size={size}>
       <Markdown
-        remarkPlugins={[remarkGfm, linkifyRegex(/\!\![0-9]+!!/)]}
+        remarkPlugins={[remarkGfm, linkifyRegex(/\!\![0-9a-zA-Z]+!!/)]}
         components={{
           code: ({ node, ...props }) => {
             const { children, className, ...rest } = props;
@@ -32,6 +186,33 @@ export function MarkdownProse({
             }
 
             let language = className?.replace("language-", "");
+
+            if (language.startsWith("json|")) {
+              try {
+                const json = JSON.parse(jsonrepair(children as string));
+                if (language === "json|cta") {
+                  return <RichCTA {...json} />;
+                }
+                if (
+                  language === "json|create-ticket" &&
+                  options?.onTicketCreate
+                ) {
+                  return (
+                    <RichCreateTicket
+                      {...json}
+                      onTicketCreate={options.onTicketCreate}
+                      loading={options.ticketCreateLoading}
+                      disabled={options.disabled}
+                      customerEmail={options.customerEmail}
+                    />
+                  );
+                }
+              } catch (e) {
+                console.log(e);
+                return null;
+              }
+            }
+
             if (!hljs.listLanguages().includes(language)) {
               language = "bash";
             }
@@ -65,6 +246,13 @@ export function MarkdownProse({
           },
           pre: ({ node, ...props }) => {
             const { children, ...rest } = props;
+
+            if (
+              (children as any).props.className?.startsWith("language-json|")
+            ) {
+              return <Box my={2}>{children}</Box>;
+            }
+
             return (
               <pre
                 {...rest}
@@ -86,7 +274,9 @@ export function MarkdownProse({
             }
 
             const match = children.match(/\!\!([0-9]*)!!/);
-            if (!match) {
+            if (children.startsWith("!!") && !match) {
+              return null;
+            } else if (!match) {
               return defaultNode;
             }
 
@@ -95,26 +285,15 @@ export function MarkdownProse({
 
             return (
               <Tooltip content={source?.title ?? "Loading..."} showArrow>
-                <Text as="span">
-                  <Link
-                    variant={"plain"}
-                    href={source?.url ?? "#"}
-                    target="_blank"
-                    bg="brand.emphasized"
-                    color="brand.white"
-                    fontSize={"10px"}
-                    height={"16px"}
-                    width={"14px"}
-                    rounded={"md"}
-                    textDecoration={"none"}
-                    display={"inline-flex"}
-                    alignItems={"center"}
-                    justifyContent={"center"}
-                    transform={"translateY(-6px)"}
-                  >
-                    {index + 1}
-                  </Link>
-                </Text>
+                <Badge transform={"translateY(-6px)"} asChild>
+                  {source?.url ? (
+                    <a href={source.url} target="_blank">
+                      {index + 1}
+                    </a>
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </Badge>
               </Tooltip>
             );
           },

@@ -7,12 +7,14 @@ export type BlogPost = {
   meta: Record<string, string>;
   date: Date;
   description: string;
+  image?: string;
+  type?: string;
 };
 
-function getPostsPath() {
+function makePath(path = "blog-posts") {
   return process.env.NODE_ENV === "development"
-    ? "public/blog-posts"
-    : "build/client/blog-posts";
+    ? `public/${path}`
+    : `build/client/${path}`;
 }
 
 function extractFrontmMtter(content: string) {
@@ -35,8 +37,8 @@ function extractFrontmMtter(content: string) {
   return { frontMatter, markdown };
 }
 
-export function readPost(slug: string): BlogPost {
-  const content = fs.readFileSync(`${getPostsPath()}/${slug}.md`, "utf8");
+export function readPost(slug: string, path?: string): BlogPost {
+  const content = fs.readFileSync(`${makePath(path)}/${slug}.md`, "utf8");
 
   const { frontMatter, markdown } = extractFrontmMtter(content);
 
@@ -47,20 +49,21 @@ export function readPost(slug: string): BlogPost {
     date: new Date(frontMatter.date),
     meta: frontMatter,
     description: frontMatter.description,
+    image: frontMatter.image,
+    type: frontMatter.type ?? "blog",
   };
 }
 
-export function readPosts() {
-  const path = getPostsPath();
-  const postsDir = fs.readdirSync(path);
+export function readPosts(path?: string) {
+  const postsDir = fs.readdirSync(makePath(path));
   const posts: BlogPost[] = [];
 
   for (const file of postsDir) {
     if (file.endsWith(".md")) {
       const slug = file.replace(".md", "");
-      posts.push(readPost(slug));
+      posts.push(readPost(slug, path));
     }
   }
 
-  return posts;
+  return posts.sort((a, b) => b.date.getTime() - a.date.getTime());
 }

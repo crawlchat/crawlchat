@@ -60,6 +60,7 @@ export async function scrape(
   options?: {
     dynamicFallbackContentLength?: number;
     removeHtmlTags?: string;
+    scrollSelector?: string;
   }
 ): Promise<ScrapeResult> {
   const { dynamicFallbackContentLength = 100 } = options ?? {};
@@ -69,7 +70,9 @@ export async function scrape(
 
   if (parsedText.text.length <= dynamicFallbackContentLength) {
     try {
-      text = await scrapePw(url);
+      text = await scrapePw(url, {
+        scrollSelector: options?.scrollSelector,
+      });
     } catch (e: any) {
       console.log(e);
       error = e.message;
@@ -88,6 +91,7 @@ export async function scrapeWithLinks(
     onPreScrape?: (url: string, store: ScrapeStore) => Promise<void>;
     dynamicFallbackContentLength?: number;
     allowOnlyRegex?: RegExp;
+    scrollSelector?: string;
   }
 ) {
   if (options?.onPreScrape) {
@@ -102,7 +106,17 @@ export async function scrapeWithLinks(
   for (const link of linkLinks) {
     if (!link.href) continue;
 
-    const linkUrl = new URL(link.href, url);
+    let linkUrl: string | undefined;
+    try {
+      const safePostFix =
+        !link.href.startsWith("/") && !url.endsWith("/") ? "/" : "";
+      linkUrl = new URL(link.href, url + safePostFix).toString();
+    } catch (e) {}
+
+    if (!linkUrl) {
+      console.log("Invalid link", link.href);
+      continue;
+    }
 
     if (!isSameHost(baseUrl, linkUrl.toString())) {
       continue;
@@ -147,6 +161,7 @@ export async function scrapeLoop(
     dynamicFallbackContentLength?: number;
     removeHtmlTags?: string;
     shouldScrape?: (url?: string) => Promise<boolean>;
+    scrollSelector?: string;
   }
 ) {
   const { limit = 300 } = options ?? {};

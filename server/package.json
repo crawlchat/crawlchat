@@ -7,7 +7,8 @@
     "build": "npx tsc",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "cli": "npx tsc && node dist/cli.js"
+    "cli": "npx tsc && node dist/cli.js",
+    "cron": "npx tsc && node dist/cron.js"
   },
   "author": "",
   "license": "ISC",

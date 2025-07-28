@@ -21,15 +21,15 @@ export async function handleStream(
   const messages: LlmMessage[] = [];
 
   for await (const chunk of stream) {
-    if (chunk.choices[0].delta.role) {
+    if (chunk.choices && chunk.choices[0].delta.role) {
       role = chunk.choices[0].delta.role;
     }
 
-    if (chunk.choices[0].delta.content) {
+    if (chunk.choices && chunk.choices[0].delta.content) {
       content += chunk.choices[0].delta.content;
     }
 
-    if (chunk.choices[0].delta.tool_calls) {
+    if (chunk.choices && chunk.choices[0].delta.tool_calls) {
       if (!toolCall) {
         toolCall = chunk.choices[0].delta as any;
       }
@@ -59,7 +59,7 @@ export async function handleStream(
       options?.onDelta?.({
         content,
         role,
-        delta: chunk.choices[0].delta.content ?? undefined,
+        delta: chunk.choices?.[0].delta.content ?? undefined,
       });
     }
   }

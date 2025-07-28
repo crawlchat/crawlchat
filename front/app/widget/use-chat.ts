@@ -1,9 +1,6 @@
 import type { Message } from "libs/prisma";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { toaster } from "~/components/ui/toaster";
-import { AppContext } from "~/dashboard/context";
+import { useMemo, useRef, useState } from "react";
 import { makeMessage } from "~/dashboard/socket-util";
-import { getThreadName } from "~/thread-util";
 
 export type AskStage = "idle" | "asked" | "answering" | "searching";
 
@@ -13,21 +10,21 @@ export function useScrapeChat({
   threadId,
   defaultMessages,
 }: {
-  token: string;
+  token?: string;
   scrapeId: string;
-  threadId: string;
   defaultMessages: Message[];
+  threadId?: string;
 }) {
-  const { setThreadTitle } = useContext(AppContext);
   const socket = useRef<WebSocket>(null);
   const [messages, setMessages] = useState<Message[]>(defaultMessages);
   const [content, setContent] = useState("");
   const [askStage, setAskStage] = useState<AskStage>("idle");
   const [searchQuery, setSearchQuery] = useState<string>();
+  const [connected, setConnected] = useState(false);
 
   const allMessages = useMemo(() => {
     const allMessages = [
-      ...messages,
+      ...messages.filter((message) => !message.ticketMessage),
       ...(content
         ? [
             {
@@ -35,6 +32,7 @@ export function useScrapeChat({
               links: [],
               pinnedAt: null,
               id: "new-answer",
+              rating: null,
               createdAt: new Date(),
             },
           ]
@@ -46,18 +44,9 @@ export function useScrapeChat({
       links: message.links,
       pinned: message.pinnedAt !== null,
       id: message.id,
+      rating: message.rating,
     }));
   }, [messages, content]);
-
-  useEffect(() => {
-    if (setThreadTitle) {
-      const title = getThreadName(messages);
-      setThreadTitle((titles) => ({
-        ...titles,
-        [threadId]: title,
-      }));
-    }
-  }, [messages]);
 
   function connect() {
     socket.current = new WebSocket(window.ENV.VITE_SERVER_WS_URL);
@@ -75,6 +64,8 @@ export function useScrapeChat({
         handleQueryMessage(message.data);
       } else if (message.type === "stage") {
         handleStage(message.data);
+      } else if (message.type === "connected") {
+        setConnected(true);
       }
     };
   }
@@ -142,6 +133,7 @@ export function useScrapeChat({
   }
 
   function disconnect() {
+    setConnected(false);
     socket.current?.close();
   }
 
@@ -158,41 +150,18 @@ export function useScrapeChat({
         pinnedAt: null,
         id: "new-query",
         createdAt: new Date(),
-        threadId,
+        threadId: threadId ?? "",
         updatedAt: new Date(),
         ownerUserId: "",
+        scrapeId,
+        channel: null,
+        rating: null,
+        correctionItemId: null,
+        ticketMessage: null,
       },
     ]);
     setAskStage("asked");
     return messagesCount + 1;
-  }
-
-  function pinMessage(id: string) {
-    setMessages((prev) => {
-      const index = prev.findIndex((message) => message.id === id);
-      if (index === -1) {
-        return prev;
-      }
-      return [
-        ...prev.slice(0, index),
-        { ...prev[index], pinnedAt: new Date() },
-        ...prev.slice(index + 1),
-      ];
-    });
-  }
-
-  function unpinMessage(id: string) {
-    setMessages((prev) => {
-      const index = prev.findIndex((message) => message.id === id);
-      if (index === -1) {
-        return prev;
-      }
-      return [
-        ...prev.slice(0, index),
-        { ...prev[index], pinnedAt: null },
-        ...prev.slice(index + 1),
-      ];
-    });
   }
 
   function erase() {
@@ -207,6 +176,10 @@ export function useScrapeChat({
     return messages.find((message) => message.id === id);
   }
 
+  function setMakingThreadId() {
+    setAskStage("asked");
+  }
+
   return {
     connect,
     disconnect,
@@ -217,11 +190,11 @@ export function useScrapeChat({
     ask,
     allMessages,
     askStage,
-    pinMessage,
-    unpinMessage,
     erase,
     deleteMessage,
     searchQuery,
     getMessage,
+    connected,
+    setMakingThreadId,
   };
 }

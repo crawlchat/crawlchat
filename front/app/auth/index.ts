@@ -3,8 +3,7 @@ import { Authenticator } from "remix-auth";
 import { prisma } from "~/prisma";
 import { sessionStorage } from "~/session";
 import { EmailLinkStrategy } from "./email-strategy";
-import { sendEmail } from "~/email";
-import { createToken } from "~/jwt";
+import { sendEmail, sendWelcomeEmail } from "~/email";
 import { PLAN_FREE } from "libs/user-plan";
 
 export const authenticator = new Authenticator<User | null>();
@@ -45,6 +44,8 @@ authenticator.use(
             },
           },
         });
+
+        await sendWelcomeEmail(email);
       }
 
       return user;

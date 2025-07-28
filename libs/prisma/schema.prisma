@@ -10,6 +10,7 @@ generator client {
 type UserSettings {
   openaiApiKey String?
   weeklyUpdates Boolean?
+  ticketEmailUpdates Boolean?
 }
 
 model User {
@@ -51,10 +52,16 @@ type WidgetQuestion {
 }
 
 type WidgetConfig {
-  size                WidgetSize
-  questions           WidgetQuestion[]
-  welcomeMessage      String?
-  showMcpSetup        Boolean?
+  size                  WidgetSize
+  questions             WidgetQuestion[]
+  welcomeMessage        String?
+  showMcpSetup          Boolean?
+  textInputPlaceholder  String?
+  primaryColor          String?
+  buttonText            String?
+  buttonTextColor       String?
+  showLogo              Boolean?
+  tooltip               String?
 }
 
 type ScrapeAnalyticsCategoryMessageId {
@@ -73,14 +80,38 @@ type ScrapeAnalytics {
   updatedAt           DateTime
 }
 
-type DiscordAnswerChannel {
-  channelId           String
+type DiscordDraftConfig {
+  emoji                   String
+  sourceChannelIds        String[]
+  destinationChannelId    String
 }
 
-type DiscordAnswerConfig {
-  minScore            Float
-  channels            DiscordAnswerChannel[]
-  emoji               String?
+enum LlmModel {
+  gpt_4o_mini
+  o3_mini
+  sonnet_3_7
+  sonnet_3_5
+  gemini_2_5_flash
+  gemini_2_5_flash_lite
+  o4_mini
+}
+
+type RichBlockConfig {
+  name                String
+  key                 String
+  payload             Json
+  prompt              String
+}
+
+type RichBlocksConfig {
+  blocks              RichBlockConfig[]
+}
+
+type ResolveBtnConfig {
+  btnLabel            String
+  title               String
+  description         String
+  link                String
 }
 
 type SlackConfig {
@@ -101,12 +132,24 @@ model Scrape {
   widgetConfig          WidgetConfig?
   indexer               String?
   discordServerId       String?
-  discordAnswerConfig   DiscordAnswerConfig?
+  discordDraftConfig    DiscordDraftConfig?
+  logoUrl               String?
+  ticketingEnabled      Boolean?
+  
+  resolveQuestion       String?
+  resolveDescription    String?
+  resolveYesConfig      ResolveBtnConfig?
+  resolveNoConfig       ResolveBtnConfig?
 
   slackTeamId           String?
   slackConfig           SlackConfig?
 
   analytics             ScrapeAnalytics?
+  llmModel              LlmModel?
+  richBlocksConfig      RichBlocksConfig?
+  minScore              Float?
+  slug                  String?
+  showSources           Boolean?
 
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -114,6 +157,8 @@ model Scrape {
   items                 ScrapeItem[]
   messages              Message[]
   knowoledgeGroups      KnowledgeGroup[]
+
+  @@index([slug])
 }
 
 type MessageSourceLink {
@@ -123,6 +168,7 @@ type MessageSourceLink {
   scrapeItemId            String?     @db.ObjectId
   knowledgeGroupId        String?     @db.ObjectId
   fetchUniqueId           String?
+  searchQuery             String?
 }
 
 enum MessageChannel {
@@ -130,23 +176,47 @@ enum MessageChannel {
   discord
 }
 
+enum MessageRating {
+  up
+  down
+  none
+}
+
+enum TicketAuthorRole {
+  user
+  agent
+}
+
+enum TicketEvent {
+  message
+}
+
+type TicketMessage {
+  role                      TicketAuthorRole
+  event                     TicketEvent
+}
+
 model Message {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  threadId        String   @db.ObjectId
-  ownerUserId     String   @db.ObjectId
-  scrapeId        String   @db.ObjectId
+  id                        String   @id @default(auto()) @map("_id") @db.ObjectId
+  threadId                  String   @db.ObjectId
+  ownerUserId               String   @db.ObjectId
+  scrapeId                  String   @db.ObjectId
 
-  llmMessage      Json
-  links           MessageSourceLink[]
-  pinnedAt        DateTime?
-  channel         MessageChannel?
+  llmMessage                Json
+  links                     MessageSourceLink[]
+  pinnedAt                  DateTime?
+  channel                   MessageChannel?
+  rating                    MessageRating?
+  correctionItemId          String?  @db.ObjectId
+  ticketMessage             TicketMessage?
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 
-  thread          Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  ownerUser       User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
-  scrape          Scrape @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+  thread                    Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  ownerUser                 User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  scrape                    Scrape @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+  correctionItem            ScrapeItem? @relation(fields: [correctionItemId], references: [id])
 
   @@index([ownerUserId, scrapeId, createdAt])
 }
@@ -156,6 +226,17 @@ enum ResponseType {
   brief
   long
   points
+}
+
+enum TicketStatus {
+  open
+  closed
+}
+
+type Location {
+  country         String?
+  region          String?
+  city            String?
 }
 
 model Thread {
@@ -168,6 +249,16 @@ model Thread {
   updatedAt       DateTime @updatedAt
   openedAt        DateTime?
   isDefault       Boolean?
+  lastMessageAt   DateTime?
+  title           String?
+
+  ticketNumber    Int?
+  ticketKey       String?
+  ticketStatus    TicketStatus?
+  ticketClosedAt  DateTime?
+  ticketUserEmail String?
+  customTags      Json?
+  location        Location?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   
@@ -203,6 +294,7 @@ model ScrapeItem {
   scrape                  Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   knowledgeGroup          KnowledgeGroup?  @relation(fields: [knowledgeGroupId], references: [id], onDelete: Cascade)
+  correctetdMessages      Message[]
 
   @@unique([knowledgeGroupId, url])
 }
@@ -257,6 +349,8 @@ enum KnowledgeGroupType {
   scrape_github
   learn_discord
   github_issues
+  answer_corrections
+  upload
 }
 
 enum KnowledgeGroupStatus {
@@ -266,12 +360,22 @@ enum KnowledgeGroupStatus {
   error
 }
 
+enum KnowledgeGroupUpdateFrequency {
+  minutely
+  hourly
+  never
+  daily
+  weekly
+  monthly
+}
+
 model KnowledgeGroup {
   id                                        String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId                                  String   @db.ObjectId
   userId                                    String   @db.ObjectId
 
   type                                      KnowledgeGroupType
+  subType                                   String?
   status                                    KnowledgeGroupStatus
   
   title                                     String?
@@ -282,9 +386,14 @@ model KnowledgeGroup {
   maxPages                                  Int?
   staticContentThresholdLength              Int?
   skipPageRegex                             String?
+  scrollSelector                            String?
 
   githubUrl                                 String?
   githubBranch                              String?
+  updateFrequency                           KnowledgeGroupUpdateFrequency?
+  nextUpdateAt                              DateTime?
+  lastUpdatedAt                             DateTime?
+  itemContext                               String?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt
@@ -293,4 +402,9 @@ model KnowledgeGroup {
   user                                      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   scrapeItems                               ScrapeItem[]
+}
+
+model Counter {
+  id                                        String @id @map("_id")
+  count                                     Int
 }

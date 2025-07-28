@@ -14,12 +14,17 @@ import { useRef } from "react";
 import { PLAN_FREE } from "libs/user-plan";
 import { planMap } from "libs/user-plan";
 import { prisma } from "libs/prisma";
-import { commitSession, getSession } from "~/session";
+import { getSession } from "~/session";
 
 export function meta() {
   return [
     {
       title: "CrawlChat",
+    },
+    {
+      name: "description",
+      content:
+        "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
     },
   ];
 }
@@ -38,7 +43,36 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
-  return { user: user!, plan, scrapes, scrapeId };
+  const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
+
+  const toBeFixedMessages = await prisma.message.count({
+    where: {
+      ownerUserId: user!.id,
+      scrapeId,
+      createdAt: { gte: ONE_WEEK_AGO },
+      rating: "down",
+      OR: [{ correctionItemId: { isSet: false } }, { correctionItemId: null }],
+    },
+  });
+
+  const openTickets = await prisma.thread.count({
+    where: {
+      scrapeId,
+      ticketStatus: "open",
+    },
+  });
+
+  const scrape = scrapes.find((s) => s.id === scrapeId);
+
+  return {
+    user: user!,
+    plan,
+    scrapes,
+    scrapeId,
+    toBeFixedMessages,
+    openTickets,
+    scrape,
+  };
 }
 
 const drawerWidth = 260;
@@ -60,6 +94,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           scrapes={loaderData.scrapes}
           scrapeId={loaderData.scrapeId}
           scrapeIdFetcher={scrapeIdFetcher}
+          toBeFixedMessages={loaderData.toBeFixedMessages}
+          openTickets={loaderData.openTickets}
+          scrape={loaderData.scrape}
         />
 
         <DrawerRoot
@@ -79,6 +116,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               scrapes={loaderData.scrapes}
               scrapeId={loaderData.scrapeId}
               scrapeIdFetcher={scrapeIdFetcher}
+              toBeFixedMessages={loaderData.toBeFixedMessages}
+              openTickets={loaderData.openTickets}
             />
           </DrawerContent>
         </DrawerRoot>

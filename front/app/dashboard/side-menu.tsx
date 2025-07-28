@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   createListCollection,
   Group,
@@ -9,20 +10,29 @@ import {
   Spinner,
   Stack,
   Text,
+  Image,
 } from "@chakra-ui/react";
 import {
   TbBook,
+  TbChevronLeft,
   TbChevronRight,
   TbHome,
   TbLogout,
   TbMessage,
+  TbMessages,
   TbPlug,
   TbRoad,
-  TbScan,
   TbSettings,
+  TbThumbDown,
+  TbTicket,
   TbUser,
 } from "react-icons/tb";
-import { Link, NavLink, type FetcherWithComponents } from "react-router";
+import {
+  Link,
+  NavLink,
+  useFetcher,
+  type FetcherWithComponents,
+} from "react-router";
 import { Avatar } from "~/components/ui/avatar";
 import {
   MenuContent,
@@ -31,7 +41,6 @@ import {
   MenuTrigger,
 } from "~/components/ui/menu";
 import type { Scrape, User } from "libs/prisma";
-import { LogoText } from "~/landing/page";
 import type { Plan } from "libs/user-plan";
 import { numberToKMB } from "~/number-util";
 import {
@@ -41,24 +50,17 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "~/components/ui/select";
-import { useMemo, useRef } from "react";
-
-const links = [
-  { label: "Home", to: "/app", icon: <TbHome /> },
-  { label: "Knowledge", to: "/knowledge", icon: <TbBook />, forScrape: true },
-  { label: "Messages", to: "/messages", icon: <TbMessage />, forScrape: true },
-  { label: "Settings", to: "/settings", icon: <TbSettings />, forScrape: true },
-  {
-    label: "Integrations",
-    to: "/integrations",
-    icon: <TbPlug />,
-    forScrape: true,
-  },
-  { label: "Profile", to: "/profile", icon: <TbUser /> },
-];
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  getPendingActions,
+  getSkippedActions,
+  setSkippedActions,
+  type SetupProgressInput,
+} from "./setup-progress";
 
 function SideMenuItem({
   link,
+  number,
 }: {
   link: {
     label: string;
@@ -66,23 +68,39 @@ function SideMenuItem({
     icon: React.ReactNode;
     external?: boolean;
   };
+  number?: {
+    value: number;
+    color?: string;
+    icon?: React.ReactNode;
+  };
 }) {
   return (
     <NavLink to={link.to} target={link.external ? "_blank" : undefined}>
       {({ isPending, isActive }) => (
         <Group
           px={3}
-          py={2}
+          py={1}
           w="full"
           bg={isActive ? "brand.fg" : undefined}
           color={isActive ? "brand.contrast" : undefined}
           borderRadius={"md"}
           transition={"all 100ms ease"}
           _hover={{ bg: !isActive ? "brand.gray.100" : undefined }}
+          justify="space-between"
         >
-          <Text>{link.icon}</Text>
-          <Text truncate>{link.label}</Text>
-          <Text>{isPending && <Spinner size="xs" />}</Text>
+          <Group>
+            <Text>{link.icon}</Text>
+            <Text truncate>{link.label}</Text>
+            <Text>{isPending && <Spinner size="xs" />}</Text>
+          </Group>
+          <Group>
+            {number && (
+              <Badge colorPalette={number.color} variant={"surface"}>
+                {number.icon}
+                {number.value}
+              </Badge>
+            )}
+          </Group>
         </Group>
       )}
     </NavLink>
@@ -130,6 +148,136 @@ function CreditProgress({
   );
 }
 
+function SmallButton({
+  children,
+  onClick,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) {
+  return (
+    <Text
+      fontSize={"xs"}
+      opacity={0.4}
+      onClick={onClick}
+      _hover={{ cursor: "pointer", opacity: 1 }}
+    >
+      {children}
+    </Text>
+  );
+}
+
+function SetupProgress({ scrapeId }: { scrapeId: string }) {
+  const fetcher = useFetcher<{
+    input: SetupProgressInput;
+  }>();
+  const [index, setIndex] = useState(0);
+  const [skipped, setSkipped] = useState<string[] | undefined>(undefined);
+  const actions = useMemo(() => {
+    if (skipped === undefined || fetcher.data === undefined) {
+      return [];
+    }
+    return getPendingActions(fetcher.data.input, skipped);
+  }, [fetcher.data, skipped]);
+  const action = actions[index];
+  const topAction = actions[0];
+
+  useEffect(() => {
+    fetcher.submit(null, {
+      method: "get",
+      action: "/setup-progress",
+    });
+  }, [scrapeId]);
+
+  useEffect(() => {
+    setSkipped(getSkippedActions(scrapeId));
+  }, []);
+
+  useEffect(() => {
+    if (skipped === undefined) {
+      return;
+    }
+    setSkippedActions(scrapeId, skipped);
+  }, [skipped]);
+
+  function handleSkip() {
+    if (skipped === undefined) {
+      return;
+    }
+    setSkipped([...skipped, action.id]);
+  }
+
+  function handleNext() {
+    setIndex(Math.min(index + 1, actions.length - 1));
+  }
+
+  function handlePrevious() {
+    setIndex(Math.max(index - 1, 0));
+  }
+
+  if (!action) {
+    return null;
+  }
+
+  return (
+    <Stack gap={1}>
+      <Group justify={"space-between"}>
+        <Text fontSize={"xs"} opacity={0.4}>
+          {index + 1} / {actions.length}
+        </Text>
+
+        <Group gap={1}>
+          <SmallButton onClick={handlePrevious}>
+            <TbChevronLeft />
+          </SmallButton>
+          <SmallButton onClick={handleNext}>
+            <TbChevronRight />
+          </SmallButton>
+          {topAction.canSkip && index === 0 && (
+            <SmallButton onClick={handleSkip}>Skip</SmallButton>
+          )}
+        </Group>
+      </Group>
+
+      <Group
+        bg="brand.subtle"
+        border="1px solid"
+        borderColor="brand.outline"
+        rounded="md"
+        _hover={{ shadow: "xs" }}
+      >
+        <Link
+          to={action.url!}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            width: "100%",
+            gap: "10px",
+            padding: "10px 14px",
+          }}
+        >
+          <Stack flex={1} gap={0} w="full">
+            <Text
+              fontSize={"sm"}
+              color="brand.fg"
+              fontWeight={"medium"}
+              fontStyle={"italic"}
+            >
+              {action.title}
+            </Text>
+            <Text fontSize={"xs"} opacity={0.5}>
+              {action.description}
+            </Text>
+          </Stack>
+          <Stack>
+            <TbChevronRight />
+          </Stack>
+        </Link>
+      </Group>
+    </Stack>
+  );
+}
+
 export function SideMenu({
   fixed,
   width,
@@ -139,6 +287,9 @@ export function SideMenu({
   scrapes,
   scrapeId,
   scrapeIdFetcher,
+  toBeFixedMessages,
+  openTickets,
+  scrape,
 }: {
   fixed: boolean;
   width: number;
@@ -148,7 +299,51 @@ export function SideMenu({
   scrapes: Scrape[];
   scrapeId?: string;
   scrapeIdFetcher: FetcherWithComponents<any>;
+  toBeFixedMessages: number;
+  openTickets: number;
+  scrape?: Scrape;
 }) {
+  const links = useMemo(() => {
+    const links = [
+      { label: "Home", to: "/app", icon: <TbHome /> },
+      {
+        label: "Knowledge",
+        to: "/knowledge",
+        icon: <TbBook />,
+        forScrape: true,
+      },
+      {
+        label: "Messages",
+        to: "/messages",
+        icon: <TbMessage />,
+        forScrape: true,
+      },
+      {
+        label: "Tickets",
+        to: "/tickets",
+        icon: <TbTicket />,
+        forScrape: true,
+        ticketingEnabled: true,
+      },
+      {
+        label: "Integrations",
+        to: "/integrations",
+        icon: <TbPlug />,
+        forScrape: true,
+      },
+      {
+        label: "Settings",
+        to: "/settings",
+        icon: <TbSettings />,
+        forScrape: true,
+      },
+      { label: "Profile", to: "/profile", icon: <TbUser /> },
+    ];
+
+    return links
+      .filter((link) => !link.forScrape || scrapeId)
+      .filter((link) => !link.ticketingEnabled || scrape?.ticketingEnabled);
+  }, []);
   const formRef = useRef<HTMLFormElement>(null);
   const collections = useMemo(
     () =>
@@ -170,6 +365,24 @@ export function SideMenu({
 
   const availableScrapes = user.plan?.credits?.scrapes ?? plan.credits.scrapes;
   const usedScrapes = totalScrapes - availableScrapes;
+
+  function getLinkNumber(label: string) {
+    if (label === "Tickets" && openTickets > 0) {
+      return {
+        value: openTickets,
+        icon: <TbTicket />,
+        color: "blue",
+      };
+    }
+    if (label === "Messages" && toBeFixedMessages > 0) {
+      return {
+        value: toBeFixedMessages,
+        icon: <TbThumbDown />,
+        color: "red",
+      };
+    }
+    return undefined;
+  }
 
   return (
     <Stack
@@ -195,7 +408,12 @@ export function SideMenu({
             asChild
           >
             <Group>
-              <LogoText />
+              <Group>
+                <Image src="/logo.png" alt="CrawlChat" w={8} h={8} />
+                <Text fontSize={"xl"} asChild>
+                  <Link to="/">CrawlChat</Link>
+                </Text>
+              </Group>
             </Group>
           </Heading>
         </Stack>
@@ -211,6 +429,7 @@ export function SideMenu({
                 formRef.current?.submit();
               }}
               disabled={collections.items.length === 0}
+              size={"sm"}
             >
               <SelectTrigger bg="brand.white">
                 <SelectValueText placeholder="Select collection" />
@@ -227,11 +446,13 @@ export function SideMenu({
         </Box>
 
         <Stack gap={1} w="full" px={3}>
-          {links
-            .filter((link) => !link.forScrape || scrapeId)
-            .map((link, index) => (
-              <SideMenuItem key={index} link={link} />
-            ))}
+          {links.map((link, index) => (
+            <SideMenuItem
+              key={index}
+              link={link}
+              number={getLinkNumber(link.label)}
+            />
+          ))}
         </Stack>
 
         <Separator />
@@ -257,7 +478,8 @@ export function SideMenu({
       </Stack>
 
       <Stack p={4} gap={4}>
-        <Stack bg="brand.gray.100" rounded="md" p={4} gap={4}>
+        {scrapeId && <SetupProgress scrapeId={scrapeId} />}
+        <Stack bg="brand.gray.100" rounded="md" px={3} py={2}>
           <CreditProgress
             title="Messages"
             used={usedMessages}

@@ -70,6 +70,7 @@ export class Flow<CustomState, CustomMessage> {
   isToolPending() {
     const lastMessage = this.getLastMessage();
     if (
+      lastMessage &&
       lastMessage.llmMessage &&
       ("tool_calls" in lastMessage.llmMessage ||
         lastMessage.llmMessage.role === "tool")
@@ -89,7 +90,10 @@ export class Flow<CustomState, CustomMessage> {
 
   async stream(
     options?: HandleStreamOptions
-  ): Promise<null | { messages: FlowMessage<CustomMessage>[] }> {
+  ): Promise<null | {
+    messages: FlowMessage<CustomMessage>[];
+    agentId: string;
+  }> {
     const agentId = this.popNextAgent();
 
     if (!agentId) {
@@ -113,6 +117,7 @@ export class Flow<CustomState, CustomMessage> {
       }
       return {
         messages: [message],
+        agentId,
       };
     }
 
@@ -141,7 +146,7 @@ export class Flow<CustomState, CustomMessage> {
       ];
     }
 
-    return { messages: newMessages };
+    return { messages: newMessages, agentId };
   }
 
   addMessage(message: FlowMessage<CustomMessage>) {

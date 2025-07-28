@@ -6,7 +6,6 @@ import { Strategy } from "remix-auth/strategy";
 export type SendEmailOptions<User> = {
   emailAddress: string;
   magicLink: string;
-  user?: User | null;
   domainUrl: string;
   form: FormData;
 };
@@ -348,16 +347,9 @@ export class EmailLinkStrategy<
   private async sendToken(email: string, domainUrl: string, form: FormData) {
     const magicLink = await this.getMagicLink(email, domainUrl, form);
 
-    const user = await this.verify({
-      email,
-      form,
-      magicLinkVerify: false,
-    }).catch(() => null);
-
     await this.sendEmail({
       emailAddress: email,
       magicLink,
-      user,
       domainUrl,
       form,
     });

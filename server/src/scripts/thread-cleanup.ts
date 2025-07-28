@@ -9,11 +9,11 @@ function chunk<T>(array: T[], size: number): T[][] {
 }
 
 export async function cleanupThreads() {
-  const oneWeekAgo = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
+  const ago = new Date(Date.now());
   let threads = await prisma.thread.findMany({
     where: {
       createdAt: {
-        lt: oneWeekAgo,
+        lt: ago,
       },
     },
     include: {

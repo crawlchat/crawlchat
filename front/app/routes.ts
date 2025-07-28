@@ -12,28 +12,29 @@ export default [
     route("verify", "auth/verify.ts"),
   ]),
 
-  index("landing/page.tsx"),
-  route("llm-txt", "landing/tools/llm-txt.tsx"),
-  route("open-scrape", "landing/open-scrape.ts"),
   route("terms", "landing/terms.tsx"),
   route("policy", "landing/policy.tsx"),
   route("embed-demo", "landing/embed-demo.tsx"),
-  route("use-case/embed", "landing/use-case/embed.tsx"),
-  route("use-case/mcp", "landing/use-case/mcp.tsx"),
-  route("use-case/discord-bot", "landing/use-case/discord-bot.tsx"),
 
-  route("test", "landing/test.tsx"),
+  route("shopify-app-bot", "landing/shopify-app-bot.tsx"),
 
   route("payment/lemonsqueezy-webhook", "payment/lemonsqueezy-webhook.ts"),
 
-  ...prefix("triggers", [route("weekly", "triggers/weekly.tsx")]),
+  ...prefix("triggers", [
+    route("weekly", "triggers/weekly.tsx"),
+    route("setup-progress", "triggers/setup-progress.tsx"),
+  ]),
 
   route("/logout", "auth/logout.tsx"),
   layout("dashboard/layout.tsx", [
     route("app", "dashboard/page.tsx"),
     route("profile", "dashboard/profile.tsx"),
-    route("messages", "analyse/messages.tsx"),
+    route("messages", "message/messages.tsx"),
+    route("messages/:messageId/fix", "message/fix.tsx"),
+    route("messages/conversations", "message/conversations.tsx"),
     route("settings", "scrapes/settings.tsx"),
+    route("tickets", "tickets/list.tsx"),
+    route("tickets/settings", "tickets/settings.tsx"),
 
     route("integrations", "integrations/page.tsx", [
       index("integrations/embed.tsx"),
@@ -48,12 +49,25 @@ export default [
     ]),
     route("knowledge", "knowledge/groups.tsx"),
     route("knowledge/item/:itemId", "knowledge/link-item.tsx"),
+
+    route("setup-progress", "dashboard/setup-progress-api.ts"),
   ]),
 
-  route("blog/:slug", "blog/page.tsx"),
-  route("blog", "blog/list.tsx"),
+  layout("landing/layout.tsx", [
+    index("landing/page.tsx"),
+    route("blog/:slug", "blog/page.tsx"),
+    route("blog", "blog/list.tsx"),
+    route("changelog", "changelog/list.tsx"),
+    route("public-bots", "landing/public-bots.tsx"),
 
-  route("w/:id", "widget/scrape.tsx"),
+    route("discord-bot", "landing/discord-bot.tsx"),
+    route("support-tickets", "landing/support-tickets.tsx"),
+  ]),
+
+  route("w/:id", "widget/page.tsx"),
+  route("s/:id", "widget/share.tsx"),
+  route("w/:id/config", "widget/config.tsx"),
+  route("ticket/:number", "widget/ticket.tsx"),
   route("w/not-found", "widget/not-found.tsx"),
   route("embed.js", "embed-script.ts"),
 ] satisfies RouteConfig;

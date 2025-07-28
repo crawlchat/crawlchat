@@ -1,10 +1,22 @@
-import type { Prisma } from "libs/prisma";
+import type { KnowledgeGroupUpdateFrequency, Prisma } from "libs/prisma";
 import { prisma, type KnowledgeGroup } from "libs/prisma";
+import { getNextUpdateTime } from "libs/knowledge-group";
 import { getAuthUser } from "~/auth/middleware";
 import { getSessionScrapeId } from "~/scrapes/util";
 import type { Route } from "./+types/settings";
-import { DataList, Group, Heading, Input, Stack, Text } from "@chakra-ui/react";
-import { SettingsSection } from "~/dashboard/profile";
+import {
+  Badge,
+  createListCollection,
+  DataList,
+  Input,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
+import {
+  SettingsContainer,
+  SettingsSection,
+  SettingsSectionProvider,
+} from "~/settings-section";
 import { useEffect, useMemo, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { Switch } from "~/components/ui/switch";
@@ -13,6 +25,13 @@ import { GroupStatus } from "./status";
 import { Button } from "~/components/ui/button";
 import { TbTrash } from "react-icons/tb";
 import { createToken } from "~/jwt";
+import {
+  SelectContent,
+  SelectItem,
+  SelectRoot,
+  SelectTrigger,
+  SelectValueText,
+} from "~/components/ui/select";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -76,6 +95,18 @@ export async function action({ request, params }: Route.ActionArgs) {
   if (formData.has("githubBranch")) {
     update.githubBranch = formData.get("githubBranch") as string;
   }
+  if (formData.has("scrollSelector")) {
+    update.scrollSelector = formData.get("scrollSelector") as string;
+  }
+  if (formData.has("updateFrequency")) {
+    update.updateFrequency = formData.get(
+      "updateFrequency"
+    ) as KnowledgeGroupUpdateFrequency;
+    update.nextUpdateAt = getNextUpdateTime(update.updateFrequency, new Date());
+  }
+  if (formData.has("itemContext")) {
+    update.itemContext = formData.get("itemContext") as string;
+  }
 
   const group = await prisma.knowledgeGroup.update({
     where: { id: groupId, userId: user!.id, scrapeId },
@@ -89,6 +120,9 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
   const matchPrefixFetcher = useFetcher();
   const htmlTagsToRemoveFetcher = useFetcher();
   const skipRegexFetcher = useFetcher();
+  const scrollSelectorFetcher = useFetcher();
+  const autoUpdateFetcher = useFetcher();
+  const itemContextFetcher = useFetcher();
   const details = useMemo(() => {
     return [
       {
@@ -105,6 +139,32 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
       },
     ];
   }, [group]);
+  const autoUpdateCollection = useMemo(() => {
+    return createListCollection({
+      items: [
+        {
+          label: "Never",
+          value: "never",
+        },
+        {
+          label: "Every hour",
+          value: "hourly",
+        },
+        {
+          label: "Every day",
+          value: "daily",
+        },
+        {
+          label: "Every week",
+          value: "weekly",
+        },
+        {
+          label: "Every month",
+          value: "monthly",
+        },
+      ],
+    });
+  }, []);
 
   return (
     <Stack gap={6}>
@@ -116,7 +176,9 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           </DataList.Item>
         ))}
       </DataList.Root>
+
       <SettingsSection
+        id="match-prefix"
         fetcher={matchPrefixFetcher}
         title="Match prefix"
         description="If enabled, it scrapes only the pages whose prefix is the same as the group URL"
@@ -126,7 +188,9 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           Active
         </Switch>
       </SettingsSection>
+
       <SettingsSection
+        id="html-tags-to-remove"
         fetcher={htmlTagsToRemoveFetcher}
         title="HTML tags to remove"
         description="You can specify the HTML selectors whose content is not added to the document. It is recommended to use this to remove junk content such as side menus, headers, footers, etc. You can give multiple selectors comma separated."
@@ -138,7 +202,9 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           name="removeHtmlTags"
         />
       </SettingsSection>
+
       <SettingsSection
+        id="skip-pages-regex"
         fetcher={skipRegexFetcher}
         title="Skip pages regex"
         description="Specify the regex of the URLs that you don't want it to scrape. You can give multiple regexes comma separated."
@@ -148,6 +214,74 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           maxW="400px"
           defaultValue={group.skipPageRegex ?? ""}
           name="skipPageRegex"
+        />
+      </SettingsSection>
+
+      {["scrape_web", "scrape_github", "github_issues"].includes(
+        group.type
+      ) && (
+        <SettingsSection
+          id="auto-update"
+          fetcher={autoUpdateFetcher}
+          title="Auto update"
+          description="If enabled, the knowledge group will be updated automatically every day at the specified time."
+        >
+          <SelectRoot
+            collection={autoUpdateCollection}
+            maxW="400px"
+            name="updateFrequency"
+            defaultValue={[group.updateFrequency ?? "never"]}
+          >
+            <SelectTrigger>
+              <SelectValueText placeholder="Select auto update" />
+            </SelectTrigger>
+            <SelectContent>
+              {autoUpdateCollection.items.map((item) => (
+                <SelectItem item={item} key={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </SelectRoot>
+          {group.nextUpdateAt && (
+            <Text fontSize={"sm"}>
+              Next update at{" "}
+              <Badge ml={1} colorPalette={"brand"} variant={"surface"}>
+                {moment(group.nextUpdateAt).format("DD/MM/YYYY HH:mm")}
+              </Badge>
+            </Text>
+          )}
+        </SettingsSection>
+      )}
+
+      <SettingsSection
+        id="item-context"
+        fetcher={itemContextFetcher}
+        title="Item context"
+        description="Pass context for the group knowledge. Usefule to segregate the data between types. Example: v1, v2, node, bun, etc."
+      >
+        <Input
+          name="itemContext"
+          defaultValue={group.itemContext ?? ""}
+          placeholder="Ex: v1, v2, node, bun, etc."
+          maxW="400px"
+        />
+        <Text fontSize={"sm"} opacity={0.5}>
+          This requires re-fetching the knowledge group.
+        </Text>
+      </SettingsSection>
+
+      <SettingsSection
+        id="scroll-selector"
+        fetcher={scrollSelectorFetcher}
+        title="Scroll selector"
+        description="Specify the selector of the element to scroll to. It is useful to scrape pages that have infinite scroll."
+      >
+        <Input
+          placeholder="Ex: #panel"
+          maxW="400px"
+          defaultValue={group.scrollSelector ?? ""}
+          name="scrollSelector"
         />
       </SettingsSection>
     </Stack>
@@ -183,7 +317,9 @@ function GithubSettings({ group }: { group: KnowledgeGroup }) {
           </DataList.Item>
         ))}
       </DataList.Root>
+
       <SettingsSection
+        id="branch"
         fetcher={branchFetcher}
         title="Branch"
         description="Specify the branch to scrape"
@@ -258,44 +394,36 @@ export default function KnowledgeGroupSettings({
   }
 
   return (
-    <Stack gap={6}>
-      {loaderData.knowledgeGroup.type === "scrape_web" && (
-        <WebSettings group={loaderData.knowledgeGroup} />
-      )}
-      {loaderData.knowledgeGroup.type === "scrape_github" && (
-        <GithubSettings group={loaderData.knowledgeGroup} />
-      )}
-      {loaderData.knowledgeGroup.type === "github_issues" && (
-        <GithubIssuesSettings group={loaderData.knowledgeGroup} />
-      )}
+    <SettingsSectionProvider>
+      <SettingsContainer>
+        {loaderData.knowledgeGroup.type === "scrape_web" && (
+          <WebSettings group={loaderData.knowledgeGroup} />
+        )}
+        {loaderData.knowledgeGroup.type === "scrape_github" && (
+          <GithubSettings group={loaderData.knowledgeGroup} />
+        )}
+        {loaderData.knowledgeGroup.type === "github_issues" && (
+          <GithubIssuesSettings group={loaderData.knowledgeGroup} />
+        )}
 
-      <Stack
-        border={"1px solid"}
-        borderColor={"red.300"}
-        bg="red.50"
-        rounded={"lg"}
-        p={4}
-        gap={4}
-      >
-        <Stack>
-          <Heading>Delete knowledge group</Heading>
-          <Text fontSize={"sm"} opacity={0.5}>
-            This will delete the knowledge group and all the data that is
-            associated with it. This is not reversible.
-          </Text>
-        </Stack>
-        <Group>
-          <Button
-            colorPalette={"red"}
-            onClick={handleDelete}
-            loading={deleteFetcher.state !== "idle"}
-            variant={deleteConfirm ? "solid" : "outline"}
-          >
-            {deleteConfirm ? "Sure to delete?" : "Delete"}
-            <TbTrash />
-          </Button>
-        </Group>
-      </Stack>
-    </Stack>
+        <SettingsSection
+          id="delete-knowledge-group"
+          title="Delete group"
+          description="This will delete the knowledge group and all the data that is associated with it. This is not reversible."
+          danger
+          actionRight={
+            <Button
+              colorPalette={"red"}
+              onClick={handleDelete}
+              loading={deleteFetcher.state !== "idle"}
+              variant={deleteConfirm ? "solid" : "outline"}
+            >
+              {deleteConfirm ? "Sure to delete?" : "Delete"}
+              <TbTrash />
+            </Button>
+          }
+        />
+      </SettingsContainer>
+    </SettingsSectionProvider>
   );
 }

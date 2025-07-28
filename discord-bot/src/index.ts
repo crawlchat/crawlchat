@@ -7,10 +7,11 @@ import {
   Events,
   GatewayIntentBits,
   Message,
-  Snowflake,
+  Partials,
+  PublicThreadChannel,
   TextChannel,
 } from "discord.js";
-import { getDiscordDetails, learn, query, testQuery } from "./api";
+import { getDiscordDetails, learn, query } from "./api";
 import { createToken } from "./jwt";
 
 type DiscordMessage = Message<boolean>;
@@ -23,7 +24,13 @@ const client = new Client({
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.GuildMessageReactions,
   ],
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
+
+const allBotUserIds = process.env.ALL_BOT_USER_IDS!.split(",");
+
+const defaultPrompt = `Keep the response very short and very concised.
+It should be under 1000 charecters.`;
 
 const fetchAllParentMessages = async (
   message: DiscordMessage,
@@ -47,7 +54,7 @@ const fetchAllParentMessages = async (
   return fetchAllParentMessages(parentMessage, messages, i + 1);
 };
 
-const sendTyping = async (channel: TextChannel) => {
+const sendTyping = async (channel: TextChannel | PublicThreadChannel) => {
   await channel.sendTyping();
 
   const interval = setInterval(async () => {
@@ -72,13 +79,27 @@ client.once(Events.ClientReady, (readyClient) => {
 client.on(Events.MessageCreate, async (message) => {
   if (message.mentions.users.has(process.env.BOT_USER_ID!)) {
     if (message.content.includes("learn")) {
-      const messages = await fetchAllParentMessages(message, []);
+      let messages: Array<{ author: string; content: string }> = (
+        await fetchAllParentMessages(message, [])
+      ).map((m) => ({ author: m.author.displayName, content: m.content }));
 
-      const content = messages
-        .map((m) => m.content)
+      if (
+        message.channel.type === ChannelType.PublicThread &&
+        message.channel.parent?.id
+      ) {
+        messages = (await message.channel.messages.fetch())
+          .filter((m) => m.id !== message.id)
+          .map((m) => ({
+            author: m.author.displayName,
+            content: m.content,
+          }));
+      }
+
+      let content = messages
+        .map((m) => `${m.author}: ${m.content}`)
         .reverse()
         .map(cleanContent)
-        .join("\n\n");
+        .join("\n---\n");
 
       const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
 
@@ -131,8 +152,7 @@ client.on(Events.MessageCreate, async (message) => {
       messages,
       createToken(userId),
       {
-        prompt: `Keep the response very short and very concised.
-It should be under 1000 charecters.`,
+        prompt: defaultPrompt,
       }
     );
 
@@ -146,33 +166,112 @@ It should be under 1000 charecters.`,
     stopTyping();
 
     message.reply(response);
-  } else {
-    const { userId, scrapeId, autoAnswerChannelIds, answerEmoji } =
+  } else if (
+    message.channel.type === ChannelType.PublicThread &&
+    message.channel.parent?.id &&
+    !allBotUserIds.includes(message.author.id)
+  ) {
+    const { scrapeId, userId, draftDestinationChannelId } =
       await getDiscordDetails(message.guildId!);
-    const channelIds = [message.channelId];
+    if (message.channel.parent.id === draftDestinationChannelId) {
+      const { stopTyping } = await sendTyping(message.channel);
 
-    if (
-      message.channel.type === ChannelType.PublicThread &&
-      message.channel.parent?.id
-    ) {
-      channelIds.push(message.channel.parent.id);
+      const messages = await message.channel.messages.fetch();
+      const llmMessages = messages
+        .map((m) => ({
+          role: m.author.id === process.env.BOT_USER_ID! ? "assistant" : "user",
+          content: cleanContent(m.content),
+        }))
+        .reverse();
+
+      const { answer, error } = await query(
+        scrapeId,
+        llmMessages,
+        createToken(userId),
+        {
+          prompt: defaultPrompt,
+        }
+      );
+
+      if (error) {
+        stopTyping();
+        message.channel.send(
+          `‼️ Attention required: ${error}. Please contact the support team.`
+        );
+        return;
+      }
+
+      message.channel.send(answer);
+
+      stopTyping();
+    }
+  }
+});
+
+client.on(Events.MessageReactionAdd, async (reaction, user) => {
+  if (reaction.partial) {
+    try {
+      await reaction.fetch();
+    } catch (error) {
+      console.error("Something went wrong when fetching the message:", error);
+      return;
+    }
+  }
+
+  const { scrapeId, userId, draftEmoji, draftDestinationChannelId } =
+    await getDiscordDetails(reaction.message.guildId!);
+
+  const emojiStr = reaction.emoji.toString();
+
+  if (
+    emojiStr !== draftEmoji ||
+    !scrapeId ||
+    !userId ||
+    !draftDestinationChannelId
+  ) {
+    return;
+  }
+
+  const channel = await reaction.message.client.channels.fetch(
+    draftDestinationChannelId
+  );
+
+  if (channel && channel.isThreadOnly()) {
+    const { answer, error } = await query(
+      scrapeId,
+      [
+        {
+          role: "user",
+          content: reaction.message.content!,
+        },
+      ],
+      createToken(userId),
+      {
+        prompt: defaultPrompt,
+      }
+    );
+
+    if (error) {
+      reaction.message.reply(
+        `‼️ Attention required: ${error}. Please contact the support team.`
+      );
+      return;
     }
 
-    console.log("Checking reactive answer", {
-      userId,
-      scrapeId,
-      autoAnswerChannelIds,
-      answerEmoji,
-      channelIds,
+    let threadName = `${emojiStr}`;
+    if (reaction.message.channel.isThread()) {
+      threadName = `${threadName} ${reaction.message.channel.name}`;
+    }
+
+    const thread = await channel.threads.create({
+      name: threadName,
+      message: {
+        content: `Original message: ${reaction.message.url}
+Question: ${reaction.message.content}`,
+      },
     });
 
-    if (
-      autoAnswerChannelIds.some((id: string) => channelIds.includes(id)) &&
-      (await testQuery(message.content, createToken(userId), scrapeId))
-    ) {
-      console.log("Reacting");
-      message.react(answerEmoji);
-    }
+    thread.send(answer);
   }
 });
 

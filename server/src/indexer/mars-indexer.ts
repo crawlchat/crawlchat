@@ -11,8 +11,9 @@ export class MarsIndexer implements Indexer {
   private indexName: string;
   private denseModel: string;
   private sparseModel: string;
+  private topN: number;
 
-  constructor() {
+  constructor({ topN }: { topN?: number }) {
     this.pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY!,
     });
@@ -20,6 +21,7 @@ export class MarsIndexer implements Indexer {
     this.indexName = "mars";
     this.denseModel = "multilingual-e5-large";
     this.sparseModel = "pinecone-sparse-english-v0";
+    this.topN = topN ?? 4;
   }
 
   getKey(): string {
@@ -143,7 +145,7 @@ export class MarsIndexer implements Indexer {
         scrapeItemId: m.metadata!.scrapeItemId as string,
       })),
       {
-        topN: 4,
+        topN: this.topN,
         returnDocuments: true,
         parameters: {
           truncate: "END",
@@ -158,6 +160,7 @@ export class MarsIndexer implements Indexer {
       scrapeItemId: r.document!.scrapeItemId,
       fetchUniqueId: randomFetchId(),
       id: r.document!.id,
+      query,
     }));
   }
 }
