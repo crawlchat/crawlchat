@@ -26,6 +26,7 @@ import {
   TbThumbDown,
   TbTicket,
   TbUser,
+  TbUsers,
 } from "react-icons/tb";
 import {
   Link,
@@ -335,6 +336,12 @@ export function SideMenu({
         label: "Settings",
         to: "/settings",
         icon: <TbSettings />,
+        forScrape: true,
+      },
+      {
+        label: "Team",
+        to: "/team",
+        icon: <TbUsers />,
         forScrape: true,
       },
       { label: "Profile", to: "/profile", icon: <TbUser /> },
