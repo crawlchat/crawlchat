@@ -78,7 +78,14 @@ const app = new App({
   clientId: process.env.SLACK_CLIENT_ID,
   clientSecret: process.env.SLACK_CLIENT_SECRET,
   stateSecret: process.env.SLACK_STATE_SECRET,
-  scopes: ["channels:history", "channels:read", "chat:write", "im:history"],
+  scopes: [
+    "channels:history",
+    "channels:read",
+    "chat:write",
+    "im:history",
+    "im:read",
+    "app_mentions:read",
+  ],
   redirectUri: `${process.env.HOST}/slack/oauth_redirect`,
   installationStore,
   installerOptions: {
@@ -90,10 +97,15 @@ function cleanText(text: string) {
   return text.replace(/<@[^>]+>/g, "").trim();
 }
 
+type Message = {
+  user?: string;
+  text?: string;
+};
+
 app.message(
-  `<@${process.env.SLACK_USER_ID}>`,
+  `<@${process.env.SLACK_BOT_USER_ID}>`,
   async ({ message, say, client, context }) => {
-    let messages: { user?: string; text?: string }[] = [];
+    let messages: Message[] = [];
 
     if ((message as any).thread_ts) {
       const replies = await client.conversations.replies({
@@ -113,10 +125,8 @@ app.message(
       }
     }
 
-    console.log(messages);
-
     const llmMessages = messages.map((m) => ({
-      role: m.user === process.env.SLACK_USER_ID ? "assistant" : "user",
+      role: m.user === process.env.SLACK_BOT_USER_ID ? "assistant" : "user",
       content: cleanText(m.text ?? ""),
     }));
 
@@ -133,7 +143,7 @@ app.message(
       return;
     }
 
-    const { answer, json, error } = await query(
+    const { answer, error } = await query(
       scrape.id,
       llmMessages,
       createToken(scrape.userId),
@@ -142,6 +152,13 @@ app.message(
           "This would be a Slack message. Keep it short and concise. Use markdown for formatting.",
       }
     );
+
+    if (error) {
+      await say({
+        text: `Error: ${error}`,
+      });
+      return;
+    }
 
     await say({
       text: answer,
@@ -154,8 +171,6 @@ app.message(
 );
 
 (async () => {
-  // Start your app
   await app.start(process.env.PORT || 3005);
-
   app.logger.info("⚡️ Bolt app is running!");
 })();
