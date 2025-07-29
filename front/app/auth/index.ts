@@ -40,6 +40,7 @@ authenticator.use(
               provider: "CUSTOM",
               status: "ACTIVE",
               credits: PLAN_FREE.credits,
+              limits: PLAN_FREE.limits,
               activatedAt: new Date(),
             },
           },

@@ -323,6 +323,11 @@ type PlanCredits {
   scrapes     Float
 }
 
+type PlanLimits {
+  scrapes     Float
+  teamMembers Float
+}
+
 type UserPlan {
   planId            String
   type              PlanType
@@ -332,6 +337,7 @@ type UserPlan {
   status            PlanStatus
 
   credits           PlanCredits?
+  limits            PlanLimits?
 
   expiresAt         DateTime?
   activatedAt       DateTime

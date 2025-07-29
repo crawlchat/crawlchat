@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { PlanCredits, PlanType, UserPlanProvider } from "@prisma/client";
+import { PlanCredits, PlanLimits, PlanType, UserPlanProvider } from "@prisma/client";
 
 type PlanResetType = "monthly" | "yearly" | "one-time" | "on-payment";
 type PlanCategory = "BASE" | "SERVICE" | "TOPUP";
@@ -12,6 +12,7 @@ export type Plan = {
   category: PlanCategory;
   credits: PlanCredits;
   resetType: PlanResetType;
+  limits: PlanLimits;
 };
 
 export const PLAN_FREE: Plan = {
@@ -23,6 +24,10 @@ export const PLAN_FREE: Plan = {
     scrapes: 100,
     messages: 40,
   },
+  limits: {
+    scrapes: 1,
+    teamMembers: 1,
+  },
   resetType: "one-time",
   category: "BASE",
 };
@@ -33,8 +38,12 @@ export const PLAN_STARTER: Plan = {
   price: 29,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 3000,
+    scrapes: 5000,
     messages: 2000,
+  },
+  limits: {
+    scrapes: 2,
+    teamMembers: 3,
   },
   resetType: "monthly",
   category: "BASE",
@@ -46,8 +55,12 @@ export const PLAN_PRO: Plan = {
   price: 79,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 10000,
+    scrapes: 14000,
     messages: 7000,
+  },
+  limits: {
+    scrapes: 5,
+    teamMembers: 10,
   },
   resetType: "monthly",
   category: "BASE",
@@ -85,6 +98,7 @@ export const activatePlan = async (
         orderId,
         status: "ACTIVE",
         credits: plan.credits,
+        limits: plan.limits,
         expiresAt,
         activatedAt: new Date(),
       },
