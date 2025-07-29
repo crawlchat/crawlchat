@@ -119,7 +119,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           <DrawerContent ref={contentRef}>
             <SideMenu
               width={drawerWidth}
-              user={user}
+              loggedInUser={user}
+              scrapeOwner={loaderData.scrape?.user!}
               fixed={false}
               contentRef={contentRef}
               plan={loaderData.plan}
