@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import WelcomeEmail from "emails/welcome";
+import InvitationEmail from "emails/invitation";
 
 export const sendEmail = async (to: string, subject: string, text: string) => {
   try {
@@ -34,9 +35,17 @@ export const sendReactEmail = async (
 };
 
 export const sendWelcomeEmail = async (to: string) => {
+  await sendReactEmail(to, "Welcome to CrawlChat", <WelcomeEmail />);
+};
+
+export const sendInvitationEmail = async (
+  to: string,
+  invitedBy: string,
+  scrapeTitle: string
+) => {
   await sendReactEmail(
     to,
-    "Welcome to CrawlChat",
-    <WelcomeEmail />
+    `Invited to ${scrapeTitle}`,
+    <InvitationEmail invitedBy={invitedBy} scrapeTitle={scrapeTitle} />
   );
 };
