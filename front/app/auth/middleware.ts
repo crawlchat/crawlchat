@@ -1,4 +1,4 @@
-import type { User } from "libs/prisma";
+import type { Prisma, User } from "libs/prisma";
 import { redirect } from "react-router";
 import { prisma } from "~/prisma";
 import { getSession } from "~/session";
@@ -22,10 +22,17 @@ export async function getAuthUser(
     });
   }
 
-  let user: User | null = null;
+  let user: Prisma.UserGetPayload<{
+    include: {
+      scrapeUsers: true;
+    };
+  }> | null = null;
   if (sessionUser) {
     user = await prisma.user.findUnique({
       where: { id: sessionUser?.id },
+      include: {
+        scrapeUsers: true,
+      },
     });
   }
 

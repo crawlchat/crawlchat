@@ -412,6 +412,7 @@ model Counter {
 }
 
 enum UserRole {
+  owner
   admin
   member
 }
