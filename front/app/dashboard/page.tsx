@@ -52,6 +52,8 @@ import {
 import { Field } from "~/components/ui/field";
 import { EmptyState } from "~/components/ui/empty-state";
 import { Tooltip as ChakraTooltip } from "~/components/ui/tooltip";
+import { getLimits } from "libs/user-plan";
+import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -178,6 +180,22 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (intent === "create-collection") {
+    const limits = await getLimits(user!);
+    const existingScrapes = await prisma.scrape.count({
+      where: {
+        userId: user!.id,
+      },
+    });
+
+    if (existingScrapes >= limits.scrapes) {
+      return Response.json(
+        {
+          error: "You have reached the maximum number of collections",
+        },
+        { status: 400 }
+      );
+    }
+
     const name = formData.get("name");
     const scrape = await prisma.scrape.create({
       data: {
@@ -306,6 +324,15 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       setNewCollectionDialogOpen(false);
     }
   }, [newCollectionFetcher.state]);
+
+  useEffect(() => {
+    if (newCollectionFetcher.data?.error) {
+      toaster.error({
+        title: "Error",
+        description: newCollectionFetcher.data.error,
+      });
+    }
+  }, [newCollectionFetcher.data]);
 
   return (
     <Page

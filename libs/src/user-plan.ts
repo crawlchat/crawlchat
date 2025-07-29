@@ -1,5 +1,11 @@
 import { prisma } from "./prisma";
-import { PlanCredits, PlanLimits, PlanType, UserPlanProvider } from "@prisma/client";
+import {
+  PlanCredits,
+  PlanLimits,
+  PlanType,
+  User,
+  UserPlanProvider,
+} from "@prisma/client";
 
 type PlanResetType = "monthly" | "yearly" | "one-time" | "on-payment";
 type PlanCategory = "BASE" | "SERVICE" | "TOPUP";
@@ -205,4 +211,12 @@ export async function hasEnoughCredits(
   });
   const available = user?.plan?.credits?.[type] ?? 0;
   return available >= amount;
+}
+
+export async function getLimits(user: User) {
+  if (user.plan?.limits) return user.plan.limits;
+
+  const planId = user.plan?.planId ?? PLAN_FREE.id;
+  const plan = planMap[planId];
+  return plan.limits;
 }
