@@ -25,7 +25,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { Button } from "~/components/ui/button";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Switch } from "~/components/ui/switch";
 import { useEffect, useState } from "react";
 import { Field } from "~/components/ui/field";
@@ -33,11 +33,11 @@ import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
   });
 
   if (!scrape) {
@@ -49,16 +49,15 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const formData = await request.formData();
-  const discordServerId = formData.get("discordServerId") as string;
 
   const update: Prisma.ScrapeUpdateInput = {};
 
-  if (discordServerId) {
-    update.discordServerId = discordServerId;
+  if (formData.has("discordServerId")) {
+    update.discordServerId = formData.get("discordServerId") as string;
   }
 
   if (formData.has("fromDiscordDraft")) {
@@ -87,7 +86,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const scrape = await prisma.scrape.update({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
     data: update,
   });
 

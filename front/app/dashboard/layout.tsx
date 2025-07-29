@@ -35,19 +35,25 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("cookie"));
   const scrapeId = session.get("scrapeId");
 
-  const plan = user!.plan?.planId ? planMap[user!.plan.planId] : PLAN_FREE;
-
-  const scrapes = await prisma.scrape.findMany({
-    where: {
-      userId: user!.id,
-    },
-  });
+  const scrapes = await prisma.scrapeUser
+    .findMany({
+      where: {
+        userId: user!.id,
+      },
+      include: {
+        scrape: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    })
+    .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
 
   const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
 
   const toBeFixedMessages = await prisma.message.count({
     where: {
-      ownerUserId: user!.id,
       scrapeId,
       createdAt: { gte: ONE_WEEK_AGO },
       rating: "down",
@@ -63,6 +69,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   const scrape = scrapes.find((s) => s.id === scrapeId);
+  const plan = scrape?.user.plan?.planId
+    ? planMap[scrape.user.plan.planId]
+    : PLAN_FREE;
 
   return {
     user: user!,
@@ -88,7 +97,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       <Group align="start" gap={0} w="full" minH="100dvh">
         <SideMenu
           width={drawerWidth}
-          user={user}
+          loggedInUser={user}
+          scrapeOwner={loaderData.scrape?.user!}
           fixed={true}
           plan={loaderData.plan}
           scrapes={loaderData.scrapes}
@@ -109,7 +119,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           <DrawerContent ref={contentRef}>
             <SideMenu
               width={drawerWidth}
-              user={user}
+              loggedInUser={user}
+              scrapeOwner={loaderData.scrape?.user!}
               fixed={false}
               contentRef={contentRef}
               plan={loaderData.plan}

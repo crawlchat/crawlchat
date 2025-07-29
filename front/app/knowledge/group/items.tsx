@@ -13,17 +13,17 @@ import { prisma } from "~/prisma";
 import moment from "moment";
 import { TbCheck, TbRefresh, TbX, TbStack } from "react-icons/tb";
 import { Link, Outlet } from "react-router";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { EmptyState } from "~/components/ui/empty-state";
 import type { ScrapeItem } from "libs/prisma";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
   });
 
   if (!scrape) {
@@ -31,7 +31,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   const knowledgeGroup = await prisma.knowledgeGroup.findUnique({
-    where: { id: params.groupId, userId: user!.id },
+    where: { id: params.groupId },
   });
 
   if (!knowledgeGroup) {

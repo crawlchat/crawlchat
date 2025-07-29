@@ -45,18 +45,18 @@ import {
 import { Field } from "~/components/ui/field";
 import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
 import type { Route } from "./+types/embed";
-import { getSessionScrapeId } from "../scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "../scrapes/util";
 import { Switch } from "~/components/ui/switch";
 import { SiDocusaurus } from "react-icons/si";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
     where: {
       id: scrapeId,
-      userId: user!.id,
     },
   });
 
@@ -66,11 +66,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
     where: {
       id: scrapeId,
-      userId: user!.id,
     },
   });
 

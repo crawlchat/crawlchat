@@ -1,5 +1,11 @@
 import { prisma } from "libs/prisma";
-import type { Prisma, Scrape, TicketAuthorRole } from "libs/prisma";
+import type {
+  Prisma,
+  Scrape,
+  ScrapeUser,
+  Thread,
+  TicketAuthorRole,
+} from "libs/prisma";
 import type { Route } from "./+types/ticket";
 import {
   Badge,
@@ -34,6 +40,16 @@ import TicketUserMessageEmail from "emails/ticket-user-message";
 import TicketAdminMessageEmail from "emails/ticket-admin-message";
 import { Toaster, toaster } from "~/components/ui/toaster";
 
+function getRole(thread?: Thread | null, scrapeUsers?: ScrapeUser[] | null) {
+  const role: "agent" | "user" =
+    thread &&
+    scrapeUsers &&
+    scrapeUsers.find((su) => thread && su.scrapeId === thread.scrapeId)
+      ? "agent"
+      : "user";
+  return role;
+}
+
 export async function loader({ params, request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   let key = url.searchParams.get("key");
@@ -50,15 +66,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   });
 
   const loggedInUser = await getAuthUser(request, { dontRedirect: true });
-  if (loggedInUser && loggedInUser.id === thread?.scrape.userId) {
+  const role = getRole(thread, loggedInUser?.scrapeUsers);
+  if (role === "agent" && thread) {
     key = thread.ticketKey;
   }
   if (key !== thread?.ticketKey) {
     thread = null;
   }
-
-  const role: "agent" | "user" =
-    thread && loggedInUser?.id === thread.scrape.userId ? "agent" : "user";
 
   return { thread, passedKey: key, ticketNumber, role };
 }
@@ -98,7 +112,7 @@ export async function action({ params, request }: Route.ActionArgs) {
 
   if (intent === "comment") {
     const content = formData.get("content") as string;
-    const role = loggedInUser?.id === thread.scrape.userId ? "agent" : "user";
+    const role = getRole(thread, loggedInUser?.scrapeUsers);
     const resolve = formData.get("resolve") === "true";
 
     const message = await prisma.message.create({

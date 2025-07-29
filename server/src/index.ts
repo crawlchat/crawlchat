@@ -9,7 +9,7 @@ import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
 import { joinRoom } from "./socket-room";
 import { getRoomIds } from "./socket-room";
-import { authenticate, verifyToken } from "./jwt";
+import { authenticate, authoriseScrapeUser, verifyToken } from "./jwt";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { makeLLMTxt } from "./llm-txt";
 import { v4 as uuidv4 } from "uuid";
@@ -173,16 +173,17 @@ app.get("/test", async function (req: Request, res: Response) {
 });
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
-  const userId = req.user!.id;
   const scrapeId = req.body.scrapeId!;
   const knowledgeGroupId = req.body.knowledgeGroupId!;
 
+  authoriseScrapeUser(req.user!.scrapeUsers, scrapeId);
+
   const scrape = await prisma.scrape.findFirstOrThrow({
-    where: { id: scrapeId, userId },
+    where: { id: scrapeId },
   });
 
   const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
-    where: { id: knowledgeGroupId, userId },
+    where: { id: knowledgeGroupId },
   });
 
   console.log("Scraping for", scrape.id);
@@ -193,9 +194,6 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
 
   (async function () {
     function getLimit() {
-      if (userId === process.env.OPEN_USER_ID) {
-        return 25;
-      }
       if (req.body.maxLinks) {
         return parseInt(req.body.maxLinks);
       }
@@ -218,7 +216,7 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
     );
 
     const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
-      hasCredits: () => hasEnoughCredits(userId, "scrapes"),
+      hasCredits: () => hasEnoughCredits(scrape.userId, "scrapes"),
       limit: getLimit(),
       url,
     });
@@ -229,30 +227,19 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   res.json({ message: "ok" });
 });
 
-app.get("/llm.txt", authenticate, async function (req: Request, res: Response) {
-  const userId = req.user!.id;
-  const scrapeId = req.query.scrapeId as string;
-  const scrape = await prisma.scrape.findFirstOrThrow({
-    where: { id: scrapeId, userId },
-  });
-  const scrapeItems = await prisma.scrapeItem.findMany({
-    where: { scrapeId: scrape.id },
-  });
-  res.json({ text: makeLLMTxt(scrapeItems) });
-});
-
 app.delete(
   "/scrape",
   authenticate,
   async function (req: Request, res: Response) {
     const scrapeId = req.body.scrapeId;
-    try {
-      const scrape = await prisma.scrape.findFirstOrThrow({
-        where: { id: scrapeId },
-      });
-      const indexer = makeIndexer({ key: scrape.indexer });
-      await deleteScrape(indexer.getKey(), scrapeId);
-    } catch (error) {}
+    authoriseScrapeUser(req.user!.scrapeUsers, scrapeId);
+
+    const scrape = await prisma.scrape.findFirstOrThrow({
+      where: { id: scrapeId },
+    });
+    const indexer = makeIndexer({ key: scrape.indexer });
+    await deleteScrape(indexer.getKey(), scrapeId);
+
     res.json({ message: "ok" });
   }
 );
@@ -269,6 +256,8 @@ app.delete(
         scrape: true,
       },
     });
+
+    authoriseScrapeUser(req.user!.scrapeUsers, scrapeItem.scrapeId);
 
     const indexer = makeIndexer({ key: scrapeItem.scrape.indexer });
     await deleteByIds(
@@ -295,6 +284,8 @@ app.delete(
         scrape: true,
       },
     });
+
+    authoriseScrapeUser(req.user!.scrapeUsers, knowledgeGroup.scrapeId);
 
     const items = await prisma.scrapeItem.findMany({
       where: { knowledgeGroupId },
@@ -475,31 +466,36 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 });
 
 app.post("/resource/:scrapeId", authenticate, async (req, res) => {
-  const userId = req.user!.id;
   const scrapeId = req.params.scrapeId;
   const knowledgeGroupType = req.body.knowledgeGroupType;
   const defaultGroupTitle = req.body.defaultGroupTitle;
   const markdown = req.body.markdown;
   const title = req.body.title;
 
+  authoriseScrapeUser(req.user!.scrapeUsers, scrapeId);
+
   if (!scrapeId || !markdown || !title) {
     res.status(400).json({ message: "Missing scrapeId or markdown or title" });
     return;
   }
 
-  if (!(await hasEnoughCredits(userId, "scrapes"))) {
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId },
+  });
+
+  let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
+    where: { scrapeId, type: knowledgeGroupType },
+  });
+
+  if (!(await hasEnoughCredits(scrape.userId, "scrapes"))) {
     res.status(400).json({ message: "Not enough credits" });
     return;
   }
 
-  let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
-    where: { userId, scrapeId, type: knowledgeGroupType },
-  });
-
   if (!knowledgeGroup) {
     knowledgeGroup = await prisma.knowledgeGroup.create({
       data: {
-        userId,
+        userId: req.user!.id,
         type: knowledgeGroupType,
         scrapeId,
         status: "done",
@@ -508,16 +504,12 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     });
   }
 
-  const scrape = await prisma.scrape.findFirstOrThrow({
-    where: { id: scrapeId, userId },
-  });
-
   const indexer = makeIndexer({ key: scrape.indexer });
   const chunks = await splitMarkdown(markdown);
 
   let scrapeItem = await prisma.scrapeItem.create({
     data: {
-      userId,
+      userId: req.user!.id,
       scrapeId: scrape.id,
       knowledgeGroupId: knowledgeGroup.id,
       markdown,
@@ -543,7 +535,7 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     },
   });
 
-  await consumeCredits(userId, "scrapes", 1);
+  await consumeCredits(scrape.userId, "scrapes", 1);
 
   res.json({ scrapeItem });
 });
@@ -638,13 +630,15 @@ app.post("/fix-message", authenticate, async (req, res) => {
   const answer = req.body.answer as string;
 
   const message = await prisma.message.findFirstOrThrow({
-    where: { id: messageId, ownerUserId: userId },
+    where: { id: messageId },
   });
 
   if (!message) {
     res.status(404).json({ message: "Message not found" });
     return;
   }
+
+  authoriseScrapeUser(req.user!.scrapeUsers, message.scrapeId);
 
   if (!(await hasEnoughCredits(userId, "messages"))) {
     res.status(400).json({ message: "Not enough credits" });

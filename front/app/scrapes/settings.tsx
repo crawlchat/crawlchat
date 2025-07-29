@@ -47,7 +47,7 @@ import { Page } from "~/components/page";
 import moment from "moment";
 import { Button } from "~/components/ui/button";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getSessionScrapeId } from "./util";
+import { authoriseScrapeUser, getSessionScrapeId } from "./util";
 import { createToken } from "~/jwt";
 import { Switch } from "~/components/ui/switch";
 import { Field } from "~/components/ui/field";
@@ -63,16 +63,11 @@ import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
-  const session = await getSession(request.headers.get("cookie"));
-  const scrapeId = session.get("scrapeId");
-
-  if (!scrapeId) {
-    throw redirect("/app");
-  }
+  const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
   });
 
   if (!scrape) {
@@ -84,11 +79,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
+  const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+
   const formData = await request.formData();
 
-  const scrapeId = await getSessionScrapeId(request);
-
   if (request.method === "DELETE") {
+    authoriseScrapeUser(user!.scrapeUsers, scrapeId, ["owner"]);
+
     await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
       method: "DELETE",
       body: JSON.stringify({ scrapeId }),
@@ -151,7 +149,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const scrape = await prisma.scrape.update({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
     data: update,
   });
 

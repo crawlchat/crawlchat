@@ -14,17 +14,17 @@ import type { Prisma } from "libs/prisma";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { TbHelp } from "react-icons/tb";
 import type { Route } from "./+types/mcp";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { makeCursorMcpJson, makeMcpName } from "~/mcp/setup";
 import { makeMcpCommand } from "~/mcp/setup";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
   });
 
   if (!scrape) {
@@ -36,19 +36,18 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+
   const formData = await request.formData();
 
-  const mcpToolName = formData.get("mcpToolName") as string | null;
-
   const update: Prisma.ScrapeUpdateInput = {};
-  if (mcpToolName) {
-    update.mcpToolName = mcpToolName;
+  if (formData.get("mcpToolName")) {
+    update.mcpToolName = formData.get("mcpToolName") as string;
   }
 
   const scrape = await prisma.scrape.update({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
     data: update,
   });
 

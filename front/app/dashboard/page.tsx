@@ -56,22 +56,48 @@ import { Tooltip as ChakraTooltip } from "~/components/ui/tooltip";
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const session = await getSession(request.headers.get("cookie"));
-  let scrapeId = session.get("scrapeId");
+  const scrapeId = session.get("scrapeId");
 
-  const scrapes = await prisma.scrape.findMany({
-    where: {
-      userId: user?.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  // Check scrapeId in session
+  const scrapes = await prisma.scrapeUser
+    .findMany({
+      where: {
+        userId: user!.id,
+      },
+      include: {
+        scrape: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+    .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
+
+  if (scrapeId && !scrapes.find((s) => s.id === scrapeId)) {
+    if (scrapes.length > 0) {
+      session.set("scrapeId", scrapes[0].id);
+    } else {
+      session.unset("scrapeId");
+    }
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
+  if (!scrapeId && scrapes.length > 0) {
+    session.set("scrapeId", scrapes[0].id);
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
 
   const ONE_WEEK = 1000 * 60 * 60 * 24 * 7;
 
   const messages = await prisma.message.findMany({
     where: {
-      ownerUserId: user!.id,
       scrapeId,
       createdAt: {
         gte: new Date(Date.now() - ONE_WEEK),
@@ -91,33 +117,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   const today = new Date();
   const todayKey = today.toISOString().split("T")[0];
   const messagesToday = dailyMessages[todayKey] ?? 0;
-
-  // Check and set the scrapeId
-  if (scrapeId) {
-    const scrape = await prisma.scrape.findUnique({
-      where: { id: scrapeId, userId: user!.id },
-    });
-    if (!scrape) {
-      if (scrapes.length > 0) {
-        session.set("scrapeId", scrapes[0].id);
-      } else {
-        session.unset("scrapeId");
-      }
-      throw redirect("/app", {
-        headers: {
-          "Set-Cookie": await commitSession(session),
-        },
-      });
-    }
-  }
-  if (!scrapeId && scrapes.length > 0) {
-    session.set("scrapeId", scrapes[0].id);
-    throw redirect("/app", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
-  }
 
   const scoreDestribution: Record<number, { count: number }> = {};
   const points = 50;
@@ -140,7 +139,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return {
     user,
-    scrapes,
     dailyMessages,
     messagesToday,
     scrapeId,
@@ -148,6 +146,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     scrape: scrapes.find((s) => s.id === scrapeId),
     ratingUpCount,
     ratingDownCount,
+    noScrapes: scrapes.length === 0,
   };
 }
 
@@ -176,7 +175,9 @@ export async function action({ request }: Route.ActionArgs) {
         "Set-Cookie": await commitSession(session),
       },
     });
-  } else if (intent === "create-collection") {
+  }
+
+  if (intent === "create-collection") {
     const name = formData.get("name");
     const scrape = await prisma.scrape.create({
       data: {
@@ -199,7 +200,7 @@ export async function action({ request }: Route.ActionArgs) {
     const session = await getSession(request.headers.get("cookie"));
     session.set("scrapeId", scrape.id);
 
-    throw redirect("/app", {
+    throw redirect("/app?created=true", {
       headers: {
         "Set-Cookie": await commitSession(session),
       },
@@ -257,6 +258,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const [width, setWidth] = useState(0);
   const newCollectionFetcher = useFetcher();
   const [newCollectionDialogOpen, setNewCollectionDialogOpen] = useState(false);
+
   const chartData = useMemo(() => {
     const data = [];
     const today = new Date();
@@ -290,13 +292,20 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     if (containerRef.current) {
       setWidth(containerRef.current.clientWidth - 10);
     }
-  }, [containerRef, loaderData.scrapes]);
+  }, [containerRef, loaderData]);
 
   useEffect(() => {
-    if (loaderData.scrapes.length > 0) {
+    if (loaderData.noScrapes) {
+      setNewCollectionDialogOpen(true);
+    }
+  }, [loaderData.noScrapes]);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("created")) {
       setNewCollectionDialogOpen(false);
     }
-  }, [loaderData.scrapes]);
+  }, [newCollectionFetcher.state]);
 
   return (
     <Page
@@ -325,7 +334,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         </Group>
       }
     >
-      {loaderData.scrapes.length === 0 && (
+      {loaderData.noScrapes && (
         <Center w="full" h="full">
           <EmptyState
             icon={<TbDatabase />}
@@ -343,7 +352,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         </Center>
       )}
 
-      {loaderData.scrapes.length > 0 && (
+      {!loaderData.noScrapes && (
         <Stack height={"100%"} gap={8} ref={containerRef}>
           <Group>
             <StatCard
@@ -472,7 +481,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <Button
                   type="submit"
                   colorPalette={"brand"}
-                  disabled={newCollectionFetcher.state !== "idle"}
+                  loading={newCollectionFetcher.state !== "idle"}
                 >
                   Create
                   <TbCheck />

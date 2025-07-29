@@ -2,7 +2,7 @@ import type { KnowledgeGroupUpdateFrequency, Prisma } from "libs/prisma";
 import { prisma, type KnowledgeGroup } from "libs/prisma";
 import { getNextUpdateTime } from "libs/knowledge-group";
 import { getAuthUser } from "~/auth/middleware";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import type { Route } from "./+types/settings";
 import {
   Badge,
@@ -35,11 +35,11 @@ import {
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
   });
 
   if (!scrape) {
@@ -47,7 +47,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   const knowledgeGroup = await prisma.knowledgeGroup.findUnique({
-    where: { id: params.groupId, userId: user!.id },
+    where: { id: params.groupId },
   });
 
   if (!knowledgeGroup) {
@@ -59,8 +59,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+
   const groupId = params.groupId;
 
   if (request.method === "DELETE") {
@@ -109,7 +110,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const group = await prisma.knowledgeGroup.update({
-    where: { id: groupId, userId: user!.id, scrapeId },
+    where: { id: groupId, scrapeId },
     data: update,
   });
 

@@ -282,7 +282,8 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
 export function SideMenu({
   fixed,
   width,
-  user,
+  scrapeOwner,
+  loggedInUser,
   contentRef,
   plan,
   scrapes,
@@ -294,7 +295,8 @@ export function SideMenu({
 }: {
   fixed: boolean;
   width: number;
-  user: User;
+  scrapeOwner: User;
+  loggedInUser: User;
   contentRef?: React.RefObject<HTMLDivElement | null>;
   plan: Plan;
   scrapes: Scrape[];
@@ -367,10 +369,11 @@ export function SideMenu({
   const totalScrapes = plan.credits.scrapes;
 
   const availableMessages =
-    user.plan?.credits?.messages ?? plan.credits.messages;
+    scrapeOwner?.plan?.credits?.messages ?? plan.credits.messages;
   const usedMessages = totalMessages - availableMessages;
 
-  const availableScrapes = user.plan?.credits?.scrapes ?? plan.credits.scrapes;
+  const availableScrapes =
+    scrapeOwner?.plan?.credits?.scrapes ?? plan.credits.scrapes;
   const usedScrapes = totalScrapes - availableScrapes;
 
   function getLinkNumber(label: string) {
@@ -504,8 +507,8 @@ export function SideMenu({
           justify="space-between"
         >
           <Group flex={1} maxW="80%">
-            <Avatar name={user.email} size={"sm"} />
-            <Text truncate>{user.email}</Text>
+            <Avatar name={loggedInUser.email} size={"sm"} />
+            <Text truncate>{loggedInUser.email}</Text>
           </Group>
 
           <MenuRoot positioning={{ placement: "right-end" }}>
