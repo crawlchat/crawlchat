@@ -66,14 +66,6 @@ export async function loader({ request }: Route.LoaderArgs) {
       createdAt: "desc",
     },
   });
-  const itemsCount: Record<string, number> = {};
-  for (const scrape of scrapes) {
-    itemsCount[scrape.id] = await prisma.scrapeItem.count({
-      where: {
-        scrapeId: scrape.id,
-      },
-    });
-  }
 
   const ONE_WEEK = 1000 * 60 * 60 * 24 * 7;
 
@@ -149,7 +141,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   return {
     user,
     scrapes,
-    itemsCount,
     dailyMessages,
     messagesToday,
     scrapeId,
@@ -195,6 +186,16 @@ export async function action({ request }: Route.ActionArgs) {
         indexer: "mars",
       },
     });
+
+    await prisma.scrapeUser.create({
+      data: {
+        scrapeId: scrape.id,
+        userId: user!.id,
+        role: "owner",
+        email: user!.email,
+      },
+    });
+
     const session = await getSession(request.headers.get("cookie"));
     session.set("scrapeId", scrape.id);
 

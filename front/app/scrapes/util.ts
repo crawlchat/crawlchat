@@ -1,4 +1,4 @@
-import type { Scrape } from "libs/prisma";
+import type { Scrape, ScrapeUser, UserRole } from "libs/prisma";
 import { redirect } from "react-router";
 import { getSession } from "~/session";
 
@@ -15,4 +15,21 @@ export async function getSessionScrapeId(request: Request) {
   }
 
   return scrapeId;
+}
+
+export function authoriseScrapeUser(
+  scrapeUsers: ScrapeUser[],
+  scrapeId: string,
+  role?: UserRole
+) {
+  const scrapeUser = scrapeUsers.find(
+    (scrapeUser) =>
+      scrapeUser.scrapeId === scrapeId && (!role || scrapeUser.role === role)
+  );
+
+  if (!scrapeUser) {
+    throw redirect("/app");
+  }
+
+  return scrapeUser;
 }
