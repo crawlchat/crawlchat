@@ -87,7 +87,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   const scrape = await prisma.scrape.update({
-    where: { id: scrapeId },
+    where: { id: scrapeId, userId: user!.id },
     data: update,
   });
 

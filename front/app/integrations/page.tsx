@@ -1,7 +1,7 @@
 import { Page } from "~/components/page";
 import { Box, HStack, Stack } from "@chakra-ui/react";
 import { getAuthUser } from "~/auth/middleware";
-import { TbRobotFace, TbCode, TbBrandDiscord, TbPlug } from "react-icons/tb";
+import { TbRobotFace, TbCode, TbBrandDiscord, TbPlug, TbBrandSlack } from "react-icons/tb";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { SegmentedControl } from "~/components/ui/segmented-control";
 import { useMemo } from "react";
@@ -49,13 +49,21 @@ export default function ScrapePage() {
                   </HStack>
                 ),
               },
-
               {
                 value: "/integrations/discord",
                 label: (
                   <HStack>
                     <TbBrandDiscord />
                     Discord
+                  </HStack>
+                ),
+              },
+              {
+                value: "/integrations/slack",
+                label: (
+                  <HStack>
+                    <TbBrandSlack />
+                    Slack
                   </HStack>
                 ),
               },

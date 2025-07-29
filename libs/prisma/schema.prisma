@@ -115,6 +115,10 @@ type ResolveBtnConfig {
   link                String
 }
 
+type SlackConfig {
+  installation          Json
+}
+
 model Scrape {
   id                    String   @id @default(auto()) @map("_id") @db.ObjectId
   userId                String   @db.ObjectId
@@ -137,6 +141,9 @@ model Scrape {
   resolveDescription    String?
   resolveYesConfig      ResolveBtnConfig?
   resolveNoConfig       ResolveBtnConfig?
+
+  slackTeamId           String?
+  slackConfig           SlackConfig?
 
   analytics             ScrapeAnalytics?
   llmModel              LlmModel?
