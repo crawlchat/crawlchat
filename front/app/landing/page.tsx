@@ -35,6 +35,7 @@ import type { Route } from "./+types/page";
 import { Badge, Box, Text } from "@chakra-ui/react";
 import { Tooltip } from "~/components/ui/tooltip";
 import { track } from "~/pirsch";
+import { PLAN_FREE, PLAN_PRO, PLAN_STARTER } from "libs/user-plan";
 
 export function meta() {
   return [
@@ -710,10 +711,12 @@ function Pricing() {
           free
           title="Free"
           description="For personal use"
-          price="$0"
+          price={`$${PLAN_FREE.price}`}
           items={[
-            { text: "100 page scrapes" },
-            { text: "40 message credits" },
+            { text: `${PLAN_FREE.credits.scrapes} page scrapes` },
+            { text: `${PLAN_FREE.credits.messages} message credits` },
+            { text: `${PLAN_FREE.limits.scrapes} collection` },
+            { text: `${PLAN_FREE.limits.teamMembers} team member` },
             { text: "Base AI models", excluded: true },
             { text: "Upload files", excluded: true },
             { text: "MCP server", excluded: true },
@@ -727,10 +730,12 @@ function Pricing() {
         <PricingBox
           title="Starter"
           description="Start your journey with CrawlChat"
-          price="$45"
+          price={`$${PLAN_STARTER.price}`}
           items={[
-            { text: "5000 scrapes/month" },
-            { text: "2000 message credits/month" },
+            { text: `${PLAN_STARTER.credits.scrapes} scrapes/month` },
+            { text: `${PLAN_STARTER.credits.messages} message credits/month` },
+            { text: `${PLAN_STARTER.limits.scrapes} collections` },
+            { text: `${PLAN_STARTER.limits.teamMembers} team members` },
             { text: "Smart AI models" },
             { text: "Upload files" },
             { text: "MCP server" },
@@ -745,10 +750,12 @@ function Pricing() {
           title="Pro"
           description="For power users and teams"
           popular
-          price="$99"
+          price={`$${PLAN_PRO.price}`}
           items={[
-            { text: "14,000 scrapes/month" },
-            { text: "7000 message credits/month" },
+            { text: `${PLAN_PRO.credits.scrapes} scrapes/month` },
+            { text: `${PLAN_PRO.credits.messages} message credits/month` },
+            { text: `${PLAN_PRO.limits.scrapes} collections` },
+            { text: `${PLAN_PRO.limits.teamMembers} team members` },
             { text: "Reasoning AI models" },
             { text: "Upload files" },
             { text: "MCP server" },
