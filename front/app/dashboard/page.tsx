@@ -200,7 +200,7 @@ export async function action({ request }: Route.ActionArgs) {
     const session = await getSession(request.headers.get("cookie"));
     session.set("scrapeId", scrape.id);
 
-    throw redirect("/app", {
+    throw redirect("/app?created=true", {
       headers: {
         "Set-Cookie": await commitSession(session),
       },
@@ -258,6 +258,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const [width, setWidth] = useState(0);
   const newCollectionFetcher = useFetcher();
   const [newCollectionDialogOpen, setNewCollectionDialogOpen] = useState(false);
+
   const chartData = useMemo(() => {
     const data = [];
     const today = new Date();
@@ -298,6 +299,13 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       setNewCollectionDialogOpen(true);
     }
   }, [loaderData.noScrapes]);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("created")) {
+      setNewCollectionDialogOpen(false);
+    }
+  }, [newCollectionFetcher.state]);
 
   return (
     <Page
@@ -473,7 +481,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <Button
                   type="submit"
                   colorPalette={"brand"}
-                  disabled={newCollectionFetcher.state !== "idle"}
+                  loading={newCollectionFetcher.state !== "idle"}
                 >
                   Create
                   <TbCheck />

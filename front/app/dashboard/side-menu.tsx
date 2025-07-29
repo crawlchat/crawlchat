@@ -369,11 +369,11 @@ export function SideMenu({
   const totalScrapes = plan.credits.scrapes;
 
   const availableMessages =
-    scrapeOwner.plan?.credits?.messages ?? plan.credits.messages;
+    scrapeOwner?.plan?.credits?.messages ?? plan.credits.messages;
   const usedMessages = totalMessages - availableMessages;
 
   const availableScrapes =
-    scrapeOwner.plan?.credits?.scrapes ?? plan.credits.scrapes;
+    scrapeOwner?.plan?.credits?.scrapes ?? plan.credits.scrapes;
   const usedScrapes = totalScrapes - availableScrapes;
 
   function getLinkNumber(label: string) {
