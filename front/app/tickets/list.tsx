@@ -10,7 +10,7 @@ import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/list";
 import { prisma } from "libs/prisma";
 import type { Thread, Prisma, TicketStatus } from "libs/prisma";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import {
   Badge,
   Box,
@@ -33,16 +33,16 @@ import { toaster } from "~/components/ui/toaster";
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
     where: {
       id: scrapeId,
-      userId: user!.id,
     },
   });
 
   if (!scrape) {
-    throw redirect("/scrapes");
+    throw redirect("/app");
   }
 
   const url = new URL(request.url);

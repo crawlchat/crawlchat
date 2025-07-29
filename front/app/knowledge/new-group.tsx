@@ -29,7 +29,7 @@ import { createToken } from "~/jwt";
 import type { Route } from "./+types/new-group";
 import { useEffect, useMemo, useState } from "react";
 import { prisma } from "~/prisma";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import type { KnowledgeGroupStatus, KnowledgeGroupType } from "libs/prisma";
 import { type FileUpload, parseFormData } from "@mjackson/form-data-parser";
 import { toaster } from "~/components/ui/toaster";
@@ -52,6 +52,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: { request: Request }) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const fileMarkdowns: { markdown: string; title: string }[] = [];
 
@@ -78,7 +79,7 @@ export async function action({ request }: { request: Request }) {
   const formData = await parseFormData(request, uploadHandler);
 
   const scrape = await prisma.scrape.findUniqueOrThrow({
-    where: { id: scrapeId as string, userId: user!.id },
+    where: { id: scrapeId as string },
   });
 
   if (request.method === "POST") {

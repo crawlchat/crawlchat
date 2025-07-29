@@ -24,7 +24,7 @@ import {
   TbWorld,
 } from "react-icons/tb";
 import { Link } from "react-router";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
@@ -36,11 +36,11 @@ import { Tooltip } from "~/components/ui/tooltip";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
   });
 
   if (!scrape) {
@@ -48,7 +48,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const knowledgeGroups = await prisma.knowledgeGroup.findMany({
-    where: { scrapeId: scrape.id, userId: user!.id },
+    where: { scrapeId: scrape.id },
     orderBy: { createdAt: "desc" },
   });
 

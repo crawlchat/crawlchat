@@ -1,7 +1,7 @@
 import { verify, JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "./prisma";
-import { User } from "libs/prisma";
+import { Prisma, ScrapeUser, User } from "libs/prisma";
 
 interface UserPayload extends JwtPayload {
   userId: string;
@@ -27,6 +27,9 @@ export async function authenticate(
     const decoded = verifyToken(token);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
+      include: {
+        scrapeUsers: true,
+      },
     });
     if (!user) {
       res.status(401).json({ error: "Invalid token" });
@@ -43,7 +46,20 @@ export async function authenticate(
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: Prisma.UserGetPayload<{
+        include: {
+          scrapeUsers: true;
+        };
+      }>;
     }
+  }
+}
+
+export function authoriseScrapeUser(
+  scrapeUsers: ScrapeUser[],
+  scrapeId: string
+) {
+  if (!scrapeUsers.find((su) => su.scrapeId === scrapeId)) {
+    throw new Error("Unauthorised");
   }
 }

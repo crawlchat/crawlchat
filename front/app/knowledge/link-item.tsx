@@ -7,18 +7,18 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { TbBook2, TbRefresh, TbTrash } from "react-icons/tb";
 import { Group, IconButton, Spinner, Stack } from "@chakra-ui/react";
 import { Tooltip } from "~/components/ui/tooltip";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { createToken } from "~/jwt";
 import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const item = await prisma.scrapeItem.findUnique({
-    where: { id: params.itemId, userId: user!.id },
+    where: { id: params.itemId },
     include: {
       knowledgeGroup: true,
     },
@@ -28,12 +28,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 export async function action({ params, request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
+  const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+
   const formData = await request.formData();
   const intent = formData.get("intent");
 
   if (request.method === "DELETE") {
     const scrapeItem = await prisma.scrapeItem.findUnique({
-      where: { id: params.itemId, userId: user!.id },
+      where: { id: params.itemId },
     });
 
     if (!scrapeItem) {
@@ -57,7 +60,7 @@ export async function action({ params, request }: Route.ActionArgs) {
 
   if (intent === "refresh") {
     const scrapeItem = await prisma.scrapeItem.findUnique({
-      where: { id: params.itemId, userId: user!.id },
+      where: { id: params.itemId },
     });
 
     if (!scrapeItem) {
@@ -65,7 +68,7 @@ export async function action({ params, request }: Route.ActionArgs) {
     }
 
     await prisma.knowledgeGroup.update({
-      where: { id: scrapeItem.knowledgeGroupId, userId: user!.id },
+      where: { id: scrapeItem.knowledgeGroupId },
       data: { status: "processing" },
     });
 

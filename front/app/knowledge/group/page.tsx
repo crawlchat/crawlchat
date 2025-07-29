@@ -1,6 +1,6 @@
 import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import type { Route } from "./+types/page";
 import { Page } from "~/components/page";
 import {
@@ -19,11 +19,11 @@ import { ActionButton } from "./action-button";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
   });
 
   if (!scrape) {
@@ -31,7 +31,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   const knowledgeGroup = await prisma.knowledgeGroup.findUnique({
-    where: { id: params.groupId, userId: user!.id },
+    where: { id: params.groupId },
   });
 
   if (!knowledgeGroup) {
@@ -49,8 +49,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -63,7 +63,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     await prisma.knowledgeGroup.update({
-      where: { id: knowledgeGroupId, userId: user!.id },
+      where: { id: knowledgeGroupId },
       data: { status: "processing" },
     });
 
@@ -81,12 +81,14 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
 
     await prisma.knowledgeGroup.update({
-      where: { id: knowledgeGroupId, userId: user!.id },
+      where: { id: knowledgeGroupId },
       data: { status: "processing" },
     });
 
     return { success: true };
-  } else if (intent === "stop") {
+  }
+  
+  if (intent === "stop") {
     const knowledgeGroupId = params.groupId;
 
     if (!knowledgeGroupId) {
@@ -94,7 +96,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     await prisma.knowledgeGroup.update({
-      where: { id: knowledgeGroupId, userId: user!.id },
+      where: { id: knowledgeGroupId },
       data: { status: "done" },
     });
 

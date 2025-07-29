@@ -20,11 +20,12 @@ export async function getSessionScrapeId(request: Request) {
 export function authoriseScrapeUser(
   scrapeUsers: ScrapeUser[],
   scrapeId: string,
-  role?: UserRole
+  roles?: UserRole[]
 ) {
   const scrapeUser = scrapeUsers.find(
     (scrapeUser) =>
-      scrapeUser.scrapeId === scrapeId && (!role || scrapeUser.role === role)
+      scrapeUser.scrapeId === scrapeId &&
+      (!roles || roles.includes(scrapeUser.role))
   );
 
   if (!scrapeUser) {

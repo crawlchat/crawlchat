@@ -14,7 +14,7 @@ import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
 import type { Route } from "./+types/fix";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Link, redirect, useFetcher } from "react-router";
 import { createToken } from "~/jwt";
 import { Button } from "~/components/ui/button";
@@ -27,16 +27,16 @@ import { ChatBoxProvider } from "~/widget/use-chat-box";
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
     where: {
       id: scrapeId,
-      userId: user!.id,
     },
   });
 
   if (!scrape) {
-    throw redirect("/dashboard");
+    throw redirect("/app");
   }
 
   const message = await prisma.message.findUnique({
@@ -46,7 +46,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   });
 
   if (!message) {
-    throw redirect("/dashboard");
+    throw redirect("/app");
   }
 
   const thread = await prisma.thread.findUnique({
@@ -59,7 +59,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   });
 
   if (!thread) {
-    throw redirect("/dashboard");
+    throw redirect("/app");
   }
 
   const messageIndex = thread.messages.findIndex((m) => m.id === message.id);
@@ -117,7 +117,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
 
     if (!message) {
-      throw redirect("/dashboard");
+      throw redirect("/app");
     }
 
     const markdown = `Updated on ${new Date().toLocaleDateString()}:

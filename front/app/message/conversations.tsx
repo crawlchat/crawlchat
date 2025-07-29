@@ -20,7 +20,7 @@ import {
 } from "react-icons/tb";
 import type { Route } from "./+types/conversations";
 import { getAuthUser } from "~/auth/middleware";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import type { Prisma } from "libs/prisma";
 import { prisma } from "~/prisma";
 import moment from "moment";
@@ -42,16 +42,16 @@ type ThreadWithMessages = Prisma.ThreadGetPayload<{
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
     where: {
-      userId: user!.id,
       id: scrapeId,
     },
   });
 
   if (!scrape) {
-    throw redirect("/dashboard");
+    throw redirect("/app");
   }
 
   const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);

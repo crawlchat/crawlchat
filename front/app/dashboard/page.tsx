@@ -175,7 +175,9 @@ export async function action({ request }: Route.ActionArgs) {
         "Set-Cookie": await commitSession(session),
       },
     });
-  } else if (intent === "create-collection") {
+  }
+  
+  if (intent === "create-collection") {
     const name = formData.get("name");
     const scrape = await prisma.scrape.create({
       data: {

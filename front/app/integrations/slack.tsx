@@ -7,17 +7,17 @@ import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { TbArrowRight, TbBrandSlack } from "react-icons/tb";
 import { Button } from "~/components/ui/button";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { useEffect, useState } from "react";
 import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
   });
 
   if (!scrape) {
@@ -29,19 +29,18 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
-
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const formData = await request.formData();
 
   const update: Prisma.ScrapeUpdateInput = {};
-
   if (formData.has("slackTeamId")) {
     update.slackTeamId = formData.get("slackTeamId") as string;
   }
 
   const scrape = await prisma.scrape.update({
-    where: { id: scrapeId, userId: user!.id },
+    where: { id: scrapeId },
     data: update,
   });
 

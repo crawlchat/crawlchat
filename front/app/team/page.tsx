@@ -4,6 +4,7 @@ import {
   IconButton,
   Input,
   Portal,
+  Spinner,
   Stack,
   Table,
   Text,
@@ -47,6 +48,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
+  const scrapeUser = authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -79,6 +81,27 @@ export async function action({ request }: Route.ActionArgs) {
 
     return Response.json({ success: true });
   }
+
+  if (intent === "delete") {
+    authoriseScrapeUser(user!.scrapeUsers, scrapeId, ["owner", "admin"]);
+
+    const deletingScrapeUser = await prisma.scrapeUser.findUnique({
+      where: {
+        id: formData.get("scrapeUserId") as string,
+      },
+    });
+
+    if (deletingScrapeUser!.role === "owner") {
+      return Response.json({ error: "Cannot delete owner" }, { status: 400 });
+    }
+
+    const scrapeUserId = formData.get("scrapeUserId");
+    await prisma.scrapeUser.delete({
+      where: { id: scrapeUserId as string },
+    });
+
+    return Response.json({ success: true });
+  }
 }
 
 function RoleBadge({ role }: { role: string }) {
@@ -103,6 +126,40 @@ function RoleBadge({ role }: { role: string }) {
       <TbUser />
       {role.toUpperCase()}
     </Badge>
+  );
+}
+
+function DeleteUser({
+  scrapeUserId,
+  disabled,
+}: {
+  scrapeUserId: string;
+  disabled: boolean;
+}) {
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    if (fetcher.data?.error) {
+      toaster.error({
+        title: "Error",
+        description: fetcher.data.error,
+      });
+    }
+  }, [fetcher.data]);
+
+  return (
+    <fetcher.Form method="post">
+      <input type="hidden" name="intent" value="delete" />
+      <input type="hidden" name="scrapeUserId" value={scrapeUserId} />
+      <IconButton
+        variant={"subtle"}
+        size={"sm"}
+        disabled={disabled}
+        type="submit"
+      >
+        {fetcher.state === "submitting" ? <Spinner size={"sm"} /> : <TbTrash />}
+      </IconButton>
+    </fetcher.Form>
   );
 }
 
@@ -209,13 +266,10 @@ export default function TeamPage({ loaderData }: Route.ComponentProps) {
                 </Table.Cell>
                 <Table.Cell textAlign="end">
                   {scrapeUser.role !== "admin" && (
-                    <IconButton
-                      variant={"subtle"}
-                      size={"sm"}
+                    <DeleteUser
+                      scrapeUserId={scrapeUser.id}
                       disabled={!canDeleteUser}
-                    >
-                      <TbTrash />
-                    </IconButton>
+                    />
                   )}
                 </Table.Cell>
               </Table.Row>

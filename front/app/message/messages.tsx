@@ -38,7 +38,7 @@ import { truncate } from "~/util";
 import { useMemo } from "react";
 import { makeMessagePairs } from "./analyse";
 import { Tooltip } from "~/components/ui/tooltip";
-import { getSessionScrapeId } from "~/scrapes/util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import type { Message, MessageChannel } from "libs/prisma";
 import { getScoreColor } from "~/score";
 import { Link as RouterLink } from "react-router";
@@ -48,12 +48,12 @@ import { CountryFlag } from "./country-flag";
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
 
   const messages = await prisma.message.findMany({
     where: {
-      ownerUserId: user!.id,
       scrapeId,
       createdAt: {
         gte: ONE_WEEK_AGO,
@@ -61,12 +61,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     include: {
       thread: true,
-    },
-  });
-
-  const scrapes = await prisma.scrape.findMany({
-    where: {
-      userId: user!.id,
     },
   });
 
@@ -80,7 +74,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  return { messagePairs, scrapes };
+  return { messagePairs };
 }
 
 function getMessageContent(message?: Message) {
