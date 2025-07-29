@@ -58,6 +58,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("cookie"));
   const scrapeId = session.get("scrapeId");
 
+  // Check scrapeId in session
   const scrapes = await prisma.scrapeUser
     .findMany({
       where: {
@@ -71,6 +72,27 @@ export async function loader({ request }: Route.LoaderArgs) {
       },
     })
     .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
+
+  if (scrapeId && !scrapes.find((s) => s.id === scrapeId)) {
+    if (scrapes.length > 0) {
+      session.set("scrapeId", scrapes[0].id);
+    } else {
+      session.unset("scrapeId");
+    }
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
+  if (!scrapeId && scrapes.length > 0) {
+    session.set("scrapeId", scrapes[0].id);
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
 
   const ONE_WEEK = 1000 * 60 * 60 * 24 * 7;
 
@@ -95,28 +117,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   const today = new Date();
   const todayKey = today.toISOString().split("T")[0];
   const messagesToday = dailyMessages[todayKey] ?? 0;
-
-  // Check and set the scrapeId
-  if (scrapeId && !scrapes.find((s) => s.id === scrapeId)) {
-    if (scrapes.length > 0) {
-      session.set("scrapeId", scrapes[0].id);
-    } else {
-      session.unset("scrapeId");
-    }
-    throw redirect("/app", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
-  }
-  if (!scrapeId && scrapes.length > 0) {
-    session.set("scrapeId", scrapes[0].id);
-    throw redirect("/app", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
-  }
 
   const scoreDestribution: Record<number, { count: number }> = {};
   const points = 50;
@@ -176,7 +176,7 @@ export async function action({ request }: Route.ActionArgs) {
       },
     });
   }
-  
+
   if (intent === "create-collection") {
     const name = formData.get("name");
     const scrape = await prisma.scrape.create({
