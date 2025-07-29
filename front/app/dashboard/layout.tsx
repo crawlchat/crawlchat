@@ -37,11 +37,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const plan = user!.plan?.planId ? planMap[user!.plan.planId] : PLAN_FREE;
 
-  const scrapes = await prisma.scrape.findMany({
-    where: {
-      userId: user!.id,
-    },
-  });
+  const scrapes = await prisma.scrapeUser
+    .findMany({
+      where: {
+        userId: user!.id,
+      },
+      include: {
+        scrape: true,
+      },
+    })
+    .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
 
   const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
 

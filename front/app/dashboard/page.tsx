@@ -56,22 +56,26 @@ import { Tooltip as ChakraTooltip } from "~/components/ui/tooltip";
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const session = await getSession(request.headers.get("cookie"));
-  let scrapeId = session.get("scrapeId");
+  const scrapeId = session.get("scrapeId");
 
-  const scrapes = await prisma.scrape.findMany({
-    where: {
-      userId: user?.id,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const scrapes = await prisma.scrapeUser
+    .findMany({
+      where: {
+        userId: user!.id,
+      },
+      include: {
+        scrape: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+    .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
 
   const ONE_WEEK = 1000 * 60 * 60 * 24 * 7;
 
   const messages = await prisma.message.findMany({
     where: {
-      ownerUserId: user!.id,
       scrapeId,
       createdAt: {
         gte: new Date(Date.now() - ONE_WEEK),
@@ -93,22 +97,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   const messagesToday = dailyMessages[todayKey] ?? 0;
 
   // Check and set the scrapeId
-  if (scrapeId) {
-    const scrape = await prisma.scrape.findUnique({
-      where: { id: scrapeId, userId: user!.id },
-    });
-    if (!scrape) {
-      if (scrapes.length > 0) {
-        session.set("scrapeId", scrapes[0].id);
-      } else {
-        session.unset("scrapeId");
-      }
-      throw redirect("/app", {
-        headers: {
-          "Set-Cookie": await commitSession(session),
-        },
-      });
+  if (scrapeId && !scrapes.find((s) => s.id === scrapeId)) {
+    if (scrapes.length > 0) {
+      session.set("scrapeId", scrapes[0].id);
+    } else {
+      session.unset("scrapeId");
     }
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
   }
   if (!scrapeId && scrapes.length > 0) {
     session.set("scrapeId", scrapes[0].id);
@@ -140,7 +139,6 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return {
     user,
-    scrapes,
     dailyMessages,
     messagesToday,
     scrapeId,
@@ -148,6 +146,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     scrape: scrapes.find((s) => s.id === scrapeId),
     ratingUpCount,
     ratingDownCount,
+    noScrapes: scrapes.length === 0,
   };
 }
 
@@ -290,13 +289,13 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     if (containerRef.current) {
       setWidth(containerRef.current.clientWidth - 10);
     }
-  }, [containerRef, loaderData.scrapes]);
+  }, [containerRef, loaderData]);
 
   useEffect(() => {
-    if (loaderData.scrapes.length > 0) {
-      setNewCollectionDialogOpen(false);
+    if (loaderData.noScrapes) {
+      setNewCollectionDialogOpen(true);
     }
-  }, [loaderData.scrapes]);
+  }, [loaderData.noScrapes]);
 
   return (
     <Page
@@ -325,7 +324,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         </Group>
       }
     >
-      {loaderData.scrapes.length === 0 && (
+      {loaderData.noScrapes && (
         <Center w="full" h="full">
           <EmptyState
             icon={<TbDatabase />}
@@ -343,7 +342,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         </Center>
       )}
 
-      {loaderData.scrapes.length > 0 && (
+      {!loaderData.noScrapes && (
         <Stack height={"100%"} gap={8} ref={containerRef}>
           <Group>
             <StatCard
