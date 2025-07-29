@@ -1,5 +1,11 @@
 import { prisma } from "./prisma";
-import { PlanCredits, PlanLimits, PlanType, UserPlanProvider } from "@prisma/client";
+import {
+  PlanCredits,
+  PlanLimits,
+  PlanType,
+  User,
+  UserPlanProvider,
+} from "@prisma/client";
 
 type PlanResetType = "monthly" | "yearly" | "one-time" | "on-payment";
 type PlanCategory = "BASE" | "SERVICE" | "TOPUP";
@@ -35,7 +41,7 @@ export const PLAN_FREE: Plan = {
 export const PLAN_STARTER: Plan = {
   id: "starter",
   name: "Starter",
-  price: 29,
+  price: 45,
   type: "SUBSCRIPTION",
   credits: {
     scrapes: 5000,
@@ -43,7 +49,7 @@ export const PLAN_STARTER: Plan = {
   },
   limits: {
     scrapes: 2,
-    teamMembers: 3,
+    teamMembers: 2,
   },
   resetType: "monthly",
   category: "BASE",
@@ -52,15 +58,15 @@ export const PLAN_STARTER: Plan = {
 export const PLAN_PRO: Plan = {
   id: "pro",
   name: "Pro",
-  price: 79,
+  price: 99,
   type: "SUBSCRIPTION",
   credits: {
     scrapes: 14000,
     messages: 7000,
   },
   limits: {
-    scrapes: 5,
-    teamMembers: 10,
+    scrapes: 3,
+    teamMembers: 5,
   },
   resetType: "monthly",
   category: "BASE",
@@ -205,4 +211,12 @@ export async function hasEnoughCredits(
   });
   const available = user?.plan?.credits?.[type] ?? 0;
   return available >= amount;
+}
+
+export async function getLimits(user: User) {
+  if (user.plan?.limits) return user.plan.limits;
+
+  const planId = user.plan?.planId ?? PLAN_FREE.id;
+  const plan = planMap[planId];
+  return plan.limits;
 }

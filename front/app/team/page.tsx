@@ -30,6 +30,7 @@ import { useEffect, useState } from "react";
 import { toaster } from "~/components/ui/toaster";
 import { Button } from "~/components/ui/button";
 import { sendInvitationEmail } from "~/email";
+import { getLimits } from "libs/user-plan";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -62,6 +63,37 @@ export async function action({ request }: Route.ActionArgs) {
   const intent = formData.get("intent");
 
   if (intent === "invite") {
+    const scrape = await prisma.scrape.findUnique({
+      where: {
+        id: scrapeId,
+      },
+    });
+
+    const owner = await prisma.user.findFirst({
+      where: {
+        id: scrape!.userId,
+      },
+      include: {
+        scrapes: {
+          include: {
+            scrapeUsers: true,
+          },
+        },
+      },
+    });
+    const uniqueMembers = new Set(
+      owner!.scrapes.flatMap((scrape) =>
+        scrape.scrapeUsers.map((user) => user.email)
+      )
+    );
+    const limits = await getLimits(owner!);
+    if (uniqueMembers.size >= limits.teamMembers) {
+      return Response.json(
+        { error: "You have reached the maximum number of team members" },
+        { status: 400 }
+      );
+    }
+
     const email = formData.get("email");
 
     if (!email) {
@@ -81,12 +113,6 @@ export async function action({ request }: Route.ActionArgs) {
           role: "member",
           email: email as string,
           invited: true,
-        },
-      });
-
-      const scrape = await prisma.scrape.findUnique({
-        where: {
-          id: scrapeId,
         },
       });
 
@@ -378,7 +404,8 @@ function Leave({ scrapeTitle }: { scrapeTitle: string }) {
                     Are you sure you want to leave the{" "}
                     <Text as={"span"} fontWeight={"bold"}>
                       {scrapeTitle}
-                    </Text>?
+                    </Text>
+                    ?
                   </p>
                 </Stack>
               </Dialog.Body>
