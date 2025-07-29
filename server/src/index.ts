@@ -466,7 +466,6 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 });
 
 app.post("/resource/:scrapeId", authenticate, async (req, res) => {
-  // const userId = req.user!.id;
   const scrapeId = req.params.scrapeId;
   const knowledgeGroupType = req.body.knowledgeGroupType;
   const defaultGroupTitle = req.body.defaultGroupTitle;
