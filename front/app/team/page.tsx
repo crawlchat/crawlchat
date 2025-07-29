@@ -22,7 +22,7 @@ import { Page } from "~/components/page";
 import type { Route } from "./+types/page";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { prisma } from "libs/prisma";
+import { prisma, type ScrapeUser } from "libs/prisma";
 import { useFetcher } from "react-router";
 import { useEffect, useState } from "react";
 import { toaster } from "~/components/ui/toaster";
@@ -67,7 +67,15 @@ export async function action({ request }: Route.ActionArgs) {
     });
 
     if (!user) {
-      return Response.json({ error: "User not found" }, { status: 400 });
+      await prisma.scrapeUser.create({
+        data: {
+          scrapeId,
+          role: "member",
+          email: email as string,
+          invited: true,
+        },
+      });
+      return Response.json({ success: true });
     }
 
     await prisma.scrapeUser.create({
@@ -130,36 +138,83 @@ function RoleBadge({ role }: { role: string }) {
 }
 
 function DeleteUser({
-  scrapeUserId,
+  scrapeUser,
   disabled,
 }: {
-  scrapeUserId: string;
+  scrapeUser: ScrapeUser;
   disabled: boolean;
 }) {
   const fetcher = useFetcher();
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!fetcher.data) return;
+
     if (fetcher.data?.error) {
       toaster.error({
         title: "Error",
         description: fetcher.data.error,
       });
     }
+
+    if (fetcher.data.success) {
+      setOpen(false);
+      toaster.success({
+        title: "Success",
+        description: "Deleted the user",
+      });
+    }
   }, [fetcher.data]);
 
   return (
-    <fetcher.Form method="post">
-      <input type="hidden" name="intent" value="delete" />
-      <input type="hidden" name="scrapeUserId" value={scrapeUserId} />
-      <IconButton
-        variant={"subtle"}
-        size={"sm"}
-        disabled={disabled}
-        type="submit"
-      >
-        {fetcher.state === "submitting" ? <Spinner size={"sm"} /> : <TbTrash />}
-      </IconButton>
-    </fetcher.Form>
+    <Dialog.Root open={open} onOpenChange={(details) => setOpen(details.open)}>
+      <Dialog.Trigger asChild>
+        <IconButton variant={"subtle"} size={"sm"}>
+          <TbTrash />
+        </IconButton>
+      </Dialog.Trigger>
+      <Portal>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content>
+            <fetcher.Form method="post">
+              <input type="hidden" name="intent" value="delete" />
+              <input type="hidden" name="scrapeUserId" value={scrapeUser.id} />
+              <Dialog.Header>
+                <Dialog.Title>Delete team member</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                <Stack gap={4}>
+                  <p>
+                    Are you sure you want to delete{" "}
+                    <Text as={"span"} fontWeight={"bold"}>
+                      {scrapeUser.email}
+                    </Text>
+                    ?
+                  </p>
+                </Stack>
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Dialog.ActionTrigger
+                  asChild
+                  disabled={fetcher.state !== "idle"}
+                >
+                  <Button variant="outline">Cancel</Button>
+                </Dialog.ActionTrigger>
+                <Button
+                  type="submit"
+                  loading={fetcher.state !== "idle"}
+                  colorPalette={"red"}
+                >
+                  Delete
+                  <TbTrash />
+                </Button>
+              </Dialog.Footer>
+            </fetcher.Form>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
+    </Dialog.Root>
   );
 }
 
@@ -257,7 +312,14 @@ export default function TeamPage({ loaderData }: Route.ComponentProps) {
           <Table.Body>
             {loaderData.scrapeUsers.map((scrapeUser) => (
               <Table.Row key={scrapeUser.id}>
-                <Table.Cell>{scrapeUser.email}</Table.Cell>
+                <Table.Cell>
+                  {scrapeUser.email}
+                  {scrapeUser.invited && (
+                    <Text opacity={0.5} as={"span"} ml={2}>
+                      [Invited]
+                    </Text>
+                  )}
+                </Table.Cell>
                 <Table.Cell>
                   <RoleBadge role={scrapeUser.role} />
                 </Table.Cell>
@@ -265,9 +327,9 @@ export default function TeamPage({ loaderData }: Route.ComponentProps) {
                   {scrapeUser.createdAt.toLocaleDateString()}
                 </Table.Cell>
                 <Table.Cell textAlign="end">
-                  {scrapeUser.role !== "admin" && (
+                  {scrapeUser.role !== "owner" && (
                     <DeleteUser
-                      scrapeUserId={scrapeUser.id}
+                      scrapeUser={scrapeUser}
                       disabled={!canDeleteUser}
                     />
                   )}

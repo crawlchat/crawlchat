@@ -233,13 +233,13 @@ app.delete(
   async function (req: Request, res: Response) {
     const scrapeId = req.body.scrapeId;
     authoriseScrapeUser(req.user!.scrapeUsers, scrapeId);
-    try {
-      const scrape = await prisma.scrape.findFirstOrThrow({
-        where: { id: scrapeId },
-      });
-      const indexer = makeIndexer({ key: scrape.indexer });
-      await deleteScrape(indexer.getKey(), scrapeId);
-    } catch (error) {}
+
+    const scrape = await prisma.scrape.findFirstOrThrow({
+      where: { id: scrapeId },
+    });
+    const indexer = makeIndexer({ key: scrape.indexer });
+    await deleteScrape(indexer.getKey(), scrapeId);
+
     res.json({ message: "ok" });
   }
 );

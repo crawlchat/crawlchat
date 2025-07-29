@@ -35,15 +35,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("cookie"));
   const scrapeId = session.get("scrapeId");
 
-  const plan = user!.plan?.planId ? planMap[user!.plan.planId] : PLAN_FREE;
-
   const scrapes = await prisma.scrapeUser
     .findMany({
       where: {
         userId: user!.id,
       },
       include: {
-        scrape: true,
+        scrape: {
+          include: {
+            user: true,
+          },
+        },
       },
     })
     .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
@@ -67,6 +69,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   const scrape = scrapes.find((s) => s.id === scrapeId);
+  const plan = scrape?.user.plan?.planId
+    ? planMap[scrape.user.plan.planId]
+    : PLAN_FREE;
 
   return {
     user: user!,
@@ -92,7 +97,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       <Group align="start" gap={0} w="full" minH="100dvh">
         <SideMenu
           width={drawerWidth}
-          user={user}
+          loggedInUser={user}
+          scrapeOwner={loaderData.scrape?.user!}
           fixed={true}
           plan={loaderData.plan}
           scrapes={loaderData.scrapes}
