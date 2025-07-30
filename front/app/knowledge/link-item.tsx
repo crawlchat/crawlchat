@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { TbBook2, TbRefresh, TbTrash } from "react-icons/tb";
-import { Group, IconButton, Spinner, Stack } from "@chakra-ui/react";
+import { Group, IconButton, Input, Spinner, Stack } from "@chakra-ui/react";
 import { Tooltip } from "~/components/ui/tooltip";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { createToken } from "~/jwt";
 import { toaster } from "~/components/ui/toaster";
+import type { Prisma, ScrapeItem } from "libs/prisma";
+import { SettingsSection } from "~/settings-section";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -88,6 +90,57 @@ export async function action({ params, request }: Route.ActionArgs) {
 
     return { success: true };
   }
+
+  if (intent === "update") {
+    const update: Prisma.ScrapeItemUpdateInput = {};
+    if (formData.get("title")) {
+      update.title = formData.get("title") as string;
+    }
+
+    await prisma.scrapeItem.update({
+      where: { id: params.itemId },
+      data: update,
+    });
+
+    return { success: true };
+  }
+}
+
+function NameSection({ item }: { item: ScrapeItem }) {
+  const updateFetcher = useFetcher();
+
+  useEffect(() => {
+    if (!updateFetcher.data) return;
+
+    if (updateFetcher.data) {
+      toaster.success({
+        title: "Updated",
+        description: "Title updated",
+      });
+    }
+
+    if (updateFetcher.data.error) {
+      toaster.error({
+        title: "Error",
+        description: updateFetcher.data.error,
+      });
+    }
+  }, [updateFetcher.data]);
+
+  return (
+    <SettingsSection
+      title="Title"
+      description="Change the title of the item. The name will be shown under Sources section of chat widget or other channels."
+      fetcher={updateFetcher}
+    >
+      <input type="hidden" name="intent" value="update" />
+      <Input
+        name="title"
+        placeholder="Example: FAQ Document"
+        defaultValue={item.title ?? ""}
+      />
+    </SettingsSection>
+  );
 }
 
 export default function ScrapeItem({ loaderData }: Route.ComponentProps) {
@@ -165,6 +218,7 @@ export default function ScrapeItem({ loaderData }: Route.ComponentProps) {
     >
       <Stack>
         <Stack maxW={"800px"}>
+          {loaderData.item && <NameSection item={loaderData.item} />}
           <MarkdownProse>{loaderData.item?.markdown}</MarkdownProse>
         </Stack>
       </Stack>

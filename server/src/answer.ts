@@ -27,6 +27,7 @@ export type AnswerCompleteEvent = {
   content: string;
   sources: MessageSourceLink[];
   llmCalls: number;
+  creditsUsed: number;
 };
 
 export type ToolCallEvent = {
@@ -185,6 +186,7 @@ export const baseAnswerer: Answerer = async (
         flow.flowState.state.messages
       ),
       llmCalls: 1,
+      creditsUsed: llmConfig.creditsPerMessage,
     };
     options?.listen?.(answer);
   }
@@ -351,6 +353,7 @@ Question: ${query}
       content: lastMessage.llmMessage.content as string,
       sources,
       llmCalls,
+      creditsUsed: llmCalls * config.creditsPerMessage,
     };
     options?.listen?.(answer);
   }

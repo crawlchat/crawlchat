@@ -57,6 +57,7 @@ import {
   type SetupProgressInput,
 } from "./setup-progress";
 import { LogoChakra } from "./logo-chakra";
+import { Tooltip } from "~/components/ui/tooltip";
 
 function SideMenuItem({
   link,
@@ -130,9 +131,15 @@ function CreditProgress({
     <Stack gap={1}>
       <Group justify="space-between" fontSize={"sm"}>
         <Text>{title}</Text>
-        <Text>
-          {numberToKMB(used)} / {numberToKMB(total)}
-        </Text>
+        <Tooltip
+          content={`Used ${used} of ${total}`}
+          showArrow
+          positioning={{ placement: "top" }}
+        >
+          <Text>
+            {numberToKMB(used)} / {numberToKMB(total)}
+          </Text>
+        </Tooltip>
       </Group>
       <Progress.Root
         value={value}

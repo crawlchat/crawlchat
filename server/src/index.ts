@@ -141,7 +141,7 @@ function answerListener(
         break;
 
       case "answer-complete":
-        await consumeCredits(userId, "messages", event.llmCalls);
+        await consumeCredits(userId, "messages", event.creditsUsed);
         const newAnswerMessage = await prisma.message.create({
           data: {
             threadId,
@@ -471,6 +471,7 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
   const defaultGroupTitle = req.body.defaultGroupTitle;
   const markdown = req.body.markdown;
   const title = req.body.title;
+  const knowledgeGroupId = req.body.knowledgeGroupId;
 
   authoriseScrapeUser(req.user!.scrapeUsers, scrapeId);
 
@@ -486,6 +487,12 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
   let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
     where: { scrapeId, type: knowledgeGroupType },
   });
+
+  if (knowledgeGroupId) {
+    knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+      where: { id: knowledgeGroupId },
+    });
+  }
 
   if (!(await hasEnoughCredits(scrape.userId, "scrapes"))) {
     res.status(400).json({ message: "Not enough credits" });

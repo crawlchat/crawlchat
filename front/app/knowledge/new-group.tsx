@@ -175,6 +175,7 @@ export async function action({ request }: { request: Request }) {
             title: file.title,
             knowledgeGroupType: "upload",
             defaultGroupTitle: "Upload",
+            knowledgeGroupId: group.id,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -335,6 +336,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                     "application/vnd.ms-powerpoint",
                     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
                     "text/plain",
+                    "text/markdown",
                   ]}
                 >
                   <ChakraFileUpload.HiddenInput name="file" required />
