@@ -7,7 +7,11 @@ import { commitSession, getSession } from "~/session";
 import { Alert } from "~/components/ui/alert";
 import { useEffect, useRef, useState } from "react";
 import { RiChatVoiceAiFill } from "react-icons/ri";
-import { TbArrowRight } from "react-icons/tb";
+import {
+  TbArrowRight,
+  TbBrandGoogle,
+  TbBrandGoogleFilled,
+} from "react-icons/tb";
 import { getAuthUser } from "./middleware";
 import "../fonts.css";
 
@@ -175,6 +179,12 @@ export default function LoginPage() {
                 </Text>
                 <Text>CrawlChat</Text>
               </Stack>
+
+              <Button w="full" colorPalette={"red"} asChild>
+                <a href="/auth/google">
+                  <TbBrandGoogleFilled /> Login with Google
+                </a>
+              </Button>
 
               <Stack>
                 <Text textAlign={"center"} opacity={"0.5"} fontSize={"sm"}>

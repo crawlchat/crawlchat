@@ -11,6 +11,7 @@ import {
   Stack,
   Text,
   Image,
+  Avatar,
 } from "@chakra-ui/react";
 import {
   TbBook,
@@ -19,7 +20,6 @@ import {
   TbHome,
   TbLogout,
   TbMessage,
-  TbMessages,
   TbPlug,
   TbRoad,
   TbSettings,
@@ -34,7 +34,6 @@ import {
   useFetcher,
   type FetcherWithComponents,
 } from "react-router";
-import { Avatar } from "~/components/ui/avatar";
 import {
   MenuContent,
   MenuItem,
@@ -507,8 +506,13 @@ export function SideMenu({
           justify="space-between"
         >
           <Group flex={1} maxW="80%">
-            <Avatar name={loggedInUser.email} size={"sm"} />
-            <Text truncate>{loggedInUser.email}</Text>
+            <Avatar.Root shape="full" size="sm">
+              <Avatar.Fallback>
+                {loggedInUser.name?.charAt(0) ?? loggedInUser.email.charAt(0)}
+              </Avatar.Fallback>
+              {loggedInUser.photo && <Avatar.Image src={loggedInUser.photo} />}
+            </Avatar.Root>
+            <Text truncate>{loggedInUser.name ?? loggedInUser.email}</Text>
           </Group>
 
           <MenuRoot positioning={{ placement: "right-end" }}>
