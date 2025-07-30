@@ -11,7 +11,7 @@ export async function query(
     body: JSON.stringify({
       messages,
       prompt: options?.prompt,
-      channel: "discord",
+      channel: "slack",
     }),
     headers: {
       "Content-Type": "application/json",

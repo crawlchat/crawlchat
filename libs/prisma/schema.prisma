@@ -178,6 +178,7 @@ type MessageSourceLink {
 enum MessageChannel {
   mcp
   discord
+  slack
 }
 
 enum MessageRating {

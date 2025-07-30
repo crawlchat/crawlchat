@@ -16,6 +16,7 @@ import {
 import {
   TbBox,
   TbBrandDiscord,
+  TbBrandSlack,
   TbMessage,
   TbRobotFace,
   TbSettingsBolt,
@@ -88,6 +89,9 @@ function ChannelIcon({ channel }: { channel?: MessageChannel | null }) {
     }
     if (channel === "mcp") {
       return ["MCP", TbRobotFace, "blue"];
+    }
+    if (channel === "slack") {
+      return ["Slack", TbBrandSlack, "orange"];
     }
     return ["Chatbot", TbMessage, "brand"];
   }, [channel]);
