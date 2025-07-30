@@ -27,6 +27,7 @@
     "@rvf/react-router": "^7.0.2",
     "@rvf/zod": "^7.0.1",
     "@tuesdaycrowd/sentence-transformers": "^1.0.1",
+    "arctic": "^3.7.0",
     "crypto-js": "^4.2.0",
     "elevenlabs": "^1.50.4",
     "highlight.js": "^11.11.1",
@@ -50,6 +51,7 @@
     "remark-linkify-regex": "^1.2.1",
     "remix-auth": "^4.1.0",
     "remix-auth-form": "^3.0.0",
+    "remix-auth-oauth2": "^3.4.1",
     "resend": "^4.1.1",
     "uuid": "^11.1.0",
     "vite-plugin-commonjs": "^0.10.4"

@@ -16,6 +16,8 @@ type UserSettings {
 model User {
   id                  String   @id @default(auto()) @map("_id") @db.ObjectId
   email               String   @unique
+  name                String?
+  photo               String?
   settings            UserSettings?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

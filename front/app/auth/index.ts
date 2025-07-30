@@ -1,12 +1,29 @@
 import type { User } from "libs/prisma";
 import { Authenticator } from "remix-auth";
-import { prisma } from "~/prisma";
 import { sessionStorage } from "~/session";
 import { EmailLinkStrategy } from "./email-strategy";
-import { sendEmail, sendWelcomeEmail } from "~/email";
-import { PLAN_FREE } from "libs/user-plan";
+import { sendEmail } from "~/email";
+import { GoogleStrategy } from "./google-strategy";
+import { signUpNewUser } from "./signup";
 
 export const authenticator = new Authenticator<User | null>();
+
+const googleStrategy = new GoogleStrategy(
+  {
+    clientId: process.env.GOOGLE_CLIENT_ID!,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    redirectURI: process.env.GOOGLE_REDIRECT_URI!,
+  },
+  async ({ tokens }) => {
+    const profile = await GoogleStrategy.userProfile(tokens);
+    return await signUpNewUser(profile.emails[0].value, {
+      name: profile.displayName,
+      photo: profile.photos[0].value,
+    });
+  }
+);
+
+authenticator.use(googleStrategy);
 
 authenticator.use(
   new EmailLinkStrategy(
@@ -26,49 +43,7 @@ authenticator.use(
       sessionStorage,
     },
     async ({ email }) => {
-      let user = await prisma.user.findUnique({
-        where: { email: email },
-      });
-
-      if (!user) {
-        user = await prisma.user.create({
-          data: {
-            email: email,
-            plan: {
-              planId: PLAN_FREE.id,
-              type: PLAN_FREE.type,
-              provider: "CUSTOM",
-              status: "ACTIVE",
-              credits: PLAN_FREE.credits,
-              limits: PLAN_FREE.limits,
-              activatedAt: new Date(),
-            },
-          },
-        });
-
-        const pendingScrapeUsers = await prisma.scrapeUser.findMany({
-          where: {
-            email: email,
-            invited: true,
-          },
-        });
-
-        for (const scrapeUser of pendingScrapeUsers) {
-          await prisma.scrapeUser.update({
-            where: {
-              id: scrapeUser.id,
-            },
-            data: {
-              invited: false,
-              userId: user.id,
-            },
-          });
-        }
-
-        await sendWelcomeEmail(email);
-      }
-
-      return user;
+      return await signUpNewUser(email);
     }
   ),
   "magic-link"

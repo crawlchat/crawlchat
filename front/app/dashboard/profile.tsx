@@ -1,10 +1,10 @@
 import { Page } from "~/components/page";
 import { TbSettings } from "react-icons/tb";
-import { Stack } from "@chakra-ui/react";
+import { Input, Stack } from "@chakra-ui/react";
 import { useFetcher } from "react-router";
 import type { Route } from "./+types/profile";
 import { getAuthUser } from "~/auth/middleware";
-import type { UserSettings } from "libs/prisma";
+import type { Prisma } from "libs/prisma";
 import { prisma } from "~/prisma";
 import { Switch } from "~/components/ui/switch";
 import {
@@ -22,25 +22,28 @@ export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
 
   const formData = await request.formData();
-  const intent = formData.get("intent");
-  const openaiApiKey = formData.get("openaiApiKey");
-  const weeklyUpdates = formData.get("weeklyUpdates");
 
-  const update: Partial<UserSettings> = {};
+  const update: Prisma.UserUpdateInput = {
+    settings: user?.settings ?? {
+      weeklyUpdates: true,
+      ticketEmailUpdates: true,
+    },
+  };
 
-  if (openaiApiKey !== null) {
-    update.openaiApiKey = openaiApiKey as string;
+  if (formData.has("from-weekly-updates")) {
+    update.settings!.weeklyUpdates = formData.get("weeklyUpdates") === "on";
   }
-  if (intent === "weekly-updates") {
-    update.weeklyUpdates = weeklyUpdates === "on";
+  if (formData.has("from-ticket-updates")) {
+    update.settings!.ticketEmailUpdates =
+      formData.get("ticketUpdates") === "on";
   }
-  if (intent === "ticket-updates") {
-    update.ticketEmailUpdates = formData.get("ticketUpdates") === "on";
+  if (formData.has("name")) {
+    update.name = formData.get("name") as string;
   }
 
   await prisma.user.update({
     where: { id: user!.id },
-    data: { settings: { ...user!.settings, ...update } },
+    data: update,
   });
 
   return Response.json({ success: true });
@@ -49,6 +52,7 @@ export async function action({ request }: Route.ActionArgs) {
 export default function SettingsPage({ loaderData }: Route.ComponentProps) {
   const weeklyUpdatesFetcher = useFetcher();
   const ticketUpdatesFetcher = useFetcher();
+  const nameFetcher = useFetcher();
 
   return (
     <Page title="Profile" icon={<TbSettings />}>
@@ -56,13 +60,29 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
         <SettingsSectionProvider>
           <SettingsContainer>
             <SettingsSection
+              id="name"
+              fetcher={nameFetcher}
+              title="Name"
+              description="Set your name to be displayed in the dashboard"
+            >
+              <Stack>
+                <Input
+                  name="name"
+                  defaultValue={loaderData.user.name ?? ""}
+                  placeholder="Your name"
+                  maxW={400}
+                />
+              </Stack>
+            </SettingsSection>
+
+            <SettingsSection
               id="weekly-updates"
               fetcher={weeklyUpdatesFetcher}
               title="Weekly Updates"
               description="Enable weekly updates to be sent to your email."
             >
               <Stack>
-                <input type="hidden" name="intent" value="weekly-updates" />
+                <input type="hidden" name="from-weekly-updates" value="true" />
                 <Switch
                   name="weeklyUpdates"
                   defaultChecked={
@@ -81,7 +101,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
               description="Enable ticket updates to be sent to your email."
             >
               <Stack>
-                <input type="hidden" name="intent" value="ticket-updates" />
+                <input type="hidden" name="from-ticket-updates" value="true" />
                 <Switch
                   name="ticketUpdates"
                   defaultChecked={

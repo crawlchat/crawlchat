@@ -12,6 +12,9 @@ export default [
     route("verify", "auth/verify.ts"),
   ]),
 
+  route("auth/google", "auth/google.ts"),
+  route("auth/google/callback", "auth/google-callback.ts"),
+
   route("terms", "landing/terms.tsx"),
   route("policy", "landing/policy.tsx"),
   route("embed-demo", "landing/embed-demo.tsx"),
