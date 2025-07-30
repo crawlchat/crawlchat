@@ -42,7 +42,7 @@ export function extractCitations(
     cleanedContent +=
       "\n\nSources:\n" +
       Object.values(citedLinks)
-        .map((l) => l.url)
+        .map((l) => l.url || l.title)
         .join("\n");
   }
 
