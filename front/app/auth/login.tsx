@@ -1,4 +1,12 @@
-import { Box, Center, Group, Input, Stack, Text } from "@chakra-ui/react";
+import {
+  Box,
+  Center,
+  Group,
+  Input,
+  Separator,
+  Stack,
+  Text,
+} from "@chakra-ui/react";
 import { redirect, useFetcher, useLoaderData } from "react-router";
 import { Button } from "~/components/ui/button";
 import type { Route } from "../+types/root";
@@ -6,13 +14,9 @@ import { authenticator } from ".";
 import { commitSession, getSession } from "~/session";
 import { Alert } from "~/components/ui/alert";
 import { useEffect, useRef, useState } from "react";
-import { RiChatVoiceAiFill } from "react-icons/ri";
-import {
-  TbArrowRight,
-  TbBrandGoogle,
-  TbBrandGoogleFilled,
-} from "react-icons/tb";
+import { TbArrowRight, TbBrandGoogleFilled } from "react-icons/tb";
 import { getAuthUser } from "./middleware";
+import { LogoChakra } from "~/dashboard/logo-chakra";
 import "../fonts.css";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -167,24 +171,15 @@ export default function LoginPage() {
         <Center h="full">
           <fetcher.Form method="post">
             <Stack w="240px" align="center" gap={6}>
-              <Stack
-                fontSize={"2xl"}
-                fontWeight={"bold"}
-                color="brand.fg"
-                fontFamily={"Radio Grotesk"}
-                alignItems={"center"}
-              >
-                <Text>
-                  <RiChatVoiceAiFill />
-                </Text>
-                <Text>CrawlChat</Text>
-              </Stack>
+              <LogoChakra />
 
               <Button w="full" colorPalette={"red"} asChild>
                 <a href="/auth/google">
                   <TbBrandGoogleFilled /> Login with Google
                 </a>
               </Button>
+
+              <Separator w="full" />
 
               <Stack>
                 <Text textAlign={"center"} opacity={"0.5"} fontSize={"sm"}>

@@ -3,7 +3,6 @@ import {
   Box,
   createListCollection,
   Group,
-  Heading,
   IconButton,
   Progress,
   Separator,
@@ -57,6 +56,7 @@ import {
   setSkippedActions,
   type SetupProgressInput,
 } from "./setup-progress";
+import { LogoChakra } from "./logo-chakra";
 
 function SideMenuItem({
   link,
@@ -409,22 +409,7 @@ export function SideMenu({
     >
       <Stack py={4} gap={4}>
         <Stack px={6}>
-          <Heading
-            display="flex"
-            alignItems="center"
-            gap={2}
-            color="brand.fg"
-            asChild
-          >
-            <Group>
-              <Group>
-                <Image src="/logo.png" alt="CrawlChat" w={8} h={8} />
-                <Text fontSize={"xl"} asChild>
-                  <Link to="/">CrawlChat</Link>
-                </Text>
-              </Group>
-            </Group>
-          </Heading>
+          <LogoChakra />
         </Stack>
 
         <Box px={3}>
