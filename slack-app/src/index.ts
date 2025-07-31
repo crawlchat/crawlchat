@@ -8,6 +8,8 @@ import { createToken } from "./jwt";
 import { query } from "./api";
 import { markdownToBlocks } from "@tryfabric/mack";
 
+const LOADING_REACTION = "hourglass";
+
 const installationStore: InstallationStore = {
   storeInstallation: async (installation) => {
     if (!installation.team) {
@@ -85,6 +87,7 @@ const app = new App({
     "im:history",
     "im:read",
     "app_mentions:read",
+    "reactions:write",
   ],
   redirectUri: `${process.env.HOST}/oauth_redirect`,
   installationStore,
@@ -103,80 +106,96 @@ type Message = {
   text?: string;
 };
 
-app.message(
-  async ({ message, say, client, context }) => {
-    const scrape = await prisma.scrape.findFirst({
-      where: {
-        slackTeamId: context.teamId,
-      },
-    });
+app.message(async ({ message, say, client, context }) => {
+  const scrape = await prisma.scrape.findFirst({
+    where: {
+      slackTeamId: context.teamId,
+    },
+  });
 
-    if (!scrape) {
-      await say({
-        text: "You need to integrate your Slack with CrawlChat.app first!",
-      });
-      return;
-    }
-    
-    // Check if the bot is mentioned in the message
-    const messageText = (message as any).text || "";
-    const botMentionPattern = new RegExp(`<@${context.botUserId}>`, "i");
-    
-    if (!botMentionPattern.test(messageText)) return;
-
-    console.log("Bot mentioned:", context.botUserId, "in message:", messageText);
-
-    let messages: Message[] = [];
-
-    if ((message as any).thread_ts) {
-      const replies = await client.conversations.replies({
-        channel: message.channel,
-        ts: (message as any).thread_ts,
-      });
-      if (replies.messages) {
-        messages = replies.messages;
-      }
-    } else {
-      const history = await client.conversations.history({
-        channel: message.channel,
-        limit: 15,
-      });
-      if (history.messages) {
-        messages = history.messages.reverse();
-      }
-    }
-
-    const llmMessages = messages.map((m) => ({
-      role: m.user === context.botUserId ? "assistant" : "user",
-      content: cleanText(m.text ?? ""),
-    }));
-
-    const { answer, error } = await query(
-      scrape.id,
-      llmMessages,
-      createToken(scrape.userId),
-      {
-        prompt:
-          "This would be a Slack message. Keep it short and concise. Use markdown for formatting.",
-      }
-    );
-
-    if (error) {
-      await say({
-        text: `Error: ${error}`,
-      });
-      return;
-    }
-
+  if (!scrape) {
     await say({
-      text: answer,
-      mrkdwn: true,
-      thread_ts: message.ts,
-      channel: message.channel,
-      blocks: await markdownToBlocks(answer),
+      text: "You need to integrate your Slack with CrawlChat.app first!",
     });
+    return;
   }
-);
+
+  // Check if the bot is mentioned in the message
+  const messageText = (message as any).text || "";
+  const botMentionPattern = new RegExp(`<@${context.botUserId}>`, "i");
+
+  if (!botMentionPattern.test(messageText)) return;
+
+  console.log("Bot mentioned:", context.botUserId, "in message:", messageText);
+
+  try {
+    await client.reactions.add({
+      token: context.botToken,
+      channel: message.channel,
+      timestamp: message.ts,
+      name: LOADING_REACTION,
+    });
+  } catch {}
+
+  let messages: Message[] = [];
+
+  if ((message as any).thread_ts) {
+    const replies = await client.conversations.replies({
+      channel: message.channel,
+      ts: (message as any).thread_ts,
+    });
+    if (replies.messages) {
+      messages = replies.messages;
+    }
+  } else {
+    const history = await client.conversations.history({
+      channel: message.channel,
+      limit: 15,
+    });
+    if (history.messages) {
+      messages = history.messages.reverse();
+    }
+  }
+
+  const llmMessages = messages.map((m) => ({
+    role: m.user === context.botUserId ? "assistant" : "user",
+    content: cleanText(m.text ?? ""),
+  }));
+
+  const { answer, error } = await query(
+    scrape.id,
+    llmMessages,
+    createToken(scrape.userId),
+    {
+      prompt:
+        "This would be a Slack message. Keep it short and concise. Use markdown for formatting.",
+    }
+  );
+
+  if (error) {
+    await say({
+      text: `Error: ${error}`,
+    });
+    return;
+  }
+
+  await say({
+    text: answer,
+    mrkdwn: true,
+    thread_ts: message.ts,
+    channel: message.channel,
+    blocks: await markdownToBlocks(answer),
+  });
+
+  try {
+    await client.reactions.remove({
+      token: context.botToken,
+      channel: message.channel,
+      timestamp: message.ts,
+      name: LOADING_REACTION,
+    });
+  } catch {}
+});
 
 (async () => {
   await app.start(process.env.PORT || 3005);
