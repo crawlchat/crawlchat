@@ -117,29 +117,8 @@ export async function action({ request, params }: Route.ActionArgs) {
   return group;
 }
 
-function WebSettings({ group }: { group: KnowledgeGroup }) {
-  const matchPrefixFetcher = useFetcher();
-  const htmlTagsToRemoveFetcher = useFetcher();
-  const skipRegexFetcher = useFetcher();
-  const scrollSelectorFetcher = useFetcher();
-  const autoUpdateFetcher = useFetcher();
-  const itemContextFetcher = useFetcher();
-  const details = useMemo(() => {
-    return [
-      {
-        key: "URL",
-        value: group.url,
-      },
-      {
-        key: "Updated at",
-        value: moment(group.updatedAt).format("DD/MM/YYYY HH:mm"),
-      },
-      {
-        key: "Status",
-        value: <GroupStatus status={group.status} />,
-      },
-    ];
-  }, [group]);
+function AutoUpdateSettings({ group }: { group: KnowledgeGroup }) {
+  const fetcher = useFetcher();
   const autoUpdateCollection = useMemo(() => {
     return createListCollection({
       items: [
@@ -166,6 +145,85 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
       ],
     });
   }, []);
+
+  return (
+    <SettingsSection
+      id="auto-update"
+      fetcher={fetcher}
+      title="Auto update"
+      description="If enabled, the knowledge group will be updated automatically every day at the specified time."
+    >
+      <SelectRoot
+        collection={autoUpdateCollection}
+        maxW="400px"
+        name="updateFrequency"
+        defaultValue={[group.updateFrequency ?? "never"]}
+      >
+        <SelectTrigger>
+          <SelectValueText placeholder="Select auto update" />
+        </SelectTrigger>
+        <SelectContent>
+          {autoUpdateCollection.items.map((item) => (
+            <SelectItem item={item} key={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </SelectRoot>
+      {group.nextUpdateAt && (
+        <Text fontSize={"sm"}>
+          Next update at{" "}
+          <Badge ml={1} colorPalette={"brand"} variant={"surface"}>
+            {moment(group.nextUpdateAt).format("DD/MM/YYYY HH:mm")}
+          </Badge>
+        </Text>
+      )}
+    </SettingsSection>
+  );
+}
+
+function SkipPagesRegex({ group }: { group: KnowledgeGroup }) {
+  const fetcher = useFetcher();
+  return (
+    <SettingsSection
+      id="skip-pages-regex"
+      fetcher={fetcher}
+      title="Skip pages regex"
+      description="Specify the regex of the URLs that you don't want it to scrape. You can give multiple regexes comma separated."
+    >
+      <Input
+        placeholder="Ex: /admin, /dashboard"
+        maxW="400px"
+        defaultValue={group.skipPageRegex ?? ""}
+        name="skipPageRegex"
+      />
+    </SettingsSection>
+  );
+}
+
+function WebSettings({ group }: { group: KnowledgeGroup }) {
+  const matchPrefixFetcher = useFetcher();
+  const htmlTagsToRemoveFetcher = useFetcher();
+  const skipRegexFetcher = useFetcher();
+  const scrollSelectorFetcher = useFetcher();
+
+  const itemContextFetcher = useFetcher();
+  const details = useMemo(() => {
+    return [
+      {
+        key: "URL",
+        value: group.url,
+      },
+      {
+        key: "Updated at",
+        value: moment(group.updatedAt).format("DD/MM/YYYY HH:mm"),
+      },
+      {
+        key: "Status",
+        value: <GroupStatus status={group.status} />,
+      },
+    ];
+  }, [group]);
 
   return (
     <Stack gap={6}>
@@ -204,56 +262,9 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
         />
       </SettingsSection>
 
-      <SettingsSection
-        id="skip-pages-regex"
-        fetcher={skipRegexFetcher}
-        title="Skip pages regex"
-        description="Specify the regex of the URLs that you don't want it to scrape. You can give multiple regexes comma separated."
-      >
-        <Input
-          placeholder="Ex: /admin, /dashboard"
-          maxW="400px"
-          defaultValue={group.skipPageRegex ?? ""}
-          name="skipPageRegex"
-        />
-      </SettingsSection>
+      <SkipPagesRegex group={group} />
 
-      {["scrape_web", "scrape_github", "github_issues"].includes(
-        group.type
-      ) && (
-        <SettingsSection
-          id="auto-update"
-          fetcher={autoUpdateFetcher}
-          title="Auto update"
-          description="If enabled, the knowledge group will be updated automatically every day at the specified time."
-        >
-          <SelectRoot
-            collection={autoUpdateCollection}
-            maxW="400px"
-            name="updateFrequency"
-            defaultValue={[group.updateFrequency ?? "never"]}
-          >
-            <SelectTrigger>
-              <SelectValueText placeholder="Select auto update" />
-            </SelectTrigger>
-            <SelectContent>
-              {autoUpdateCollection.items.map((item) => (
-                <SelectItem item={item} key={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </SelectRoot>
-          {group.nextUpdateAt && (
-            <Text fontSize={"sm"}>
-              Next update at{" "}
-              <Badge ml={1} colorPalette={"brand"} variant={"surface"}>
-                {moment(group.nextUpdateAt).format("DD/MM/YYYY HH:mm")}
-              </Badge>
-            </Text>
-          )}
-        </SettingsSection>
-      )}
+      <AutoUpdateSettings group={group} />
 
       <SettingsSection
         id="item-context"
@@ -369,6 +380,21 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
+function NotionSettings({ group }: { group: KnowledgeGroup }) {
+  return (
+    <Stack gap={6}>
+      <DataList.Root orientation={"horizontal"}>
+        <DataList.Item>
+          <DataList.ItemLabel>Notion key</DataList.ItemLabel>
+        </DataList.Item>
+      </DataList.Root>
+
+      <SkipPagesRegex group={group} />
+      <AutoUpdateSettings group={group} />
+    </Stack>
+  );
+}
+
 export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
@@ -405,6 +431,9 @@ export default function KnowledgeGroupSettings({
         )}
         {loaderData.knowledgeGroup.type === "github_issues" && (
           <GithubIssuesSettings group={loaderData.knowledgeGroup} />
+        )}
+        {loaderData.knowledgeGroup.type === "notion" && (
+          <NotionSettings group={loaderData.knowledgeGroup} />
         )}
 
         <SettingsSection

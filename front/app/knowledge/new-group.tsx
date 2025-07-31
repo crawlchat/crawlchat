@@ -14,6 +14,7 @@ import {
 import {
   TbBook2,
   TbBrandGithub,
+  TbBrandNotion,
   TbCheck,
   TbTrash,
   TbUpload,
@@ -116,7 +117,7 @@ export async function action({ request }: { request: Request }) {
       url = githubRepoUrl as string;
     }
 
-    if (!url) {
+    if (!url && type !== "notion") {
       return { error: "URL is required" };
     }
 
@@ -160,6 +161,8 @@ export async function action({ request }: { request: Request }) {
 
         skipPageRegex,
         subType,
+
+        notionSecret: formData.get("notionSecret") as string,
 
         githubBranch: githubBranch as string,
         githubUrl: githubRepoUrl as string,
@@ -211,14 +214,14 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
           longDescription:
             "Scrapes the Docusaurus based docs from the provided URL and turns them into the knowledge. It sets all required settings tailored for Docusaurus.",
         },
-        // {
-        //   title: "GitHub Repo",
-        //   value: "scrape_github",
-        //   description: "Scrape a GitHub repository",
-        //   icon: <TbBrandGithub />,
-        //   longDescription:
-        //     "Scrapes the provided GitHub repository, reads the code from all the files and turns them into the knowledge.",
-        // },
+        {
+          title: "Notion",
+          value: "notion",
+          description: "Scrape a Notion page",
+          icon: <TbBrandNotion />,
+          longDescription:
+            "Connect to a Notion page and turns it into the knowledge.",
+        },
         {
           title: "GitHub Issues",
           value: "github_issues",
@@ -437,6 +440,18 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                     name="githubRepoUrl"
                     placeholder="https://github.com/user/repo"
                     pattern="^https://github.com/.+$"
+                    required
+                  />
+                </Field>
+              </>
+            )}
+
+            {type === "notion" && (
+              <>
+                <Field label="Internal Integration Secret" required>
+                  <Input
+                    name="notionSecret"
+                    placeholder="Ex: ntn_xxxxx"
                     required
                   />
                 </Field>

@@ -365,6 +365,7 @@ enum KnowledgeGroupType {
   github_issues
   answer_corrections
   upload
+  notion
 }
 
 enum KnowledgeGroupStatus {
@@ -408,6 +409,7 @@ model KnowledgeGroup {
   nextUpdateAt                              DateTime?
   lastUpdatedAt                             DateTime?
   itemContext                               String?
+  notionSecret                              String?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt
