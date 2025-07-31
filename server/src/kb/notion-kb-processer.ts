@@ -34,7 +34,9 @@ export class NotionKbProcesser extends BaseKbProcesser {
       },
     });
 
-    const skipRegexes = this.knowledgeGroup.skipPageRegex?.split(",") ?? [];
+    const skipRegexes = (
+      this.knowledgeGroup.skipPageRegex?.split(",") ?? []
+    ).filter(Boolean);
     const filteredPages = pages.results.filter((page) => {
       const url = (page as any).url;
       return (

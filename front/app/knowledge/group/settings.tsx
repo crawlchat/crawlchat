@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "~/components/ui/select";
+import { MultiSelect } from "~/components/multi-select";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -184,18 +185,20 @@ function AutoUpdateSettings({ group }: { group: KnowledgeGroup }) {
 
 function SkipPagesRegex({ group }: { group: KnowledgeGroup }) {
   const fetcher = useFetcher();
+  const [values, setValues] = useState<string | null>(group.skipPageRegex);
+
   return (
     <SettingsSection
       id="skip-pages-regex"
       fetcher={fetcher}
       title="Skip pages regex"
-      description="Specify the regex of the URLs that you don't want it to scrape. You can give multiple regexes comma separated."
+      description="Specify the regex of the URLs that you don't want it to scrape. You can give multiple regexes."
     >
-      <Input
+      <input value={values ?? ""} name="skipPageRegex" type="hidden" />
+      <MultiSelect
+        value={values}
+        onChange={setValues}
         placeholder="Ex: /admin, /dashboard"
-        maxW="400px"
-        defaultValue={group.skipPageRegex ?? ""}
-        name="skipPageRegex"
       />
     </SettingsSection>
   );
