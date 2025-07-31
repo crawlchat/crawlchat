@@ -38,14 +38,10 @@ export class NotionKbProcesser extends BaseKbProcesser {
       this.knowledgeGroup.skipPageRegex?.split(",") ?? []
     ).filter(Boolean);
     const filteredPages = pages.results.filter((page) => {
-      const url = (page as any).url;
-      return (
-        url &&
-        !skipRegexes.some((regex) => {
-          const r = new RegExp(regex.trim());
-          return r.test(url);
-        })
-      );
+      return !skipRegexes.some((regex) => {
+        const r = new RegExp(regex.trim());
+        return r.test(page.id);
+      });
     });
 
     for (let i = 0; i < filteredPages.length; i++) {
