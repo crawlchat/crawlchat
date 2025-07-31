@@ -18,6 +18,7 @@ import {
   TbBook,
   TbBrandDiscord,
   TbBrandGithub,
+  TbBrandNotion,
   TbFile,
   TbPlus,
   TbRefresh,
@@ -111,6 +112,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "upload") {
         icon = <TbFile />;
         typeText = "File";
+      } else if (group.type === "notion") {
+        icon = <TbBrandNotion />;
+        typeText = "Notion";
       }
 
       const totalCited = Object.values(loaderData.citationCounts).reduce(
