@@ -535,6 +535,17 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     .filter(Boolean)
     .join("\n\n");
 
+  await prisma.message.create({
+    data: {
+      threadId: thread.id,
+      scrapeId: scrape.id,
+      llmMessage: { role: "user", content: query },
+      ownerUserId: scrape.userId,
+      channel: req.body.channel as MessageChannel,
+    },
+  });
+  await updateLastMessageAt(thread.id);
+
   const answer = await baseAnswerer(
     scrape,
     query,
