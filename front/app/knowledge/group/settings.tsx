@@ -425,12 +425,6 @@ function NotionSettings({
 }) {
   return (
     <Stack gap={6}>
-      <DataList.Root orientation={"horizontal"}>
-        <DataList.Item>
-          <DataList.ItemLabel>Notion key</DataList.ItemLabel>
-        </DataList.Item>
-      </DataList.Root>
-
       <SkipPagesRegex
         group={group}
         pages={notionPages}
