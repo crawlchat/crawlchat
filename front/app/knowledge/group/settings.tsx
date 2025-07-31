@@ -70,8 +70,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     });
     notionPages = search.results.map((result) => {
       const title = (result as any).properties?.title?.title?.[0]?.plain_text;
-      const url = (result as any).url;
-      return { title, value: url };
+      return { title, value: result.id };
     });
   }
 
@@ -224,7 +223,7 @@ function SkipPagesRegex({
     <SettingsSection
       id="skip-pages-regex"
       fetcher={fetcher}
-      title="Skip pages regex"
+      title="Skip pages"
       description="Specify the regex of the URLs that you don't want it to scrape. You can give multiple regexes."
     >
       <input value={valueString} name="skipPageRegex" type="hidden" />
