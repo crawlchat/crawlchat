@@ -15,6 +15,7 @@ import TicketAdminCreateEmail from "emails/ticket-admin-create";
 import "highlight.js/styles/vs.css";
 import { fetchIpDetails, getClientIp } from "~/client-ip";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
+import { sanitizeScrape } from "~/scrapes/util";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -79,6 +80,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const width = searchParams.get("width");
   const height = searchParams.get("height");
   const fullscreen = searchParams.get("fullscreen") === "true";
+
+  sanitizeScrape(scrape);
 
   return {
     scrape,

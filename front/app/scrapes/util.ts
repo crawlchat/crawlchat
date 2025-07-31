@@ -34,3 +34,11 @@ export function authoriseScrapeUser(
 
   return scrapeUser;
 }
+
+export function sanitizeScrape(scrape: Scrape) {
+  scrape.slackConfig = null;
+  scrape.slackTeamId = null;
+  scrape.discordDraftConfig = null;
+  scrape.discordServerId = null;
+  scrape.chatPrompt = null;
+}
