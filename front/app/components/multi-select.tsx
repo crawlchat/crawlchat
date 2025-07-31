@@ -4,54 +4,64 @@ import {
   Group,
   IconButton,
   Input,
+  NativeSelect,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { TbCheck, TbX } from "react-icons/tb";
 
+export type SelectValue = {
+  title: string;
+  value: string;
+};
+
 export function MultiSelect({
   placeholder,
   value,
   onChange,
+  selectValues,
 }: {
   placeholder?: string;
-  value: string | null;
-  onChange: (value: string | null) => void;
+  value: string[];
+  onChange: (value: string[]) => void;
+  selectValues?: Array<SelectValue>;
 }) {
+  const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState<string>("");
-  const values = useMemo(() => {
-    if (!value) return null;
-    return value.split(",");
-  }, [value]);
 
   function handleRemove(index: number) {
-    if (!values) return;
-    const newValues = values.filter((_, i) => i !== index);
-    const newValue = newValues.join(",");
-    onChange(newValue.length > 0 ? newValue : null);
+    onChange(value.filter((_, i) => i !== index));
   }
 
   function handleAdd() {
-    const newValue = value ? `${value},${inputValue}` : inputValue;
-    onChange(newValue);
+    let newValue = inputValue;
+
+    if (selectedValue) {
+      newValue = selectedValue;
+    }
+    onChange([...value, newValue]);
     setInputValue("");
+    setSelectedValue(null);
+  }
+
+  function getTitle(value: string) {
+    return selectValues?.find((v) => v.value === value)?.title ?? value;
   }
 
   return (
     <Stack>
       <Flex gap={1}>
-        {values?.map((value, index) => (
+        {value.map((value, index) => (
           <Group
-            key={value}
+            key={index}
             bg={"brand.outline-subtle"}
             p={2}
             pl={4}
             borderRadius={"md"}
             gap={1}
           >
-            <Text fontSize={"sm"}>{value}</Text>
-
+            <Text fontSize={"sm"}>{getTitle(value)}</Text>
             <Box
               onClick={() => handleRemove(index)}
               p={1}
@@ -67,15 +77,34 @@ export function MultiSelect({
         ))}
       </Flex>
       <Group>
-        <Input
-          placeholder={placeholder ?? "Enter value"}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          maxW="400px"
-        />
+        {selectValues ? (
+          <NativeSelect.Root width="400px">
+            <NativeSelect.Field
+              value={selectedValue ?? undefined}
+              onChange={(e) => setSelectedValue(e.target.value)}
+            >
+              <option value="" disabled selected>
+                {placeholder ?? "Select"}
+              </option>
+              {selectValues?.map((value) => (
+                <option key={value.value} value={value.value}>
+                  {value.title}
+                </option>
+              ))}
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+          </NativeSelect.Root>
+        ) : (
+          <Input
+            placeholder={placeholder ?? "Enter value"}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            maxW="400px"
+          />
+        )}
         <IconButton
           variant={"subtle"}
-          disabled={!inputValue}
+          disabled={!inputValue && !selectedValue}
           onClick={handleAdd}
         >
           <TbCheck />

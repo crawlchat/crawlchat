@@ -32,7 +32,8 @@ import {
   SelectTrigger,
   SelectValueText,
 } from "~/components/ui/select";
-import { MultiSelect } from "~/components/multi-select";
+import { MultiSelect, type SelectValue } from "~/components/multi-select";
+import { Client } from "@notionhq/client";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -55,7 +56,26 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  return { scrape, knowledgeGroup };
+  let notionPages: Array<SelectValue> = [];
+  if (knowledgeGroup.type === "notion" && knowledgeGroup.notionSecret) {
+    const notion = new Client({
+      auth: knowledgeGroup.notionSecret,
+    });
+    const search = await notion.search({
+      query: "",
+      sort: {
+        direction: "descending",
+        timestamp: "last_edited_time",
+      },
+    });
+    notionPages = search.results.map((result) => {
+      const title = (result as any).properties?.title?.title?.[0]?.plain_text;
+      const url = (result as any).url;
+      return { title, value: url };
+    });
+  }
+
+  return { scrape, knowledgeGroup, notionPages };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -183,9 +203,22 @@ function AutoUpdateSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
-function SkipPagesRegex({ group }: { group: KnowledgeGroup }) {
+function SkipPagesRegex({
+  group,
+  pages,
+  placeholder,
+}: {
+  group: KnowledgeGroup;
+  pages?: Array<SelectValue>;
+  placeholder?: string;
+}) {
   const fetcher = useFetcher();
-  const [values, setValues] = useState<string | null>(group.skipPageRegex);
+  const [values, setValues] = useState<string[]>(
+    group.skipPageRegex?.split(",").filter(Boolean) ?? []
+  );
+  const valueString = useMemo(() => {
+    return values.join(",");
+  }, [values]);
 
   return (
     <SettingsSection
@@ -194,11 +227,12 @@ function SkipPagesRegex({ group }: { group: KnowledgeGroup }) {
       title="Skip pages regex"
       description="Specify the regex of the URLs that you don't want it to scrape. You can give multiple regexes."
     >
-      <input value={values ?? ""} name="skipPageRegex" type="hidden" />
+      <input value={valueString} name="skipPageRegex" type="hidden" />
       <MultiSelect
         value={values}
         onChange={setValues}
-        placeholder="Ex: /admin, /dashboard"
+        placeholder={placeholder ?? "Ex: /admin, /dashboard"}
+        selectValues={pages}
       />
     </SettingsSection>
   );
@@ -383,7 +417,13 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
-function NotionSettings({ group }: { group: KnowledgeGroup }) {
+function NotionSettings({
+  group,
+  notionPages,
+}: {
+  group: KnowledgeGroup;
+  notionPages: Array<SelectValue>;
+}) {
   return (
     <Stack gap={6}>
       <DataList.Root orientation={"horizontal"}>
@@ -392,7 +432,11 @@ function NotionSettings({ group }: { group: KnowledgeGroup }) {
         </DataList.Item>
       </DataList.Root>
 
-      <SkipPagesRegex group={group} />
+      <SkipPagesRegex
+        group={group}
+        pages={notionPages}
+        placeholder="Select pages to skip"
+      />
       <AutoUpdateSettings group={group} />
     </Stack>
   );
@@ -436,7 +480,10 @@ export default function KnowledgeGroupSettings({
           <GithubIssuesSettings group={loaderData.knowledgeGroup} />
         )}
         {loaderData.knowledgeGroup.type === "notion" && (
-          <NotionSettings group={loaderData.knowledgeGroup} />
+          <NotionSettings
+            group={loaderData.knowledgeGroup}
+            notionPages={loaderData.notionPages}
+          />
         )}
 
         <SettingsSection
