@@ -88,6 +88,7 @@ const app = new App({
     "im:read",
     "app_mentions:read",
     "reactions:write",
+    "reactions:read",
   ],
   redirectUri: `${process.env.HOST}/oauth_redirect`,
   installationStore,
@@ -162,15 +163,14 @@ app.message(async ({ message, say, client, context }) => {
     content: cleanText(m.text ?? ""),
   }));
 
-  const { answer, error } = await query(
-    scrape.id,
-    llmMessages,
-    createToken(scrape.userId),
-    {
-      prompt:
-        "This would be a Slack message. Keep it short and concise. Use markdown for formatting.",
-    }
-  );
+  const {
+    answer,
+    error,
+    message: answerMessage,
+  } = await query(scrape.id, llmMessages, createToken(scrape.userId), {
+    prompt:
+      "This would be a Slack message. Keep it short and concise. Use markdown for formatting.",
+  });
 
   if (error) {
     await say({
@@ -179,12 +179,22 @@ app.message(async ({ message, say, client, context }) => {
     return;
   }
 
-  await say({
+  const sayResult = await say({
     text: answer,
     mrkdwn: true,
     thread_ts: message.ts,
     channel: message.channel,
     blocks: await markdownToBlocks(answer),
+  });
+  if (!sayResult.message) return;
+
+  await prisma.message.update({
+    where: {
+      id: answerMessage.id,
+    },
+    data: {
+      slackMessageId: `${sayResult.channel}|${sayResult.message.ts}`,
+    },
   });
 
   try {
@@ -197,7 +207,74 @@ app.message(async ({ message, say, client, context }) => {
   } catch {}
 });
 
+async function getReactionMessage(client: any, event: any) {
+  const messageResult = await client.conversations.replies({
+    channel: event.item.channel,
+    ts: event.item.ts,
+  });
+
+  if (!messageResult.messages || messageResult.messages.length === 0) {
+    return null;
+  }
+
+  return messageResult.messages[0];
+}
+
+async function rateReaction(event: any, message: any) {
+  const hasThumbsUp = message.reactions?.some(
+    (reaction: any) => reaction.name === "+1"
+  );
+  const hasThumbsDown = message.reactions?.some(
+    (reaction: any) => reaction.name === "-1"
+  );
+
+  const rating = hasThumbsDown ? "down" : hasThumbsUp ? "up" : null;
+
+  const answerMessage = await prisma.message.findFirst({
+    where: {
+      slackMessageId: `${event.item.channel}|${message.ts}`,
+    },
+  });
+  if (!answerMessage) return;
+
+  await prisma.message.update({
+    where: {
+      id: answerMessage.id,
+    },
+    data: {
+      rating,
+    },
+  });
+
+  console.log("Rated message", answerMessage.id, rating);
+}
+
+async function handleReaction(event: any, client: any, context: any) {
+  if (event.reaction !== "+1" && event.reaction !== "-1") {
+    return;
+  }
+
+  const message = await getReactionMessage(client, event);
+
+  if (!message) {
+    return;
+  }
+
+  if (message.user === context.botUserId) {
+    await rateReaction(event, message);
+  }
+}
+
+app.event("reaction_added", async ({ event, client, context }) => {
+  await handleReaction(event, client, context);
+});
+
+app.event("reaction_removed", async ({ event, client, context }) => {
+  await handleReaction(event, client, context);
+});
+
 (async () => {
-  await app.start(process.env.PORT || 3005);
-  app.logger.info("⚡️ Bolt app is running!");
+  const port = process.env.PORT || 3005;
+  await app.start(port);
+  app.logger.info(`⚡️ Bolt app is running on port ${port}`);
 })();
