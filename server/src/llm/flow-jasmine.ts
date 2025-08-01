@@ -49,6 +49,13 @@ export function makeRagTool(
         await options.onPreSearch(query);
       }
 
+      if (query.length < 5) {
+        console.log("Query is too short -", query);
+        return {
+          content: `The query "${query}" is too short. Try better query.`,
+        };
+      }
+
       console.log("Searching RAG for -", query);
       const result = await indexer.search(scrapeId, query, {
         topK: 20,
