@@ -129,6 +129,8 @@ export function makeFlow(
     "Cite every fact that is used in the answer.",
     "Pick most relevant sources and cite them.",
     "You should definitely cite sources that you used to answer the query.",
+    "Add the citation wherever applicable either in middle of the sentence or at the end of the sentence.",
+    "But don't add it as a separate section at the end of the answer.",
   ]);
 
   const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
