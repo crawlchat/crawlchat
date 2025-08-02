@@ -29,7 +29,7 @@ import { redirect, useFetcher } from "react-router";
 import { useEffect, useState } from "react";
 import { toaster } from "~/components/ui/toaster";
 import { Button } from "~/components/ui/button";
-import { sendInvitationEmail } from "~/email";
+import { sendInvitationEmail, sendTeamJoinEmail } from "~/email";
 import { getLimits } from "libs/user-plan";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -132,6 +132,12 @@ export async function action({ request }: Route.ActionArgs) {
         email: invitingUser.email,
       },
     });
+
+    await sendTeamJoinEmail(
+      invitingUser.email,
+      user!.email,
+      scrape!.title ?? "CrawlChat"
+    );
 
     return Response.json({ success: true });
   }
