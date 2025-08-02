@@ -1,6 +1,6 @@
 import { Prisma, prisma } from "libs/prisma";
 import { PLAN_FREE } from "libs/user-plan";
-import { sendWelcomeEmail } from "~/email";
+import { sendTeamJoinEmail, sendWelcomeEmail } from "~/email";
 
 export async function signUpNewUser(
   email: string,
@@ -33,6 +33,9 @@ export async function signUpNewUser(
         email: email,
         invited: true,
       },
+      include: {
+        scrape: true,
+      },
     });
 
     for (const scrapeUser of pendingScrapeUsers) {
@@ -45,6 +48,12 @@ export async function signUpNewUser(
           userId: user.id,
         },
       });
+
+      await sendTeamJoinEmail(
+        scrapeUser.email,
+        user.email,
+        scrapeUser.scrape.title ?? "CrawlChat"
+      );
     }
 
     await sendWelcomeEmail(email);
