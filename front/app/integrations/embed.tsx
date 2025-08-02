@@ -94,6 +94,7 @@ export async function action({ request }: Route.ActionArgs) {
     buttonTextColor: null,
     showLogo: null,
     tooltip: null,
+    private: false,
   };
 
   if (size) {
@@ -127,6 +128,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("tooltip")) {
     update.tooltip = formData.get("tooltip") as string;
+  }
+  if (formData.has("from-private")) {
+    update.private = formData.get("private") === "on";
   }
 
   await prisma.scrape.update({
@@ -221,6 +225,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const mcpSetupFetcher = useFetcher();
   const textInputPlaceholderFetcher = useFetcher();
   const widgetConfigFetcher = useFetcher();
+  const privateFetcher = useFetcher();
   const [tab, setTab] = useState<"preview" | "code" | "docusaurus">("preview");
   const scriptCode = useMemo(
     () => makeScriptCode(loaderData.scrape?.id ?? ""),
@@ -451,6 +456,19 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
               )}
             </Stack>
           </Group>
+        </SettingsSection>
+
+        <SettingsSection
+          id="private"
+          title="Private"
+          description="Make the bot private. The bot will only work with Discrod and Slack bots."
+          fetcher={privateFetcher}
+        >
+          <input type="hidden" name="from-private" value={"true"} />
+          <Switch
+            name="private"
+            defaultChecked={loaderData.scrape?.widgetConfig?.private ?? false}
+          />
         </SettingsSection>
 
         <SettingsSection

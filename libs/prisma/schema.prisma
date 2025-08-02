@@ -65,6 +65,7 @@ type WidgetConfig {
   buttonTextColor       String?
   showLogo              Boolean?
   tooltip               String?
+  private               Boolean?
 }
 
 type ScrapeAnalyticsCategoryMessageId {

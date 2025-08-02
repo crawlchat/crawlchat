@@ -7,8 +7,6 @@ import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
-import { joinRoom } from "./socket-room";
-import { getRoomIds } from "./socket-room";
 import { authenticate, authoriseScrapeUser, verifyToken } from "./jwt";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { v4 as uuidv4 } from "uuid";
@@ -25,12 +23,7 @@ import { chunk } from "libs/chunk";
 import { retry } from "./retry";
 import { Flow } from "./llm/flow";
 import { z } from "zod";
-import {
-  baseAnswerer,
-  AnswerListener,
-  agenticAnswerer,
-  collectSourceLinks,
-} from "./answer";
+import { baseAnswerer, AnswerListener, collectSourceLinks } from "./answer";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -265,7 +258,7 @@ app.delete(
 );
 
 expressWs.app.ws("/", (ws: any, req) => {
-  let userKey: string | null = null;
+  let userId: string | null = null;
 
   ws.on("message", async (msg: Buffer | string) => {
     try {
@@ -281,15 +274,12 @@ expressWs.app.ws("/", (ws: any, req) => {
 
         const token = authHeader.split(" ")[1];
         const user = verifyToken(token);
-        userKey = user.userId;
-        getRoomIds({ userKey: userKey! }).forEach((roomId) =>
-          joinRoom(roomId, ws)
-        );
+        userId = user.userId;
         ws.send(makeMessage("connected", { message: "Connected" }));
         return;
       }
 
-      if (!userKey) {
+      if (!userId) {
         ws.send(makeMessage("error", { message: "Not authenticated" }));
         ws.close();
         return;
@@ -307,6 +297,10 @@ expressWs.app.ws("/", (ws: any, req) => {
         const scrape = await prisma.scrape.findFirstOrThrow({
           where: { id: thread.scrapeId },
         });
+
+        if (scrape.widgetConfig?.private && userId !== thread.id) {
+          throw new Error("Private collection");
+        }
 
         if (!(await hasEnoughCredits(scrape.userId, "messages"))) {
           ws.send(
@@ -347,7 +341,7 @@ expressWs.app.ws("/", (ws: any, req) => {
   });
 
   ws.on("close", () => {
-    userKey = null;
+    userId = null;
   });
 });
 
@@ -357,6 +351,11 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: req.params.scrapeId },
   });
+
+  if (scrape.widgetConfig?.private) {
+    res.status(400).json({ message: "Private collection" });
+    return;
+  }
 
   if (!(await hasEnoughCredits(scrape.userId, "messages"))) {
     res.status(400).json({ message: "Not enough credits" });
