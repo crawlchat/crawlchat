@@ -12,10 +12,10 @@ import { sendReactEmail } from "~/email";
 import TicketUserCreateEmail from "emails/ticket-user-create";
 import { Toaster } from "~/components/ui/toaster";
 import TicketAdminCreateEmail from "emails/ticket-admin-create";
-import "highlight.js/styles/vs.css";
 import { fetchIpDetails, getClientIp } from "~/client-ip";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
 import { sanitizeScrape } from "~/scrapes/util";
+import "highlight.js/styles/vs.css";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -44,6 +44,9 @@ async function updateSessionThreadId(
 }
 
 export async function loader({ params, request }: Route.LoaderArgs) {
+  const origin = request.headers.get("origin");
+  console.log(origin);
+
   const scrape = await prisma.scrape.findFirst({
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
