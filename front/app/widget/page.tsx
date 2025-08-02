@@ -44,15 +44,11 @@ async function updateSessionThreadId(
 }
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-  const origin = request.headers.get("origin");
-  const referer = request.headers.get("referer");
-  console.log({ origin, referer });
-
   const scrape = await prisma.scrape.findFirst({
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
 
-  if (!scrape) {
+  if (!scrape || scrape.widgetConfig?.private) {
     return redirect("/w/not-found");
   }
 
@@ -112,7 +108,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
 
-  if (!scrape) {
+  if (!scrape || scrape.widgetConfig?.private) {
     return redirect("/w/not-found");
   }
 
