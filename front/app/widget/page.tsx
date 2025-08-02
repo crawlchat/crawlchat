@@ -45,7 +45,8 @@ async function updateSessionThreadId(
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const origin = request.headers.get("origin");
-  console.log(origin);
+  const referer = request.headers.get("referer");
+  console.log({ origin, referer });
 
   const scrape = await prisma.scrape.findFirst({
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
