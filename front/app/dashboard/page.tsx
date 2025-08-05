@@ -307,7 +307,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
     for (let i = 0; i < 7; i++) {
       const date = new Date(today.getTime() - i * DAY_MS);
-      const key = date.toISOString().split("T")[0];
+      const key = moment(date).format("MM-DD");
       data.push({
         name: key,
         Messages: loaderData.dailyMessages[key] ?? 0,
