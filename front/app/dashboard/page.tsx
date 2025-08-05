@@ -10,8 +10,6 @@ import {
   Input,
   DialogCloseTrigger,
   Center,
-  List,
-  ListItem,
   Table,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/page";
@@ -22,7 +20,6 @@ import {
   TbHome,
   TbMessage,
   TbPlus,
-  TbStack,
   TbThumbDown,
   TbThumbUp,
 } from "react-icons/tb";
@@ -520,7 +517,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             </Stack>
           </Group>
 
-          <Group gap={8}>
+          <Group gap={8} align={"start"}>
             <Stack flex={1}>
               <Heading>
                 <Group>
@@ -539,6 +536,14 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
+                  {loaderData.topItems.length === 0 && (
+                    <Table.Row>
+                      <Table.Cell colSpan={3} textAlign="center">
+                        No data
+                      </Table.Cell>
+                    </Table.Row>
+                  )}
+
                   {loaderData.topItems.map((item) => (
                     <Table.Row key={item.item.id}>
                       <Table.Cell>{item.item.url}</Table.Cell>
@@ -569,6 +574,13 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
+                  {loaderData.latestQuestions.length === 0 && (
+                    <Table.Row>
+                      <Table.Cell colSpan={3} textAlign="center">
+                        No data
+                      </Table.Cell>
+                    </Table.Row>
+                  )}
                   {loaderData.latestQuestions.map((question) => (
                     <Table.Row key={question.id}>
                       <Table.Cell>
