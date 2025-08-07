@@ -560,7 +560,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                  {loaderData.lowRatingQueries.slice(5).map((item) => (
+                  {loaderData.lowRatingQueries.map((item) => (
                     <Table.Row key={item.message.id}>
                       <Table.Cell>
                         <ChakraTooltip
@@ -583,8 +583,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                           content={item.queries.join(", ")}
                         >
                           <Text w="fit">
-                            {item.queries.slice(0, 3).join(", ")}
-                            {item.queries.length > 3 && ", ..."}
+                            {truncate(item.queries.slice(0, 3).join(", "), 50)}
                           </Text>
                         </ChakraTooltip>
                       </Table.Cell>
