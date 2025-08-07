@@ -13,7 +13,6 @@ export async function getSetupProgressInput(
     }),
     nMessages: await prisma.message.count({
       where: {
-        ownerUserId: userId,
         scrapeId,
       },
     }),
@@ -25,27 +24,23 @@ export async function getSetupProgressInput(
     }),
     nKnowledgeGroups: await prisma.knowledgeGroup.count({
       where: {
-        userId,
         scrapeId,
       },
     }),
     nChatbotMessages: await prisma.message.count({
       where: {
-        ownerUserId: userId,
         scrapeId,
         channel: { isSet: false },
       },
     }),
     nDiscordMessages: await prisma.message.count({
       where: {
-        ownerUserId: userId,
         scrapeId,
         channel: "discord",
       },
     }),
     nMCPMessages: await prisma.message.count({
       where: {
-        ownerUserId: userId,
         scrapeId,
         channel: "mcp",
       },

@@ -6,6 +6,7 @@ export async function signUpNewUser(
   email: string,
   data?: { name?: string; photo?: string }
 ) {
+  email = email.toLowerCase();
   let user = await prisma.user.findUnique({
     where: { email: email },
   });

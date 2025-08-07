@@ -9,12 +9,11 @@ import {
   Spinner,
   Stack,
   Text,
-  Image,
   Avatar,
 } from "@chakra-ui/react";
 import {
+  TbArrowRight,
   TbBook,
-  TbChevronLeft,
   TbChevronRight,
   TbCrown,
   TbHome,
@@ -29,6 +28,7 @@ import {
   TbUser,
   TbUsers,
   TbWorld,
+  TbX,
 } from "react-icons/tb";
 import {
   Link,
@@ -61,6 +61,7 @@ import {
 } from "./setup-progress";
 import { LogoChakra } from "./logo-chakra";
 import { Tooltip } from "~/components/ui/tooltip";
+import { Button } from "~/components/ui/button";
 
 function SideMenuItem({
   link,
@@ -158,25 +159,6 @@ function CreditProgress({
   );
 }
 
-function SmallButton({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-}) {
-  return (
-    <Text
-      fontSize={"xs"}
-      opacity={0.4}
-      onClick={onClick}
-      _hover={{ cursor: "pointer", opacity: 1 }}
-    >
-      {children}
-    </Text>
-  );
-}
-
 function SetupProgress({ scrapeId }: { scrapeId: string }) {
   const fetcher = useFetcher<{
     input: SetupProgressInput;
@@ -231,58 +213,28 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
 
   return (
     <Stack gap={1}>
-      <Group justify={"space-between"}>
-        <Text fontSize={"xs"} opacity={0.4}>
-          {index + 1} / {actions.length}
-        </Text>
-
-        <Group gap={1}>
-          <SmallButton onClick={handlePrevious}>
-            <TbChevronLeft />
-          </SmallButton>
-          <SmallButton onClick={handleNext}>
-            <TbChevronRight />
-          </SmallButton>
-          {topAction.canSkip && index === 0 && (
-            <SmallButton onClick={handleSkip}>Skip</SmallButton>
-          )}
-        </Group>
-      </Group>
-
-      <Group
-        bg="brand.subtle"
-        border="1px solid"
-        borderColor="brand.outline"
-        rounded="md"
-        _hover={{ shadow: "xs" }}
-      >
-        <Link
-          to={action.url!}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            width: "100%",
-            gap: "10px",
-            padding: "10px 14px",
-          }}
+      <Group>
+        <Tooltip content="Skip" positioning={{ placement: "top" }} showArrow>
+          <IconButton
+            variant={"outline"}
+            onClick={handleSkip}
+            colorPalette={"brand"}
+          >
+            <TbX />
+          </IconButton>
+        </Tooltip>
+        <Tooltip
+          content={action.description}
+          positioning={{ placement: "top" }}
+          showArrow
         >
-          <Stack flex={1} gap={0} w="full">
-            <Text
-              fontSize={"sm"}
-              color="brand.fg"
-              fontWeight={"medium"}
-              fontStyle={"italic"}
-            >
+          <Button variant={"solid"} flex={1} colorPalette={"brand"} asChild>
+            <Link to={action.url!}>
               {action.title}
-            </Text>
-            <Text fontSize={"xs"} opacity={0.5}>
-              {action.description}
-            </Text>
-          </Stack>
-          <Stack>
-            <TbChevronRight />
-          </Stack>
-        </Link>
+              <TbArrowRight />
+            </Link>
+          </Button>
+        </Tooltip>
       </Group>
     </Stack>
   );
