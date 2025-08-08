@@ -21,6 +21,7 @@ import {
   TbLogout,
   TbMessage,
   TbPlug,
+  TbPointer,
   TbRoad,
   TbSettings,
   TbThumbDown,
@@ -274,6 +275,12 @@ export function SideMenu({
         label: "Knowledge",
         to: "/knowledge",
         icon: <TbBook />,
+        forScrape: true,
+      },
+      {
+        label: "Actions",
+        to: "/actions",
+        icon: <TbPointer />,
         forScrape: true,
       },
       {

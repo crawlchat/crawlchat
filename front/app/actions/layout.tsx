@@ -12,6 +12,9 @@ import {
   Group,
   Text,
   Spinner,
+  EmptyState,
+  VStack,
+  Center,
 } from "@chakra-ui/react";
 import moment from "moment";
 
@@ -29,6 +32,32 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { actions };
 }
 
+function NoActions() {
+  return (
+    <Center h="full" w="full">
+      <EmptyState.Root>
+        <EmptyState.Content>
+          <EmptyState.Indicator>
+            <TbPointer />
+          </EmptyState.Indicator>
+          <VStack textAlign="center">
+            <EmptyState.Title>No actions yet</EmptyState.Title>
+            <EmptyState.Description>
+              Create a new action to get started
+            </EmptyState.Description>
+            <Button asChild colorPalette={"brand"}>
+              <NavLink to="/actions/new" prefetch="intent">
+                <TbPlus />
+                New action
+              </NavLink>
+            </Button>
+          </VStack>
+        </EmptyState.Content>
+      </EmptyState.Root>
+    </Center>
+  );
+}
+
 export default function ActionsLayout({ loaderData }: Route.ComponentProps) {
   return (
     <Page
@@ -37,49 +66,48 @@ export default function ActionsLayout({ loaderData }: Route.ComponentProps) {
       right={
         <Button asChild variant={"subtle"} colorPalette={"brand"}>
           <NavLink to="/actions/new">
-            {({ isPending }) => (
-              <Group>
-                {isPending ? <Spinner /> : <TbPlus />}
-                <Text>New</Text>
-              </Group>
-            )}
+            <TbPlus />
+            New
           </NavLink>
         </Button>
       }
     >
-      <Table.Root>
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader>Title</Table.ColumnHeader>
-            <Table.ColumnHeader>URL</Table.ColumnHeader>
-            <Table.ColumnHeader>Method</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="end">Created</Table.ColumnHeader>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {loaderData.actions.map((item) => (
-            <Table.Row key={item.id}>
-              <Table.Cell>
-                <ChakraLink asChild outline={"none"}>
-                  <NavLink to={`/actions/${item.id}`} prefetch="intent">
-                    {({ isPending }) => (
-                      <Group>
-                        <Text>{item.title}</Text>
-                        <Spinner opacity={isPending ? 1 : 0} size={"sm"} />
-                      </Group>
-                    )}
-                  </NavLink>
-                </ChakraLink>
-              </Table.Cell>
-              <Table.Cell>{item.url}</Table.Cell>
-              <Table.Cell>{item.method.toUpperCase()}</Table.Cell>
-              <Table.Cell textAlign="end">
-                {moment(item.createdAt).fromNow()}
-              </Table.Cell>
+      {loaderData.actions.length === 0 && <NoActions />}
+      {loaderData.actions.length > 0 && (
+        <Table.Root>
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeader>Title</Table.ColumnHeader>
+              <Table.ColumnHeader>URL</Table.ColumnHeader>
+              <Table.ColumnHeader>Method</Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="end">Created</Table.ColumnHeader>
             </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
+          </Table.Header>
+          <Table.Body>
+            {loaderData.actions.map((item) => (
+              <Table.Row key={item.id}>
+                <Table.Cell>
+                  <ChakraLink asChild outline={"none"}>
+                    <NavLink to={`/actions/${item.id}`} prefetch="intent">
+                      {({ isPending }) => (
+                        <Group>
+                          <Text>{item.title}</Text>
+                          <Spinner opacity={isPending ? 1 : 0} size={"sm"} />
+                        </Group>
+                      )}
+                    </NavLink>
+                  </ChakraLink>
+                </Table.Cell>
+                <Table.Cell>{item.url}</Table.Cell>
+                <Table.Cell>{item.method.toUpperCase()}</Table.Cell>
+                <Table.Cell textAlign="end">
+                  {moment(item.createdAt).fromNow()}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Root>
+      )}
 
       <Outlet />
     </Page>

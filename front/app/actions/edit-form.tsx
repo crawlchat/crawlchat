@@ -160,7 +160,7 @@ export function EditForm() {
         </Stack>
       </Stack>
 
-      <Stack>
+      <Stack mt={6}>
         <Group>
           <Heading size={"lg"}>Headers</Heading>
           <IconButton
