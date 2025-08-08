@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { useContext } from "react";
 import { EditActionContext } from "./use-edit-action";
-import { TbCheck, TbPlus, TbTrash } from "react-icons/tb";
+import { TbCheck, TbPlus, TbTrash, TbX } from "react-icons/tb";
 import type { ApiActionDataItem, ApiActionMethod } from "libs/prisma";
 
 function DataItemForm({
@@ -31,21 +31,30 @@ function DataItemForm({
   removeDataItem: (index: number) => void;
 }) {
   return (
-    <Group key={index} alignItems={"end"}>
-      <Field.Root w={"200px"}>
-        <Field.Label>Type</Field.Label>
-        <NativeSelect.Root>
-          <NativeSelect.Field
-            defaultValue={item.type}
-            onChange={(e) => updateDataItem(index, "type", e.target.value)}
-          >
-            <option value="string">String</option>
-            <option value="number">Number</option>
-            <option value="boolean">Boolean</option>
-          </NativeSelect.Field>
-          <NativeSelect.Indicator />
-        </NativeSelect.Root>
-      </Field.Root>
+    <Stack key={index}>
+      <Group alignItems={"end"}>
+        <Field.Root>
+          <Field.Label>Type</Field.Label>
+          <NativeSelect.Root>
+            <NativeSelect.Field
+              defaultValue={item.type}
+              onChange={(e) => updateDataItem(index, "type", e.target.value)}
+            >
+              <option value="string">String</option>
+              <option value="number">Number</option>
+              <option value="boolean">Boolean</option>
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+          </NativeSelect.Root>
+        </Field.Root>
+        <IconButton
+          colorPalette={"red"}
+          variant={"subtle"}
+          onClick={() => removeDataItem(index)}
+        >
+          <TbTrash />
+        </IconButton>
+      </Group>
 
       <Field.Root flex={1}>
         <Field.Label>Key</Field.Label>
@@ -64,15 +73,7 @@ function DataItemForm({
           onChange={(e) => updateDataItem(index, "description", e.target.value)}
         />
       </Field.Root>
-
-      <IconButton
-        colorPalette={"red"}
-        variant={"subtle"}
-        onClick={() => removeDataItem(index)}
-      >
-        <TbTrash />
-      </IconButton>
-    </Group>
+    </Stack>
   );
 }
 
@@ -87,7 +88,6 @@ export function EditForm() {
     method,
     setMethod,
     updateDataItem,
-    canSubmit,
     removeDataItem,
     headers,
     addHeaderItem,
@@ -96,7 +96,7 @@ export function EditForm() {
   } = useContext(EditActionContext);
 
   return (
-    <Stack gap={8}>
+    <Stack>
       <Stack>
         <Field.Root required>
           <Field.Label>Title</Field.Label>
@@ -133,9 +133,9 @@ export function EditForm() {
         </Field.Root>
       </Stack>
 
-      <Stack>
+      <Stack mt={6}>
         <Group>
-          <Heading>Data</Heading>
+          <Heading size={"lg"}>Data</Heading>
           <IconButton
             variant={"subtle"}
             size={"xs"}
@@ -147,20 +147,22 @@ export function EditForm() {
           </IconButton>
         </Group>
 
-        {data.items.map((item, index) => (
-          <DataItemForm
-            key={index}
-            item={item}
-            index={index}
-            updateDataItem={updateDataItem}
-            removeDataItem={removeDataItem}
-          />
-        ))}
+        <Stack gap={8}>
+          {data.items.map((item, index) => (
+            <DataItemForm
+              key={index}
+              item={item}
+              index={index}
+              updateDataItem={updateDataItem}
+              removeDataItem={removeDataItem}
+            />
+          ))}
+        </Stack>
       </Stack>
 
       <Stack>
         <Group>
-          <Heading>Headers</Heading>
+          <Heading size={"lg"}>Headers</Heading>
           <IconButton
             variant={"subtle"}
             size={"xs"}
@@ -182,24 +184,6 @@ export function EditForm() {
           />
         ))}
       </Stack>
-
-      <Group>
-        <input
-          type="hidden"
-          name="data"
-          value={JSON.stringify({
-            title,
-            url,
-            method,
-            data,
-            headers,
-          })}
-        />
-        <Button colorPalette={"brand"} disabled={!canSubmit} type="submit">
-          Save
-          <TbCheck />
-        </Button>
-      </Group>
     </Stack>
   );
 }
