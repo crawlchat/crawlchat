@@ -57,6 +57,8 @@ export default [
     route("team", "team/page.tsx"),
 
     route("setup-progress", "dashboard/setup-progress-api.ts"),
+
+    route("actions/new", "actions/new.tsx"),
   ]),
 
   layout("landing/layout.tsx", [

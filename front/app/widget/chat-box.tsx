@@ -455,18 +455,6 @@ function AssistantMessage({
           {citation.content}
         </MarkdownProse>
         <Group pb={Object.keys(citation.citedLinks).length === 0 ? 4 : 0}>
-          <Tooltip content="Regenerate message" showArrow>
-            <IconButton
-              size={"xs"}
-              rounded={"full"}
-              variant={"subtle"}
-              onClick={() => refresh(questionId, id)}
-              disabled={readOnly}
-            >
-              <TbRefresh />
-            </IconButton>
-          </Tooltip>
-
           <Tooltip content="Helpful" showArrow>
             <IconButton
               size={"xs"}

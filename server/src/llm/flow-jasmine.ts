@@ -1,4 +1,4 @@
-import { prisma, RichBlockConfig } from "libs/prisma";
+import { prisma, RichBlockConfig, Scrape } from "libs/prisma";
 import { makeIndexer } from "../indexer/factory";
 import {
   FlowMessage,
@@ -81,6 +81,44 @@ export function makeRagTool(
           result: processed,
           query,
         },
+      };
+    },
+  });
+}
+
+export function makeApiTool() {
+  const url = "https://mocki.io/v1/f77dc1be-bea2-4731-8df1-008999829dbe";
+  const method = "GET";
+  const body = {};
+
+  return new SimpleTool({
+    id: "person-availability",
+    description: multiLinePrompt([
+      "Use this tool to check if a person is available right now or not.",
+      "You need to collect name and time from the user.",
+      "Don't hallucinate the inputs. Pass only what user provided.",
+    ]),
+    schema: z.object({
+      name: z.string({
+        description:
+          "The name of the person to check availability. It should be proper noun.",
+      }),
+      time: z.string({
+        description:
+          "The time to check availability. It should be in 24 hour format. Example: 10:00",
+      }),
+    }),
+    execute: async ({ name, time }: { name: string; time: string }) => {
+      console.log("making api call", name, time);
+      const response = await fetch(url, {
+        method,
+        body: method === "GET" ? undefined : JSON.stringify(body),
+      });
+      const content = await response.text();
+      console.log("got response");
+      return {
+        content,
+        customMessage: {},
       };
     },
   });
@@ -180,7 +218,7 @@ export function makeFlow(
       "Be polite when you don't have the answer, explain in a friendly way and inform that it is better to reach out the support team.",
       systemPrompt,
     ]),
-    tools: [ragTool.make()],
+    tools: [ragTool.make(), makeApiTool().make()],
     model: options?.model,
     baseURL: options?.baseURL,
     apiKey: options?.apiKey,
