@@ -32,7 +32,12 @@ function DataItemForm({
   removeDataItem: (index: number) => void;
 }) {
   return (
-    <Stack key={index}>
+    <Stack
+      border={"1px solid"}
+      borderColor={"brand.outline"}
+      p={4}
+      rounded={"lg"}
+    >
       <Group alignItems={"end"}>
         <Field.Root>
           <Field.Label>Type</Field.Label>
@@ -200,17 +205,15 @@ export function EditForm() {
           </IconButton>
         </Group>
 
-        <Stack gap={8}>
-          {data.items.map((item, index) => (
-            <DataItemForm
-              key={index}
-              item={item}
-              index={index}
-              updateDataItem={updateDataItem}
-              removeDataItem={removeDataItem}
-            />
-          ))}
-        </Stack>
+        {data.items.map((item, index) => (
+          <DataItemForm
+            key={index}
+            item={item}
+            index={index}
+            updateDataItem={updateDataItem}
+            removeDataItem={removeDataItem}
+          />
+        ))}
       </Stack>
 
       <Stack mt={6}>

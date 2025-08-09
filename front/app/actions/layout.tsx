@@ -15,6 +15,7 @@ import {
   EmptyState,
   VStack,
   Center,
+  Stack,
 } from "@chakra-ui/react";
 import moment from "moment";
 
@@ -32,10 +33,20 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { actions };
 }
 
+function Summary() {
+  return (
+    <Text>
+      Actions let you connect to external systems with HTTP APIs. These actions
+      will get called by AI and chatbot whenever required. These APIs are called
+      from backend in a secured way.
+    </Text>
+  );
+}
+
 function NoActions() {
   return (
     <Center h="full" w="full">
-      <EmptyState.Root>
+      <EmptyState.Root maxW={"md"}>
         <EmptyState.Content>
           <EmptyState.Indicator>
             <TbPointer />
@@ -43,7 +54,7 @@ function NoActions() {
           <VStack textAlign="center">
             <EmptyState.Title>No actions yet</EmptyState.Title>
             <EmptyState.Description>
-              Create a new action to get started
+              <Summary />
             </EmptyState.Description>
             <Button asChild colorPalette={"brand"}>
               <NavLink to="/actions/new" prefetch="intent">
@@ -74,39 +85,44 @@ export default function ActionsLayout({ loaderData }: Route.ComponentProps) {
     >
       {loaderData.actions.length === 0 && <NoActions />}
       {loaderData.actions.length > 0 && (
-        <Table.Root>
-          <Table.Header>
-            <Table.Row>
-              <Table.ColumnHeader>Title</Table.ColumnHeader>
-              <Table.ColumnHeader>URL</Table.ColumnHeader>
-              <Table.ColumnHeader>Method</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="end">Created</Table.ColumnHeader>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body>
-            {loaderData.actions.map((item) => (
-              <Table.Row key={item.id}>
-                <Table.Cell>
-                  <ChakraLink asChild outline={"none"}>
-                    <NavLink to={`/actions/${item.id}`} prefetch="intent">
-                      {({ isPending }) => (
-                        <Group>
-                          <Text>{item.title}</Text>
-                          <Spinner opacity={isPending ? 1 : 0} size={"sm"} />
-                        </Group>
-                      )}
-                    </NavLink>
-                  </ChakraLink>
-                </Table.Cell>
-                <Table.Cell>{item.url}</Table.Cell>
-                <Table.Cell>{item.method.toUpperCase()}</Table.Cell>
-                <Table.Cell textAlign="end">
-                  {moment(item.createdAt).fromNow()}
-                </Table.Cell>
+        <Stack>
+          <Stack opacity={0.5}>
+            <Summary />
+          </Stack>
+          <Table.Root>
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeader>Title</Table.ColumnHeader>
+                <Table.ColumnHeader>URL</Table.ColumnHeader>
+                <Table.ColumnHeader>Method</Table.ColumnHeader>
+                <Table.ColumnHeader textAlign="end">Created</Table.ColumnHeader>
               </Table.Row>
-            ))}
-          </Table.Body>
-        </Table.Root>
+            </Table.Header>
+            <Table.Body>
+              {loaderData.actions.map((item) => (
+                <Table.Row key={item.id}>
+                  <Table.Cell>
+                    <ChakraLink asChild outline={"none"}>
+                      <NavLink to={`/actions/${item.id}`} prefetch="intent">
+                        {({ isPending }) => (
+                          <Group>
+                            <Text>{item.title}</Text>
+                            <Spinner opacity={isPending ? 1 : 0} size={"sm"} />
+                          </Group>
+                        )}
+                      </NavLink>
+                    </ChakraLink>
+                  </Table.Cell>
+                  <Table.Cell>{item.url}</Table.Cell>
+                  <Table.Cell>{item.method.toUpperCase()}</Table.Cell>
+                  <Table.Cell textAlign="end">
+                    {moment(item.createdAt).fromNow()}
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Root>
+        </Stack>
       )}
 
       <Outlet />
