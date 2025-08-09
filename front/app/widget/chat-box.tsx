@@ -140,6 +140,8 @@ function ChatInput() {
         return "🤓 Answering...";
       case "searching":
         return `🔍 Searching for "${chat.searchQuery ?? "answer"}"`;
+      case "action-call":
+        return `🤖 Doing "${chat.actionCall}"`;
     }
     return scrape.widgetConfig?.textInputPlaceholder ?? "Ask your question";
   }
@@ -979,7 +981,9 @@ export default function ScrapeWidget() {
                     last={index === chat.allMessages.length - 1}
                   />
                 )}
-                {(chat.askStage === "asked" || chat.askStage === "searching") &&
+                {(chat.askStage === "asked" ||
+                  chat.askStage === "searching" ||
+                  chat.askStage === "action-call") &&
                   index === chat.allMessages.length - 1 && <LoadingMessage />}
                 {chat.askStage !== "idle" &&
                   index === chat.allMessages.length - 1 && (

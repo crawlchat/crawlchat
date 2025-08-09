@@ -96,7 +96,12 @@ export function makeRagTool(
   });
 }
 
-export function makeActionTools(actions: ApiAction[]) {
+export function makeActionTools(
+  actions: ApiAction[],
+  options?: {
+    onPreAction?: (title: string) => void;
+  }
+) {
   function itemToZod(item: ApiActionDataItem) {
     if (item.dataType === "string") {
       return z.string({
@@ -190,6 +195,10 @@ export function makeActionTools(actions: ApiAction[]) {
           headers[item.key] = typeCast(makeValue(input, item), item.dataType);
         }
 
+        if (options?.onPreAction) {
+          options.onPreAction(action.title);
+        }
+
         const response = await fetch(action.url + queryParams, {
           method: action.method,
           body,
@@ -228,6 +237,7 @@ export function makeFlow(
   indexerKey: string | null,
   options?: {
     onPreSearch?: (query: string) => Promise<void>;
+    onPreAction?: (title: string) => void;
     model?: string;
     baseURL?: string;
     apiKey?: string;
@@ -275,7 +285,11 @@ export function makeFlow(
     "But don't add it as a separate section at the end of the answer.",
   ]);
 
-  const actionTools = options?.actions ? makeActionTools(options.actions) : [];
+  const actionTools = options?.actions
+    ? makeActionTools(options.actions, {
+        onPreAction: options.onPreAction,
+      })
+    : [];
 
   const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
     id: "rag-agent",

@@ -29,7 +29,8 @@ export type AnswerCompleteEvent = {
 
 export type ToolCallEvent = {
   type: "tool-call";
-  query: string;
+  query?: string;
+  action?: string;
 };
 
 export type InitEvent = {
@@ -175,6 +176,12 @@ export const baseAnswerer: Answerer = async (
         options?.listen?.({
           type: "tool-call",
           query,
+        });
+      },
+      onPreAction: async (title) => {
+        options?.listen?.({
+          type: "tool-call",
+          action: title,
         });
       },
       model: llmConfig.model,

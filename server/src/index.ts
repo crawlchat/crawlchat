@@ -82,7 +82,11 @@ function answerListener(
 
       case "tool-call":
         ws?.send(
-          makeMessage("stage", { stage: "tool-call", query: event.query })
+          makeMessage("stage", {
+            stage: "tool-call",
+            query: event.query,
+            action: event.action,
+          })
         );
         break;
 

@@ -2,7 +2,12 @@ import type { Message } from "libs/prisma";
 import { useMemo, useRef, useState } from "react";
 import { makeMessage } from "~/dashboard/socket-util";
 
-export type AskStage = "idle" | "asked" | "answering" | "searching";
+export type AskStage =
+  | "idle"
+  | "asked"
+  | "answering"
+  | "searching"
+  | "action-call";
 
 export function useScrapeChat({
   token,
@@ -23,6 +28,7 @@ export function useScrapeChat({
   });
   const [askStage, setAskStage] = useState<AskStage>("idle");
   const [searchQuery, setSearchQuery] = useState<string>();
+  const [actionCall, setActionCall] = useState<string>();
   const [connected, setConnected] = useState(false);
 
   const allMessages = useMemo(() => {
@@ -102,10 +108,24 @@ export function useScrapeChat({
     });
   }
 
-  function handleStage({ stage, query }: { stage: string; query?: string }) {
+  function handleStage({
+    stage,
+    query,
+    action,
+  }: {
+    stage: string;
+    query?: string;
+    action?: string;
+  }) {
     if (stage === "tool-call") {
-      setAskStage("searching");
-      setSearchQuery(query);
+      if (query) {
+        setAskStage("searching");
+        setSearchQuery(query);
+      }
+      if (action) {
+        setAskStage("action-call");
+        setActionCall(action);
+      }
     }
   }
 
@@ -166,6 +186,7 @@ export function useScrapeChat({
         ticketMessage: null,
         slackMessageId: null,
         discordMessageId: null,
+        apiActionCalls: [],
       },
     ]);
     setAskStage("asked");
@@ -202,5 +223,6 @@ export function useScrapeChat({
     getMessage,
     connected,
     setMakingThreadId,
+    actionCall,
   };
 }
