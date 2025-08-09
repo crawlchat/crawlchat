@@ -89,6 +89,8 @@ const app = new App({
     "app_mentions:read",
     "reactions:write",
     "reactions:read",
+    "groups:history",
+    "groups:read",
   ],
   redirectUri: `${process.env.HOST}/oauth_redirect`,
   installationStore,
@@ -193,6 +195,7 @@ app.message(async ({ message, say, client, context }) => {
         },
       },
     ],
+    reply_broadcast: scrape.slackConfig?.replyBroadcast ?? false,
   });
   if (!sayResult.message) return;
 

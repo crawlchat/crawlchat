@@ -10,6 +10,8 @@ import { Button } from "~/components/ui/button";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { useEffect, useState } from "react";
 import { toaster } from "~/components/ui/toaster";
+import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
+import { Switch } from "~/components/ui/switch";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -32,6 +34,10 @@ export async function action({ request }: Route.ActionArgs) {
   const scrapeId = await getSessionScrapeId(request);
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
+  const scrape = await prisma.scrape.findUnique({
+    where: { id: scrapeId },
+  });
+
   const formData = await request.formData();
 
   const update: Prisma.ScrapeUpdateInput = {};
@@ -39,31 +45,28 @@ export async function action({ request }: Route.ActionArgs) {
     update.slackTeamId = formData.get("slackTeamId") as string;
   }
 
-  const scrape = await prisma.scrape.update({
+  if (formData.has("from-broadcast")) {
+    update.slackConfig = {
+      ...(scrape!.slackConfig! as any),
+      replyBroadcast: formData.get("replyBroadcast") === "on",
+    };
+  }
+
+  const updated = await prisma.scrape.update({
     where: { id: scrapeId },
     data: update,
   });
 
-  return { scrape };
+  return { scrape: updated };
 }
 
 export default function ScrapeIntegrations({
   loaderData,
 }: Route.ComponentProps) {
-  const discordServerIdFetcher = useFetcher();
-  const discordDraftFetcher = useFetcher();
-  const [discordDraftEnabled, setDiscordDraftEnabled] = useState(
-    !!loaderData.scrape.discordDraftConfig
-  );
+  const teamIdFetcher = useFetcher();
+  const broadcastFetcher = useFetcher();
 
-  useEffect(() => {
-    if (discordDraftFetcher.data?.error) {
-      toaster.error({
-        title: "Error",
-        description: discordDraftFetcher.data.error,
-      });
-    }
-  }, [discordDraftFetcher.data]);
+  useFetcherToast(broadcastFetcher);
 
   return (
     <Stack gap={6}>
@@ -88,11 +91,12 @@ export default function ScrapeIntegrations({
           </a>
         </Button>
       </Group>
+
       <SettingsSection
         id="slack-team-id"
         title={"Slack Team Id"}
         description="Slack team id is unique to your workspace. You can find it in the URL of your workspace."
-        fetcher={discordServerIdFetcher}
+        fetcher={teamIdFetcher}
       >
         <Stack>
           <Input
@@ -103,6 +107,27 @@ export default function ScrapeIntegrations({
           />
         </Stack>
       </SettingsSection>
+
+      {loaderData.scrape.slackConfig?.installation && (
+        <SettingsSection
+          id="broadcast"
+          title={"Broadcast the reply"}
+          description="Enable this if you want to broadcast the reply to the channel along with the reply as thread."
+          fetcher={broadcastFetcher}
+        >
+          <Stack>
+            <input type="hidden" name="from-broadcast" value="true" />
+            <Switch
+              name="replyBroadcast"
+              defaultChecked={
+                loaderData.scrape.slackConfig?.replyBroadcast ?? false
+              }
+            >
+              Broadcast the reply
+            </Switch>
+          </Stack>
+        </SettingsSection>
+      )}
     </Stack>
   );
 }

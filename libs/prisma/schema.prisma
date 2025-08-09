@@ -121,6 +121,7 @@ type ResolveBtnConfig {
 
 type SlackConfig {
   installation          Json
+  replyBroadcast        Boolean?
 }
 
 model Scrape {
