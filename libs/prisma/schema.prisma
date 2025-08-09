@@ -450,16 +450,23 @@ model ScrapeUser {
   scrape          Scrape @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
 }
 
-enum ApiActionDataItemType {
+enum ApiActionDataType {
   string
   number
   boolean
 }
 
+enum ApiActionItemType {
+  dynamic
+  value
+}
+
 type ApiActionDataItem {
+  type ApiActionItemType
   key String
-  type ApiActionDataItemType
+  dataType ApiActionDataType
   description String
+  value String?
 }
 
 type ApiActionData {
@@ -483,6 +490,7 @@ model ApiAction {
   method          ApiActionMethod
   data            ApiActionData
   headers         ApiActionData
+  description     String
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

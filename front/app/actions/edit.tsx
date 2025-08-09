@@ -48,6 +48,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         method: data.method,
         data: data.data,
         headers: data.headers,
+        description: data.description,
       },
     });
 

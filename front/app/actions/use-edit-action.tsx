@@ -13,6 +13,9 @@ export function useEditAction(initAction?: ApiAction) {
   const [method, setMethod] = useState<ApiActionMethod>(
     initAction?.method ?? "get"
   );
+  const [description, setDescription] = useState<string>(
+    initAction?.description ?? ""
+  );
   const [data, setData] = useState<ApiActionData>(
     initAction?.data ?? { items: [] }
   );
@@ -21,18 +24,22 @@ export function useEditAction(initAction?: ApiAction) {
   );
 
   const canSubmit = useMemo(() => {
-    if (!title || !url || !method) return false;
+    if (!title || !url || !method || !description) return false;
 
     for (const item of data.items) {
-      if (!item.key || !item.type || !item.description) return false;
+      if (!item.key || !item.type || !item.dataType) return false;
+      if (item.type === "dynamic" && !item.description) return false;
+      if (item.type === "value" && !item.value) return false;
     }
 
     for (const item of headers.items) {
-      if (!item.key || !item.type || !item.description) return false;
+      if (!item.key || !item.type || !item.dataType) return false;
+      if (item.type === "dynamic" && !item.description) return false;
+      if (item.type === "value" && !item.value) return false;
     }
 
     return true;
-  }, [title, url, method, data, headers]);
+  }, [title, url, method, data, headers, description]);
 
   const addDataItem = (item: ApiActionDataItem) => {
     setData((prev) => ({
@@ -104,6 +111,8 @@ export function useEditAction(initAction?: ApiAction) {
     updateHeaderItem,
     removeHeaderItem,
     canSubmit,
+    description,
+    setDescription,
   };
 }
 

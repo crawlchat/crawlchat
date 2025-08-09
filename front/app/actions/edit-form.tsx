@@ -9,6 +9,7 @@ import {
   NativeSelect,
   Separator,
   Stack,
+  Text,
 } from "@chakra-ui/react";
 import { useContext } from "react";
 import { EditActionContext } from "./use-edit-action";
@@ -40,6 +41,21 @@ function DataItemForm({
               defaultValue={item.type}
               onChange={(e) => updateDataItem(index, "type", e.target.value)}
             >
+              <option value="dynamic">Dynamic</option>
+              <option value="value">Value</option>
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+          </NativeSelect.Root>
+        </Field.Root>
+        <Field.Root>
+          <Field.Label>Data Type</Field.Label>
+          <NativeSelect.Root>
+            <NativeSelect.Field
+              defaultValue={item.type}
+              onChange={(e) =>
+                updateDataItem(index, "dataType", e.target.value)
+              }
+            >
               <option value="string">String</option>
               <option value="number">Number</option>
               <option value="boolean">Boolean</option>
@@ -65,14 +81,28 @@ function DataItemForm({
         />
       </Field.Root>
 
-      <Field.Root flex={2}>
-        <Field.Label>Description</Field.Label>
-        <Input
-          placeholder="Enter your description"
-          value={item.description}
-          onChange={(e) => updateDataItem(index, "description", e.target.value)}
-        />
-      </Field.Root>
+      {item.type === "dynamic" && (
+        <Field.Root flex={2}>
+          <Field.Label>Description</Field.Label>
+          <Input
+            placeholder="Enter your description"
+            value={item.description}
+            onChange={(e) =>
+              updateDataItem(index, "description", e.target.value)
+            }
+          />
+        </Field.Root>
+      )}
+      {item.type === "value" && (
+        <Field.Root flex={2}>
+          <Field.Label>Value</Field.Label>
+          <Input
+            placeholder="Enter the value"
+            value={item.value ?? ""}
+            onChange={(e) => updateDataItem(index, "value", e.target.value)}
+          />
+        </Field.Root>
+      )}
     </Stack>
   );
 }
@@ -93,24 +123,41 @@ export function EditForm() {
     addHeaderItem,
     updateHeaderItem,
     removeHeaderItem,
+    description,
+    setDescription,
   } = useContext(EditActionContext);
 
   return (
     <Stack>
-      <Stack>
+      <Text opacity={0.5}>
+        Add the external APIs to be used by the chatbot whenever it is required.
+        Give URL and describe about the API below so that the AI knows about it
+        and uses it appropriately.
+      </Text>
+
+      <Stack mt={6}>
         <Field.Root required>
           <Field.Label>Title</Field.Label>
           <Input
-            placeholder="Enter your title"
+            placeholder="Enter the title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </Field.Root>
 
         <Field.Root required>
+          <Field.Label>Description</Field.Label>
+          <Input
+            placeholder="Enter the description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </Field.Root>
+
+        <Field.Root required>
           <Field.Label>URL</Field.Label>
           <Input
-            placeholder="Enter your URL"
+            placeholder="Enter the URL"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
@@ -140,7 +187,13 @@ export function EditForm() {
             variant={"subtle"}
             size={"xs"}
             onClick={() =>
-              addDataItem({ key: "", type: "string", description: "" })
+              addDataItem({
+                key: "",
+                dataType: "string",
+                description: "",
+                type: "dynamic",
+                value: null,
+              })
             }
           >
             <TbPlus />
@@ -167,7 +220,13 @@ export function EditForm() {
             variant={"subtle"}
             size={"xs"}
             onClick={() =>
-              addHeaderItem({ key: "", type: "string", description: "" })
+              addHeaderItem({
+                key: "",
+                dataType: "string",
+                description: "",
+                type: "dynamic",
+                value: null,
+              })
             }
           >
             <TbPlus />
