@@ -367,6 +367,7 @@ enum KnowledgeGroupType {
   scrape_web
   scrape_github
   learn_discord
+  learn_slack
   github_issues
   answer_corrections
   upload

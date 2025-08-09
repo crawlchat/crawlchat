@@ -34,3 +34,24 @@ export async function query(
 
   return { answer, json: answerJson, error, message };
 }
+
+export async function learn(scrapeId: string, content: string, token: string) {
+  const result = await fetch(
+    `${process.env.SERVER_HOST}/resource/${scrapeId}`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        markdown: content,
+        title: "From Slack",
+        knowledgeGroupType: "learn_slack",
+        defaultGroupTitle: "Slack learning",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return result.json();
+}
