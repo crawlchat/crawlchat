@@ -172,7 +172,7 @@ export function makeActionTools(actions: ApiAction[]) {
       description: action.description,
       schema: z.object(schameItems),
       execute: async (input) => {
-        console.log("Executing action", action.id, input);
+        console.log("Executing action", action.id);
 
         const data: Record<string, any> = {};
         for (const item of action.data.items) {
@@ -198,7 +198,7 @@ export function makeActionTools(actions: ApiAction[]) {
 
         const content = await response.text();
 
-        console.log("Action response", action.id, content);
+        console.log("Action response", action.id, response.status);
         return {
           content,
           customMessage: {
