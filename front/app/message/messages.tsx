@@ -12,6 +12,8 @@ import {
   Drawer,
   Portal,
   IconButton,
+  Heading,
+  DataList,
 } from "@chakra-ui/react";
 import {
   TbBox,
@@ -19,6 +21,7 @@ import {
   TbBrandSlack,
   TbCopy,
   TbMessage,
+  TbPointer,
   TbRobotFace,
   TbSettingsBolt,
   TbThumbDown,
@@ -34,7 +37,7 @@ import { useMemo, useState } from "react";
 import { makeMessagePairs, type MessagePair } from "./analyse";
 import { Tooltip } from "~/components/ui/tooltip";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import type { Message, MessageChannel } from "libs/prisma";
+import type { ApiAction, Message, MessageChannel } from "libs/prisma";
 import { getScoreColor } from "~/score";
 import { Link as RouterLink } from "react-router";
 import { ViewSwitch } from "./view-switch";
@@ -85,7 +88,16 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  return { messagePairs, messagePair };
+  const actions = await prisma.apiAction.findMany({
+    where: {
+      scrapeId,
+    },
+  });
+  const actionsMap = new Map<string, ApiAction>(
+    actions.map((action) => [action.id, action])
+  );
+
+  return { messagePairs, messagePair, actionsMap };
 }
 
 function getMessageContent(message?: Message) {
@@ -114,7 +126,13 @@ function ChannelIcon({ channel }: { channel?: MessageChannel | null }) {
   );
 }
 
-function AssistantMessage({ message }: { message: Message }) {
+function AssistantMessage({
+  message,
+  actionsMap,
+}: {
+  message: Message;
+  actionsMap: Map<string, ApiAction>;
+}) {
   const [hoveredUniqueId, setHoveredUniqueId] = useState<string | null>(null);
   const citation = useMemo(
     () => extractCitations(getMessageContent(message), message.links),
@@ -147,52 +165,100 @@ function AssistantMessage({ message }: { message: Message }) {
         {citation.content}
       </MarkdownProse>
 
-      <Table.Root variant={"outline"}>
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader>Knowledge Item</Table.ColumnHeader>
-            <Table.ColumnHeader>Query</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="end">Score</Table.ColumnHeader>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body background={"brand.white"}>
-          {message.links.map((link, index) => (
-            <Table.Row
-              key={index}
-              bg={
-                hoveredUniqueId === link.fetchUniqueId
-                  ? "brand.gray.100"
-                  : "brand.white"
-              }
-            >
-              <Table.Cell>
-                <Group>
-                  <Link
-                    href={`/knowledge/item/${link.scrapeItemId}`}
-                    target="_blank"
-                  >
-                    {link.title || link.url}
-                  </Link>
-                </Group>
-              </Table.Cell>
-              <Table.Cell>{link.searchQuery ?? "-"}</Table.Cell>
-              <Table.Cell textAlign="end">
-                <Badge
-                  colorPalette={getScoreColor(link.score ?? 0)}
-                  variant={"surface"}
+      {message.links.length > 0 && (
+        <Stack>
+          <Heading>Knowledge queries</Heading>
+          <Table.Root variant={"outline"}>
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeader>Knowledge Item</Table.ColumnHeader>
+                <Table.ColumnHeader>Query</Table.ColumnHeader>
+                <Table.ColumnHeader textAlign="end">Score</Table.ColumnHeader>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body background={"brand.white"}>
+              {message.links.map((link, index) => (
+                <Table.Row
+                  key={index}
+                  bg={
+                    hoveredUniqueId === link.fetchUniqueId
+                      ? "brand.gray.100"
+                      : "brand.white"
+                  }
                 >
-                  {link.score?.toFixed(2)}
-                </Badge>
-              </Table.Cell>
-            </Table.Row>
+                  <Table.Cell>
+                    <Group>
+                      <Link
+                        href={`/knowledge/item/${link.scrapeItemId}`}
+                        target="_blank"
+                      >
+                        {link.title || link.url}
+                      </Link>
+                    </Group>
+                  </Table.Cell>
+                  <Table.Cell>{link.searchQuery ?? "-"}</Table.Cell>
+                  <Table.Cell textAlign="end">
+                    <Badge
+                      colorPalette={getScoreColor(link.score ?? 0)}
+                      variant={"surface"}
+                    >
+                      {link.score?.toFixed(2)}
+                    </Badge>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Root>
+        </Stack>
+      )}
+
+      {message.apiActionCalls.length > 0 && (
+        <Stack>
+          <Heading>Actions</Heading>
+          {message.apiActionCalls.map((call) => (
+            <Stack
+              border={"1px solid"}
+              borderColor={"brand.outline"}
+              p={4}
+              rounded={"md"}
+            >
+              <DataList.Root>
+                <DataList.Item>
+                  <DataList.ItemLabel>Title</DataList.ItemLabel>
+                  <DataList.ItemValue>
+                    {actionsMap.get(call.actionId)?.title}
+                  </DataList.ItemValue>
+                </DataList.Item>
+
+                <DataList.Item>
+                  <DataList.ItemLabel>Input</DataList.ItemLabel>
+                  <DataList.ItemValue>
+                    {JSON.stringify(call.data)}
+                  </DataList.ItemValue>
+                </DataList.Item>
+
+                <DataList.Item>
+                  <DataList.ItemLabel>Output</DataList.ItemLabel>
+                  <DataList.ItemValue>
+                    {JSON.stringify(call.response)}
+                  </DataList.ItemValue>
+                </DataList.Item>
+              </DataList.Root>
+            </Stack>
           ))}
-        </Table.Body>
-      </Table.Root>
+        </Stack>
+      )}
     </>
   );
 }
 
-function MessageDrawer({ messagePair }: { messagePair?: MessagePair | null }) {
+function MessageDrawer({
+  messagePair,
+  actionsMap,
+}: {
+  messagePair?: MessagePair | null;
+  actionsMap: Map<string, ApiAction>;
+}) {
   function copyMessage() {
     navigator.clipboard.writeText(
       (messagePair?.queryMessage?.llmMessage as any)?.content ?? ""
@@ -244,7 +310,10 @@ function MessageDrawer({ messagePair }: { messagePair?: MessagePair | null }) {
             </Drawer.Header>
             <Drawer.Body>
               {messagePair && (
-                <AssistantMessage message={messagePair.responseMessage} />
+                <AssistantMessage
+                  message={messagePair.responseMessage}
+                  actionsMap={actionsMap}
+                />
               )}
             </Drawer.Body>
             <Drawer.Footer>
@@ -325,9 +394,8 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                 <Table.Header>
                   <Table.Row>
                     <Table.ColumnHeader>Question</Table.ColumnHeader>
-                    <Table.ColumnHeader w={"100px"}></Table.ColumnHeader>
+                    <Table.ColumnHeader w={"180px"}></Table.ColumnHeader>
                     <Table.ColumnHeader w={"100px"}>Channel</Table.ColumnHeader>
-                    <Table.ColumnHeader w={"60px"}>Score</Table.ColumnHeader>
                     <Table.ColumnHeader w={"200px"} textAlign={"end"}>
                       Time
                     </Table.ColumnHeader>
@@ -354,6 +422,20 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                               location={pair.queryMessage.thread.location}
                             />
                           )}
+                          {pair.actionCalls.length > 0 && (
+                            <Badge colorPalette={"orange"} variant={"surface"}>
+                              <TbPointer />
+                              {pair.actionCalls.length}
+                            </Badge>
+                          )}
+                          {pair.maxScore !== undefined && (
+                            <Badge
+                              colorPalette={getScoreColor(pair.maxScore)}
+                              variant={"surface"}
+                            >
+                              {pair.maxScore.toFixed(2)}
+                            </Badge>
+                          )}
                           <Rating rating={pair.responseMessage.rating} />
                           {pair.responseMessage.correctionItemId && (
                             <Tooltip content="Corrected the answer" showArrow>
@@ -367,14 +449,6 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
                       <Table.Cell>
                         <ChannelIcon channel={pair.queryMessage?.channel} />
                       </Table.Cell>
-                      <Table.Cell>
-                        <Badge
-                          colorPalette={getScoreColor(pair.maxScore)}
-                          variant={"surface"}
-                        >
-                          {pair.maxScore.toFixed(2)}
-                        </Badge>
-                      </Table.Cell>
                       <Table.Cell textAlign={"end"}>
                         {moment(pair.queryMessage?.createdAt).fromNow()}
                       </Table.Cell>
@@ -387,7 +461,10 @@ export default function Messages({ loaderData }: Route.ComponentProps) {
         )}
       </Stack>
 
-      <MessageDrawer messagePair={loaderData.messagePair} />
+      <MessageDrawer
+        messagePair={loaderData.messagePair}
+        actionsMap={loaderData.actionsMap}
+      />
     </Page>
   );
 }

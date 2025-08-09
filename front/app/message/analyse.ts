@@ -1,4 +1,9 @@
-import type { Message, MessageSourceLink, Prisma } from "libs/prisma";
+import type {
+  ApiActionCall,
+  Message,
+  MessageSourceLink,
+  Prisma,
+} from "libs/prisma";
 
 export type MessageWithThread = Prisma.MessageGetPayload<{
   include: {
@@ -10,10 +15,11 @@ export type MessagePair = {
   scrapeId: string;
   queryMessage?: MessageWithThread;
   responseMessage: MessageWithThread;
-  maxScore: number;
-  minScore: number;
-  averageScore: number;
+  maxScore: number | undefined;
+  minScore: number | undefined;
+  averageScore: number | undefined;
   uniqueLinks: MessageSourceLink[];
+  actionCalls: ApiActionCall[];
 };
 
 export function analysePairMessages(pairs: MessagePair[]) {
@@ -30,6 +36,10 @@ export function analysePairMessages(pairs: MessagePair[]) {
   };
 
   for (const pair of pairs) {
+    if (pair.maxScore === undefined) {
+      continue;
+    }
+
     const score = pair.maxScore;
     if (score <= 0.2) {
       performance[0.2]++;
@@ -67,9 +77,9 @@ export function makeMessagePairs(messages: MessageWithThread[]) {
     if ((message.llmMessage as any).role === "user") {
       continue;
     }
-    let minScore = 0;
-    let maxScore = 0;
-    let averageScore = 0;
+    let minScore: number | undefined = 0;
+    let maxScore: number | undefined = 0;
+    let averageScore: number | undefined = 0;
     if (links.length > 0) {
       maxScore = Math.max(
         ...links.filter((l) => l.score !== null).map((l) => l.score!)
@@ -82,6 +92,12 @@ export function makeMessagePairs(messages: MessageWithThread[]) {
           .filter((l) => l.score !== null)
           .reduce((acc, l) => acc + l.score!, 0) /
         links.filter((l) => l.score !== null).length;
+    }
+
+    if (message.links.length === 0) {
+      minScore = undefined;
+      maxScore = undefined;
+      averageScore = undefined;
     }
 
     messagePairs.push({
@@ -97,6 +113,7 @@ export function makeMessagePairs(messages: MessageWithThread[]) {
           (u, i, a) =>
             i === a.findIndex((u2) => u2.scrapeItemId === u.scrapeItemId)
         ),
+      actionCalls: message.apiActionCalls,
     });
   }
 

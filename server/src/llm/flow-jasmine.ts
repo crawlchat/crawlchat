@@ -1,7 +1,16 @@
-import { prisma, RichBlockConfig, Scrape } from "libs/prisma";
+import {
+  ApiAction,
+  ApiActionCall,
+  ApiActionDataItem,
+  ApiActionDataType,
+  prisma,
+  RichBlockConfig,
+  Scrape,
+} from "libs/prisma";
 import { makeIndexer } from "../indexer/factory";
 import {
   FlowMessage,
+  LlmTool,
   multiLinePrompt,
   SimpleAgent,
   SimpleTool,
@@ -21,6 +30,7 @@ export type RAGAgentCustomMessage = {
     fetchUniqueId?: string;
     query?: string;
   }[];
+  actionCall?: ApiActionCall;
 };
 
 export function makeRagTool(
@@ -86,42 +96,128 @@ export function makeRagTool(
   });
 }
 
-export function makeApiTool() {
-  const url = "https://mocki.io/v1/f77dc1be-bea2-4731-8df1-008999829dbe";
-  const method = "GET";
-  const body = {};
-
-  return new SimpleTool({
-    id: "person-availability",
-    description: multiLinePrompt([
-      "Use this tool to check if a person is available right now or not.",
-      "You need to collect name and time from the user.",
-      "Don't hallucinate the inputs. Pass only what user provided.",
-    ]),
-    schema: z.object({
-      name: z.string({
-        description:
-          "The name of the person to check availability. It should be proper noun.",
-      }),
-      time: z.string({
-        description:
-          "The time to check availability. It should be in 24 hour format. Example: 10:00",
-      }),
-    }),
-    execute: async ({ name, time }: { name: string; time: string }) => {
-      console.log("making api call", name, time);
-      const response = await fetch(url, {
-        method,
-        body: method === "GET" ? undefined : JSON.stringify(body),
+export function makeActionTools(actions: ApiAction[]) {
+  function itemToZod(item: ApiActionDataItem) {
+    if (item.dataType === "string") {
+      return z.string({
+        description: item.description,
       });
-      const content = await response.text();
-      console.log("got response");
-      return {
-        content,
-        customMessage: {},
-      };
-    },
-  });
+    }
+
+    if (item.dataType === "number") {
+      return z.number({
+        description: item.description,
+      });
+    }
+
+    if (item.dataType === "boolean") {
+      return z.boolean({
+        description: item.description,
+      });
+    }
+
+    throw new Error("Invalid item type");
+  }
+
+  function titleToId(title: string) {
+    return title
+      .toLowerCase()
+      .replace(/ /g, "-")
+      .replace(/[^a-z0-9-]/g, "");
+  }
+
+  function typeCast(value: any, type: ApiActionDataType) {
+    if (type === "string") {
+      return String(value);
+    }
+    if (type === "number") {
+      return Number(value);
+    }
+    if (type === "boolean") {
+      return Boolean(value);
+    }
+    throw new Error("Invalid type");
+  }
+
+  function makeValue(input: Record<string, any>, item: ApiActionDataItem) {
+    if (item.type === "dynamic") {
+      return input[item.key];
+    }
+    if (item.type === "value") {
+      return item.value;
+    }
+    throw new Error("Invalid item type");
+  }
+
+  const tools = [];
+
+  for (const action of actions) {
+    const dynamicData = action.data.items.filter((i) => i.type === "dynamic");
+    const dynamicHeaders = action.headers.items.filter(
+      (i) => i.type === "dynamic"
+    );
+
+    const schameItems: Record<string, z.ZodType> = {};
+
+    for (const item of dynamicData) {
+      schameItems[item.key] = itemToZod(item);
+    }
+
+    for (const item of dynamicHeaders) {
+      schameItems[item.key] = itemToZod(item);
+    }
+
+    const tool = new SimpleTool({
+      id: titleToId(action.title),
+      description: action.description,
+      schema: z.object(schameItems),
+      execute: async (input) => {
+        console.log("Executing action", action.id, input);
+
+        const data: Record<string, any> = {};
+        for (const item of action.data.items) {
+          data[item.key] = typeCast(makeValue(input, item), item.dataType);
+        }
+
+        const queryParams =
+          action.method === "get"
+            ? "?" + new URLSearchParams(data).toString()
+            : "";
+        const body = action.method === "get" ? undefined : JSON.stringify(data);
+
+        const headers: Record<string, any> = {};
+        for (const item of action.headers.items) {
+          headers[item.key] = typeCast(makeValue(input, item), item.dataType);
+        }
+
+        const response = await fetch(action.url + queryParams, {
+          method: action.method,
+          body,
+          headers,
+        });
+
+        const content = await response.text();
+
+        console.log("Action response", action.id, content);
+        return {
+          content,
+          customMessage: {
+            actionCall: {
+              actionId: action.id,
+              data: input,
+              response: content,
+              statusCode: response.status,
+              createdAt: new Date(),
+            },
+          },
+        };
+      },
+    });
+
+    tools.push(tool);
+  }
+
+  return tools;
 }
 
 export function makeFlow(
@@ -139,6 +235,7 @@ export function makeFlow(
     richBlocks?: RichBlockConfig[];
     minScore?: number;
     showSources?: boolean;
+    actions?: ApiAction[];
   }
 ) {
   const ragTool = makeRagTool(scrapeId, indexerKey, options);
@@ -177,6 +274,8 @@ export function makeFlow(
     "Add the citation wherever applicable either in middle of the sentence or at the end of the sentence.",
     "But don't add it as a separate section at the end of the answer.",
   ]);
+
+  const actionTools = options?.actions ? makeActionTools(options.actions) : [];
 
   const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
     id: "rag-agent",
@@ -218,7 +317,7 @@ export function makeFlow(
       "Be polite when you don't have the answer, explain in a friendly way and inform that it is better to reach out the support team.",
       systemPrompt,
     ]),
-    tools: [ragTool.make(), makeApiTool().make()],
+    tools: [ragTool.make(), ...actionTools.map((tool) => tool.make())],
     model: options?.model,
     baseURL: options?.baseURL,
     apiKey: options?.apiKey,

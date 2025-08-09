@@ -94,6 +94,7 @@ function answerListener(
             scrapeId,
             llmMessage: { role: "assistant", content: event.content },
             links: event.sources,
+            apiActionCalls: event.actionCalls as any,
             ownerUserId: userId,
             channel: channel ?? null,
           },
@@ -312,6 +313,12 @@ expressWs.app.ws("/", (ws: any, req) => {
           return;
         }
 
+        const actions = await prisma.apiAction.findMany({
+          where: {
+            scrapeId: scrape.id,
+          },
+        });
+
         const answerer = baseAnswerer;
 
         await retry(async () => {
@@ -325,6 +332,7 @@ expressWs.app.ws("/", (ws: any, req) => {
               listen: answerListener(scrape.id, scrape.userId, threadId, {
                 ws,
               }),
+              actions,
             }
           );
         });
