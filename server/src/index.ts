@@ -557,6 +557,12 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   });
   await updateLastMessageAt(thread.id);
 
+  const actions = await prisma.apiAction.findMany({
+    where: {
+      scrapeId: scrape.id,
+    },
+  });
+
   const answer = await baseAnswerer(
     scrape,
     query,
@@ -568,6 +574,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     })),
     {
       prompt,
+      actions,
     }
   );
 
