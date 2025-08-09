@@ -502,7 +502,7 @@ model ApiAction {
 type ApiActionCall {
   actionId        String  @db.ObjectId
   data            Json
-  response        Json
+  response        String
   statusCode      Int
   createdAt       DateTime
 }

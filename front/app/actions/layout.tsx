@@ -16,6 +16,7 @@ import {
   VStack,
   Center,
   Stack,
+  Badge,
 } from "@chakra-ui/react";
 import moment from "moment";
 
@@ -30,7 +31,22 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
-  return { actions };
+  const counts: Record<string, number> = {};
+  for (const action of actions) {
+    const count = await prisma.message.count({
+      where: {
+        scrapeId,
+        apiActionCalls: {
+          some: {
+            actionId: action.id,
+          },
+        },
+      },
+    });
+    counts[action.id] = count;
+  }
+
+  return { actions, counts };
 }
 
 function Summary() {
@@ -95,6 +111,7 @@ export default function ActionsLayout({ loaderData }: Route.ComponentProps) {
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
                 <Table.ColumnHeader>URL</Table.ColumnHeader>
                 <Table.ColumnHeader>Method</Table.ColumnHeader>
+                <Table.ColumnHeader>Calls</Table.ColumnHeader>
                 <Table.ColumnHeader textAlign="end">Created</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
@@ -115,6 +132,11 @@ export default function ActionsLayout({ loaderData }: Route.ComponentProps) {
                   </Table.Cell>
                   <Table.Cell>{item.url}</Table.Cell>
                   <Table.Cell>{item.method.toUpperCase()}</Table.Cell>
+                  <Table.Cell>
+                    <Badge colorPalette={"brand"} variant={"surface"}>
+                      {loaderData.counts[item.id]}
+                    </Badge>
+                  </Table.Cell>
                   <Table.Cell textAlign="end">
                     {moment(item.createdAt).fromNow()}
                   </Table.Cell>

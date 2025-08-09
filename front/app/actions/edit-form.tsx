@@ -205,6 +205,12 @@ export function EditForm() {
           </IconButton>
         </Group>
 
+        <Text opacity={0.5}>
+          Data to be passed to the API. It will be passed as JSON for POST and
+          as query parameters for GET requests. Select Value if you want to pass
+          the value as constant.
+        </Text>
+
         {data.items.map((item, index) => (
           <DataItemForm
             key={index}
@@ -235,6 +241,11 @@ export function EditForm() {
             <TbPlus />
           </IconButton>
         </Group>
+
+        <Text opacity={0.5}>
+          Headers to be passed to the API. Use Value type if it is constant or
+          an API key.
+        </Text>
 
         {headers.items.map((item, index) => (
           <DataItemForm

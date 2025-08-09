@@ -231,6 +231,13 @@ function AssistantMessage({
                 </DataList.Item>
 
                 <DataList.Item>
+                  <DataList.ItemLabel>Status code</DataList.ItemLabel>
+                  <DataList.ItemValue>
+                    {call.statusCode}
+                  </DataList.ItemValue>
+                </DataList.Item>
+
+                <DataList.Item>
                   <DataList.ItemLabel>Input</DataList.ItemLabel>
                   <DataList.ItemValue>
                     {JSON.stringify(call.data)}
@@ -240,7 +247,7 @@ function AssistantMessage({
                 <DataList.Item>
                   <DataList.ItemLabel>Output</DataList.ItemLabel>
                   <DataList.ItemValue>
-                    {JSON.stringify(call.response)}
+                    {call.response as string}
                   </DataList.ItemValue>
                 </DataList.Item>
               </DataList.Root>

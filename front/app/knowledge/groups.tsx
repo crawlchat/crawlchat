@@ -168,7 +168,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       )}
       {groups.length > 0 && (
         <Stack>
-          <Table.Root size="lg">
+          <Table.Root>
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader w="12%">Type</Table.ColumnHeader>
