@@ -32,12 +32,18 @@ export default [
   layout("dashboard/layout.tsx", [
     route("app", "dashboard/page.tsx"),
     route("profile", "dashboard/profile.tsx"),
-    route("messages", "message/messages.tsx"),
     route("messages/:messageId/fix", "message/fix.tsx"),
     route("messages/conversations", "message/conversations.tsx"),
     route("settings", "scrapes/settings.tsx"),
     route("tickets", "tickets/list.tsx"),
     route("tickets/settings", "tickets/settings.tsx"),
+
+    layout("message/layout.tsx", [
+      ...prefix("messages", [
+        index("message/messages.tsx"),
+        route(":queryMessageId", "message/message.tsx"),
+      ]),
+    ]),
 
     route("integrations", "integrations/page.tsx", [
       index("integrations/embed.tsx"),
