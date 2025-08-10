@@ -7,6 +7,7 @@ import {
   activatePlan,
   consumeCredits,
   addTopup,
+  PLAN_FREE,
 } from "libs/user-plan";
 import type { Plan } from "libs/user-plan";
 
@@ -122,7 +123,12 @@ export async function action({ request }: Route.ActionArgs) {
               status: "EXPIRED",
               activatedAt: new Date(),
             },
-            update: { status: "EXPIRED" },
+            update: {
+              planId: PLAN_FREE.id,
+              status: "EXPIRED",
+              limits: PLAN_FREE.limits,
+              credits: PLAN_FREE.credits,
+            },
           },
         },
       },

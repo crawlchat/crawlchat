@@ -14,14 +14,13 @@ import {
   TbArrowRight,
   TbBook,
   TbChevronRight,
+  TbCreditCard,
   TbCrown,
   TbHome,
   TbLock,
   TbLogout,
   TbMessage,
   TbPlug,
-  TbPointer,
-  TbRoad,
   TbSettings,
   TbThumbDown,
   TbTicket,
@@ -505,12 +504,12 @@ export function SideMenu({
               </IconButton>
             </MenuTrigger>
             <MenuContent portalRef={contentRef as React.RefObject<HTMLElement>}>
-              {/* <MenuItem value="billing" asChild>
-                    <Link to="/dashboard/billing">
-                      <TbCreditCard />
-                      Billing
-                    </Link>
-                  </MenuItem> */}
+              <MenuItem value="billing" asChild>
+                <Link to="/profile#billing">
+                  <TbCreditCard />
+                  Billing
+                </Link>
+              </MenuItem>
               <MenuItem value="logout" asChild>
                 <Link to="/logout">
                   <TbLogout />

@@ -1,6 +1,6 @@
 import { Page } from "~/components/page";
-import { TbSettings } from "react-icons/tb";
-import { Input, Stack } from "@chakra-ui/react";
+import { TbArrowRight, TbCrown, TbSettings } from "react-icons/tb";
+import { DataList, Input, Stack } from "@chakra-ui/react";
 import { useFetcher } from "react-router";
 import type { Route } from "./+types/profile";
 import { getAuthUser } from "~/auth/middleware";
@@ -12,10 +12,44 @@ import {
   SettingsSection,
   SettingsSectionProvider,
 } from "~/settings-section";
+import { Button } from "~/components/ui/button";
+import { getSubscription } from "~/lemonsqueezy";
+import { planMap } from "libs/user-plan";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
-  return { user: user! };
+
+  let subscription = null;
+  if (user!.plan?.subscriptionId) {
+    subscription = await getSubscription(user!.plan.subscriptionId);
+  }
+
+  const plan = planMap[user!.plan!.planId];
+
+  const scrapes = await prisma.scrape.findMany({
+    where: {
+      userId: user!.id,
+    },
+  });
+  let teamMembers = 0;
+  for (const scrape of scrapes) {
+    teamMembers += await prisma.scrapeUser.count({
+      where: {
+        scrapeId: scrape.id,
+        role: {
+          not: "owner",
+        },
+      },
+    });
+  }
+
+  return {
+    user: user!,
+    subscription,
+    plan,
+    scrapes: scrapes.length,
+    teamMembers,
+  };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -53,6 +87,10 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
   const weeklyUpdatesFetcher = useFetcher();
   const ticketUpdatesFetcher = useFetcher();
   const nameFetcher = useFetcher();
+
+  const credits = loaderData.user.plan!.credits!;
+  const limits = loaderData.user.plan!.limits!;
+  const plan = loaderData.plan!;
 
   return (
     <Page title="Profile" icon={<TbSettings />}>
@@ -111,6 +149,95 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                   Receive ticket updates
                 </Switch>
               </Stack>
+            </SettingsSection>
+
+            <SettingsSection
+              id="billing"
+              title="Billing"
+              description="Manage your plan and billing"
+              actionRight={
+                <>
+                  {loaderData.subscription && (
+                    <Button size={"sm"} asChild>
+                      <a
+                        href={
+                          loaderData.subscription.data.attributes.urls
+                            .customer_portal
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <TbSettings />
+                        Subscription
+                        <TbArrowRight />
+                      </a>
+                    </Button>
+                  )}
+                  {!loaderData.subscription && (
+                    <>
+                      <Button
+                        size={"sm"}
+                        colorPalette={"brand"}
+                        variant={"subtle"}
+                        asChild
+                      >
+                        <a
+                          href={
+                            "https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
+                          }
+                          target="_blank"
+                        >
+                          <TbCrown />
+                          Upgrade to Starter
+                        </a>
+                      </Button>
+                      <Button size={"sm"} colorPalette={"brand"} asChild>
+                        <a
+                          href={
+                            "https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
+                          }
+                          target="_blank"
+                        >
+                          <TbCrown />
+                          Upgrade to Pro
+                        </a>
+                      </Button>
+                    </>
+                  )}
+                </>
+              }
+            >
+              <DataList.Root orientation="horizontal">
+                <DataList.Item>
+                  <DataList.ItemLabel>Pages</DataList.ItemLabel>
+                  <DataList.ItemValue>
+                    Available {credits.scrapes} / {plan.credits.scrapes}
+                  </DataList.ItemValue>
+                </DataList.Item>
+
+                <DataList.Item>
+                  <DataList.ItemLabel>Messages</DataList.ItemLabel>
+                  <DataList.ItemValue>
+                    Available {credits.messages} / {plan.credits.messages}
+                  </DataList.ItemValue>
+                </DataList.Item>
+
+                <DataList.Item>
+                  <DataList.ItemLabel>Collections</DataList.ItemLabel>
+                  <DataList.ItemValue>
+                    Available {limits.scrapes - loaderData.scrapes} /{" "}
+                    {limits.scrapes}
+                  </DataList.ItemValue>
+                </DataList.Item>
+
+                <DataList.Item>
+                  <DataList.ItemLabel>Team members</DataList.ItemLabel>
+                  <DataList.ItemValue>
+                    Available {limits.teamMembers - loaderData.teamMembers} /{" "}
+                    {limits.teamMembers}
+                  </DataList.ItemValue>
+                </DataList.Item>
+              </DataList.Root>
             </SettingsSection>
           </SettingsContainer>
         </SettingsSectionProvider>

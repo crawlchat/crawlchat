@@ -81,13 +81,26 @@ export async function action({ request }: Route.ActionArgs) {
         },
       },
     });
-    const uniqueMembers = new Set(
-      owner!.scrapes.flatMap((scrape) =>
-        scrape.scrapeUsers.map((user) => user.email)
-      )
-    );
+    let existingMembers = 0;
+    const scrapes = await prisma.scrape.findMany({
+      where: {
+        userId: owner!.id,
+      },
+    });
+
+    for (const scrape of scrapes) {
+      existingMembers += await prisma.scrapeUser.count({
+        where: {
+          scrapeId: scrape.id,
+          role: {
+            not: "owner",
+          },
+        },
+      });
+    }
+
     const limits = await getLimits(owner!);
-    if (uniqueMembers.size >= limits.teamMembers) {
+    if (existingMembers >= limits.teamMembers) {
       return Response.json(
         { error: "You have reached the maximum number of team members" },
         { status: 400 }

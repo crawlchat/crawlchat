@@ -4,6 +4,7 @@ import type {
   PlanLimits,
   PlanType,
   User,
+  UserPlan,
   UserPlanProvider,
 } from "@prisma/client";
 
@@ -219,4 +220,17 @@ export async function getLimits(user: User) {
   const planId = user.plan?.planId ?? PLAN_FREE.id;
   const plan = planMap[planId];
   return plan.limits;
+}
+
+export async function isPaidPlan(userPlan: UserPlan) {
+  const plan = planMap[userPlan.planId];
+
+  if (
+    ["SUBSCRIPTION", "ONE_TIME"].includes(plan.type) &&
+    userPlan.status === "ACTIVE"
+  ) {
+    return true;
+  }
+
+  return false;
 }
