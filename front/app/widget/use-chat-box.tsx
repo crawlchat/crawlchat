@@ -252,7 +252,9 @@ export function useChatBox({
     if (!message) return;
 
     chat.deleteMessage([questionId, answerId]);
-    chat.ask((message.llmMessage as any).content as string);
+    chat.ask((message.llmMessage as any).content as string, {
+      delete: [questionId, answerId],
+    });
     await scroll();
   }
 

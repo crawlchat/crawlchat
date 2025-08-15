@@ -292,12 +292,19 @@ expressWs.app.ws("/", (ws: any, req) => {
 
       if (message.type === "ask-llm") {
         const threadId = message.data.threadId;
+        const deleteIds = message.data.delete;
         const thread = await prisma.thread.findFirstOrThrow({
           where: { id: threadId },
           include: {
             messages: true,
           },
         });
+
+        if (deleteIds) {
+          await prisma.message.deleteMany({
+            where: { id: { in: deleteIds }, threadId },
+          });
+        }
 
         const scrape = await prisma.scrape.findFirstOrThrow({
           where: { id: thread.scrapeId },

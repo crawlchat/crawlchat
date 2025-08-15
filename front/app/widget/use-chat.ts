@@ -163,10 +163,12 @@ export function useScrapeChat({
     socket.current?.close();
   }
 
-  function ask(query: string) {
+  function ask(query: string, options?: { delete?: string[] }) {
     if (query.length === 0) return -1;
 
-    socket.current!.send(makeMessage("ask-llm", { threadId, query }));
+    socket.current!.send(
+      makeMessage("ask-llm", { threadId, query, delete: options?.delete })
+    );
     const messagesCount = messages.length;
     setMessages((prev) => [
       ...prev,

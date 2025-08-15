@@ -9,7 +9,6 @@ import {
   IconButton,
   Input,
   Link,
-  Separator,
   Skeleton,
   Textarea,
 } from "@chakra-ui/react";
@@ -19,7 +18,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TbArrowUp,
   TbChevronRight,
-  TbEraser,
   TbHelp,
   TbMessage,
   TbRefresh,
@@ -32,6 +30,7 @@ import {
   TbTicket,
   TbArrowRight,
   TbMenu,
+  TbTrash,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { InputGroup } from "~/components/ui/input-group";
@@ -176,6 +175,7 @@ function ChatInput() {
           <Textarea
             ref={inputRef}
             placeholder={getPlaceholder()}
+            truncate={!query}
             size={"xl"}
             p={0}
             outline={"none"}
@@ -188,7 +188,7 @@ function ChatInput() {
             onKeyDown={handleKeyDown}
             disabled={isDisabled}
             maxHeight={"240px"}
-            overflow={"auto"}
+            overflowY={"auto"}
           />
         </InputGroup>
       </Group>
@@ -457,6 +457,18 @@ function AssistantMessage({
           {citation.content}
         </MarkdownProse>
         <Group pb={Object.keys(citation.citedLinks).length === 0 ? 4 : 0}>
+          <Tooltip content="Refresh" showArrow>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={"subtle"}
+              onClick={() => refresh(questionId, id)}
+              disabled={readOnly}
+            >
+              <TbRefresh />
+            </IconButton>
+          </Tooltip>
+
           <Tooltip content="Helpful" showArrow>
             <IconButton
               size={"xs"}
@@ -511,9 +523,9 @@ function NoMessages() {
   const { ask, scrape } = useChatBoxContext();
   const shouldShowDefaultTitle = !scrape.widgetConfig?.welcomeMessage;
   return (
-    <Stack p={4} gap={4}>
+    <Stack p={4} gap={4} flex={1}>
       {shouldShowDefaultTitle && (
-        <Stack align={"center"} my={20}>
+        <Stack align={"center"} my={20} flex={1} justify={"center"}>
           <Text opacity={0.5}>
             <TbMessage size={"60px"} />
           </Text>
@@ -668,6 +680,7 @@ function MCPSetup() {
 
 function Toolbar() {
   const {
+    chat,
     erase,
     thread,
     screen,
@@ -768,6 +781,14 @@ function Toolbar() {
           </Button>
         )}
 
+        {chat.allMessages.length > 0 && (
+          <Tooltip content="Clear & start new conversation" showArrow>
+            <IconButton size={"xs"} variant={"ghost"} onClick={() => erase()}>
+              <TbTrash />
+            </IconButton>
+          </Tooltip>
+        )}
+
         <MenuRoot
           positioning={{ placement: "bottom-end" }}
           onSelect={(e) => handleMenuSelect(e.value)}
@@ -778,10 +799,6 @@ function Toolbar() {
             </IconButton>
           </MenuTrigger>
           <MenuContent>
-            <MenuItem value={"clear"} disabled={readOnly}>
-              <TbEraser />
-              Clear chat
-            </MenuItem>
             <MenuItem value={"share"}>
               <TbShare2 />
               Share chat
