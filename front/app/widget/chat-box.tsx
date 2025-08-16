@@ -168,7 +168,7 @@ function ChatInput() {
   return (
     <Group
       h={`${height}px`}
-      border={"1px solid"}
+      borderTop={"1px solid"}
       borderColor={"brand.outline"}
       justify={"space-between"}
       p={4}
@@ -536,7 +536,7 @@ function NoMessages() {
   return (
     <Stack p={4} gap={4} flex={1}>
       {shouldShowDefaultTitle && (
-        <Stack align={"center"} flex={1} justify={"center"}>
+        <Stack align={"center"} flex={1} justify={"center"} minH={"200px"}>
           <Text opacity={0.5}>
             <TbMessage size={"60px"} />
           </Text>
