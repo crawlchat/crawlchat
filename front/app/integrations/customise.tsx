@@ -1,14 +1,9 @@
 import { Group, HStack, Input, parseColor, Stack } from "@chakra-ui/react";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import {
-  SettingsContainer,
-  SettingsSection,
-  SettingsSectionProvider,
-} from "~/settings-section";
+import { SettingsSection } from "~/settings-section";
 import { useFetcher } from "react-router";
-import type { WidgetConfig, WidgetSize } from "libs/prisma";
-import { useEffect, useMemo, useRef } from "react";
+import type { Scrape, WidgetConfig, WidgetSize } from "libs/prisma";
 import {
   ColorPickerArea,
   ColorPickerContent,
@@ -24,6 +19,8 @@ import { Field } from "~/components/ui/field";
 import type { Route } from "./+types/embed";
 import { authoriseScrapeUser, getSessionScrapeId } from "../scrapes/util";
 import { Switch } from "~/components/ui/switch";
+import { AskAIButton } from "~/widget/ask-ai-button";
+import { useMemo, useState } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -121,191 +118,137 @@ export async function action({ request }: Route.ActionArgs) {
   return null;
 }
 
-function makeScriptCode(scrapeId: string) {
-  if (typeof window === "undefined") {
-    return { script: "", docusaurusConfig: "" };
-  }
-
-  const origin = window.location.origin;
-
-  const script = `<script 
-  src="${origin}/embed.js" 
-  id="crawlchat-script" 
-  data-id="${scrapeId}"
-></script>`;
-
-  const docusaurusConfig = `headTags: [
-  {
-      "tagName": "script",
-      "attributes": {
-        "src": "${origin}/embed.js",
-        "id": "crawlchat-script",
-        "data-id": "${scrapeId}"
-      },
-    },
-],`;
-
-  return { script, docusaurusConfig };
-}
-
-function PreviewEmbed({ scriptCode }: { scriptCode: string }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    if (!iframeRef.current || !iframeRef.current.contentDocument) return;
-
-    iframeRef.current.contentDocument.open();
-    iframeRef.current.contentDocument.close();
-
-    iframeRef.current.contentDocument.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>CrawlChat</title>
-          <style>
-            body {
-              font-family: 'Inter', sans-serif;
-            }
-          </style>
-        </head>
-        <body>
-          ${scriptCode}
-        </body>
-      </html>`);
-  }, [scriptCode]);
-
-  return (
-    <iframe ref={iframeRef} id="crawlchat-script" style={{ height: "100%" }} />
-  );
-}
-
 export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const widgetConfigFetcher = useFetcher();
-  const scriptCode = useMemo(
-    () => makeScriptCode(loaderData.scrape?.id ?? ""),
-    [loaderData.scrape?.id]
+  const [primaryColor, setPrimaryColor] = useState(
+    loaderData.scrape?.widgetConfig?.primaryColor
   );
+  const [buttonTextColor, setButtonTextColor] = useState(
+    loaderData.scrape?.widgetConfig?.buttonTextColor
+  );
+  const [buttonText, setButtonText] = useState(
+    loaderData.scrape?.widgetConfig?.buttonText
+  );
+  const [tooltip, setTooltip] = useState(
+    loaderData.scrape?.widgetConfig?.tooltip
+  );
+  const [showLogo, setShowLogo] = useState(
+    loaderData.scrape?.widgetConfig?.showLogo ?? false
+  );
+  const liveScrape = useMemo(() => {
+    return {
+      ...loaderData.scrape!,
+      widgetConfig: {
+        ...loaderData.scrape?.widgetConfig,
+        primaryColor,
+        buttonTextColor,
+        buttonText,
+        tooltip,
+        showLogo,
+      },
+    };
+  }, [
+    loaderData.scrape,
+    primaryColor,
+    buttonTextColor,
+    buttonText,
+    tooltip,
+    showLogo,
+  ]);
 
   return (
-    <SettingsSectionProvider>
-      <SettingsContainer>
-        <SettingsSection
-          id="customise-widget"
-          title="Customise widget"
-          description="Configure the widget and copy paste the <script> tag below to your website."
-          fetcher={widgetConfigFetcher}
-        >
-          <input type="hidden" name="from-widget" value={"true"} />
-          <Group alignItems={"flex-start"} gap={10}>
-            <Stack flex={1}>
-              <Stack gap={6}>
-                <Group>
-                  <ColorPickerRoot
-                    flex={1}
-                    name="primaryColor"
-                    defaultValue={
-                      loaderData.scrape?.widgetConfig?.primaryColor
-                        ? parseColor(
-                            loaderData.scrape.widgetConfig.primaryColor
-                          )
-                        : undefined
-                    }
-                  >
-                    <ColorPickerLabel>Button color</ColorPickerLabel>
-                    <ColorPickerControl>
-                      <ColorPickerInput />
-                      <ColorPickerTrigger />
-                    </ColorPickerControl>
-                    <ColorPickerContent>
-                      <ColorPickerArea />
-                      <HStack>
-                        <ColorPickerEyeDropper />
-                        <ColorPickerSliders />
-                      </HStack>
-                    </ColorPickerContent>
-                  </ColorPickerRoot>
+    <Group alignItems={"flex-start"} gap={4}>
+      <SettingsSection
+        id="customise-widget"
+        title="Customise widget"
+        description="Configure the widget and copy paste the <script> tag below to your website."
+        fetcher={widgetConfigFetcher}
+      >
+        <input type="hidden" name="from-widget" value={"true"} />
 
-                  <ColorPickerRoot
-                    flex={1}
-                    name="buttonTextColor"
-                    defaultValue={
-                      loaderData.scrape?.widgetConfig?.buttonTextColor
-                        ? parseColor(
-                            loaderData.scrape.widgetConfig.buttonTextColor
-                          )
-                        : undefined
-                    }
-                  >
-                    <ColorPickerLabel>Button text color</ColorPickerLabel>
-                    <ColorPickerControl>
-                      <ColorPickerInput />
-                      <ColorPickerTrigger />
-                    </ColorPickerControl>
-                    <ColorPickerContent>
-                      <ColorPickerArea />
-                      <HStack>
-                        <ColorPickerEyeDropper />
-                        <ColorPickerSliders />
-                      </HStack>
-                    </ColorPickerContent>
-                  </ColorPickerRoot>
-                </Group>
-
-                <Group>
-                  <Field label="Button text">
-                    <Input
-                      placeholder="Button text"
-                      name="buttonText"
-                      defaultValue={
-                        loaderData.scrape?.widgetConfig?.buttonText ?? ""
-                      }
-                    />
-                  </Field>
-                </Group>
-
-                <Group>
-                  <Field label="Tooltip">
-                    <Input
-                      placeholder="Ex: Ask AI or reach out to us!"
-                      name="tooltip"
-                      defaultValue={
-                        loaderData.scrape?.widgetConfig?.tooltip ?? ""
-                      }
-                    />
-                  </Field>
-                </Group>
-
-                <Group>
-                  <Switch
-                    name="showLogo"
-                    defaultChecked={
-                      loaderData.scrape?.widgetConfig?.showLogo ?? false
-                    }
-                  >
-                    Show logo
-                  </Switch>
-                </Group>
-              </Stack>
-            </Stack>
-
-            <Stack flex={1}>
-              <Stack
+        <Stack flex={1}>
+          <Stack gap={6}>
+            <Group>
+              <ColorPickerRoot
                 flex={1}
-                bg="brand.outline-subtle"
-                p={2}
-                rounded={"md"}
-                overflow={"hidden"}
-                alignSelf={"stretch"}
+                name="primaryColor"
+                value={primaryColor ? parseColor(primaryColor) : undefined}
+                onValueChange={(e) => setPrimaryColor(e.valueAsString)}
               >
-                <PreviewEmbed
-                  key={widgetConfigFetcher.state}
-                  scriptCode={scriptCode.script}
+                <ColorPickerLabel>Button color</ColorPickerLabel>
+                <ColorPickerControl>
+                  <ColorPickerInput />
+                  <ColorPickerTrigger />
+                </ColorPickerControl>
+                <ColorPickerContent>
+                  <ColorPickerArea />
+                  <HStack>
+                    <ColorPickerEyeDropper />
+                    <ColorPickerSliders />
+                  </HStack>
+                </ColorPickerContent>
+              </ColorPickerRoot>
+
+              <ColorPickerRoot
+                flex={1}
+                name="buttonTextColor"
+                value={
+                  buttonTextColor ? parseColor(buttonTextColor) : undefined
+                }
+                onValueChange={(e) => setButtonTextColor(e.valueAsString)}
+              >
+                <ColorPickerLabel>Button text color</ColorPickerLabel>
+                <ColorPickerControl>
+                  <ColorPickerInput />
+                  <ColorPickerTrigger />
+                </ColorPickerControl>
+                <ColorPickerContent>
+                  <ColorPickerArea />
+                  <HStack>
+                    <ColorPickerEyeDropper />
+                    <ColorPickerSliders />
+                  </HStack>
+                </ColorPickerContent>
+              </ColorPickerRoot>
+            </Group>
+
+            <Group>
+              <Field label="Button text">
+                <Input
+                  placeholder="Button text"
+                  name="buttonText"
+                  value={buttonText ?? ""}
+                  onChange={(e) => setButtonText(e.target.value)}
                 />
-              </Stack>
-            </Stack>
-          </Group>
-        </SettingsSection>
-      </SettingsContainer>
-    </SettingsSectionProvider>
+              </Field>
+            </Group>
+
+            <Group>
+              <Field label="Tooltip">
+                <Input
+                  placeholder="Ex: Ask AI or reach out to us!"
+                  name="tooltip"
+                  value={tooltip ?? ""}
+                  onChange={(e) => setTooltip(e.target.value)}
+                />
+              </Field>
+            </Group>
+
+            <Group>
+              <Switch
+                name="showLogo"
+                checked={showLogo}
+                onCheckedChange={(e) => setShowLogo(e.checked)}
+              >
+                Show logo
+              </Switch>
+            </Group>
+          </Stack>
+        </Stack>
+      </SettingsSection>
+      <Stack>
+        <AskAIButton scrape={liveScrape as Scrape} />
+      </Stack>
+    </Group>
   );
 }
