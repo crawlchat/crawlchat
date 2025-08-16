@@ -29,7 +29,6 @@ import {
   TbX,
   TbTicket,
   TbArrowRight,
-  TbMenu,
   TbTrash,
   TbMenu2,
 } from "react-icons/tb";
@@ -50,6 +49,7 @@ import { getScoreColor } from "~/score";
 import { Field } from "~/components/ui/field";
 import { toaster } from "~/components/ui/toaster";
 import { useChatBoxContext } from "./use-chat-box";
+import Color from "color";
 
 export function useChatBoxDimensions(
   size: WidgetSize | null,
@@ -528,7 +528,10 @@ function NoMessages() {
   const { ask, scrape, widgetConfig } = useChatBoxContext();
 
   const shouldShowDefaultTitle = !scrape.widgetConfig?.welcomeMessage;
-  const shadowColor = widgetConfig?.primaryColor ?? "brand.outline";
+  const primaryColor = widgetConfig?.primaryColor ?? "#000";
+  const color = Color(primaryColor);
+  const lightenTo = Math.max(0, 0.2 - color.luminosity());
+  const lightened = color.lighten(lightenTo).hex();
 
   return (
     <Stack p={4} gap={4} flex={1}>
@@ -555,7 +558,7 @@ function NoMessages() {
             <Heading size={"xs"} opacity={0.5}>
               QUICK QUESTIONS
             </Heading>
-            <Stack w="full">
+            <Stack w="full" gap={3}>
               {scrape.widgetConfig?.questions.map((question, i) => (
                 <Group
                   key={i}
@@ -564,7 +567,7 @@ function NoMessages() {
                   alignItems={"flex-start"}
                   onClick={() => ask(question.text)}
                   gap={1}
-                  boxShadow={`${shadowColor} 0px 0px 3px`}
+                  boxShadow={`${lightened} 0px 0px 3px`}
                   w="fit"
                   px={2}
                   py={1}
@@ -752,13 +755,22 @@ function Toolbar() {
       <Group flex="1">
         <Group w="full">
           {fullscreen && (
-            <IconButton size={"xs"} variant={"subtle"} onClick={() => close()}>
+            <IconButton
+              size={"xs"}
+              variant={"plain"}
+              onClick={() => close()}
+              color={color}
+              opacity={0.9}
+              _hover={{
+                opacity: 1,
+              }}
+            >
               <TbX />
             </IconButton>
           )}
-          {scrape.widgetConfig?.showLogo && scrape.logoUrl && (
+          {scrape.widgetConfig?.logoUrl && (
             <img
-              src={scrape.logoUrl}
+              src={scrape.widgetConfig.logoUrl}
               alt="Logo"
               style={{ maxWidth: "24px", maxHeight: "24px" }}
             />
@@ -988,9 +1000,9 @@ export function ChatboxContainer({
         gap={0}
         position={"relative"}
         overflow={"hidden"}
-        w={["full", width ?? boxDimensions.width]}
-        h={["full", height ?? undefined]}
-        maxH={["full", height ?? boxDimensions.height]}
+        w={["full", "full", boxDimensions.width]}
+        h={["full", "full", "auto"]}
+        maxH={["full", "full", boxDimensions.height]}
       >
         {children}
       </Stack>

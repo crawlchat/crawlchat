@@ -2,14 +2,12 @@ import {
   Alert,
   Badge,
   Box,
-  Center,
   createListCollection,
   DataList,
   Drawer,
   Group,
   HStack,
   IconButton,
-  Image,
   Input,
   Portal,
   RadioCard,
@@ -34,11 +32,9 @@ import type {
   Scrape,
   User,
 } from "libs/prisma";
-import { getSession } from "~/session";
 import {
   TbCrown,
   TbPencil,
-  TbPhoto,
   TbPlus,
   TbSettings,
   TbTrash,
@@ -731,37 +727,6 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
               pattern="^[a-z0-9\-]{4,32}$"
               required
             />
-          </SettingsSection>
-
-          <SettingsSection
-            id="logo"
-            title="Logo"
-            description="Set the logo URL for this collection. It will be shown on embed widget and other appropriate places."
-            fetcher={logoFetcher}
-          >
-            <Stack>
-              <Center
-                w={"100px"}
-                h={"100px"}
-                bg={"gray.100"}
-                rounded={"lg"}
-                p={2}
-              >
-                {loaderData.scrape.logoUrl ? (
-                  <Image src={loaderData.scrape.logoUrl} alt="Logo" />
-                ) : (
-                  <Text fontSize={"3xl"} opacity={0.4}>
-                    <TbPhoto />
-                  </Text>
-                )}
-              </Center>
-              <Input
-                name="logoUrl"
-                defaultValue={loaderData.scrape.logoUrl ?? ""}
-                placeholder="Enter a logo URL"
-                pattern="https://.*"
-              />
-            </Stack>
           </SettingsSection>
 
           <SettingsSection

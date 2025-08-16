@@ -67,6 +67,7 @@ type WidgetConfig {
   showLogo              Boolean?
   tooltip               String?
   private               Boolean?
+  logoUrl               String?
 }
 
 type ScrapeAnalyticsCategoryMessageId {

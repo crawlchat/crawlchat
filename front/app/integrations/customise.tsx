@@ -88,6 +88,7 @@ export async function action({ request }: Route.ActionArgs) {
     showLogo: null,
     tooltip: null,
     private: false,
+    logoUrl: null,
   };
 
   if (size) {
@@ -118,6 +119,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("from-widget")) {
     update.showLogo = formData.get("showLogo") === "on";
+  }
+  if (formData.has("logoUrl")) {
+    update.logoUrl = formData.get("logoUrl") as string;
   }
   if (formData.has("tooltip")) {
     update.tooltip = formData.get("tooltip") as string;
@@ -163,6 +167,9 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const [showLogo, setShowLogo] = useState(
     loaderData.scrape?.widgetConfig?.showLogo ?? false
   );
+  const [logoUrl, setLogoUrl] = useState(
+    loaderData.scrape?.widgetConfig?.logoUrl
+  );
   const [welcomeMessage, setWelcomeMessage] = useState(
     loaderData.scrape?.widgetConfig?.welcomeMessage
   );
@@ -191,6 +198,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         welcomeMessage,
         showMcpSetup,
         textInputPlaceholder,
+        logoUrl,
       },
     };
   }, [
@@ -204,6 +212,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     welcomeMessage,
     showMcpSetup,
     textInputPlaceholder,
+    logoUrl,
   ]);
 
   function addQuestion() {
@@ -282,7 +291,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                 </Field>
               </Group>
 
-              <Group>
+              {/* <Group>
                 <Field label="Tooltip">
                   <Input
                     placeholder="Ex: Ask AI or reach out to us!"
@@ -291,16 +300,17 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                     onChange={(e) => setTooltip(e.target.value)}
                   />
                 </Field>
-              </Group>
+              </Group> */}
 
               <Group>
-                <Switch
-                  name="showLogo"
-                  checked={showLogo}
-                  onCheckedChange={(e) => setShowLogo(e.checked)}
-                >
-                  Show logo
-                </Switch>
+                <Field label="Logo URL">
+                  <Input
+                    placeholder="Ex: https://example.com/logo.png"
+                    name="logoUrl"
+                    value={logoUrl ?? ""}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                  />
+                </Field>
               </Group>
             </Stack>
           </Stack>
@@ -388,12 +398,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
       </Stack>
       <Stack flex={1} position={"sticky"} top={"80px"}>
-        <Stack justify={"center"} align={"center"}>
-          <Text fontWeight={"medium"}>Preview</Text>
-          <AskAIButton scrape={liveScrape as Scrape} />
-        </Stack>
-
-        <Stack rounded={"md"} overflow={"hidden"} w={"full"} h={"600px"}>
+        <Stack rounded={"md"} overflow={"hidden"} w={"full"} h={"540px"}>
           <ChatBoxProvider
             scrape={liveScrape as Scrape}
             thread={null}
@@ -407,6 +412,10 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
               <ChatBox />
             </ChatboxContainer>
           </ChatBoxProvider>
+        </Stack>
+
+        <Stack justify={"center"} align={"center"}>
+          <AskAIButton scrape={liveScrape as Scrape} />
         </Stack>
       </Stack>
     </Group>

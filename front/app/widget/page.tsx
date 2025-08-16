@@ -16,7 +16,6 @@ import { fetchIpDetails, getClientIp } from "~/client-ip";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
 import { sanitizeScrape } from "~/scrapes/util";
 import "highlight.js/styles/vs.css";
-import { getAuthUser } from "~/auth/middleware";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);

@@ -30,6 +30,7 @@
     "@tuesdaycrowd/sentence-transformers": "^1.0.1",
     "@vemetric/react": "^0.5.4",
     "arctic": "^3.7.0",
+    "color": "^5.0.0",
     "crypto-js": "^4.2.0",
     "elevenlabs": "^1.50.4",
     "highlight.js": "^11.11.1",
