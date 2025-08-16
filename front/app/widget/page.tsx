@@ -117,7 +117,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
 
-  if (!scrape || !(await isAllowed(request, scrape))) {
+  if (!scrape || !(await isAllowed(scrape))) {
     return redirect("/w/not-found");
   }
 
