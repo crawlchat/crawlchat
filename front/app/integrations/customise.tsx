@@ -402,7 +402,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           <AskAIButton scrape={liveScrape as Scrape} />
         </Stack>
 
-        <Stack rounded={"md"} overflow={"hidden"} w={"full"} h={"600px"}>
+        <Stack rounded={"md"} overflow={"hidden"} w={"full"} py={8}>
           <ChatBoxProvider
             scrape={liveScrape as Scrape}
             thread={null}

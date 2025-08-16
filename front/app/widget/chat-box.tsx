@@ -527,7 +527,6 @@ function AssistantMessage({
 function NoMessages() {
   const { ask, scrape, widgetConfig } = useChatBoxContext();
 
-  const shouldShowDefaultTitle = !scrape.widgetConfig?.welcomeMessage;
   const primaryColor = widgetConfig?.primaryColor ?? "#000";
   const color = Color(primaryColor);
   const lightenTo = Math.max(0, 0.2 - color.luminosity());
@@ -535,22 +534,11 @@ function NoMessages() {
 
   return (
     <Stack p={4} gap={4} flex={1}>
-      {shouldShowDefaultTitle && (
-        <Stack align={"center"} flex={1} justify={"center"} minH={"200px"}>
-          <Text opacity={0.5}>
-            <TbMessage size={"60px"} />
-          </Text>
-          <Heading size={"2xl"} px={4} textAlign={"center"}>
-            {scrape.title}
-          </Heading>
-        </Stack>
-      )}
-
-      {scrape.widgetConfig?.welcomeMessage && (
-        <Stack w="full" flex={1}>
-          <MarkdownProse>{scrape.widgetConfig?.welcomeMessage}</MarkdownProse>
-        </Stack>
-      )}
+      <Stack w="full" flex={1}>
+        <Text>
+          {scrape.widgetConfig?.welcomeMessage || "Ask your questions here!"}
+        </Text>
+      </Stack>
 
       {scrape.widgetConfig?.questions &&
         scrape.widgetConfig.questions.length > 0 && (
