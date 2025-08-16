@@ -398,7 +398,11 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
       </Stack>
       <Stack flex={1} position={"sticky"} top={"80px"}>
-        <Stack rounded={"md"} overflow={"hidden"} w={"full"} h={"540px"}>
+        <Stack justify={"center"} align={"center"}>
+          <AskAIButton scrape={liveScrape as Scrape} />
+        </Stack>
+
+        <Stack rounded={"md"} overflow={"hidden"} w={"full"} h={"600px"}>
           <ChatBoxProvider
             scrape={liveScrape as Scrape}
             thread={null}
@@ -412,10 +416,6 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
               <ChatBox />
             </ChatboxContainer>
           </ChatBoxProvider>
-        </Stack>
-
-        <Stack justify={"center"} align={"center"}>
-          <AskAIButton scrape={liveScrape as Scrape} />
         </Stack>
       </Stack>
     </Group>
