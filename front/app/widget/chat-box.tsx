@@ -172,8 +172,6 @@ function ChatInput() {
       borderColor={"brand.outline"}
       justify={"space-between"}
       p={4}
-      m={4}
-      rounded={"full"}
     >
       <Group flex={1}>
         <InputGroup flex="1">
@@ -535,7 +533,7 @@ function NoMessages() {
   return (
     <Stack p={4} gap={4} flex={1}>
       {shouldShowDefaultTitle && (
-        <Stack align={"center"} my={20} flex={1} justify={"center"}>
+        <Stack align={"center"} flex={1} justify={"center"}>
           <Text opacity={0.5}>
             <TbMessage size={"60px"} />
           </Text>
@@ -546,7 +544,7 @@ function NoMessages() {
       )}
 
       {scrape.widgetConfig?.welcomeMessage && (
-        <Stack w="full">
+        <Stack w="full" flex={1}>
           <MarkdownProse>{scrape.widgetConfig?.welcomeMessage}</MarkdownProse>
         </Stack>
       )}
@@ -574,6 +572,7 @@ function NoMessages() {
                   _hover={{
                     scale: 1.02,
                   }}
+                  fontSize={"sm"}
                 >
                   <Box mt={1}>
                     <TbHelp />

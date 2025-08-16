@@ -44,20 +44,8 @@ async function updateSessionThreadId(
   return session;
 }
 
-async function isAllowed(request: Request, scrape: Scrape) {
-  const loggedInUser = await getAuthUser(request, {
-    dontRedirect: true,
-  });
-
+async function isAllowed(scrape: Scrape) {
   if (!scrape.widgetConfig?.private) {
-    return true;
-  }
-
-  if (!loggedInUser) {
-    return false;
-  }
-
-  if (loggedInUser.scrapeUsers.some((su) => su.scrapeId === scrape.id)) {
     return true;
   }
 
@@ -69,7 +57,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
 
-  if (!scrape || !(await isAllowed(request, scrape))) {
+  if (!scrape || !(await isAllowed(scrape))) {
     return redirect("/w/not-found");
   }
 

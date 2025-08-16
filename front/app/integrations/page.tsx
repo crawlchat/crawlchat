@@ -35,11 +35,11 @@ export default function ScrapePage() {
       <Stack>
         <Box>
           <SegmentedControl
-            value={tab || "settings"}
+            value={tab}
             onValueChange={(e) => handleTabChange(e.value)}
             items={[
               {
-                value: "/connect/customise",
+                value: "/connect",
                 label: (
                   <HStack>
                     <TbColorSwatch />
@@ -48,7 +48,7 @@ export default function ScrapePage() {
                 ),
               },
               {
-                value: "/connect",
+                value: "/connect/embed",
                 label: (
                   <HStack>
                     <TbCode />
