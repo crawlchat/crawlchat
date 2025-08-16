@@ -1,7 +1,14 @@
 import { Page } from "~/components/page";
 import { Box, HStack, Stack } from "@chakra-ui/react";
 import { getAuthUser } from "~/auth/middleware";
-import { TbRobotFace, TbCode, TbBrandDiscord, TbPlug, TbBrandSlack } from "react-icons/tb";
+import {
+  TbRobotFace,
+  TbCode,
+  TbBrandDiscord,
+  TbPlug,
+  TbBrandSlack,
+  TbColorSwatch,
+} from "react-icons/tb";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { SegmentedControl } from "~/components/ui/segmented-control";
 import { useMemo } from "react";
@@ -31,6 +38,15 @@ export default function ScrapePage() {
             value={tab || "settings"}
             onValueChange={(e) => handleTabChange(e.value)}
             items={[
+              {
+                value: "/connect/customise",
+                label: (
+                  <HStack>
+                    <TbColorSwatch />
+                    Customise
+                  </HStack>
+                ),
+              },
               {
                 value: "/connect",
                 label: (

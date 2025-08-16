@@ -6,7 +6,6 @@ import {
   HStack,
   IconButton,
   Input,
-  parseColor,
   SegmentGroup,
   Stack,
   Text,
@@ -29,20 +28,8 @@ import {
 } from "~/components/ui/select";
 import type { WidgetConfig, WidgetQuestion, WidgetSize } from "libs/prisma";
 import { Button } from "~/components/ui/button";
-import { TbCode, TbEye, TbCopy, TbPlus, TbTrash } from "react-icons/tb";
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ColorPickerArea,
-  ColorPickerContent,
-  ColorPickerControl,
-  ColorPickerEyeDropper,
-  ColorPickerInput,
-  ColorPickerLabel,
-  ColorPickerRoot,
-  ColorPickerSliders,
-  ColorPickerTrigger,
-} from "~/components/ui/color-picker";
-import { Field } from "~/components/ui/field";
+import { TbCode, TbPlus, TbTrash } from "react-icons/tb";
+import { useEffect, useMemo, useState } from "react";
 import { ClipboardIconButton, ClipboardRoot } from "~/components/ui/clipboard";
 import type { Route } from "./+types/embed";
 import { authoriseScrapeUser, getSessionScrapeId } from "../scrapes/util";
@@ -114,18 +101,6 @@ export async function action({ request }: Route.ActionArgs) {
       "textInputPlaceholder"
     ) as string;
   }
-  if (formData.has("primaryColor")) {
-    update.primaryColor = formData.get("primaryColor") as string;
-  }
-  if (formData.has("buttonText")) {
-    update.buttonText = formData.get("buttonText") as string;
-  }
-  if (formData.has("buttonTextColor")) {
-    update.buttonTextColor = formData.get("buttonTextColor") as string;
-  }
-  if (formData.has("from-widget")) {
-    update.showLogo = formData.get("showLogo") === "on";
-  }
   if (formData.has("tooltip")) {
     update.tooltip = formData.get("tooltip") as string;
   }
@@ -179,40 +154,8 @@ function makeScriptCode(scrapeId: string) {
   return { script, docusaurusConfig };
 }
 
-function PreviewEmbed({ scriptCode }: { scriptCode: string }) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-
-  useEffect(() => {
-    if (!iframeRef.current || !iframeRef.current.contentDocument) return;
-
-    iframeRef.current.contentDocument.open();
-    iframeRef.current.contentDocument.close();
-
-    iframeRef.current.contentDocument.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>CrawlChat</title>
-          <style>
-            body {
-              font-family: 'Inter', sans-serif;
-            }
-          </style>
-        </head>
-        <body>
-          ${scriptCode}
-        </body>
-      </html>`);
-  }, [scriptCode]);
-
-  return (
-    <iframe ref={iframeRef} id="crawlchat-script" style={{ height: "100%" }} />
-  );
-}
-
 const widgetConfigTabs = createListCollection({
   items: [
-    { label: "Preview", value: "preview", icon: <TbEye /> },
     { label: "Code", value: "code", icon: <TbCode /> },
     { label: "Docusaurus", value: "docusaurus", icon: <SiDocusaurus /> },
   ],
@@ -224,9 +167,8 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const welcomeMessageFetcher = useFetcher();
   const mcpSetupFetcher = useFetcher();
   const textInputPlaceholderFetcher = useFetcher();
-  const widgetConfigFetcher = useFetcher();
   const privateFetcher = useFetcher();
-  const [tab, setTab] = useState<"preview" | "code" | "docusaurus">("preview");
+  const [tab, setTab] = useState<"code" | "docusaurus">("code");
   const scriptCode = useMemo(
     () => makeScriptCode(loaderData.scrape?.id ?? ""),
     [loaderData.scrape?.id]
@@ -255,207 +197,97 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
           id="customise-widget"
           title="Customise widget"
           description="Configure the widget and copy paste the <script> tag below to your website."
-          fetcher={widgetConfigFetcher}
         >
           <input type="hidden" name="from-widget" value={"true"} />
-          <Group alignItems={"flex-start"} gap={10}>
-            <Stack flex={1}>
-              <Stack gap={6}>
-                <Group>
-                  <ColorPickerRoot
-                    flex={1}
-                    name="primaryColor"
-                    defaultValue={
-                      loaderData.scrape?.widgetConfig?.primaryColor
-                        ? parseColor(
-                            loaderData.scrape.widgetConfig.primaryColor
-                          )
-                        : undefined
-                    }
-                  >
-                    <ColorPickerLabel>Button color</ColorPickerLabel>
-                    <ColorPickerControl>
-                      <ColorPickerInput />
-                      <ColorPickerTrigger />
-                    </ColorPickerControl>
-                    <ColorPickerContent>
-                      <ColorPickerArea />
+
+          <Stack flex={1}>
+            <Box>
+              <SegmentGroup.Root
+                value={tab}
+                onValueChange={(e) => setTab(e.value as "code" | "docusaurus")}
+              >
+                <SegmentGroup.Indicator />
+                {widgetConfigTabs.items.map((item) => (
+                  <SegmentGroup.Item key={item.value} value={item.value}>
+                    <SegmentGroup.ItemText>
                       <HStack>
-                        <ColorPickerEyeDropper />
-                        <ColorPickerSliders />
+                        {item.icon}
+                        {item.label}
                       </HStack>
-                    </ColorPickerContent>
-                  </ColorPickerRoot>
+                    </SegmentGroup.ItemText>
+                    <SegmentGroup.ItemHiddenInput />
+                  </SegmentGroup.Item>
+                ))}
+              </SegmentGroup.Root>
+            </Box>
 
-                  <ColorPickerRoot
-                    flex={1}
-                    name="buttonTextColor"
-                    defaultValue={
-                      loaderData.scrape?.widgetConfig?.buttonTextColor
-                        ? parseColor(
-                            loaderData.scrape.widgetConfig.buttonTextColor
-                          )
-                        : undefined
-                    }
-                  >
-                    <ColorPickerLabel>Button text color</ColorPickerLabel>
-                    <ColorPickerControl>
-                      <ColorPickerInput />
-                      <ColorPickerTrigger />
-                    </ColorPickerControl>
-                    <ColorPickerContent>
-                      <ColorPickerArea />
-                      <HStack>
-                        <ColorPickerEyeDropper />
-                        <ColorPickerSliders />
-                      </HStack>
-                    </ColorPickerContent>
-                  </ColorPickerRoot>
-                </Group>
-
-                <Group>
-                  <Field label="Button text">
-                    <Input
-                      placeholder="Button text"
-                      name="buttonText"
-                      defaultValue={
-                        loaderData.scrape?.widgetConfig?.buttonText ?? ""
-                      }
-                    />
-                  </Field>
-                </Group>
-
-                <Group>
-                  <Field label="Tooltip">
-                    <Input
-                      placeholder="Ex: Ask AI or reach out to us!"
-                      name="tooltip"
-                      defaultValue={
-                        loaderData.scrape?.widgetConfig?.tooltip ?? ""
-                      }
-                    />
-                  </Field>
-                </Group>
-
-                <Group>
-                  <Switch
-                    name="showLogo"
-                    defaultChecked={
-                      loaderData.scrape?.widgetConfig?.showLogo ?? false
-                    }
-                  >
-                    Show logo
-                  </Switch>
-                </Group>
-              </Stack>
-            </Stack>
-
-            <Stack flex={1}>
-              <Box>
-                <SegmentGroup.Root
-                  value={tab}
-                  onValueChange={(e) =>
-                    setTab(e.value as "preview" | "code" | "docusaurus")
-                  }
-                >
-                  <SegmentGroup.Indicator />
-                  {widgetConfigTabs.items.map((item) => (
-                    <SegmentGroup.Item key={item.value} value={item.value}>
-                      <SegmentGroup.ItemText>
-                        <HStack>
-                          {item.icon}
-                          {item.label}
-                        </HStack>
-                      </SegmentGroup.ItemText>
-                      <SegmentGroup.ItemHiddenInput />
-                    </SegmentGroup.Item>
-                  ))}
-                </SegmentGroup.Root>
-              </Box>
-              {tab === "preview" && (
+            {tab === "code" && (
+              <Stack>
                 <Stack
                   flex={1}
-                  bg="brand.outline-subtle"
-                  p={2}
+                  border={"1px solid"}
+                  borderColor="brand.outline"
                   rounded={"md"}
-                  overflow={"hidden"}
                   alignSelf={"stretch"}
                 >
-                  <PreviewEmbed
-                    key={widgetConfigFetcher.state}
-                    scriptCode={scriptCode.script}
-                  />
-                </Stack>
-              )}
-
-              {tab === "code" && (
-                <Stack>
                   <Stack
-                    flex={1}
-                    border={"1px solid"}
-                    borderColor="brand.outline"
-                    rounded={"md"}
-                    alignSelf={"stretch"}
+                    p={4}
+                    h="full"
+                    alignItems={"flex-start"}
+                    flexDir={"column"}
                   >
-                    <Stack
-                      p={4}
-                      h="full"
-                      alignItems={"flex-start"}
-                      flexDir={"column"}
-                    >
-                      <Text fontSize={"sm"} flex={1} whiteSpace={"pre-wrap"}>
-                        {scriptCode.script}
-                      </Text>
+                    <Text fontSize={"sm"} flex={1} whiteSpace={"pre-wrap"}>
+                      {scriptCode.script}
+                    </Text>
 
-                      <Group justifyContent={"flex-end"} w="full">
-                        <ClipboardRoot value={scriptCode.script}>
-                          <ClipboardIconButton />
-                        </ClipboardRoot>
-                      </Group>
-                    </Stack>
+                    <Group justifyContent={"flex-end"} w="full">
+                      <ClipboardRoot value={scriptCode.script}>
+                        <ClipboardIconButton />
+                      </ClipboardRoot>
+                    </Group>
                   </Stack>
-                  <Text fontSize={"sm"}>
-                    Copy and paste the above code inside the{" "}
-                    <Code>&lt;head&gt;</Code> tag of your website to embed the
-                    widget.
-                  </Text>
                 </Stack>
-              )}
+                <Text fontSize={"sm"}>
+                  Copy and paste the above code inside the{" "}
+                  <Code>&lt;head&gt;</Code> tag of your website to embed the
+                  widget.
+                </Text>
+              </Stack>
+            )}
 
-              {tab === "docusaurus" && (
-                <Stack>
+            {tab === "docusaurus" && (
+              <Stack>
+                <Stack
+                  flex={1}
+                  border={"1px solid"}
+                  borderColor="brand.outline"
+                  rounded={"md"}
+                  alignSelf={"stretch"}
+                >
                   <Stack
-                    flex={1}
-                    border={"1px solid"}
-                    borderColor="brand.outline"
-                    rounded={"md"}
-                    alignSelf={"stretch"}
+                    p={4}
+                    h="full"
+                    alignItems={"flex-start"}
+                    flexDir={"column"}
                   >
-                    <Stack
-                      p={4}
-                      h="full"
-                      alignItems={"flex-start"}
-                      flexDir={"column"}
-                    >
-                      <Text fontSize={"sm"} flex={1} whiteSpace={"pre-wrap"}>
-                        {scriptCode.docusaurusConfig}
-                      </Text>
+                    <Text fontSize={"sm"} flex={1} whiteSpace={"pre-wrap"}>
+                      {scriptCode.docusaurusConfig}
+                    </Text>
 
-                      <Group justifyContent={"flex-end"} w="full">
-                        <ClipboardRoot value={scriptCode.docusaurusConfig}>
-                          <ClipboardIconButton />
-                        </ClipboardRoot>
-                      </Group>
-                    </Stack>
+                    <Group justifyContent={"flex-end"} w="full">
+                      <ClipboardRoot value={scriptCode.docusaurusConfig}>
+                        <ClipboardIconButton />
+                      </ClipboardRoot>
+                    </Group>
                   </Stack>
-                  <Text fontSize={"sm"}>
-                    Copy and paste the above config inside your{" "}
-                    <Code>docusaurus.config.js</Code> file to embed the widget.
-                  </Text>
                 </Stack>
-              )}
-            </Stack>
-          </Group>
+                <Text fontSize={"sm"}>
+                  Copy and paste the above config inside your{" "}
+                  <Code>docusaurus.config.js</Code> file to embed the widget.
+                </Text>
+              </Stack>
+            )}
+          </Stack>
         </SettingsSection>
 
         <SettingsSection

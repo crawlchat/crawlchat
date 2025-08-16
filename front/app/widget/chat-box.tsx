@@ -31,6 +31,7 @@ import {
   TbArrowRight,
   TbMenu,
   TbTrash,
+  TbMenu2,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { InputGroup } from "~/components/ui/input-group";
@@ -726,6 +727,8 @@ function Toolbar() {
     }
   }
 
+  const bg = "brand.gray.50/50";
+
   return (
     <Group
       h="60px"
@@ -734,7 +737,7 @@ function Toolbar() {
       p={4}
       w={"full"}
       justify={"space-between"}
-      bg="brand.gray.50/50"
+      bg={bg}
     >
       <Group flex="1">
         <Group w="full">
@@ -794,8 +797,8 @@ function Toolbar() {
           onSelect={(e) => handleMenuSelect(e.value)}
         >
           <MenuTrigger asChild>
-            <IconButton size={"xs"} variant={"subtle"}>
-              <TbMenu />
+            <IconButton size={"xs"} variant={"ghost"}>
+              <TbMenu2 />
             </IconButton>
           </MenuTrigger>
           <MenuContent>
