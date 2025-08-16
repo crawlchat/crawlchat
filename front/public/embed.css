@@ -29,7 +29,6 @@
   position: fixed;
   bottom: 20px;
   right: 20px;
-  padding: 8px 20px;
   border-radius: 20px;
   cursor: pointer;
   transition: scale 0.1s ease, opacity 0.3s ease;

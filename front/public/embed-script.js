@@ -10,6 +10,8 @@ class CrawlChatEmbed {
     this.lastScrollTop = 0;
     this.lastBodyStyle = {};
     this.widgetConfig = {};
+    this.buttonWidth = 0;
+    this.buttonHeight = 0;
   }
 
   getCustomTags() {
@@ -115,6 +117,14 @@ class CrawlChatEmbed {
       this.widgetConfig = data.widgetConfig;
       await this.showAskAIButton();
     }
+    if (data.type === "ask-ai-button") {
+      this.buttonWidth = data.width;
+      this.buttonHeight = data.height;
+      this.resizeAskAIButton();
+    }
+    if (data.type === "ask-ai-button-click") {
+      this.show();
+    }
   }
 
   hideAskAIButton() {
@@ -122,80 +132,30 @@ class CrawlChatEmbed {
     button.classList.add("hidden");
   }
 
+  resizeAskAIButton() {
+    const iframe = document.querySelector(`#${this.askAIButtonId} iframe`);
+    iframe.style.width = `${this.buttonWidth}px`;
+    iframe.style.height = `${this.buttonHeight}px`;
+
+    const div = document.getElementById(this.askAIButtonId);
+    div.style.opacity = "1";
+  }
+
   async showAskAIButton() {
     const script = document.getElementById(this.scriptId);
 
-    if (!script) {
+    if (!script || document.getElementById(this.askAIButtonId)) {
       return;
-    }
-
-    const text =
-      this.widgetConfig.buttonText ??
-      script.getAttribute("data-ask-ai-text") ??
-      "💬 Ask AI";
-    const backgroundColor =
-      this.widgetConfig.primaryColor ??
-      script.getAttribute("data-ask-ai-background-color") ??
-      "#7b2cbf";
-    const color =
-      this.widgetConfig.buttonTextColor ??
-      script.getAttribute("data-ask-ai-color") ??
-      "white";
-    const position = script.getAttribute("data-ask-ai-position") ?? "br";
-    const marginX = script.getAttribute("data-ask-ai-margin-x") ?? "20px";
-    const marginY = script.getAttribute("data-ask-ai-margin-y") ?? "20px";
-    const radius = script.getAttribute("data-ask-ai-radius") ?? "20px";
-    const fontSize = script.getAttribute("data-ask-ai-font-size");
-    const logoUrl = this.widgetConfig.logoUrl;
-
-    let bottom = undefined;
-    let right = undefined;
-    let left = undefined;
-    let top = undefined;
-
-    if (position === "bl") {
-      bottom = marginY;
-      left = marginX;
-    } else if (position === "br") {
-      bottom = marginY;
-      right = marginX;
-    } else if (position === "tl") {
-      top = marginY;
-      left = marginX;
-    } else if (position === "tr") {
-      top = marginY;
-      right = marginX;
     }
 
     const div = document.createElement("div");
     div.id = this.askAIButtonId;
-    div.style.bottom = bottom;
-    div.style.right = right;
-    div.style.left = left;
-    div.style.top = top;
+    div.style.opacity = "0";
 
-    div.style.backgroundColor = backgroundColor;
-    div.style.color = color;
-    div.style.borderRadius = radius;
-    div.style.fontSize = fontSize;
-
-    if (logoUrl && this.widgetConfig.showLogo) {
-      const logo = document.createElement("img");
-      logo.className = "logo";
-      logo.src = logoUrl;
-      div.appendChild(logo);
-
-      div.classList.add("with-logo");
-      div.style.border = `1px solid ${color}`;
-    }
-
-    const span = document.createElement("span");
-    span.innerText = text;
-    div.appendChild(span);
-
-    if (this.widgetConfig.tooltip) {
-      div.appendChild(this.makeTooltip(this.widgetConfig.tooltip));
-    }
+    const iframe = document.createElement("iframe");
+    iframe.src = `${this.host}/w/${this.scrapeId}/button`;
+    iframe.allowTransparency = "true";
+    div.appendChild(iframe);
 
     div.addEventListener("click", function () {
       window.crawlchatEmbed.show();
