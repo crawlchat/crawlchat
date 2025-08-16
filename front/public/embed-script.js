@@ -187,7 +187,7 @@ class CrawlChatEmbed {
     if (!root) return;
 
     const screenWidth = window.innerWidth;
-    const scrollbarWidth = 16;
+    const scrollbarWidth = 15;
     root.style.width = `${
       screenWidth - this.sidepanelWidth - scrollbarWidth
     }px`;
