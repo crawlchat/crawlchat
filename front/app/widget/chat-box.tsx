@@ -527,10 +527,7 @@ function AssistantMessage({
 function NoMessages() {
   const { ask, scrape, widgetConfig } = useChatBoxContext();
 
-  const primaryColor = widgetConfig?.primaryColor ?? "#000";
-  const color = Color(primaryColor);
-  const lightenTo = Math.max(0, 0.2 - color.luminosity());
-  const lightened = color.lighten(lightenTo).hex();
+  const borderColor = widgetConfig?.primaryColor ?? "brand.outline";
 
   return (
     <Stack p={4} gap={4} flex={1}>
@@ -550,12 +547,13 @@ function NoMessages() {
               {scrape.widgetConfig?.questions.map((question, i) => (
                 <Group
                   key={i}
+                  border={"1px solid"}
+                  borderColor={borderColor}
                   transition={"all 200ms ease-in-out"}
                   cursor={"pointer"}
                   alignItems={"flex-start"}
                   onClick={() => ask(question.text)}
                   gap={1}
-                  boxShadow={`${lightened} 0px 0px 3px`}
                   w="fit"
                   px={2}
                   py={1}
@@ -565,7 +563,7 @@ function NoMessages() {
                   }}
                   fontSize={"sm"}
                 >
-                  <Box mt={1}>
+                  <Box mt={1} color={borderColor}>
                     <TbHelp />
                   </Box>
                   <Text>{question.text}</Text>

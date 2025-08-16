@@ -40,7 +40,7 @@ import { AskAIButton } from "~/widget/ask-ai-button";
 import { useEffect, useMemo, useState } from "react";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
-import { TbPlus, TbTrash } from "react-icons/tb";
+import { TbPlus, TbTrash, TbX } from "react-icons/tb";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -142,6 +142,45 @@ export async function action({ request }: Route.ActionArgs) {
   return null;
 }
 
+function ColorPicker({
+  name,
+  label,
+  color,
+  setColor,
+}: {
+  name: string;
+  label: string;
+  color: string | null | undefined;
+  setColor: (color: string | null) => void;
+}) {
+  return (
+    <Group alignItems={"flex-end"} flex={1}>
+      <ColorPickerRoot
+        flex={1}
+        name={name}
+        value={color ? parseColor(color) : undefined}
+        onValueChange={(e) => setColor(e.valueAsString)}
+      >
+        <ColorPickerLabel>{label}</ColorPickerLabel>
+        <ColorPickerControl>
+          <ColorPickerInput />
+          <ColorPickerTrigger />
+        </ColorPickerControl>
+        <ColorPickerContent>
+          <ColorPickerArea />
+          <HStack>
+            <ColorPickerEyeDropper />
+            <ColorPickerSliders />
+          </HStack>
+        </ColorPickerContent>
+      </ColorPickerRoot>
+      <IconButton variant={"subtle"} onClick={() => setColor(null)}>
+        <TbX />
+      </IconButton>
+    </Group>
+  );
+}
+
 export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const widgetConfigFetcher = useFetcher();
   const questionsFetcher = useFetcher();
@@ -237,47 +276,19 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           <Stack flex={1}>
             <Stack gap={6}>
               <Group>
-                <ColorPickerRoot
-                  flex={1}
+                <ColorPicker
                   name="primaryColor"
-                  value={primaryColor ? parseColor(primaryColor) : undefined}
-                  onValueChange={(e) => setPrimaryColor(e.valueAsString)}
-                >
-                  <ColorPickerLabel>Button color</ColorPickerLabel>
-                  <ColorPickerControl>
-                    <ColorPickerInput />
-                    <ColorPickerTrigger />
-                  </ColorPickerControl>
-                  <ColorPickerContent>
-                    <ColorPickerArea />
-                    <HStack>
-                      <ColorPickerEyeDropper />
-                      <ColorPickerSliders />
-                    </HStack>
-                  </ColorPickerContent>
-                </ColorPickerRoot>
+                  label="Button color"
+                  color={primaryColor}
+                  setColor={setPrimaryColor}
+                />
 
-                <ColorPickerRoot
-                  flex={1}
+                <ColorPicker
                   name="buttonTextColor"
-                  value={
-                    buttonTextColor ? parseColor(buttonTextColor) : undefined
-                  }
-                  onValueChange={(e) => setButtonTextColor(e.valueAsString)}
-                >
-                  <ColorPickerLabel>Button text color</ColorPickerLabel>
-                  <ColorPickerControl>
-                    <ColorPickerInput />
-                    <ColorPickerTrigger />
-                  </ColorPickerControl>
-                  <ColorPickerContent>
-                    <ColorPickerArea />
-                    <HStack>
-                      <ColorPickerEyeDropper />
-                      <ColorPickerSliders />
-                    </HStack>
-                  </ColorPickerContent>
-                </ColorPickerRoot>
+                  label="Button text color"
+                  color={buttonTextColor}
+                  setColor={setButtonTextColor}
+                />
               </Group>
 
               <Group>
