@@ -12,6 +12,8 @@ class CrawlChatEmbed {
     this.widgetConfig = {};
     this.buttonWidth = 0;
     this.buttonHeight = 0;
+    this.sidepanelWidth = 400;
+    this.sidepanelId = "crawlchat-sidepanel";
   }
 
   getCustomTags() {
@@ -60,6 +62,9 @@ class CrawlChatEmbed {
     div.appendChild(iframe);
     document.body.appendChild(div);
     window.addEventListener("message", (e) => this.handleOnMessage(e));
+
+    // sidepanel
+    this.mountSidePanel();
   }
 
   getScrapeId() {
@@ -102,6 +107,7 @@ class CrawlChatEmbed {
 
   async handleOnMessage(event) {
     if (event.data === "close") {
+      window.crawlchatEmbed.hideSidePanel();
       return window.crawlchatEmbed.hide();
     }
     if (event.origin !== this.host) {
@@ -155,6 +161,10 @@ class CrawlChatEmbed {
     const iframe = document.createElement("iframe");
     iframe.src = `${this.host}/w/${this.scrapeId}/button`;
     iframe.allowTransparency = "true";
+    iframe.style.width = "0px";
+    iframe.style.height = "0px";
+    iframe.width = "0px";
+    iframe.height = "0px";
     div.appendChild(iframe);
 
     div.addEventListener("click", function () {
@@ -170,6 +180,54 @@ class CrawlChatEmbed {
     div.innerText = text;
     div.className = "tooltip";
     return div;
+  }
+
+  showSidePanel() {
+    const root = document.getElementById("__docusaurus");
+    if (!root) return;
+
+    const screenWidth = window.innerWidth;
+    const scrollbarWidth = 16;
+    root.style.width = `${
+      screenWidth - this.sidepanelWidth - scrollbarWidth
+    }px`;
+    root.style.overflowY = "auto";
+
+    const sidepanel = document.getElementById(this.sidepanelId);
+    sidepanel.classList.remove("hidden");
+  }
+
+  hideSidePanel() {
+    const root = document.getElementById("__docusaurus");
+    if (!root) return;
+    root.style.width = "100%";
+
+    const sidepanel = document.getElementById(this.sidepanelId);
+    sidepanel.classList.add("hidden");
+  }
+
+  mountSidePanel() {
+    const root = document.getElementById("__docusaurus");
+    if (!root) return;
+
+    root.style.width = `100%`;
+
+    const sidepanel = document.createElement("div");
+    sidepanel.id = this.sidepanelId;
+    sidepanel.classList.add("hidden");
+    sidepanel.style.width = `${this.sidepanelWidth}px`;
+
+    const iframe = document.createElement("iframe");
+    iframe.src = `${this.host}/w/${this.scrapeId}?embed=true&fullscreen=true&sidepanel=true`;
+    iframe.allowTransparency = "true";
+    iframe.allow = "clipboard-write";
+    iframe.className = "crawlchat-embed";
+    iframe.style.width = "100%";
+    iframe.style.height = "100%";
+
+    sidepanel.appendChild(iframe);
+
+    document.body.appendChild(sidepanel);
   }
 }
 

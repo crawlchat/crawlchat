@@ -14,7 +14,13 @@ import {
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
 import type { MessageSourceLink, MessageRating, WidgetSize } from "libs/prisma";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import {
   TbArrowUp,
   TbChevronRight,
@@ -676,6 +682,32 @@ function MCPSetup() {
   );
 }
 
+function ToolbarButton({
+  children,
+  onClick,
+  color,
+}: PropsWithChildren<{
+  onClick?: () => void;
+  color?: string;
+}>) {
+  return (
+    <Box
+      as="button"
+      onClick={onClick}
+      color={color}
+      opacity={0.8}
+      _hover={{
+        opacity: 1,
+      }}
+      fontSize={"xl"}
+      cursor={"pointer"}
+      position={"relative"}
+    >
+      {children}
+    </Box>
+  );
+}
+
 function Toolbar() {
   const {
     chat,
@@ -741,18 +773,9 @@ function Toolbar() {
       <Group flex="1">
         <Group w="full">
           {fullscreen && (
-            <IconButton
-              size={"xs"}
-              variant={"plain"}
-              onClick={() => close()}
-              color={color}
-              opacity={0.9}
-              _hover={{
-                opacity: 1,
-              }}
-            >
+            <ToolbarButton onClick={() => close()} color={color}>
               <TbX />
-            </IconButton>
+            </ToolbarButton>
           )}
           {scrape.widgetConfig?.logoUrl && (
             <img
@@ -796,35 +819,20 @@ function Toolbar() {
 
         {chat.allMessages.length > 0 && (
           <Tooltip content="Clear & start new conversation" showArrow>
-            <IconButton
-              variant={"plain"}
-              onClick={() => erase()}
-              color={color}
-              opacity={0.9}
-              _hover={{
-                opacity: 1,
-              }}
-            >
+            <ToolbarButton color={color} onClick={() => erase()}>
               <TbTrash />
-            </IconButton>
+            </ToolbarButton>
           </Tooltip>
         )}
 
-        <MenuRoot
+        {/* <MenuRoot
           positioning={{ placement: "bottom-end" }}
           onSelect={(e) => handleMenuSelect(e.value)}
         >
           <MenuTrigger asChild>
-            <IconButton
-              variant={"plain"}
-              color={color}
-              opacity={0.9}
-              _hover={{
-                opacity: 1,
-              }}
-            >
+            <ToolbarButton color={color}>
               <TbMenu2 />
-            </IconButton>
+            </ToolbarButton>
           </MenuTrigger>
           <MenuContent>
             <MenuItem value={"share"}>
@@ -839,7 +847,7 @@ function Toolbar() {
               </MenuItem>
             )}
           </MenuContent>
-        </MenuRoot>
+        </MenuRoot> */}
       </Group>
     </Group>
   );
@@ -997,12 +1005,17 @@ export function ChatboxContainer({
 }
 
 export default function ScrapeWidget() {
-  const { screen, chat } = useChatBoxContext();
+  const { screen, chat, sidepanel } = useChatBoxContext();
 
   return (
     <>
       <Toolbar />
-      <Stack flex="1" overflow={"auto"} gap={0}>
+      <Stack
+        flex="1"
+        overflow={"auto"}
+        gap={0}
+        className={sidepanel ? "no-scrollbar" : undefined}
+      >
         {screen === "chat" && (
           <>
             {chat.allMessages.length === 0 && <NoMessages />}

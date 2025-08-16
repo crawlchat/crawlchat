@@ -16,6 +16,7 @@ import { fetchIpDetails, getClientIp } from "~/client-ip";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
 import { sanitizeScrape } from "~/scrapes/util";
 import "highlight.js/styles/vs.css";
+import "~/app.css";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -88,6 +89,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const width = searchParams.get("width");
   const height = searchParams.get("height");
   const fullscreen = searchParams.get("fullscreen") === "true";
+  const sidepanel = searchParams.get("sidepanel") === "true";
 
   sanitizeScrape(scrape);
 
@@ -100,6 +102,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     width,
     height,
     fullscreen,
+    sidepanel,
   };
 }
 
@@ -319,6 +322,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
       admin={false}
       token={loaderData.userToken}
       fullscreen={loaderData.fullscreen}
+      sidepanel={loaderData.sidepanel}
     >
       <Stack
         h="100dvh"

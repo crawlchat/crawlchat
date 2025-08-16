@@ -21,6 +21,7 @@ export function useChatBox({
   admin,
   token: initialToken,
   fullscreen,
+  sidepanel,
 }: {
   scrape: Scrape;
   thread: Thread | null;
@@ -29,6 +30,7 @@ export function useChatBox({
   admin: boolean;
   token: string | null;
   fullscreen?: boolean;
+  sidepanel?: boolean;
 }) {
   const pinFetcher = useFetcher();
   const unpinFetcher = useFetcher();
@@ -293,6 +295,7 @@ export function useChatBox({
     customerEmail,
     titleSlug,
     fullscreen,
+    sidepanel,
     widgetConfig: scrape.widgetConfig,
     close,
     erase,
@@ -327,6 +330,7 @@ export function ChatBoxProvider({
   admin,
   token,
   fullscreen,
+  sidepanel,
 }: {
   children: React.ReactNode;
   scrape: Scrape;
@@ -336,6 +340,7 @@ export function ChatBoxProvider({
   admin: boolean;
   token: string | null;
   fullscreen?: boolean;
+  sidepanel?: boolean;
 }) {
   const chatBox = useChatBox({
     scrape,
@@ -345,6 +350,7 @@ export function ChatBoxProvider({
     admin,
     token,
     fullscreen,
+    sidepanel,
   });
   return (
     <ChatBoxContext.Provider value={chatBox}>
