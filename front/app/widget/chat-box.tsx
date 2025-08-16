@@ -94,7 +94,7 @@ export function useChatBoxDimensions(
 }
 
 function ChatInput() {
-  const { ask, chat, screen, readOnly, scrape, inputRef, embed } =
+  const { ask, chat, screen, readOnly, scrape, inputRef, embed, widgetConfig } =
     useChatBoxContext();
 
   const [query, setQuery] = useState("");
@@ -162,14 +162,18 @@ function ChatInput() {
   }
 
   const isDisabled = screen !== "chat" || readOnly || chat.askStage !== "idle";
+  const bg = widgetConfig?.primaryColor ?? undefined;
+  const color = widgetConfig?.buttonTextColor ?? undefined;
 
   return (
     <Group
       h={`${height}px`}
-      borderTop={"1px solid"}
+      border={"1px solid"}
       borderColor={"brand.outline"}
       justify={"space-between"}
       p={4}
+      m={4}
+      rounded={"full"}
     >
       <Group flex={1}>
         <InputGroup flex="1">
@@ -200,6 +204,8 @@ function ChatInput() {
           size={"xs"}
           disabled={isDisabled}
           variant={cleanedQuery.length > 0 ? "solid" : "subtle"}
+          bg={bg}
+          color={color}
         >
           <TbArrowUp />
         </IconButton>
@@ -521,8 +527,11 @@ function AssistantMessage({
 }
 
 function NoMessages() {
-  const { ask, scrape } = useChatBoxContext();
+  const { ask, scrape, widgetConfig } = useChatBoxContext();
+
   const shouldShowDefaultTitle = !scrape.widgetConfig?.welcomeMessage;
+  const shadowColor = widgetConfig?.primaryColor ?? "brand.outline";
+
   return (
     <Stack p={4} gap={4} flex={1}>
       {shouldShowDefaultTitle && (
@@ -552,19 +561,19 @@ function NoMessages() {
               {scrape.widgetConfig?.questions.map((question, i) => (
                 <Group
                   key={i}
-                  border={"1px solid"}
-                  borderColor={"brand.outline"}
-                  rounded={"md"}
-                  p={2}
-                  px={3}
-                  w="full"
-                  _hover={{
-                    bg: "brand.gray.100",
-                  }}
-                  transition={"background-color 200ms ease-in-out"}
+                  transition={"all 200ms ease-in-out"}
                   cursor={"pointer"}
                   alignItems={"flex-start"}
                   onClick={() => ask(question.text)}
+                  gap={1}
+                  boxShadow={`${shadowColor} 0px 0px 3px`}
+                  w="fit"
+                  px={2}
+                  py={1}
+                  rounded={"lg"}
+                  _hover={{
+                    scale: 1.02,
+                  }}
                 >
                   <Box mt={1}>
                     <TbHelp />
@@ -688,10 +697,10 @@ function Toolbar() {
     setScreen,
     overallScore,
     scrape,
-    readOnly,
     admin,
     fullscreen,
     close,
+    widgetConfig,
   } = useChatBoxContext();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -727,7 +736,8 @@ function Toolbar() {
     }
   }
 
-  const bg = "brand.gray.50/50";
+  const bg = widgetConfig?.primaryColor ?? "brand.gray.50/50";
+  const color = widgetConfig?.buttonTextColor ?? undefined;
 
   return (
     <Group
@@ -738,6 +748,7 @@ function Toolbar() {
       w={"full"}
       justify={"space-between"}
       bg={bg}
+      color={color}
     >
       <Group flex="1">
         <Group w="full">
@@ -746,7 +757,7 @@ function Toolbar() {
               <TbX />
             </IconButton>
           )}
-          {scrape.logoUrl && (
+          {scrape.widgetConfig?.showLogo && scrape.logoUrl && (
             <img
               src={scrape.logoUrl}
               alt="Logo"
@@ -760,16 +771,18 @@ function Toolbar() {
                 : scrape.title ?? "Ask AI"}
             </Text>
           </Stack>
-          {admin && overallScore !== undefined && (
-            <Tooltip content="Avg score of all messages" showArrow>
-              <Badge
-                colorPalette={getScoreColor(overallScore)}
-                variant={"surface"}
-              >
-                {overallScore.toFixed(2)}
-              </Badge>
-            </Tooltip>
-          )}
+          {admin &&
+            overallScore !== undefined &&
+            Number.isFinite(overallScore) && (
+              <Tooltip content="Avg score of all messages" showArrow>
+                <Badge
+                  colorPalette={getScoreColor(overallScore)}
+                  variant={"surface"}
+                >
+                  {overallScore.toFixed(2)}
+                </Badge>
+              </Tooltip>
+            )}
         </Group>
       </Group>
       <Group>
@@ -786,7 +799,15 @@ function Toolbar() {
 
         {chat.allMessages.length > 0 && (
           <Tooltip content="Clear & start new conversation" showArrow>
-            <IconButton size={"xs"} variant={"ghost"} onClick={() => erase()}>
+            <IconButton
+              variant={"plain"}
+              onClick={() => erase()}
+              color={color}
+              opacity={0.9}
+              _hover={{
+                opacity: 1,
+              }}
+            >
               <TbTrash />
             </IconButton>
           </Tooltip>
@@ -797,7 +818,14 @@ function Toolbar() {
           onSelect={(e) => handleMenuSelect(e.value)}
         >
           <MenuTrigger asChild>
-            <IconButton size={"xs"} variant={"ghost"}>
+            <IconButton
+              variant={"plain"}
+              color={color}
+              opacity={0.9}
+              _hover={{
+                opacity: 1,
+              }}
+            >
               <TbMenu2 />
             </IconButton>
           </MenuTrigger>
@@ -926,7 +954,7 @@ export function ChatboxContainer({
   width?: string | null;
   height?: string | null;
 }) {
-  const { close, scrape } = useChatBoxContext();
+  const { close, scrape, widgetConfig } = useChatBoxContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const boxDimensions = useChatBoxDimensions(
     scrape.widgetConfig?.size ?? null,
@@ -940,6 +968,7 @@ export function ChatboxContainer({
   }
 
   const cover = width || height;
+  const borderColor = widgetConfig?.primaryColor ?? "brand.outline";
 
   return (
     <Flex
@@ -953,7 +982,7 @@ export function ChatboxContainer({
       <Stack
         border={cover ? "none" : "1px solid"}
         borderWidth={[0, cover ? 0 : 1]}
-        borderColor={"brand.outline"}
+        borderColor={borderColor}
         rounded={["none", cover ? "none" : "xl"]}
         boxShadow={cover ? "none" : "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px"}
         bg="brand.white"

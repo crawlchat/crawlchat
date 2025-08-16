@@ -293,6 +293,7 @@ export function useChatBox({
     customerEmail,
     titleSlug,
     fullscreen,
+    widgetConfig: scrape.widgetConfig,
     close,
     erase,
     deleteMessages,

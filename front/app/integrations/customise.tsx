@@ -1,9 +1,26 @@
-import { Group, HStack, Input, parseColor, Stack } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Center,
+  Group,
+  HStack,
+  IconButton,
+  Input,
+  parseColor,
+  Stack,
+  Text,
+  Textarea,
+} from "@chakra-ui/react";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { SettingsSection } from "~/settings-section";
 import { useFetcher } from "react-router";
-import type { Scrape, WidgetConfig, WidgetSize } from "libs/prisma";
+import type {
+  Scrape,
+  WidgetConfig,
+  WidgetQuestion,
+  WidgetSize,
+} from "libs/prisma";
 import {
   ColorPickerArea,
   ColorPickerContent,
@@ -20,7 +37,10 @@ import type { Route } from "./+types/embed";
 import { authoriseScrapeUser, getSessionScrapeId } from "../scrapes/util";
 import { Switch } from "~/components/ui/switch";
 import { AskAIButton } from "~/widget/ask-ai-button";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ChatBoxProvider } from "~/widget/use-chat-box";
+import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
+import { TbPlus, TbTrash } from "react-icons/tb";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -120,6 +140,14 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const widgetConfigFetcher = useFetcher();
+  const questionsFetcher = useFetcher();
+  const welcomeMessageFetcher = useFetcher();
+  const mcpSetupFetcher = useFetcher();
+  const textInputPlaceholderFetcher = useFetcher();
+  const [questions, setQuestions] = useState<WidgetQuestion[]>(
+    loaderData.scrape?.widgetConfig?.questions ?? []
+  );
+
   const [primaryColor, setPrimaryColor] = useState(
     loaderData.scrape?.widgetConfig?.primaryColor
   );
@@ -135,6 +163,20 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const [showLogo, setShowLogo] = useState(
     loaderData.scrape?.widgetConfig?.showLogo ?? false
   );
+  const [welcomeMessage, setWelcomeMessage] = useState(
+    loaderData.scrape?.widgetConfig?.welcomeMessage
+  );
+  const [showMcpSetup, setShowMcpSetup] = useState(
+    loaderData.scrape?.widgetConfig?.showMcpSetup ?? false
+  );
+  const [textInputPlaceholder, setTextInputPlaceholder] = useState(
+    loaderData.scrape?.widgetConfig?.textInputPlaceholder
+  );
+
+  useEffect(() => {
+    setQuestions(loaderData.scrape?.widgetConfig?.questions ?? []);
+  }, [loaderData.scrape?.widgetConfig?.questions]);
+
   const liveScrape = useMemo(() => {
     return {
       ...loaderData.scrape!,
@@ -145,6 +187,10 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         buttonText,
         tooltip,
         showLogo,
+        questions,
+        welcomeMessage,
+        showMcpSetup,
+        textInputPlaceholder,
       },
     };
   }, [
@@ -154,100 +200,214 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     buttonText,
     tooltip,
     showLogo,
+    questions,
+    welcomeMessage,
+    showMcpSetup,
+    textInputPlaceholder,
   ]);
+
+  function addQuestion() {
+    setQuestions([...questions, { text: "" }]);
+  }
+
+  function removeQuestion(index: number) {
+    setQuestions(questions.filter((_, i) => i !== index));
+  }
 
   return (
     <Group alignItems={"flex-start"} gap={4}>
-      <SettingsSection
-        id="customise-widget"
-        title="Customise widget"
-        description="Configure the widget and copy paste the <script> tag below to your website."
-        fetcher={widgetConfigFetcher}
-      >
-        <input type="hidden" name="from-widget" value={"true"} />
+      <Stack flex={2} gap={4}>
+        <SettingsSection
+          id="customise-widget"
+          title="Customise widget"
+          description="Configure the widget and copy paste the <script> tag below to your website."
+          fetcher={widgetConfigFetcher}
+        >
+          <input type="hidden" name="from-widget" value={"true"} />
 
-        <Stack flex={1}>
-          <Stack gap={6}>
-            <Group>
-              <ColorPickerRoot
-                flex={1}
-                name="primaryColor"
-                value={primaryColor ? parseColor(primaryColor) : undefined}
-                onValueChange={(e) => setPrimaryColor(e.valueAsString)}
-              >
-                <ColorPickerLabel>Button color</ColorPickerLabel>
-                <ColorPickerControl>
-                  <ColorPickerInput />
-                  <ColorPickerTrigger />
-                </ColorPickerControl>
-                <ColorPickerContent>
-                  <ColorPickerArea />
-                  <HStack>
-                    <ColorPickerEyeDropper />
-                    <ColorPickerSliders />
-                  </HStack>
-                </ColorPickerContent>
-              </ColorPickerRoot>
+          <Stack flex={1}>
+            <Stack gap={6}>
+              <Group>
+                <ColorPickerRoot
+                  flex={1}
+                  name="primaryColor"
+                  value={primaryColor ? parseColor(primaryColor) : undefined}
+                  onValueChange={(e) => setPrimaryColor(e.valueAsString)}
+                >
+                  <ColorPickerLabel>Button color</ColorPickerLabel>
+                  <ColorPickerControl>
+                    <ColorPickerInput />
+                    <ColorPickerTrigger />
+                  </ColorPickerControl>
+                  <ColorPickerContent>
+                    <ColorPickerArea />
+                    <HStack>
+                      <ColorPickerEyeDropper />
+                      <ColorPickerSliders />
+                    </HStack>
+                  </ColorPickerContent>
+                </ColorPickerRoot>
 
-              <ColorPickerRoot
-                flex={1}
-                name="buttonTextColor"
-                value={
-                  buttonTextColor ? parseColor(buttonTextColor) : undefined
-                }
-                onValueChange={(e) => setButtonTextColor(e.valueAsString)}
-              >
-                <ColorPickerLabel>Button text color</ColorPickerLabel>
-                <ColorPickerControl>
-                  <ColorPickerInput />
-                  <ColorPickerTrigger />
-                </ColorPickerControl>
-                <ColorPickerContent>
-                  <ColorPickerArea />
-                  <HStack>
-                    <ColorPickerEyeDropper />
-                    <ColorPickerSliders />
-                  </HStack>
-                </ColorPickerContent>
-              </ColorPickerRoot>
-            </Group>
+                <ColorPickerRoot
+                  flex={1}
+                  name="buttonTextColor"
+                  value={
+                    buttonTextColor ? parseColor(buttonTextColor) : undefined
+                  }
+                  onValueChange={(e) => setButtonTextColor(e.valueAsString)}
+                >
+                  <ColorPickerLabel>Button text color</ColorPickerLabel>
+                  <ColorPickerControl>
+                    <ColorPickerInput />
+                    <ColorPickerTrigger />
+                  </ColorPickerControl>
+                  <ColorPickerContent>
+                    <ColorPickerArea />
+                    <HStack>
+                      <ColorPickerEyeDropper />
+                      <ColorPickerSliders />
+                    </HStack>
+                  </ColorPickerContent>
+                </ColorPickerRoot>
+              </Group>
 
-            <Group>
-              <Field label="Button text">
-                <Input
-                  placeholder="Button text"
-                  name="buttonText"
-                  value={buttonText ?? ""}
-                  onChange={(e) => setButtonText(e.target.value)}
-                />
-              </Field>
-            </Group>
+              <Group>
+                <Field label="Button text">
+                  <Input
+                    placeholder="Button text"
+                    name="buttonText"
+                    value={buttonText ?? ""}
+                    onChange={(e) => setButtonText(e.target.value)}
+                  />
+                </Field>
+              </Group>
 
-            <Group>
-              <Field label="Tooltip">
-                <Input
-                  placeholder="Ex: Ask AI or reach out to us!"
-                  name="tooltip"
-                  value={tooltip ?? ""}
-                  onChange={(e) => setTooltip(e.target.value)}
-                />
-              </Field>
-            </Group>
+              <Group>
+                <Field label="Tooltip">
+                  <Input
+                    placeholder="Ex: Ask AI or reach out to us!"
+                    name="tooltip"
+                    value={tooltip ?? ""}
+                    onChange={(e) => setTooltip(e.target.value)}
+                  />
+                </Field>
+              </Group>
 
-            <Group>
-              <Switch
-                name="showLogo"
-                checked={showLogo}
-                onCheckedChange={(e) => setShowLogo(e.checked)}
-              >
-                Show logo
-              </Switch>
-            </Group>
+              <Group>
+                <Switch
+                  name="showLogo"
+                  checked={showLogo}
+                  onCheckedChange={(e) => setShowLogo(e.checked)}
+                >
+                  Show logo
+                </Switch>
+              </Group>
+            </Stack>
           </Stack>
+        </SettingsSection>
+
+        <SettingsSection
+          id="welcome-message"
+          title="Welcome message"
+          description="Add your custom welcome message to the widget. Supports markdown."
+          fetcher={welcomeMessageFetcher}
+        >
+          <Textarea
+            name="welcomeMessage"
+            value={welcomeMessage ?? ""}
+            onChange={(e) => setWelcomeMessage(e.target.value)}
+            placeholder="Hi, I'm the CrawlChat bot. How can I help you today?"
+            rows={4}
+          />
+        </SettingsSection>
+
+        <SettingsSection
+          id="example-questions"
+          title="Example questions"
+          description="Show few example questions when a user visits the widget for the first time"
+          fetcher={questionsFetcher}
+        >
+          <input type="hidden" name="from-questions" value={"true"} />
+          {questions.map((question, i) => (
+            <Group key={i}>
+              <Input
+                name={"questions"}
+                placeholder={"Ex: How to use the product?"}
+                value={question.text}
+                onChange={(e) => {
+                  const newQuestions = [...questions];
+                  newQuestions[i].text = e.target.value;
+                  setQuestions(newQuestions);
+                }}
+              />
+              <IconButton
+                variant={"subtle"}
+                onClick={() => removeQuestion(i)}
+                colorPalette={"red"}
+              >
+                <TbTrash />
+              </IconButton>
+            </Group>
+          ))}
+          <Box>
+            <Button size="sm" variant={"subtle"} onClick={addQuestion}>
+              <TbPlus />
+              Add question
+            </Button>
+          </Box>
+        </SettingsSection>
+
+        <SettingsSection
+          id="text-input-placeholder"
+          title="Text input placeholder"
+          description="Set the placeholder text for the text input field"
+          fetcher={textInputPlaceholderFetcher}
+        >
+          <Input
+            name="textInputPlaceholder"
+            value={textInputPlaceholder ?? ""}
+            onChange={(e) => setTextInputPlaceholder(e.target.value)}
+            placeholder="Ex: Ask me anything about the product"
+          />
+        </SettingsSection>
+
+        <SettingsSection
+          id="mcp-setup"
+          title="MCP setup instructions"
+          description="Show the MCP client setup instrctions on the widget"
+          fetcher={mcpSetupFetcher}
+        >
+          <input type="hidden" name="from-mcp-setup" value={"true"} />
+          <Switch
+            name="showMcpSetup"
+            checked={showMcpSetup}
+            onCheckedChange={(e) => setShowMcpSetup(e.checked)}
+          >
+            Show it
+          </Switch>
+        </SettingsSection>
+      </Stack>
+      <Stack flex={1} position={"sticky"} top={"80px"}>
+        <Stack justify={"center"} align={"center"}>
+          <Text fontWeight={"medium"}>Preview</Text>
+          <AskAIButton scrape={liveScrape as Scrape} />
         </Stack>
-      </SettingsSection>
-      <Stack>
-        <AskAIButton scrape={liveScrape as Scrape} />
+
+        <Stack rounded={"md"} overflow={"hidden"} w={"full"} h={"600px"}>
+          <ChatBoxProvider
+            scrape={liveScrape as Scrape}
+            thread={null}
+            messages={[]}
+            embed={false}
+            admin={true}
+            token={null}
+            fullscreen={false}
+          >
+            <ChatboxContainer>
+              <ChatBox />
+            </ChatboxContainer>
+          </ChatBoxProvider>
+        </Stack>
       </Stack>
     </Group>
   );

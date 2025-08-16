@@ -87,23 +87,6 @@ export async function action({ request }: Route.ActionArgs) {
   if (size) {
     update.size = size as WidgetSize;
   }
-  if (formData.has("from-questions")) {
-    update.questions = questions.map((text) => ({ text: text as string }));
-  }
-  if (welcomeMessage !== null && welcomeMessage !== undefined) {
-    update.welcomeMessage = welcomeMessage as string;
-  }
-  if (formData.has("from-mcp-setup")) {
-    update.showMcpSetup = formData.get("showMcpSetup") === "on";
-  }
-  if (formData.has("textInputPlaceholder")) {
-    update.textInputPlaceholder = formData.get(
-      "textInputPlaceholder"
-    ) as string;
-  }
-  if (formData.has("tooltip")) {
-    update.tooltip = formData.get("tooltip") as string;
-  }
   if (formData.has("from-private")) {
     update.private = formData.get("private") === "on";
   }
@@ -163,32 +146,13 @@ const widgetConfigTabs = createListCollection({
 
 export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const sizeFetcher = useFetcher();
-  const questionsFetcher = useFetcher();
-  const welcomeMessageFetcher = useFetcher();
-  const mcpSetupFetcher = useFetcher();
-  const textInputPlaceholderFetcher = useFetcher();
+  
   const privateFetcher = useFetcher();
   const [tab, setTab] = useState<"code" | "docusaurus">("code");
   const scriptCode = useMemo(
     () => makeScriptCode(loaderData.scrape?.id ?? ""),
     [loaderData.scrape?.id]
   );
-
-  const [questions, setQuestions] = useState<WidgetQuestion[]>(
-    loaderData.scrape?.widgetConfig?.questions ?? []
-  );
-
-  useEffect(() => {
-    setQuestions(loaderData.scrape?.widgetConfig?.questions ?? []);
-  }, [loaderData.scrape?.widgetConfig?.questions]);
-
-  function addQuestion() {
-    setQuestions([...questions, { text: "" }]);
-  }
-
-  function removeQuestion(index: number) {
-    setQuestions(questions.filter((_, i) => i !== index));
-  }
 
   return (
     <SettingsSectionProvider>
@@ -328,82 +292,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
           </SelectRoot>
         </SettingsSection>
 
-        <SettingsSection
-          id="welcome-message"
-          title="Welcome message"
-          description="Add your custom welcome message to the widget. Supports markdown."
-          fetcher={welcomeMessageFetcher}
-        >
-          <Textarea
-            name="welcomeMessage"
-            defaultValue={loaderData.scrape?.widgetConfig?.welcomeMessage ?? ""}
-            placeholder="Hi, I'm the CrawlChat bot. How can I help you today?"
-            rows={4}
-          />
-        </SettingsSection>
-
-        <SettingsSection
-          id="example-questions"
-          title="Example questions"
-          description="Show few example questions when a user visits the widget for the first time"
-          fetcher={questionsFetcher}
-        >
-          <input type="hidden" name="from-questions" value={"true"} />
-          {questions.map((question, i) => (
-            <Group key={i}>
-              <Input
-                name={"questions"}
-                placeholder={"Ex: How to use the product?"}
-                defaultValue={question.text}
-              />
-              <IconButton
-                variant={"subtle"}
-                onClick={() => removeQuestion(i)}
-                colorPalette={"red"}
-              >
-                <TbTrash />
-              </IconButton>
-            </Group>
-          ))}
-          <Box>
-            <Button size="sm" variant={"subtle"} onClick={addQuestion}>
-              <TbPlus />
-              Add question
-            </Button>
-          </Box>
-        </SettingsSection>
-
-        <SettingsSection
-          id="text-input-placeholder"
-          title="Text input placeholder"
-          description="Set the placeholder text for the text input field"
-          fetcher={textInputPlaceholderFetcher}
-        >
-          <Input
-            name="textInputPlaceholder"
-            defaultValue={
-              loaderData.scrape?.widgetConfig?.textInputPlaceholder ?? ""
-            }
-            placeholder="Ex: Ask me anything about the product"
-          />
-        </SettingsSection>
-
-        <SettingsSection
-          id="mcp-setup"
-          title="MCP setup instructions"
-          description="Show the MCP client setup instrctions on the widget"
-          fetcher={mcpSetupFetcher}
-        >
-          <input type="hidden" name="from-mcp-setup" value={"true"} />
-          <Switch
-            name="showMcpSetup"
-            defaultChecked={
-              loaderData.scrape?.widgetConfig?.showMcpSetup ?? true
-            }
-          >
-            Show it
-          </Switch>
-        </SettingsSection>
+        
       </SettingsContainer>
     </SettingsSectionProvider>
   );
