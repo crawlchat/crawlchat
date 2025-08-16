@@ -6,7 +6,7 @@ export function AskAIButton({ scrape }: { scrape: Scrape }) {
   const boxRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (window.parent) {
+    if (window.parent && !scrape.widgetConfig?.hideButton) {
       const html = document.querySelector("html");
       html?.style.setProperty("background", "transparent");
 

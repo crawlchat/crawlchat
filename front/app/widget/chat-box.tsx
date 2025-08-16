@@ -563,7 +563,7 @@ function NoMessages() {
                   }}
                   fontSize={"sm"}
                 >
-                  <Box mt={1} color={borderColor}>
+                  <Box mt={1}>
                     <TbHelp />
                   </Box>
                   <Text>{question.text}</Text>

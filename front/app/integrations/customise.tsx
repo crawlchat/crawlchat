@@ -1,7 +1,7 @@
 import {
   Box,
   Button,
-  Center,
+  Code,
   Group,
   HStack,
   IconButton,
@@ -89,6 +89,7 @@ export async function action({ request }: Route.ActionArgs) {
     tooltip: null,
     private: false,
     logoUrl: null,
+    hideButton: null,
   };
 
   if (size) {
@@ -110,12 +111,16 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("primaryColor")) {
     update.primaryColor = formData.get("primaryColor") as string;
+    update.primaryColor =
+      update.primaryColor === "null" ? null : update.primaryColor;
   }
   if (formData.has("buttonText")) {
     update.buttonText = formData.get("buttonText") as string;
   }
   if (formData.has("buttonTextColor")) {
     update.buttonTextColor = formData.get("buttonTextColor") as string;
+    update.buttonTextColor =
+      update.buttonTextColor === "null" ? null : update.buttonTextColor;
   }
   if (formData.has("from-widget")) {
     update.showLogo = formData.get("showLogo") === "on";
@@ -128,6 +133,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("from-private")) {
     update.private = formData.get("private") === "on";
+  }
+  if (formData.has("from-widget")) {
+    update.hideButton = formData.get("hideButton") === "on";
   }
 
   await prisma.scrape.update({
@@ -147,17 +155,19 @@ function ColorPicker({
   label,
   color,
   setColor,
+  onClear,
 }: {
   name: string;
   label: string;
   color: string | null | undefined;
   setColor: (color: string | null) => void;
+  onClear: () => void;
 }) {
   return (
     <Group alignItems={"flex-end"} flex={1}>
       <ColorPickerRoot
         flex={1}
-        name={name}
+        name={color ? name : undefined}
         value={color ? parseColor(color) : undefined}
         onValueChange={(e) => setColor(e.valueAsString)}
       >
@@ -174,7 +184,7 @@ function ColorPicker({
           </HStack>
         </ColorPickerContent>
       </ColorPickerRoot>
-      <IconButton variant={"subtle"} onClick={() => setColor(null)}>
+      <IconButton variant={"subtle"} onClick={onClear}>
         <TbX />
       </IconButton>
     </Group>
@@ -217,6 +227,9 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   );
   const [textInputPlaceholder, setTextInputPlaceholder] = useState(
     loaderData.scrape?.widgetConfig?.textInputPlaceholder
+  );
+  const [hideButton, setHideButton] = useState(
+    loaderData.scrape?.widgetConfig?.hideButton ?? false
   );
 
   useEffect(() => {
@@ -262,6 +275,30 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     setQuestions(questions.filter((_, i) => i !== index));
   }
 
+  function clearPrimaryColor() {
+    setPrimaryColor(null);
+    widgetConfigFetcher.submit(
+      {
+        primaryColor: null,
+      },
+      {
+        method: "post",
+      }
+    );
+  }
+
+  function clearButtonTextColor() {
+    setButtonTextColor(null);
+    widgetConfigFetcher.submit(
+      {
+        buttonTextColor: null,
+      },
+      {
+        method: "post",
+      }
+    );
+  }
+
   return (
     <Group alignItems={"flex-start"} gap={4}>
       <Stack flex={2} gap={4}>
@@ -281,6 +318,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                   label="Button color"
                   color={primaryColor}
                   setColor={setPrimaryColor}
+                  onClear={clearPrimaryColor}
                 />
 
                 <ColorPicker
@@ -288,6 +326,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                   label="Button text color"
                   color={buttonTextColor}
                   setColor={setButtonTextColor}
+                  onClear={clearButtonTextColor}
                 />
               </Group>
 
@@ -333,6 +372,22 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                   Show logo on Ask AI button
                 </Switch>
               </Group>
+
+              <Stack>
+                <Group>
+                  <Switch
+                    name="hideButton"
+                    checked={hideButton}
+                    onCheckedChange={(e) => setHideButton(e.checked)}
+                  >
+                    Hide Ask AI button
+                  </Switch>
+                </Group>
+                <Text fontSize={"xs"} opacity={0.5} _hover={{ opacity: 1 }}>
+                  You can trigger the widget manually by calling{" "}
+                  <Code as="span">window.crawlchatEmbed.show()</Code>
+                </Text>
+              </Stack>
             </Stack>
           </Stack>
         </SettingsSection>
@@ -419,9 +474,11 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
       </Stack>
       <Stack flex={1} position={"sticky"} top={"80px"}>
-        <Stack justify={"center"} align={"center"}>
-          <AskAIButton scrape={liveScrape as Scrape} />
-        </Stack>
+        {!hideButton && (
+          <Stack justify={"center"} align={"center"}>
+            <AskAIButton scrape={liveScrape as Scrape} />
+          </Stack>
+        )}
 
         <Stack rounded={"md"} overflow={"hidden"} w={"full"} py={8}>
           <ChatBoxProvider

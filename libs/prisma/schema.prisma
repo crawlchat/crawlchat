@@ -68,6 +68,7 @@ type WidgetConfig {
   tooltip               String?
   private               Boolean?
   logoUrl               String?
+  hideButton            Boolean?
 }
 
 type ScrapeAnalyticsCategoryMessageId {
