@@ -312,6 +312,16 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                   />
                 </Field>
               </Group>
+
+              <Group>
+                <Switch
+                  name="showLogo"
+                  checked={showLogo}
+                  onCheckedChange={(e) => setShowLogo(e.checked)}
+                >
+                  Show logo on Ask AI button
+                </Switch>
+              </Group>
             </Stack>
           </Stack>
         </SettingsSection>

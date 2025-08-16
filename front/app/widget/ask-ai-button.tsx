@@ -35,11 +35,14 @@ export function AskAIButton({ scrape }: { scrape: Scrape }) {
   }
 
   const text = scrape.widgetConfig?.buttonText || "💬 Ask AI";
+  const logoUrl = scrape.widgetConfig?.showLogo
+    ? scrape.widgetConfig?.logoUrl
+    : null;
 
   return (
     <Box ref={boxRef} width={"fit-content"} height={"fit-content"}>
       <Button
-        rounded={scrape.widgetConfig?.logoUrl ? "lg" : "full"}
+        rounded={logoUrl ? "lg" : "full"}
         onClick={handleClick}
         w="fit-content"
         h="fit-content"
@@ -50,9 +53,9 @@ export function AskAIButton({ scrape }: { scrape: Scrape }) {
         color={scrape.widgetConfig?.buttonTextColor ?? undefined}
         gap={1}
       >
-        {scrape.widgetConfig?.logoUrl && (
+        {logoUrl && (
           <Image
-            src={scrape.widgetConfig?.logoUrl}
+            src={logoUrl}
             alt={scrape.title ?? "Logo"}
             w={"30px"}
             h={"30px"}
