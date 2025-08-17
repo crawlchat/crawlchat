@@ -303,8 +303,8 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     <Group alignItems={"flex-start"} gap={4}>
       <Stack flex={2} gap={4}>
         <SettingsSection
-          id="customise-widget"
-          title="Customise widget"
+          id="button-chatbox"
+          title="Button & Chatbox"
           description="Configure the widget and copy paste the <script> tag below to your website."
           fetcher={widgetConfigFetcher}
         >
@@ -315,7 +315,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
               <Group>
                 <ColorPicker
                   name="primaryColor"
-                  label="Button color"
+                  label="Background"
                   color={primaryColor}
                   setColor={setPrimaryColor}
                   onClear={clearPrimaryColor}
@@ -323,7 +323,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
 
                 <ColorPicker
                   name="buttonTextColor"
-                  label="Button text color"
+                  label="Text color"
                   color={buttonTextColor}
                   setColor={setButtonTextColor}
                   onClear={clearButtonTextColor}
