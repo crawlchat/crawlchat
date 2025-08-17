@@ -34,13 +34,20 @@ class CrawlChatEmbed {
     style.href = `${this.host}/embed.css`;
     document.head.appendChild(style);
 
+    const customTags = this.getCustomTags();
+
+    if (customTags.sidepanel === "true") {
+      this.mountSidePanel();
+      return;
+    }
+
     const iframe = document.createElement("iframe");
     iframe.id = this.iframeId;
 
     const params = new URLSearchParams({
       embed: "true",
     });
-    const customTags = this.getCustomTags();
+    
     if (Object.keys(customTags).length > 0) {
       params.set("tags", btoa(JSON.stringify(customTags)));
     }
@@ -62,9 +69,6 @@ class CrawlChatEmbed {
     div.appendChild(iframe);
     document.body.appendChild(div);
     window.addEventListener("message", (e) => this.handleOnMessage(e));
-
-    // sidepanel
-    this.mountSidePanel();
   }
 
   getScrapeId() {
@@ -182,12 +186,35 @@ class CrawlChatEmbed {
     return div;
   }
 
+  getScrollbarWidth() {
+    const hasVerticalScrollbar = document.body.scrollHeight > document.body.clientHeight;
+    
+    if (!hasVerticalScrollbar) {
+      return 0;
+    }
+    
+    // Calculate actual scrollbar width
+    const outer = document.createElement('div');
+    outer.style.visibility = 'hidden';
+    outer.style.overflow = 'scroll';
+    document.body.appendChild(outer);
+    
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+    
+    const scrollbarWidth = outer.offsetWidth - inner.offsetWidth;
+    
+    outer.parentNode.removeChild(outer);
+    
+    return scrollbarWidth;
+  }
+
   showSidePanel() {
     const root = document.getElementById("__docusaurus");
     if (!root) return;
 
     const screenWidth = window.innerWidth;
-    const scrollbarWidth = 15;
+    const scrollbarWidth = this.getScrollbarWidth();
     root.style.width = `${
       screenWidth - this.sidepanelWidth - scrollbarWidth
     }px`;
@@ -228,6 +255,27 @@ class CrawlChatEmbed {
     sidepanel.appendChild(iframe);
 
     document.body.appendChild(sidepanel);
+
+    const handleKeyDown = (e) => {
+      if (e.metaKey && e.key === "i") {
+        window.crawlchatEmbed.toggleSidePanel();
+      }
+    };
+    document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+  }
+
+  toggleSidePanel() {
+    if (this.isSidePanelOpen()) {
+      this.hideSidePanel();
+    } else {
+      this.showSidePanel();
+    }
+  }
+
+  isSidePanelOpen() {
+    const sidepanel = document.getElementById(this.sidepanelId);
+    return !sidepanel.classList.contains("hidden");
   }
 }
 
