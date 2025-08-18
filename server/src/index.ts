@@ -51,6 +51,14 @@ async function updateLastMessageAt(threadId: string) {
   });
 }
 
+function getContext(messages: FlowMessage<RAGAgentCustomMessage>[]) {
+  return messages
+    .filter((m) => m.custom?.result)
+    .flatMap((m) => m.custom!.result!)
+    .map((m) => m.content)
+    .join("\n\n");
+}
+
 app.get("/", function (req: Request, res: Response) {
   res.json({ message: "ok" });
 });
@@ -323,18 +331,12 @@ expressWs.app.ws("/", (ws: any, req) => {
                 })
               );
 
-              const context = event.messages
-                .filter((m) => m.custom?.result)
-                .flatMap((m) => m.custom!.result!)
-                .map((m) => m.content)
-                .join("\n\n");
-
               await fillMessageAnalysis(
                 newAnswerMessage.id,
                 message.data.query,
                 event.content,
                 event.sources,
-                context
+                getContext(event.messages)
               );
           }
         };
@@ -604,6 +606,13 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     },
   });
   await updateLastMessageAt(thread.id);
+  await fillMessageAnalysis(
+    newAnswerMessage.id,
+    query,
+    answer!.content,
+    answer!.sources,
+    getContext(answer!.messages)
+  );
 
   if (!answer) {
     res.status(400).json({ message: "Failed to answer" });
