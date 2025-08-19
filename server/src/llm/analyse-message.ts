@@ -1,14 +1,20 @@
-import { MessageSourceLink, QuestionSentiment, Scrape } from "libs/prisma";
+import {
+  Message,
+  MessageAnalysis,
+  MessageSourceLink,
+  prisma,
+  QuestionSentiment,
+} from "libs/prisma";
 import { SimpleAgent } from "./agentic";
 import { z } from "zod";
 import { Flow } from "./flow";
-import { extractCitations } from "libs/citation";
 
 export async function analyseMessage(
   question: string,
   answer: string,
   sources: MessageSourceLink[],
-  context: string
+  context: string,
+  messages: Message[]
 ) {
   const agent = new SimpleAgent({
     id: "analyser",
@@ -16,9 +22,16 @@ export async function analyseMessage(
     You are a helpful assistant that analyses a message and returns a message analysis.
     You need to analyse the question, answer and the sources provided and give back the details provided.
 
-    Question: ${question}
-    Answer: ${answer}
-    Sources: ${JSON.stringify(
+    <question>
+    ${question}
+    </question>
+
+    <answer>
+    ${answer}
+    </answer>
+
+    <sources>
+    ${JSON.stringify(
       sources.map((s) => ({
         url: s.url,
         title: s.title,
@@ -26,15 +39,32 @@ export async function analyseMessage(
         searchQuery: s.searchQuery,
       }))
     )}
-    Context: ${context}
+    </sources>
+
+    <context>
+    ${context}
+    </context>
+
+    <previous-messages>
+    ${messages
+      .map(
+        (m) => `${(m.llmMessage as any).role}: ${(m.llmMessage as any).content}`
+      )
+      .join("\n")}
+    </previous-messages>
     `,
     schema: z.object({
+      contextRelevanceScore: z.number().describe(`
+          Given the context, answer and question, how relevant is the answer to the question?
+          If there is no answer in the context, it should be 0 and vice versa.
+          If the question is not mentioned in the context, it should be close to 0.
+          If the answer says it has no answer, it should close to 0.
+          It should be from 0 to 1.
+        `),
       questionRelevanceScore: z.number().describe(
         `
-          The relevance score of question to the context.
+          The relevance score of question to the context and previous messages.
           It is about relevance but not about having answer or not.
-          Calculate the score based on the keywords in the query and the context.
-          The more matching keywords, the better score.
           Only if the question is relevant to the context, it should be close to 1.
           It should be from 0 to 1.
           `
@@ -47,25 +77,19 @@ export async function analyseMessage(
           ).join(", ")}
         `
       ),
-      dataGapTitle: z
-        .string()
-        .describe(
-          `
-          Make a title for the data gap (if any). It should be under 10 words.
+      dataGapTitle: z.string().describe(
+        `
+          Make a title for the data gap (if any). It should be under 10 words and respresent the gap clearly.
           It is used to represent the data gap from the sources for the given question.
         `
-        )
-        .optional(),
-      dataGapDescription: z
-        .string()
-        .describe(
-          `
+      ),
+      dataGapDescription: z.string().describe(
+        `
           Make a description for the data gap (if any). It should be in markdown format.
           It should explain the details to be filled for the data gap.
           Make it descriptive, mention topics to fill as bullet points.
         `
-        )
-        .optional(),
+      ),
     }),
   });
 
@@ -80,27 +104,52 @@ export async function analyseMessage(
   const content = flow.getLastMessage().llmMessage.content;
 
   if (!content) {
-    throw new Error("Failed to analyse message");
+    return null;
   }
 
   return JSON.parse(content as string) as {
     questionRelevanceScore: number;
+    contextRelevanceScore: number;
     questionSentiment: QuestionSentiment;
-    dataGapTitle: string | null | undefined;
-    dataGapDescription: string | null | undefined;
+    dataGapTitle: string;
+    dataGapDescription: string;
   };
 }
 
 function isDataGap(
   sources: MessageSourceLink[],
   questionRelevanceScore: number,
-  bestCitedLinkScore: number
+  contextRelevanceScore: number
 ) {
+  const friction = {
+    low: {
+      questionRelevanceScore: 0.4,
+      contextRelevanceScore: 0.6,
+    },
+    medium: {
+      questionRelevanceScore: 0.5,
+      contextRelevanceScore: 0.5,
+    },
+    high: {
+      questionRelevanceScore: 0.6,
+      contextRelevanceScore: 0.4,
+    },
+  };
+
+  const frictionLevel = friction["high"];
+
+  const avgScore =
+    sources.reduce((acc, s) => acc + (s.score ?? 0), 0) / sources.length;
+  const contextRelevanceScoreWeighted =
+    avgScore * 0.5 + contextRelevanceScore * 0.5;
+
   return (
+    // it actually searched the knowledge base
     sources.length > 0 &&
-    questionRelevanceScore !== null &&
-    questionRelevanceScore >= 0.5 &&
-    bestCitedLinkScore <= 0.3
+    // question is relevant to the context
+    questionRelevanceScore >= frictionLevel.questionRelevanceScore &&
+    // poor answer
+    contextRelevanceScoreWeighted <= frictionLevel.contextRelevanceScore
   );
 }
 
@@ -109,42 +158,62 @@ export async function fillMessageAnalysis(
   question: string,
   answer: string,
   sources: MessageSourceLink[],
-  context: string,
-  scrape: Scrape
+  context: string
 ) {
   try {
-    const citations = extractCitations(answer, sources);
-    const bestCitedLink = Object.values(citations.citedLinks).sort(
-      (a, b) => (b.score ?? 0) - (a.score ?? 0)
-    )[0];
-    const bestCitedLinkScore = bestCitedLink?.score ?? 0;
-
-    let {
-      questionRelevanceScore,
-      questionSentiment,
-      dataGapTitle,
-      dataGapDescription,
-    } = await analyseMessage(question, answer, sources, context);
-
-    if (!isDataGap(sources, questionRelevanceScore, bestCitedLinkScore)) {
-      dataGapTitle = null;
-      dataGapDescription = null;
-    }
-
-    console.log({
-      bestCitedLinkScore,
-      questionRelevanceScore,
-      questionSentiment,
-      dataGapTitle,
-      dataGapDescription,
+    const message = await prisma.message.findFirstOrThrow({
+      where: { id: messageId },
     });
 
-    // await prisma.message.update({
-    //   where: { id: messageId },
-    //   data: {
-    //     analysis,
-    //   },
-    // });
+    const messages = await prisma.message.findMany({
+      where: {
+        threadId: message.threadId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 10,
+    });
+
+    const partialAnalysis = await analyseMessage(
+      question,
+      answer,
+      sources,
+      context,
+      messages
+    );
+
+    const dataGap =
+      partialAnalysis &&
+      isDataGap(
+        sources,
+        partialAnalysis.questionRelevanceScore,
+        partialAnalysis.contextRelevanceScore
+      );
+
+    const analysis: MessageAnalysis = {
+      contextRelevanceScore: partialAnalysis?.contextRelevanceScore ?? null,
+      questionRelevanceScore: partialAnalysis?.questionRelevanceScore ?? null,
+      questionSentiment: partialAnalysis?.questionSentiment ?? null,
+      dataGapTitle: null,
+      dataGapDescription: null,
+      category: null,
+      dataGapDone: false,
+    };
+
+    if (dataGap) {
+      analysis.dataGapTitle = partialAnalysis?.dataGapTitle ?? null;
+      analysis.dataGapDescription = partialAnalysis?.dataGapDescription ?? null;
+    }
+
+    console.log({ dataGap, analysis });
+
+    await prisma.message.update({
+      where: { id: messageId },
+      data: {
+        analysis,
+      },
+    });
   } catch (e) {
     console.error("Failed to analyse message", e);
   }

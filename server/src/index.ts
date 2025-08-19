@@ -336,8 +336,7 @@ expressWs.app.ws("/", (ws: any, req) => {
                 message.data.query,
                 event.content,
                 event.sources,
-                getContext(event.messages),
-                scrape
+                getContext(event.messages)
               );
           }
         };
@@ -612,8 +611,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     query,
     answer!.content,
     answer!.sources,
-    getContext(answer!.messages),
-    scrape
+    getContext(answer!.messages)
   );
 
   if (!answer) {
