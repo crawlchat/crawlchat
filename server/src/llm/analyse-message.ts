@@ -163,7 +163,14 @@ export async function fillMessageAnalysis(
   try {
     const message = await prisma.message.findFirstOrThrow({
       where: { id: messageId },
+      include: {
+        scrape: true,
+      },
     });
+
+    if (!message.scrape.analyseMessage) {
+      return;
+    }
 
     const messages = await prisma.message.findMany({
       where: {

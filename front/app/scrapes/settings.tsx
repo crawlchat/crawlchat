@@ -147,6 +147,9 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("from-show-sources")) {
     update.showSources = formData.get("showSources") === "on";
   }
+  if (formData.has("from-analyse-message")) {
+    update.analyseMessage = formData.get("analyseMessage") === "on";
+  }
 
   const scrape = await prisma.scrape.update({
     where: { id: scrapeId },
@@ -647,6 +650,43 @@ function ShowSourcesSetting({ scrape, user }: { scrape: Scrape; user: User }) {
   );
 }
 
+function AnalyseMessageSettings({
+  scrape,
+  user,
+}: {
+  scrape: Scrape;
+  user: User;
+}) {
+  const fetcher = useFetcher();
+
+  function isAllowed() {
+    return ["starter", "pro"].includes(user.plan?.planId ?? "free");
+  }
+
+  return (
+    <SettingsSection
+      id="data-gap-analysis"
+      title="Data gap & analysis"
+      description="Enable this to analyze the answer given by the AI and find out if there is any data gap in the knowledge base. It also analyzes more details from the question such as the sentiment, category and more. It uses one message credit per question."
+      fetcher={fetcher}
+    >
+      <Group>
+        <input type="hidden" name="from-analyse-message" value={"true"} />
+        <Switch
+          name="analyseMessage"
+          defaultChecked={scrape.analyseMessage ?? false}
+          disabled={!isAllowed()}
+        >
+          Active
+        </Switch>
+        <Badge variant={"surface"} colorPalette={"brand"} size={"xs"}>
+          <TbCrown /> Starter
+        </Badge>
+      </Group>
+    </SettingsSection>
+  );
+}
+
 export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const promptFetcher = useFetcher();
   const nameFetcher = useFetcher();
@@ -812,6 +852,11 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
           </SettingsSection>
 
           <AiModelSettings scrape={loaderData.scrape} user={loaderData.user} />
+
+          <AnalyseMessageSettings
+            scrape={loaderData.scrape}
+            user={loaderData.user}
+          />
 
           <ShowSourcesSetting
             scrape={loaderData.scrape}
