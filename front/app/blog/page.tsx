@@ -1,7 +1,7 @@
 import { readPost } from "./posts";
 import type { Route } from "./+types/page";
 import { redirect } from "react-router";
-import { LandingPage, Container, Nav, CTA, Footer } from "~/landing/page";
+import { Container } from "~/landing/page";
 import { TbClock } from "react-icons/tb";
 import moment from "moment";
 import Markdown from "react-markdown";

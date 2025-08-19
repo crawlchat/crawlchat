@@ -115,7 +115,11 @@ class CrawlChatEmbed {
     }
     if (data.type === "embed-ready") {
       this.widgetConfig = data.widgetConfig;
-      await this.showAskAIButton();
+
+      const script = document.getElementById(this.scriptId);
+      if (!script.getAttribute("data-hide-ask-ai")) {
+        await this.showAskAIButton();
+      }
     }
     if (data.type === "ask-ai-button") {
       this.buttonWidth = data.width;

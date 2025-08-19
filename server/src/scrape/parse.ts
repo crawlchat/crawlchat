@@ -56,7 +56,7 @@ const EXCLUDE_NON_MAIN_TAGS = [
   "iframe",
 ];
 
-const SAFE_CLEAN_TAGS = ["aside"];
+const SAFE_CLEAN_TAGS = ["aside", "img"];
 
 function cleanHtml($: cheerio.CheerioAPI) {
   for (const tag of EXCLUDE_NON_MAIN_TAGS) {
@@ -220,5 +220,5 @@ export function getMetaTitle(metaTags: MetaTag[]) {
   const tagTitle = metaTags.find(
     (metaTag) => metaTag.key === "tag:title"
   )?.value;
-  return ogTitle ?? tagTitle;
+  return tagTitle ?? ogTitle;
 }
