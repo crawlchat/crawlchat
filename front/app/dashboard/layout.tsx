@@ -16,6 +16,7 @@ import { planMap } from "libs/user-plan";
 import { prisma } from "libs/prisma";
 import { getSession } from "~/session";
 import { vemetric } from "@vemetric/react";
+import { fetchDataGaps } from "~/data-gaps/fetch";
 
 export function meta() {
   return [
@@ -74,6 +75,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     ? planMap[scrape.user.plan.planId]
     : PLAN_FREE;
 
+  const dataGapMessages = scrapeId ? await fetchDataGaps(scrapeId) : [];
+
   return {
     user: user!,
     plan,
@@ -82,6 +85,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     toBeFixedMessages,
     openTickets,
     scrape,
+    dataGapMessages,
   };
 }
 
@@ -117,6 +121,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           toBeFixedMessages={loaderData.toBeFixedMessages}
           openTickets={loaderData.openTickets}
           scrape={loaderData.scrape}
+          dataGapMessages={loaderData.dataGapMessages.length}
         />
 
         <DrawerRoot
@@ -139,6 +144,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               scrapeIdFetcher={scrapeIdFetcher}
               toBeFixedMessages={loaderData.toBeFixedMessages}
               openTickets={loaderData.openTickets}
+              dataGapMessages={loaderData.dataGapMessages.length}
             />
           </DrawerContent>
         </DrawerRoot>

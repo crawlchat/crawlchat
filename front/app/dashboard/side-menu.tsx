@@ -254,6 +254,7 @@ export function SideMenu({
   toBeFixedMessages,
   openTickets,
   scrape,
+  dataGapMessages,
 }: {
   fixed: boolean;
   width: number;
@@ -267,6 +268,7 @@ export function SideMenu({
   toBeFixedMessages: number;
   openTickets: number;
   scrape?: Scrape;
+  dataGapMessages: number;
 }) {
   const links = useMemo(() => {
     const links = [
@@ -362,7 +364,14 @@ export function SideMenu({
       return {
         value: toBeFixedMessages,
         icon: <TbThumbDown />,
-        color: "red",
+        color: "orange",
+      };
+    }
+    if (label === "Data gaps" && dataGapMessages > 0) {
+      return {
+        value: dataGapMessages,
+        icon: <TbChartBarOff />,
+        color: "orange",
       };
     }
     return undefined;

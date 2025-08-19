@@ -12,7 +12,6 @@ import {
   TbChartBarOff,
   TbCheck,
   TbExternalLink,
-  TbMessage,
   TbTrash,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
@@ -25,41 +24,14 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { Button } from "~/components/ui/button";
 import { Link, useFetcher } from "react-router";
 import moment from "moment";
+import { fetchDataGaps } from "./fetch";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
-  const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
-
-  const messages = await prisma.message.findMany({
-    where: {
-      scrapeId,
-      AND: [
-        {
-          analysis: {
-            isNot: {
-              dataGapTitle: null,
-            },
-          },
-        },
-        {
-          analysis: {
-            isNot: {
-              dataGapDone: true,
-            },
-          },
-        },
-      ],
-      createdAt: {
-        gte: ONE_WEEK_AGO,
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const messages = await fetchDataGaps(scrapeId);
 
   return { messages };
 }
