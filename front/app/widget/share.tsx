@@ -99,7 +99,7 @@ function Nav({ scrape }: { scrape: Scrape }) {
           gap={2}
         >
           Powered by{" "}
-          <Link href="https://crawlchat.com" fontWeight={"bold"}>
+          <Link href="https://crawlchat.app" fontWeight={"bold"}>
             <RiChatVoiceAiFill />
             CrawlChat
           </Link>

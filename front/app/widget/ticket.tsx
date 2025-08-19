@@ -217,7 +217,7 @@ function Nav({ scrape }: { scrape: Scrape }) {
           gap={2}
         >
           Powered by{" "}
-          <Link href="https://crawlchat.com">
+          <Link href="https://crawlchat.app">
             <RiChatVoiceAiFill />
             CrawlChat
           </Link>
