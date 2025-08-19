@@ -17,8 +17,11 @@ import {
 import type { Route } from "./+types/page";
 import {
   TbAlertCircle,
+  TbArrowRight,
+  TbChartBarOff,
   TbCheck,
   TbDatabase,
+  TbExternalLink,
   TbHelp,
   TbHome,
   TbMessage,
@@ -61,6 +64,8 @@ import moment from "moment";
 import type { Message } from "libs/prisma";
 import { truncate } from "~/util";
 import { SingleLineCell } from "~/components/single-line-cell";
+import { fetchDataGaps } from "~/data-gaps/fetch";
+import { DataGapCard } from "~/data-gaps/page";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -191,6 +196,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   lowRatingQueries = lowRatingQueries.sort((a, b) => a.maxScore - b.maxScore);
 
+  const dataGapMessages = scrapeId ? await fetchDataGaps(scrapeId) : [];
+
   return {
     user,
     dailyMessages,
@@ -204,6 +211,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     topItems,
     latestQuestions,
     lowRatingQueries,
+    dataGapMessages,
   };
 }
 
@@ -331,7 +339,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const [width, setWidth] = useState(0);
   const newCollectionFetcher = useFetcher();
   const [newCollectionDialogOpen, setNewCollectionDialogOpen] = useState(false);
-  const [showAllDataGaps, setShowAllDataGaps] = useState(false);
 
   const chartData = useMemo(() => {
     const data = [];
@@ -533,12 +540,12 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             </Stack>
           </Group>
 
-          {loaderData.lowRatingQueries.length > 0 && (
+          {loaderData.dataGapMessages.length > 0 && (
             <Stack flex={1}>
               <Heading>
                 <Group>
-                  <TbAlertCircle />
-                  <Text>Data gaps</Text>
+                  <TbChartBarOff />
+                  <Text>Recent data gap</Text>
                   <ChakraTooltip
                     showArrow
                     content={
@@ -552,51 +559,16 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   </ChakraTooltip>
                 </Group>
               </Heading>
-              <Table.Root size="sm" flex={1} variant={"outline"} rounded={"sm"}>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.ColumnHeader>Question</Table.ColumnHeader>
-                    <Table.ColumnHeader>Queries</Table.ColumnHeader>
-                    <Table.ColumnHeader w="60px">Score</Table.ColumnHeader>
-                    <Table.ColumnHeader textAlign="end" w="200px">
-                      Date
-                    </Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {loaderData.lowRatingQueries
-                    .slice(0, showAllDataGaps ? undefined : 5)
-                    .map((item) => (
-                      <Table.Row key={item.message.id}>
-                        <Table.Cell>
-                          <SingleLineCell>
-                            {(item.userMessage?.llmMessage as any).content}
-                          </SingleLineCell>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <SingleLineCell>
-                            {item.queries.join(", ")}
-                          </SingleLineCell>
-                        </Table.Cell>
-                        <Table.Cell>
-                          <Badge colorPalette={"red"} variant={"surface"}>
-                            {item.maxScore.toFixed(2)}
-                          </Badge>
-                        </Table.Cell>
-                        <Table.Cell textAlign="end">
-                          {moment(item.message.createdAt).fromNow()}
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                </Table.Body>
-              </Table.Root>
+              <DataGapCard
+                key={loaderData.dataGapMessages[0].id}
+                message={loaderData.dataGapMessages[0]}
+                noControls
+              />
               <Group justifyContent={"end"}>
-                <Button
-                  variant={"subtle"}
-                  onClick={() => setShowAllDataGaps((s) => !s)}
-                  size={"xs"}
-                >
-                  {showAllDataGaps ? "Show less" : "Show all"}
+                <Button variant={"subtle"} size={"xs"} asChild>
+                  <Link to="/data-gaps">
+                    Show all <TbArrowRight />
+                  </Link>
                 </Button>
               </Group>
             </Stack>

@@ -93,7 +93,13 @@ export async function action({ request }: Route.ActionArgs) {
   }
 }
 
-function DataGapCard({ message }: { message: Message }) {
+export function DataGapCard({
+  message,
+  noControls,
+}: {
+  message: Message;
+  noControls?: boolean;
+}) {
   const doneFetcher = useFetcher();
   const deleteFetcher = useFetcher();
 
@@ -114,37 +120,41 @@ function DataGapCard({ message }: { message: Message }) {
               <TbExternalLink />
             </Link>
           </Button>
-          <doneFetcher.Form method="post">
-            <input type="hidden" name="messageId" value={message.id} />
-            <input type="hidden" name="intent" value="done" />
-            <Button
-              variant="subtle"
-              size="xs"
-              colorPalette={"brand"}
-              type="submit"
-              loading={doneFetcher.state !== "idle"}
-            >
-              Done
-              <TbCheck />
-            </Button>
-          </doneFetcher.Form>
-          <deleteFetcher.Form method="post">
-            <input type="hidden" name="messageId" value={message.id} />
-            <input type="hidden" name="intent" value="delete" />
-            <IconButton
-              variant="subtle"
-              size="xs"
-              colorPalette={"red"}
-              disabled={deleteFetcher.state !== "idle"}
-              type="submit"
-            >
-              {deleteFetcher.state !== "idle" ? (
-                <Spinner size="xs" />
-              ) : (
-                <TbTrash />
-              )}
-            </IconButton>
-          </deleteFetcher.Form>
+          {!noControls && (
+            <>
+              <doneFetcher.Form method="post">
+                <input type="hidden" name="messageId" value={message.id} />
+                <input type="hidden" name="intent" value="done" />
+                <Button
+                  variant="subtle"
+                  size="xs"
+                  colorPalette={"brand"}
+                  type="submit"
+                  loading={doneFetcher.state !== "idle"}
+                >
+                  Done
+                  <TbCheck />
+                </Button>
+              </doneFetcher.Form>
+              <deleteFetcher.Form method="post">
+                <input type="hidden" name="messageId" value={message.id} />
+                <input type="hidden" name="intent" value="delete" />
+                <IconButton
+                  variant="subtle"
+                  size="xs"
+                  colorPalette={"red"}
+                  disabled={deleteFetcher.state !== "idle"}
+                  type="submit"
+                >
+                  {deleteFetcher.state !== "idle" ? (
+                    <Spinner size="xs" />
+                  ) : (
+                    <TbTrash />
+                  )}
+                </IconButton>
+              </deleteFetcher.Form>
+            </>
+          )}
         </Group>
       </Stack>
       <MarkdownProse>{message.analysis!.dataGapDescription}</MarkdownProse>
@@ -178,9 +188,22 @@ export default function DataGapsPage({ loaderData }: Route.ComponentProps) {
             </EmptyState.Root>
           </Center>
         )}
-        {loaderData.messages.map((message) => (
-          <DataGapCard key={message.id} message={message} />
-        ))}
+        {loaderData.messages.length > 0 && (
+          <Stack gap={4}>
+            <Text opacity={0.5}>
+              Following are the topics that are asked to the chat bot but no
+              significant information is found in the knowledge base. It is
+              worth to take a look at these topics and either add it your
+              knowledge base (or the external documentation) or delete it if it
+              is not appropriate or signification.
+            </Text>
+            <Stack gap={4}>
+              {loaderData.messages.map((message) => (
+                <DataGapCard key={message.id} message={message} />
+              ))}
+            </Stack>
+          </Stack>
+        )}
       </Stack>
     </Page>
   );
