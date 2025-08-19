@@ -13,6 +13,7 @@ import {
 import {
   TbArrowRight,
   TbBook,
+  TbChartBarOff,
   TbChevronRight,
   TbCreditCard,
   TbCrown,
@@ -286,6 +287,12 @@ export function SideMenu({
         label: "Messages",
         to: "/messages",
         icon: <TbMessage />,
+        forScrape: true,
+      },
+      {
+        label: "Data gaps",
+        to: "/data-gaps",
+        icon: <TbChartBarOff />,
         forScrape: true,
       },
       {

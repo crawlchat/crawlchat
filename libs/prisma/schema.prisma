@@ -219,6 +219,7 @@ type MessageAnalysis {
   
   dataGapTitle String?
   dataGapDescription String?
+  dataGapDone Boolean?
 }
 
 model Message {

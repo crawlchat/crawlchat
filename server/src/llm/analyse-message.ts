@@ -1,13 +1,8 @@
-import {
-  MessageAnalysis,
-  MessageSourceLink,
-  prisma,
-  QuestionSentiment,
-} from "libs/prisma";
+import { MessageSourceLink, QuestionSentiment, Scrape } from "libs/prisma";
 import { SimpleAgent } from "./agentic";
 import { z } from "zod";
 import { Flow } from "./flow";
-import { getConfig } from "./config";
+import { extractCitations } from "libs/citation";
 
 export async function analyseMessage(
   question: string,
@@ -34,17 +29,12 @@ export async function analyseMessage(
     Context: ${context}
     `,
     schema: z.object({
-      contextRelevanceScore: z.number().describe(`
-          Given the context, answer and question, how relevant is the answer to the question?
-          If there is no answer in the context, it should be 0 and vice versa.
-          If the question is not mentioned in the context, it should be close to 0.
-          If the answer says it has no answer, it should close to 0.
-          It should be from 0 to 1.
-        `),
       questionRelevanceScore: z.number().describe(
         `
           The relevance score of question to the context.
           It is about relevance but not about having answer or not.
+          Calculate the score based on the keywords in the query and the context.
+          The more matching keywords, the better score.
           Only if the question is relevant to the context, it should be close to 1.
           It should be from 0 to 1.
           `
@@ -57,19 +47,25 @@ export async function analyseMessage(
           ).join(", ")}
         `
       ),
-      dataGapTitle: z.string().describe(
-        `
+      dataGapTitle: z
+        .string()
+        .describe(
+          `
           Make a title for the data gap (if any). It should be under 10 words.
           It is used to represent the data gap from the sources for the given question.
         `
-      ),
-      dataGapDescription: z.string().describe(
-        `
+        )
+        .optional(),
+      dataGapDescription: z
+        .string()
+        .describe(
+          `
           Make a description for the data gap (if any). It should be in markdown format.
           It should explain the details to be filled for the data gap.
           Make it descriptive, mention topics to fill as bullet points.
         `
-      ),
+        )
+        .optional(),
     }),
   });
 
@@ -84,26 +80,27 @@ export async function analyseMessage(
   const content = flow.getLastMessage().llmMessage.content;
 
   if (!content) {
-    return null;
+    throw new Error("Failed to analyse message");
   }
 
-  return JSON.parse(content as string) as MessageAnalysis;
+  return JSON.parse(content as string) as {
+    questionRelevanceScore: number;
+    questionSentiment: QuestionSentiment;
+    dataGapTitle: string | null | undefined;
+    dataGapDescription: string | null | undefined;
+  };
 }
 
-function isDataGap(sources: MessageSourceLink[], analysis: MessageAnalysis) {
-  const avgScore =
-    sources.reduce((acc, s) => acc + (s.score ?? 0), 0) / sources.length;
-  const contextRelevanceScore = Math.min(
-    avgScore,
-    analysis.contextRelevanceScore ?? 0
-  );
+function isDataGap(
+  sources: MessageSourceLink[],
+  questionRelevanceScore: number,
+  bestCitedLinkScore: number
+) {
   return (
     sources.length > 0 &&
-    analysis.questionRelevanceScore !== null &&
-    analysis.questionRelevanceScore >= 0.5 &&
-    contextRelevanceScore !== null &&
-    contextRelevanceScore <= 0.3 &&
-    avgScore >= 0.01
+    questionRelevanceScore !== null &&
+    questionRelevanceScore >= 0.5 &&
+    bestCitedLinkScore <= 0.3
   );
 }
 
@@ -112,17 +109,35 @@ export async function fillMessageAnalysis(
   question: string,
   answer: string,
   sources: MessageSourceLink[],
-  context: string
+  context: string,
+  scrape: Scrape
 ) {
   try {
-    const analysis = await analyseMessage(question, answer, sources, context);
+    const citations = extractCitations(answer, sources);
+    const bestCitedLink = Object.values(citations.citedLinks).sort(
+      (a, b) => (b.score ?? 0) - (a.score ?? 0)
+    )[0];
+    const bestCitedLinkScore = bestCitedLink?.score ?? 0;
 
-    if (analysis && !isDataGap(sources, analysis)) {
-      analysis.dataGapTitle = null;
-      analysis.dataGapDescription = null;
+    let {
+      questionRelevanceScore,
+      questionSentiment,
+      dataGapTitle,
+      dataGapDescription,
+    } = await analyseMessage(question, answer, sources, context);
+
+    if (!isDataGap(sources, questionRelevanceScore, bestCitedLinkScore)) {
+      dataGapTitle = null;
+      dataGapDescription = null;
     }
 
-    console.log(analysis);
+    console.log({
+      bestCitedLinkScore,
+      questionRelevanceScore,
+      questionSentiment,
+      dataGapTitle,
+      dataGapDescription,
+    });
 
     // await prisma.message.update({
     //   where: { id: messageId },
