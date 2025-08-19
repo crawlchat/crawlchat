@@ -11,6 +11,7 @@ import {
 import {
   TbChartBarOff,
   TbCheck,
+  TbCopy,
   TbExternalLink,
   TbTrash,
 } from "react-icons/tb";
@@ -25,6 +26,7 @@ import { Button } from "~/components/ui/button";
 import { Link, useFetcher } from "react-router";
 import moment from "moment";
 import { fetchDataGaps } from "./fetch";
+import { toaster } from "~/components/ui/toaster";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -103,6 +105,17 @@ export function DataGapCard({
   const doneFetcher = useFetcher();
   const deleteFetcher = useFetcher();
 
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(
+      `# ${message.analysis!.dataGapTitle}\n\n${
+        message.analysis!.dataGapDescription
+      }`
+    );
+    toaster.success({
+      title: "Copied to clipboard",
+    });
+  };
+
   return (
     <Stack
       border="1px solid"
@@ -155,6 +168,10 @@ export function DataGapCard({
               </deleteFetcher.Form>
             </>
           )}
+
+          <IconButton variant="subtle" size="xs" onClick={handleCopy}>
+            <TbCopy />
+          </IconButton>
         </Group>
       </Stack>
       <MarkdownProse>{message.analysis!.dataGapDescription}</MarkdownProse>
