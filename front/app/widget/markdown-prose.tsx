@@ -21,6 +21,7 @@ import { Tooltip } from "~/components/ui/tooltip";
 import { Button } from "~/components/ui/button";
 import { TbArrowRight } from "react-icons/tb";
 import { jsonrepair } from "jsonrepair";
+import "./markdown-prose.css";
 const linkifyRegex = require("remark-linkify-regex");
 
 const RichCTA = ({
@@ -176,7 +177,7 @@ export function MarkdownProse({
   };
 }>) {
   return (
-    <Prose maxW="full" size={size}>
+    <Prose maxW="full" size={size} className="markdown-prose">
       <Markdown
         remarkPlugins={[remarkGfm, linkifyRegex(/\!\![0-9a-zA-Z]+!!/)]}
         components={{

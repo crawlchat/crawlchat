@@ -89,7 +89,7 @@ function AssistantMessage({
   );
 
   return (
-    <>
+    <Stack gap={4}>
       <MarkdownProse
         sources={Object.values(citation.citedLinks).map((link) => ({
           title: link?.title ?? link?.url ?? "Source",
@@ -116,7 +116,7 @@ function AssistantMessage({
 
       {message.links.length > 0 && (
         <Stack>
-          <Heading>Knowledge queries</Heading>
+          <Heading size={"lg"}>Resources</Heading>
           <Table.Root variant={"outline"}>
             <Table.Header>
               <Table.Row>
@@ -202,7 +202,7 @@ function AssistantMessage({
           ))}
         </Stack>
       )}
-    </>
+    </Stack>
   );
 }
 
@@ -262,7 +262,7 @@ export default function Message({ loaderData }: Route.ComponentProps) {
                 </Group>
               </Group>
             </Drawer.Header>
-            <Drawer.Body>
+            <Drawer.Body py={0}>
               {messagePair && (
                 <AssistantMessage
                   message={messagePair.responseMessage}

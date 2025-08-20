@@ -31,6 +31,12 @@ import {
   TbArrowRight,
   TbMenu,
   TbTrash,
+  TbFile,
+  TbFileDescription,
+  TbChevronDown,
+  TbChevronUp,
+  TbCopy,
+  TbCheck,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { InputGroup } from "~/components/ui/input-group";
@@ -216,43 +222,25 @@ export function SourceLink({
 }) {
   return (
     <Link
-      borderBottom={"1px solid"}
-      borderColor={"brand.outline"}
-      _hover={{
-        bg: link.url ? "brand.gray.50" : "transparent",
-      }}
-      transition={"background-color 100ms ease-in-out"}
-      variant={"plain"}
+      transition={"all 200ms ease-in-out"}
       href={link.url ?? undefined}
       cursor={!link.url ? "default" : "pointer"}
       target="_blank"
       textDecoration={"none"}
       outline={"none"}
-      _last={{
-        borderBottom: "none",
+      opacity={0.6}
+      _hover={{
+        opacity: 1,
       }}
+      w="fit"
+      fontSize={"sm"}
+      className="group"
     >
-      <Stack px={4} py={3} w="full">
-        <Group justify={"space-between"} w="full">
-          <Stack gap={0}>
-            <Text fontSize={"xs"} lineClamp={1} data-score={link.score}>
-              {link.title}
-            </Text>
-            <Text
-              fontSize={"xs"}
-              opacity={0.5}
-              lineClamp={1}
-              display={["none", "none", "block"]}
-            >
-              {link.url}
-            </Text>
-          </Stack>
-          <Group>
-            <Badge variant={"surface"}>{index + 1}</Badge>
-            <TbChevronRight />
-          </Group>
-        </Group>
-      </Stack>
+      <TbFileDescription />
+      {link.title}
+      <Icon display={"none"} _groupHover={{ display: "inline-block" }}>
+        <TbArrowRight />
+      </Icon>
     </Link>
   );
 }
@@ -380,7 +368,7 @@ export function Resolved({
 
 function UserMessage({ content }: { content: string }) {
   return (
-    <Stack className="user-message" p={4} pb={0}>
+    <Stack className="user-message">
       <Text
         fontSize={"xl"}
         fontWeight={"bolder"}
@@ -400,6 +388,7 @@ function AssistantMessage({
   links,
   rating,
   last,
+  pullUp,
 }: {
   id: string;
   questionId: string;
@@ -407,6 +396,7 @@ function AssistantMessage({
   links: MessageSourceLink[];
   rating: MessageRating | null;
   last: boolean;
+  pullUp: boolean;
 }) {
   const {
     refresh,
@@ -429,6 +419,8 @@ function AssistantMessage({
   const [currentRating, setCurrentRating] = useState<MessageRating | null>(
     rating
   );
+  const [showSources, setShowSources] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   function handleRate(rating: MessageRating) {
     setCurrentRating(rating);
@@ -438,9 +430,47 @@ function AssistantMessage({
     }
   }
 
+  function handleCopy() {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  const citedLinks = Object.entries(citation.citedLinks)
+    .filter(([_, link]) => link)
+    .map(([index, link]) => ({
+      index: Number(index),
+      link,
+    }));
+
   return (
-    <Stack>
-      <Stack px={4} gap={0}>
+    <Stack mt={pullUp ? -6 : 0}>
+      {citedLinks.length > 0 && (
+        <Stack mb={showSources ? 2 : 0}>
+          <Group
+            opacity={showSources ? 1 : 0.5}
+            _hover={{
+              opacity: 1,
+            }}
+            cursor={"pointer"}
+            fontSize={"sm"}
+            transition={"opacity 200ms ease-in-out"}
+            onClick={() => setShowSources(!showSources)}
+          >
+            <Text>
+              {citedLinks.length} Source{citedLinks.length > 1 ? "s" : ""}
+            </Text>
+            {showSources ? <TbChevronUp /> : <TbChevronDown />}
+          </Group>
+
+          {showSources &&
+            citedLinks.map(({ index, link }) => (
+              <SourceLink key={index} link={link} index={index} />
+            ))}
+        </Stack>
+      )}
+
+      <Stack gap={4}>
         <MarkdownProse
           size={scrape.widgetConfig?.size === "large" ? "lg" : "md"}
           sources={Object.values(citation.citedLinks).map((link) => ({
@@ -456,7 +486,20 @@ function AssistantMessage({
         >
           {citation.content}
         </MarkdownProse>
-        <Group pb={Object.keys(citation.citedLinks).length === 0 ? 4 : 0}>
+
+        <Group>
+          <Tooltip content="Copy" showArrow>
+            <IconButton
+              size={"xs"}
+              rounded={"full"}
+              variant={"subtle"}
+              onClick={handleCopy}
+              disabled={copied}
+            >
+              {copied ? <TbCheck /> : <TbCopy />}
+            </IconButton>
+          </Tooltip>
+
           <Tooltip content="Refresh" showArrow>
             <IconButton
               size={"xs"}
@@ -503,43 +546,28 @@ function AssistantMessage({
         </Group>
       </Stack>
 
-      <Stack gap={0}>
+      {/* <Stack gap={0}>
         <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
           {last && !readOnly && scrape.ticketingEnabled && !currentRating && (
             <Resolved onRate={handleRate} />
           )}
-          {Object.entries(citation.citedLinks)
-            .filter(([_, link]) => link)
-            .map(([index, link]) => (
-              <SourceLink key={index} link={link} index={Number(index)} />
-            ))}
         </Stack>
-      </Stack>
+      </Stack> */}
     </Stack>
   );
 }
 
 function NoMessages() {
   const { ask, scrape } = useChatBoxContext();
-  const shouldShowDefaultTitle = !scrape.widgetConfig?.welcomeMessage;
+
   return (
     <Stack p={4} gap={4} flex={1}>
-      {shouldShowDefaultTitle && (
-        <Stack align={"center"} my={20} flex={1} justify={"center"}>
-          <Text opacity={0.5}>
-            <TbMessage size={"60px"} />
-          </Text>
-          <Heading size={"2xl"} px={4} textAlign={"center"}>
-            {scrape.title}
-          </Heading>
-        </Stack>
-      )}
-
-      {scrape.widgetConfig?.welcomeMessage && (
-        <Stack w="full">
-          <MarkdownProse>{scrape.widgetConfig?.welcomeMessage}</MarkdownProse>
-        </Stack>
-      )}
+      <Stack w="full">
+        <MarkdownProse size="lg">
+          {scrape.widgetConfig?.welcomeMessage ||
+            "Ask your queries here. Remember, I am an AI assistant and refer to the sources to confirm the answer."}
+        </MarkdownProse>
+      </Stack>
 
       {scrape.widgetConfig?.questions &&
         scrape.widgetConfig.questions.length > 0 && (
@@ -580,7 +608,7 @@ function NoMessages() {
 
 function LoadingMessage() {
   return (
-    <Stack p={4}>
+    <Stack>
       <Skeleton h={"20px"} w={"100%"} />
       <Skeleton h={"20px"} w={"100%"} />
       <Skeleton h={"20px"} w={"60%"} />
@@ -957,9 +985,9 @@ export function ChatboxContainer({
         gap={0}
         position={"relative"}
         overflow={"hidden"}
-        w={["full", width ?? boxDimensions.width]}
-        h={["full", height ?? undefined]}
-        maxH={["full", height ?? boxDimensions.height]}
+        w={["full", "full", boxDimensions.width]}
+        h={["full", "full", "auto"]}
+        maxH={["full", "full", boxDimensions.height]}
       >
         {children}
       </Stack>
@@ -986,6 +1014,8 @@ export default function ScrapeWidget() {
                 _first={{
                   borderTop: "none",
                 }}
+                p={4}
+                className="message"
               >
                 {message.role === "user" ? (
                   <UserMessage content={message.content} />
@@ -997,6 +1027,7 @@ export default function ScrapeWidget() {
                     links={message.links}
                     rating={message.rating}
                     last={index === chat.allMessages.length - 1}
+                    pullUp={chat.allMessages[index - 1]?.role === "user"}
                   />
                 )}
                 {(chat.askStage === "asked" ||

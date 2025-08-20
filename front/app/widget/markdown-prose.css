@@ -1,0 +1,7 @@
+.markdown-prose *:first-child {
+  margin-top: 0;
+}
+
+.markdown-prose *:last-child {
+  margin-bottom: 0;
+}

@@ -218,7 +218,7 @@ export function useChatBox({
     await scroll();
   }
 
-  async function scroll(selector = ".user-message") {
+  async function scroll(selector = ".message") {
     await new Promise((resolve) => setTimeout(resolve, 100));
     const message = document.querySelectorAll(selector);
     if (message) {
