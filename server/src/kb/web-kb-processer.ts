@@ -31,7 +31,7 @@ export class WebKbProcesser extends BaseKbProcesser {
     private readonly knowledgeGroup: KnowledgeGroup,
     private readonly url: string,
     protected readonly options: {
-      hasCredits: () => Promise<boolean>;
+      hasCredits: (n?: number) => Promise<boolean>;
       removeHtmlTags?: string;
       dynamicFallbackContentLength?: number;
       limit?: number;

@@ -171,20 +171,25 @@ export async function action({ request }: { request: Request }) {
 
     if (type === "upload") {
       for (const file of fileMarkdowns) {
-        await fetch(`${process.env.VITE_SERVER_URL}/resource/${scrape.id}`, {
-          method: "POST",
-          body: JSON.stringify({
-            markdown: file.markdown,
-            title: file.title,
-            knowledgeGroupType: "upload",
-            defaultGroupTitle: "Upload",
-            knowledgeGroupId: group.id,
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${createToken(user!.id)}`,
-          },
-        });
+        const response = await fetch(
+          `${process.env.VITE_SERVER_URL}/resource/${scrape.id}`,
+          {
+            method: "POST",
+            body: JSON.stringify({
+              markdown: file.markdown,
+              title: file.title,
+              knowledgeGroupType: "upload",
+              defaultGroupTitle: "Upload",
+              knowledgeGroupId: group.id,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${createToken(user!.id)}`,
+            },
+          }
+        );
+
+        console.log("Upload file", await response.text());
       }
     }
 

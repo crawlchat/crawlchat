@@ -18,6 +18,7 @@ export class BaseKbProcesserListener implements KbProcesserListener {
     private readonly broadcast: (type: string, data: any) => void,
     private readonly options?: {
       includeMarkdown?: boolean;
+      hasCredits: (n?: number) => Promise<boolean>;
     }
   ) {}
 
@@ -88,6 +89,11 @@ export class BaseKbProcesserListener implements KbProcesserListener {
     const chunks = await splitMarkdown(content.text, {
       context: this.knowledgeGroup.itemContext ?? undefined,
     });
+
+    if (!(await this.options?.hasCredits(chunks.length))) {
+      throw new Error("Not enough credits");
+    }
+
     const documents = chunks.map((chunk) => ({
       id: makeRecordId(this.scrape.id, uuidv4()),
       text: chunk,
@@ -136,7 +142,7 @@ export class BaseKbProcesserListener implements KbProcesserListener {
       },
     });
 
-    await consumeCredits(this.scrape.userId, "scrapes", 1);
+    await consumeCredits(this.scrape.userId, "scrapes", documents.length);
 
     this.broadcast("scrape-pre", {
       url: path,

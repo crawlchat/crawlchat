@@ -106,12 +106,15 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       knowledgeGroup,
       () => {},
       {
+        hasCredits: (n: number = 1) =>
+          hasEnoughCredits(scrape.userId, "scrapes", { amount: n }),
         includeMarkdown,
       }
     );
 
     const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
-      hasCredits: () => hasEnoughCredits(scrape.userId, "scrapes"),
+      hasCredits: (n: number = 1) =>
+        hasEnoughCredits(scrape.userId, "scrapes", { amount: n }),
       limit: getLimit(),
       url,
     });
@@ -474,7 +477,13 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     });
   }
 
-  if (!(await hasEnoughCredits(scrape.userId, "scrapes"))) {
+  const chunks = await splitMarkdown(markdown);
+
+  if (
+    !(await hasEnoughCredits(scrape.userId, "scrapes", {
+      amount: chunks.length,
+    }))
+  ) {
     res.status(400).json({ message: "Not enough credits" });
     return;
   }
@@ -492,8 +501,6 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
   }
 
   const indexer = makeIndexer({ key: scrape.indexer });
-  const chunks = await splitMarkdown(markdown);
-
   let scrapeItem = await prisma.scrapeItem.create({
     data: {
       userId: req.user!.id,
@@ -522,7 +529,7 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
     },
   });
 
-  await consumeCredits(scrape.userId, "scrapes", 1);
+  await consumeCredits(scrape.userId, "scrapes", chunks.length);
 
   res.json({ scrapeItem });
 });

@@ -62,6 +62,9 @@ export abstract class BaseKbProcesser implements KbProcesser {
       await this.listener.onContentAvailable(path, content, progress);
     } catch (error) {
       await this.onError(path, error);
+      if (error instanceof Error && error.message === "Not enough credits") {
+        await this.onComplete();
+      }
     }
   }
 
