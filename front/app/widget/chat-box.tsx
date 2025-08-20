@@ -30,7 +30,6 @@ import {
   TbArrowRight,
   TbMenu,
   TbTrash,
-  TbFile,
   TbFileDescription,
   TbChevronDown,
   TbChevronUp,
