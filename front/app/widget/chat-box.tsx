@@ -14,7 +14,14 @@ import {
 } from "@chakra-ui/react";
 import { Stack, Text } from "@chakra-ui/react";
 import type { MessageSourceLink, MessageRating, WidgetSize } from "libs/prisma";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PropsWithChildren,
+  forwardRef,
+} from "react";
 import {
   TbArrowUp,
   TbHelp,
@@ -28,13 +35,13 @@ import {
   TbX,
   TbTicket,
   TbArrowRight,
-  TbMenu,
   TbTrash,
   TbFileDescription,
   TbChevronDown,
   TbChevronUp,
   TbCopy,
   TbCheck,
+  TbMenu2,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { InputGroup } from "~/components/ui/input-group";
@@ -165,6 +172,12 @@ function ChatInput() {
   }
 
   const isDisabled = screen !== "chat" || readOnly || chat.askStage !== "idle";
+  const bg = scrape.widgetConfig?.applyColorsToChatbox
+    ? scrape.widgetConfig.primaryColor
+    : undefined;
+  const color = scrape.widgetConfig?.applyColorsToChatbox
+    ? scrape.widgetConfig.buttonTextColor
+    : undefined;
 
   return (
     <Group
@@ -203,6 +216,8 @@ function ChatInput() {
           size={"xs"}
           disabled={isDisabled}
           variant={cleanedQuery.length > 0 ? "solid" : "subtle"}
+          bg={bg ?? undefined}
+          color={color ?? undefined}
         >
           <TbArrowUp />
         </IconButton>
@@ -214,9 +229,11 @@ function ChatInput() {
 export function SourceLink({
   link,
   index,
+  color,
 }: {
   link: MessageSourceLink;
   index: number;
+  color?: string;
 }) {
   return (
     <Link
@@ -226,13 +243,14 @@ export function SourceLink({
       target="_blank"
       textDecoration={"none"}
       outline={"none"}
-      opacity={0.6}
+      opacity={0.7}
       _hover={{
         opacity: 1,
       }}
       w="fit"
       fontSize={"sm"}
       className="group"
+      color={color}
     >
       <TbFileDescription />
       {link.title}
@@ -383,8 +401,10 @@ export function UserMessage({ content }: { content: string }) {
 
 export function Sources({
   citation,
+  color,
 }: {
   citation: ReturnType<typeof extractCitations>;
+  color?: string;
 }) {
   const [showSources, setShowSources] = useState(false);
   const citedLinks = Object.entries(citation.citedLinks)
@@ -401,7 +421,7 @@ export function Sources({
   return (
     <Stack mb={showSources ? 2 : 0}>
       <Group
-        opacity={showSources ? 1 : 0.5}
+        opacity={showSources ? 1 : 0.7}
         _hover={{
           opacity: 1,
         }}
@@ -409,6 +429,7 @@ export function Sources({
         fontSize={"sm"}
         transition={"opacity 200ms ease-in-out"}
         onClick={() => setShowSources(!showSources)}
+        color={color}
       >
         <Text>
           {citedLinks.length} Source{citedLinks.length > 1 ? "s" : ""}
@@ -418,7 +439,7 @@ export function Sources({
 
       {showSources &&
         citedLinks.map(({ index, link }) => (
-          <SourceLink key={index} link={link} index={index} />
+          <SourceLink key={index} link={link} index={index} color={color} />
         ))}
     </Stack>
   );
@@ -495,9 +516,13 @@ export function AssistantMessage({
     }
   }
 
+  const color = scrape.widgetConfig?.applyColorsToChatbox
+    ? scrape.widgetConfig.primaryColor
+    : undefined;
+
   return (
     <Stack mt={pullUp ? -6 : 0}>
-      <Sources citation={citation} />
+      <Sources citation={citation} color={color ?? undefined} />
 
       <Stack gap={4}>
         <MarkdownProse
@@ -727,6 +752,33 @@ function MCPSetup() {
   );
 }
 
+const ToolbarButton = forwardRef<
+  HTMLButtonElement,
+  PropsWithChildren<{ onClick?: () => void }>
+>(function ToolbarButton({ children, onClick }, ref) {
+  const { scrape } = useChatBoxContext();
+  const widgetConfig = scrape.widgetConfig;
+
+  const color = widgetConfig?.applyColorsToChatbox
+    ? widgetConfig.buttonTextColor
+    : undefined;
+
+  return (
+    <IconButton
+      ref={ref}
+      variant={"plain"}
+      color={color ?? undefined}
+      opacity={0.6}
+      _hover={{
+        opacity: 1,
+      }}
+      onClick={onClick}
+    >
+      {children}
+    </IconButton>
+  );
+});
+
 function Toolbar() {
   const {
     chat,
@@ -774,6 +826,14 @@ function Toolbar() {
     }
   }
 
+  const widgetConfig = scrape.widgetConfig;
+  const bg = widgetConfig?.applyColorsToChatbox
+    ? widgetConfig.primaryColor
+    : undefined;
+  const color = widgetConfig?.applyColorsToChatbox
+    ? widgetConfig.buttonTextColor
+    : undefined;
+
   return (
     <Group
       h="60px"
@@ -782,14 +842,15 @@ function Toolbar() {
       p={4}
       w={"full"}
       justify={"space-between"}
-      bg="brand.gray.50/50"
+      bg={bg ?? "brand.gray.50/50"}
+      color={color ?? undefined}
     >
       <Group flex="1">
         <Group w="full">
           {fullscreen && (
-            <IconButton size={"xs"} variant={"subtle"} onClick={() => close()}>
+            <ToolbarButton onClick={() => close()}>
               <TbX />
-            </IconButton>
+            </ToolbarButton>
           )}
           {scrape.widgetConfig?.logoUrl && (
             <img
@@ -821,21 +882,17 @@ function Toolbar() {
       </Group>
       <Group>
         {screen === "mcp" && (
-          <Button
-            size={"xs"}
-            variant={"subtle"}
-            onClick={() => setScreen("chat")}
-          >
+          <ToolbarButton onClick={() => setScreen("chat")}>
             Switch to chat
             <TbMessage />
-          </Button>
+          </ToolbarButton>
         )}
 
         {chat.allMessages.length > 0 && (
           <Tooltip content="Clear & start new conversation" showArrow>
-            <IconButton size={"xs"} variant={"ghost"} onClick={() => erase()}>
+            <ToolbarButton onClick={() => erase()}>
               <TbTrash />
-            </IconButton>
+            </ToolbarButton>
           </Tooltip>
         )}
 
@@ -844,8 +901,15 @@ function Toolbar() {
           onSelect={(e) => handleMenuSelect(e.value)}
         >
           <MenuTrigger asChild>
-            <IconButton size={"xs"} variant={"subtle"}>
-              <TbMenu />
+            <IconButton
+              variant={"plain"}
+              color={color ?? undefined}
+              opacity={0.6}
+              _hover={{
+                opacity: 1,
+              }}
+            >
+              <TbMenu2 />
             </IconButton>
           </MenuTrigger>
           <MenuContent>
@@ -987,6 +1051,9 @@ export function ChatboxContainer({
   }
 
   const cover = width || height;
+  const borderColor = scrape.widgetConfig?.applyColorsToChatbox
+    ? scrape.widgetConfig.primaryColor
+    : undefined;
 
   return (
     <Flex
@@ -999,9 +1066,9 @@ export function ChatboxContainer({
     >
       <Stack
         border={cover ? "none" : "1px solid"}
-        borderWidth={[0, cover ? 0 : 1]}
-        borderColor={"brand.outline"}
-        rounded={["none", cover ? "none" : "xl"]}
+        borderWidth={[0, 0, cover ? 0 : 1]}
+        borderColor={borderColor ?? "brand.outline"}
+        rounded={["none", "none", cover ? "none" : "xl"]}
         boxShadow={cover ? "none" : "rgba(100, 100, 111, 0.2) 0px 7px 29px 0px"}
         bg="brand.white"
         gap={0}

@@ -134,6 +134,9 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("from-private")) {
     update.private = formData.get("private") === "on";
   }
+  if (formData.has("from-widget")) {
+    update.applyColorsToChatbox = formData.get("applyColorsToChatbox") === "on";
+  }
 
   await prisma.scrape.update({
     where: {
@@ -276,6 +279,9 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const [textInputPlaceholder, setTextInputPlaceholder] = useState(
     loaderData.scrape?.widgetConfig?.textInputPlaceholder
   );
+  const [applyColorsToChatbox, setApplyColorsToChatbox] = useState(
+    loaderData.scrape?.widgetConfig?.applyColorsToChatbox ?? false
+  );
   const [previewType, setPreviewType] = useState<"home" | "chat">("home");
 
   useEffect(() => {
@@ -297,6 +303,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         showMcpSetup,
         textInputPlaceholder,
         logoUrl,
+        applyColorsToChatbox,
       },
     };
   }, [
@@ -311,6 +318,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     showMcpSetup,
     textInputPlaceholder,
     logoUrl,
+    applyColorsToChatbox,
   ]);
 
   function addQuestion() {
@@ -351,7 +359,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         <SettingsSection
           id="button-chatbox"
           title="Button & Chatbox"
-          description="Configure the widget and copy paste the <script> tag below to your website."
+          description="Customise the Ask AI button and the chatbox appearance"
           fetcher={widgetConfigFetcher}
         >
           <input type="hidden" name="from-widget" value={"true"} />
@@ -418,6 +426,14 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                   Show logo on Ask AI button
                 </Switch>
               </Group> */}
+
+              <Switch
+                name="applyColorsToChatbox"
+                checked={applyColorsToChatbox}
+                onCheckedChange={(e) => setApplyColorsToChatbox(e.checked)}
+              >
+                Apply colors to chatbox
+              </Switch>
             </Stack>
           </Stack>
         </SettingsSection>
@@ -570,7 +586,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                       },
                       links: [
                         {
-                          url: "https://crawlchat.com",
+                          url: "https://crawlchat.app",
                           title: "CrawlChat docs",
                           score: 1,
                           scrapeItemId: "test",
