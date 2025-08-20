@@ -89,7 +89,7 @@ export async function action({ request }: Route.ActionArgs) {
     tooltip: null,
     private: false,
     logoUrl: null,
-    hideButton: null,
+    applyColorsToChatbox: null,
   };
 
   if (size) {
@@ -133,9 +133,6 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("from-private")) {
     update.private = formData.get("private") === "on";
-  }
-  if (formData.has("from-widget")) {
-    update.hideButton = formData.get("hideButton") === "on";
   }
 
   await prisma.scrape.update({
@@ -278,9 +275,6 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   );
   const [textInputPlaceholder, setTextInputPlaceholder] = useState(
     loaderData.scrape?.widgetConfig?.textInputPlaceholder
-  );
-  const [hideButton, setHideButton] = useState(
-    loaderData.scrape?.widgetConfig?.hideButton ?? false
   );
   const [previewType, setPreviewType] = useState<"home" | "chat">("home");
 
