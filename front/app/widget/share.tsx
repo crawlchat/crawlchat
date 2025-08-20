@@ -6,7 +6,7 @@ import { useMemo } from "react";
 import { extractCitations } from "libs/citation";
 import { MarkdownProse } from "./markdown-prose";
 import { RiChatVoiceAiFill } from "react-icons/ri";
-import { SourceLink } from "~/widget/chat-box";
+import { MessageCopyButton, SourceLink, Sources } from "~/widget/chat-box";
 import { TbAlertCircle } from "react-icons/tb";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -111,7 +111,7 @@ function Nav({ scrape }: { scrape: Scrape }) {
 
 function UserMessage({ content }: { content: string }) {
   return (
-    <Stack className="user-message" px={4}>
+    <Stack className="user-message">
       <Text
         fontSize={"xl"}
         fontWeight={"bolder"}
@@ -127,47 +127,42 @@ function UserMessage({ content }: { content: string }) {
 function AssistantMessage({
   content,
   links,
-  last,
 }: {
   content: string;
   links: MessageSourceLink[];
-  last: boolean;
 }) {
-  const [cleanedLinks, cleanedContent, score] = useMemo(() => {
-    const citation = extractCitations(content, links);
-    const score = Math.max(...links.map((l) => l.score ?? 0), 0);
-    return [citation.citedLinks, citation.content, score];
+  const citation = useMemo(() => {
+    return extractCitations(content, links);
   }, [links]);
 
   return (
-    <Stack mb={last ? 0 : 4}>
-      <Group px={4}>
-        <MarkdownProse
-          size={"md"}
-          sources={Object.values(cleanedLinks).map((link) => ({
-            title: link?.title ?? link?.url ?? "Source",
-            url: link?.url ?? undefined,
-          }))}
-        >
-          {cleanedContent}
-        </MarkdownProse>
+    <Stack>
+      <Sources citation={citation} />
+      <MarkdownProse
+        size={"md"}
+        sources={Object.values(citation.citedLinks).map((link) => ({
+          title: link?.title ?? link?.url ?? "Source",
+          url: link?.url ?? undefined,
+        }))}
+      >
+        {citation.content}
+      </MarkdownProse>
+      <Group>
+        <MessageCopyButton content={content} />
       </Group>
-      {Object.keys(cleanedLinks).length > 0 && (
-        <Stack gap={0}>
-          <Stack borderTop="1px solid" borderColor={"brand.outline"} gap={0}>
-            {Object.entries(cleanedLinks)
-              .filter(([_, link]) => link)
-              .map(([index, link]) => (
-                <SourceLink key={index} link={link} index={Number(index)} />
-              ))}
-          </Stack>
-        </Stack>
-      )}
     </Stack>
   );
 }
 
-function Message({ message, last }: { message: Message; last: boolean }) {
+function Message({
+  message,
+  last,
+  pullUp,
+}: {
+  message: Message;
+  last: boolean;
+  pullUp?: boolean;
+}) {
   const llmMessage = useMemo(() => {
     return {
       role: (message.llmMessage as any).role as string,
@@ -176,15 +171,11 @@ function Message({ message, last }: { message: Message; last: boolean }) {
   }, [message]);
 
   return (
-    <Stack>
+    <Stack p={4} mt={pullUp ? -6 : 0}>
       {llmMessage.role === "user" ? (
         <UserMessage content={llmMessage.content} />
       ) : (
-        <AssistantMessage
-          content={llmMessage.content}
-          links={message.links}
-          last={last}
-        />
+        <AssistantMessage content={llmMessage.content} links={message.links} />
       )}
     </Stack>
   );
@@ -201,13 +192,7 @@ export default function Share({ loaderData }: Route.ComponentProps) {
   }
   return (
     <Stack alignItems={"center"}>
-      <Stack
-        maxW={800}
-        w="full"
-        borderLeft={["none", "none", "1px solid"]}
-        borderRight={["none", "none", "1px solid"]}
-        borderColor={["none", "none", "brand.outline"]}
-      >
+      <Stack maxW={800} w="full">
         <Nav scrape={loaderData.thread.scrape} />
         <Stack gap={0}>
           {loaderData.thread.messages.map((message, idx) => (
@@ -215,6 +200,10 @@ export default function Share({ loaderData }: Route.ComponentProps) {
               key={message.id}
               message={message}
               last={idx === loaderData.thread!.messages.length - 1}
+              pullUp={
+                (loaderData.thread?.messages[idx - 1]?.llmMessage as any)
+                  ?.role === "user"
+              }
             />
           ))}
         </Stack>

@@ -276,7 +276,7 @@ function Message({
           {moment(message.createdAt).fromNow()}
         </Text>
       </Group>
-      <Stack px={4}>
+      <Stack p={4}>
         <MarkdownProse>{message.content}</MarkdownProse>
       </Stack>
     </Stack>

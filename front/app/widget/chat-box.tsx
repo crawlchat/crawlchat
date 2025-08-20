@@ -17,7 +17,6 @@ import type { MessageSourceLink, MessageRating, WidgetSize } from "libs/prisma";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   TbArrowUp,
-  TbChevronRight,
   TbHelp,
   TbMessage,
   TbRefresh,
@@ -366,7 +365,7 @@ export function Resolved({
   );
 }
 
-function UserMessage({ content }: { content: string }) {
+export function UserMessage({ content }: { content: string }) {
   return (
     <Stack className="user-message">
       <Text
@@ -381,7 +380,74 @@ function UserMessage({ content }: { content: string }) {
   );
 }
 
-function AssistantMessage({
+export function Sources({
+  citation,
+}: {
+  citation: ReturnType<typeof extractCitations>;
+}) {
+  const [showSources, setShowSources] = useState(false);
+  const citedLinks = Object.entries(citation.citedLinks)
+    .filter(([_, link]) => link)
+    .map(([index, link]) => ({
+      index: Number(index),
+      link,
+    }));
+
+  if (citedLinks.length === 0) {
+    return null;
+  }
+
+  return (
+    <Stack mb={showSources ? 2 : 0}>
+      <Group
+        opacity={showSources ? 1 : 0.5}
+        _hover={{
+          opacity: 1,
+        }}
+        cursor={"pointer"}
+        fontSize={"sm"}
+        transition={"opacity 200ms ease-in-out"}
+        onClick={() => setShowSources(!showSources)}
+      >
+        <Text>
+          {citedLinks.length} Source{citedLinks.length > 1 ? "s" : ""}
+        </Text>
+        {showSources ? <TbChevronUp /> : <TbChevronDown />}
+      </Group>
+
+      {showSources &&
+        citedLinks.map(({ index, link }) => (
+          <SourceLink key={index} link={link} index={index} />
+        ))}
+    </Stack>
+  );
+}
+
+export function MessageCopyButton({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <Tooltip content="Copy" showArrow>
+      <IconButton
+        size={"xs"}
+        rounded={"full"}
+        variant={"subtle"}
+        onClick={handleCopy}
+        disabled={copied}
+      >
+        {copied ? <TbCheck /> : <TbCopy />}
+      </IconButton>
+    </Tooltip>
+  );
+}
+
+export function AssistantMessage({
   id,
   questionId,
   content,
@@ -419,8 +485,6 @@ function AssistantMessage({
   const [currentRating, setCurrentRating] = useState<MessageRating | null>(
     rating
   );
-  const [showSources, setShowSources] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   function handleRate(rating: MessageRating) {
     setCurrentRating(rating);
@@ -430,45 +494,9 @@ function AssistantMessage({
     }
   }
 
-  function handleCopy() {
-    navigator.clipboard.writeText(content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  const citedLinks = Object.entries(citation.citedLinks)
-    .filter(([_, link]) => link)
-    .map(([index, link]) => ({
-      index: Number(index),
-      link,
-    }));
-
   return (
     <Stack mt={pullUp ? -6 : 0}>
-      {citedLinks.length > 0 && (
-        <Stack mb={showSources ? 2 : 0}>
-          <Group
-            opacity={showSources ? 1 : 0.5}
-            _hover={{
-              opacity: 1,
-            }}
-            cursor={"pointer"}
-            fontSize={"sm"}
-            transition={"opacity 200ms ease-in-out"}
-            onClick={() => setShowSources(!showSources)}
-          >
-            <Text>
-              {citedLinks.length} Source{citedLinks.length > 1 ? "s" : ""}
-            </Text>
-            {showSources ? <TbChevronUp /> : <TbChevronDown />}
-          </Group>
-
-          {showSources &&
-            citedLinks.map(({ index, link }) => (
-              <SourceLink key={index} link={link} index={index} />
-            ))}
-        </Stack>
-      )}
+      <Sources citation={citation} />
 
       <Stack gap={4}>
         <MarkdownProse
@@ -488,17 +516,7 @@ function AssistantMessage({
         </MarkdownProse>
 
         <Group>
-          <Tooltip content="Copy" showArrow>
-            <IconButton
-              size={"xs"}
-              rounded={"full"}
-              variant={"subtle"}
-              onClick={handleCopy}
-              disabled={copied}
-            >
-              {copied ? <TbCheck /> : <TbCopy />}
-            </IconButton>
-          </Tooltip>
+          <MessageCopyButton content={content} />
 
           <Tooltip content="Refresh" showArrow>
             <IconButton
