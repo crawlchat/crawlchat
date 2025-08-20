@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Center,
   Code,
   Group,
   HStack,
@@ -8,7 +9,6 @@ import {
   Input,
   parseColor,
   Stack,
-  Text,
   Textarea,
 } from "@chakra-ui/react";
 import { prisma } from "~/prisma";
@@ -39,7 +39,8 @@ import { Switch } from "~/components/ui/switch";
 import { useEffect, useMemo, useState } from "react";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
-import { TbPlus, TbTrash, TbX } from "react-icons/tb";
+import { TbHome, TbMessage, TbPlus, TbTrash, TbX } from "react-icons/tb";
+import { SegmentedControl } from "~/components/ui/segmented-control";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -149,6 +150,57 @@ export async function action({ request }: Route.ActionArgs) {
   return null;
 }
 
+const DEFAULT_MESSAGE = {
+  id: "test",
+  scrapeId: "test",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  threadId: "test",
+  ownerUserId: "test",
+  questionId: "test",
+  llmMessage: {
+    role: "assistant",
+    content: "A dummy message",
+  },
+  pinnedAt: null,
+  channel: null,
+  rating: null,
+  correctionItemId: null,
+  slackMessageId: null,
+  analysis: null,
+  discordMessageId: null,
+  links: [],
+  ticketMessage: null,
+  apiActionCalls: [],
+};
+
+function AskAIButton({
+  bg,
+  color,
+  text,
+}: {
+  bg?: string | null;
+  color?: string | null;
+  text?: string | null;
+}) {
+  return (
+    <Box
+      bg={bg ?? "#7b2cbf"}
+      color={color ?? "white"}
+      p={"8px 20px"}
+      rounded={"20px"}
+      w={"fit-content"}
+      transition={"scale 0.1s ease"}
+      cursor={"pointer"}
+      _hover={{
+        scale: 1.05,
+      }}
+    >
+      {text ?? "Ask AI"}
+    </Box>
+  );
+}
+
 function ColorPicker({
   name,
   label,
@@ -230,6 +282,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const [hideButton, setHideButton] = useState(
     loaderData.scrape?.widgetConfig?.hideButton ?? false
   );
+  const [previewType, setPreviewType] = useState<"home" | "chat">("home");
 
   useEffect(() => {
     setQuestions(loaderData.scrape?.widgetConfig?.questions ?? []);
@@ -310,7 +363,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           <input type="hidden" name="from-widget" value={"true"} />
 
           <Stack flex={1}>
-            <Stack gap={6}>
+            <Stack gap={4}>
               <Group>
                 <ColorPicker
                   name="primaryColor"
@@ -362,7 +415,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                 </Field>
               </Group>
 
-              <Group>
+              {/* <Group>
                 <Switch
                   name="showLogo"
                   checked={showLogo}
@@ -370,23 +423,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                 >
                   Show logo on Ask AI button
                 </Switch>
-              </Group>
-
-              <Stack>
-                <Group>
-                  <Switch
-                    name="hideButton"
-                    checked={hideButton}
-                    onCheckedChange={(e) => setHideButton(e.checked)}
-                  >
-                    Hide Ask AI button
-                  </Switch>
-                </Group>
-                <Text fontSize={"xs"} opacity={0.5} _hover={{ opacity: 1 }}>
-                  You can trigger the widget manually by calling{" "}
-                  <Code as="span">window.crawlchatEmbed.show()</Code>
-                </Text>
-              </Stack>
+              </Group> */}
             </Stack>
           </Stack>
         </SettingsSection>
@@ -472,14 +509,86 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           </Switch>
         </SettingsSection>
       </Stack>
-      <Stack flex={1} position={"sticky"} top={"80px"}>
-        <Stack rounded={"md"} overflow={"hidden"} w={"full"} py={8}>
+      <Stack flex={1} position={"sticky"} top={"80px"} gap={4}>
+        <Center>
+          <Box>
+            <SegmentedControl
+              value={previewType}
+              onValueChange={(e) => setPreviewType(e.value as "home" | "chat")}
+              items={[
+                {
+                  value: "home",
+                  label: (
+                    <HStack>
+                      <TbHome />
+                      Home
+                    </HStack>
+                  ),
+                },
+                {
+                  value: "chat",
+                  label: (
+                    <HStack>
+                      <TbMessage />
+                      Chat
+                    </HStack>
+                  ),
+                },
+              ]}
+            />
+          </Box>
+        </Center>
+        <Center>
+          <AskAIButton
+            bg={primaryColor}
+            color={buttonTextColor}
+            text={buttonText}
+          />
+        </Center>
+        <Stack rounded={"md"} overflow={"hidden"} w={"full"} pb={8} pt={4}>
           <ChatBoxProvider
+            key={previewType}
+            admin={false}
+            readonly={true}
             scrape={liveScrape as Scrape}
             thread={null}
-            messages={[]}
+            messages={
+              previewType === "home"
+                ? []
+                : [
+                    {
+                      ...DEFAULT_MESSAGE,
+                      llmMessage: {
+                        role: "user",
+                        content: "How to embed it?",
+                      },
+                    },
+                    {
+                      ...DEFAULT_MESSAGE,
+                      llmMessage: {
+                        role: "assistant",
+                        content: `To embed the AI chatbot on your docs site:
+
+1. Open your CrawlChat dashboard and go to Integrations → Embed.  
+2. Customize the widget’s look (colors, text, position).  
+3. Copy the generated \`<script>\` snippet.  
+4. Paste that snippet into the \`<head>\` section of your site’s pages. !!54660!!`,
+                      },
+                      links: [
+                        {
+                          url: "https://crawlchat.com",
+                          title: "CrawlChat docs",
+                          score: 1,
+                          scrapeItemId: "test",
+                          knowledgeGroupId: "test",
+                          fetchUniqueId: "54660",
+                          searchQuery: "test",
+                        },
+                      ],
+                    },
+                  ]
+            }
             embed={false}
-            admin={true}
             token={null}
             fullscreen={false}
           >

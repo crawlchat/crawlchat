@@ -736,7 +736,6 @@ function Toolbar() {
     setScreen,
     overallScore,
     scrape,
-    readOnly,
     admin,
     fullscreen,
     close,
@@ -792,9 +791,9 @@ function Toolbar() {
               <TbX />
             </IconButton>
           )}
-          {scrape.logoUrl && (
+          {scrape.widgetConfig?.logoUrl && (
             <img
-              src={scrape.logoUrl}
+              src={scrape.widgetConfig.logoUrl}
               alt="Logo"
               style={{ maxWidth: "24px", maxHeight: "24px" }}
             />
