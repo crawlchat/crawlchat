@@ -31,6 +31,7 @@ import { toaster } from "~/components/ui/toaster";
 import { Button } from "~/components/ui/button";
 import { sendInvitationEmail, sendTeamJoinEmail } from "~/email";
 import { getLimits } from "libs/user-plan";
+import { SingleLineCell } from "~/components/single-line-cell";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -487,12 +488,14 @@ export default function TeamPage({ loaderData }: Route.ComponentProps) {
             {loaderData.scrapeUsers.map((scrapeUser) => (
               <Table.Row key={scrapeUser.id}>
                 <Table.Cell>
-                  {scrapeUser.email}
-                  {scrapeUser.invited && (
-                    <Text opacity={0.5} as={"span"} ml={2}>
-                      [Invited]
-                    </Text>
-                  )}
+                  <SingleLineCell>
+                    {scrapeUser.email}
+                    {scrapeUser.invited && (
+                      <Text opacity={0.5} as={"span"} ml={2}>
+                        [Invited]
+                      </Text>
+                    )}
+                  </SingleLineCell>
                 </Table.Cell>
                 <Table.Cell>
                   <RoleBadge role={scrapeUser.role} />

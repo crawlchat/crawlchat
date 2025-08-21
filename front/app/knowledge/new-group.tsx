@@ -10,6 +10,7 @@ import {
   FileUpload as ChakraFileUpload,
   IconButton,
   Box,
+  Flex,
 } from "@chakra-ui/react";
 import {
   TbBook2,
@@ -276,7 +277,11 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                 setType(value.value as KnowledgeGroupType)
               }
             >
-              <HStack align="stretch">
+              <Flex
+                align="stretch"
+                flexDir={["column", "column", "row"]}
+                gap={2}
+              >
                 {types.map((item) => (
                   <RadioCard.Item key={item.value} value={item.value}>
                     <RadioCard.ItemHiddenInput />
@@ -294,7 +299,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                     </RadioCard.ItemControl>
                   </RadioCard.Item>
                 ))}
-              </HStack>
+              </Flex>
             </RadioCard.Root>
 
             <Text opacity={0.5}>{getDescription(type)}</Text>
