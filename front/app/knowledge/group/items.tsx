@@ -120,16 +120,25 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
           <Table.Root size="sm">
             <Table.Header>
               <Table.Row>
-                <Table.ColumnHeader>Key</Table.ColumnHeader>
+                <Table.ColumnHeader display={["none", "none", "table-cell"]}>
+                  Key
+                </Table.ColumnHeader>
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
-                <Table.ColumnHeader>Status</Table.ColumnHeader>
-                <Table.ColumnHeader>Updated</Table.ColumnHeader>
+                <Table.ColumnHeader display={["none", "none", "table-cell"]}>
+                  Status
+                </Table.ColumnHeader>
+                <Table.ColumnHeader>
+                  Updated
+                </Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {loaderData.items.map((item) => (
                 <Table.Row key={item.id}>
-                  <Table.Cell className="group">
+                  <Table.Cell
+                    className="group"
+                    display={["none", "none", "table-cell"]}
+                  >
                     <Tooltip content={item.url}>
                       <Text>{truncateEnd(getKey(item), maxLength)}</Text>
                     </Tooltip>
@@ -143,7 +152,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                     </ChakraLink>
                   </Table.Cell>
 
-                  <Table.Cell>
+                  <Table.Cell display={["none", "none", "table-cell"]}>
                     <Badge
                       variant={"surface"}
                       colorPalette={
@@ -164,7 +173,9 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                       {item.status === "completed" ? "Success" : "Failed"}
                     </Badge>
                   </Table.Cell>
-                  <Table.Cell>{moment(item.updatedAt).fromNow()}</Table.Cell>
+                  <Table.Cell>
+                    {moment(item.updatedAt).fromNow()}
+                  </Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>

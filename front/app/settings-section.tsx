@@ -132,11 +132,17 @@ export function SettingsContainer({ children }: { children: React.ReactNode }) {
   }, [location.hash]);
 
   return (
-    <Group gap={8} alignItems={"flex-start"}>
+    <Group gap={8} alignItems={"flex-start"} w="full">
       <Stack gap={4} flex={1}>
         {children}
       </Stack>
-      <Stack w={"200px"} h="full" position={"sticky"} top={"80px"}>
+      <Stack
+        w={"200px"}
+        h="full"
+        position={"sticky"}
+        top={"80px"}
+        display={["none", "none", "block"]}
+      >
         <Heading size={"sm"}>On this page</Heading>
         <Stack>
           {sections.map((section) => (

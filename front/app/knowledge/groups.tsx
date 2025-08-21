@@ -13,7 +13,6 @@ import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import moment from "moment";
 import {
-  TbAutomaticGearbox,
   TbAutomation,
   TbBook,
   TbBrandDiscord,
@@ -173,21 +172,41 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
               <Table.Row>
                 <Table.ColumnHeader w="12%">Type</Table.ColumnHeader>
                 <Table.ColumnHeader>Title</Table.ColumnHeader>
-                <Table.ColumnHeader w="18%">Citations</Table.ColumnHeader>
-                <Table.ColumnHeader w="10%"># Items</Table.ColumnHeader>
-                <Table.ColumnHeader w="10%">Status</Table.ColumnHeader>
-                <Table.ColumnHeader w="16%">Updated</Table.ColumnHeader>
+                <Table.ColumnHeader
+                  w="18%"
+                  display={["none", "none", "table-cell"]}
+                >
+                  Citations
+                </Table.ColumnHeader>
+                <Table.ColumnHeader
+                  w="10%"
+                  display={["none", "none", "table-cell"]}
+                >
+                  # Items
+                </Table.ColumnHeader>
+                <Table.ColumnHeader
+                  w="10%"
+                  display={["none", "none", "table-cell"]}
+                >
+                  Status
+                </Table.ColumnHeader>
+                <Table.ColumnHeader
+                  w="16%"
+                  display={["none", "none", "table-cell"]}
+                >
+                  Updated
+                </Table.ColumnHeader>
                 <Table.ColumnHeader w="10%">Actions</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {groups.map((item) => (
                 <Table.Row key={item.group.id}>
-                  <Table.Cell className="group">
-                    <Group>
-                      <Text fontSize={"xl"}>{item.icon}</Text>
-                      <Text>{item.typeText}</Text>
-                    </Group>
+                  <Table.Cell>
+                    <Badge>
+                      {item.icon}
+                      {item.typeText}
+                    </Badge>
                   </Table.Cell>
                   <Table.Cell>
                     <ChakraLink
@@ -202,7 +221,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                       </Link>
                     </ChakraLink>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell display={["none", "none", "table-cell"]}>
                     <Group w="full">
                       <Text fontSize={"xs"}>
                         {item.citedNum} / {item.totalCited}
@@ -219,15 +238,15 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                       </Progress.Root>
                     </Group>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell display={["none", "none", "table-cell"]}>
                     <Badge variant={"subtle"}>
                       {loaderData.counts[item.group.id] ?? 0}
                     </Badge>
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell display={["none", "none", "table-cell"]}>
                     <GroupStatus status={item.group.status} />
                   </Table.Cell>
-                  <Table.Cell>
+                  <Table.Cell display={["none", "none", "table-cell"]}>
                     <Text>
                       {moment(item.group.updatedAt).fromNow()}
                       {item.group.nextUpdateAt && (

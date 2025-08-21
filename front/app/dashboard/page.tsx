@@ -13,6 +13,7 @@ import {
   Table,
   Badge,
   Box,
+  Flex,
 } from "@chakra-ui/react";
 import type { Route } from "./+types/page";
 import {
@@ -418,7 +419,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             onClick={() => setNewCollectionDialogOpen(true)}
           >
             <TbPlus />
-            New collection
+            Collection
           </Button>
           {loaderData.scrape && loaderData.nScrapeItems > 0 && (
             <Button variant={"subtle"} colorPalette={"brand"} asChild>
@@ -454,7 +455,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
       {!loaderData.noScrapes && (
         <Stack height={"100%"} gap={8} ref={containerRef}>
-          <Group>
+          <Flex flexDir={["column", "column", "row"]} gap={2}>
             <StatCard
               label="Today"
               value={loaderData.messagesToday}
@@ -480,9 +481,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               icon={<TbThumbDown />}
               color="red.600"
             />
-          </Group>
+          </Flex>
 
-          <Group gap={8}>
+          <Flex gap={8} display={["none", "none", "flex"]}>
             <Stack>
               <Heading>
                 <Group>
@@ -501,7 +502,11 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   </ChakraTooltip>
                 </Group>
               </Heading>
-              <AreaChart width={width / 2 - 20} height={200} data={chartData}>
+              <AreaChart
+                width={width / 2 - 20}
+                height={200}
+                data={chartData}
+              >
                 <XAxis dataKey="name" />
                 <Tooltip />
                 <CartesianGrid strokeDasharray="3 3" />
@@ -547,7 +552,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 />
               </BarChart>
             </Stack>
-          </Group>
+          </Flex>
 
           {loaderData.dataGapMessages.length > 0 && (
             <Stack flex={1}>
@@ -583,8 +588,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             </Stack>
           )}
 
-          <Group gap={8} align={"start"}>
-            <Stack flex={1}>
+          <Flex gap={8} flexDir={["column", "column", "row"]} align={"start"}>
+            <Stack flex={1} w="full">
               <Heading>
                 <Group>
                   <TbDatabase />
@@ -621,7 +626,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               </Table.Root>
             </Stack>
 
-            <Stack flex={1}>
+            <Stack flex={1} w="full">
               <Heading>
                 <Group>
                   <TbMessage />
@@ -660,7 +665,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 </Table.Body>
               </Table.Root>
             </Stack>
-          </Group>
+          </Flex>
         </Stack>
       )}
 

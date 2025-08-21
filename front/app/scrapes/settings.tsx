@@ -6,6 +6,7 @@ import {
   createListCollection,
   DataList,
   Drawer,
+  Flex,
   Group,
   HStack,
   IconButton,
@@ -545,7 +546,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
           defaultValue={scrape.llmModel ?? "gpt_4o_mini"}
           onValueChange={(e) => setSelectedModel(e.value as LlmModel)}
         >
-          <HStack align="stretch">
+          <Flex align="stretch" flexDir={["column", "column", "row"]} gap={2}>
             {models.items.map((item) => (
               <RadioCard.Item
                 key={item.value}
@@ -594,7 +595,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
                 </RadioCard.ItemControl>
               </RadioCard.Item>
             ))}
-          </HStack>
+          </Flex>
         </RadioCard.Root>
 
         {selectedModel.startsWith("sonnet") && (
@@ -758,6 +759,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             />
           </SettingsSection>
 
+          
           <SettingsSection
             id="slug"
             title="Slug"
