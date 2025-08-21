@@ -94,6 +94,10 @@ const getDiscordDetails = async (channelId: string) => {
   };
 };
 
+const cleanReply = (content: string) => {
+  return content.replace(/^<@\d+>/g, "").trim();
+};
+
 function getMessageRating(message: DiscordMessage): MessageRating {
   const reactions = message.reactions.cache.map((r) => r.emoji.toString());
   const thumbsUp = reactions.filter((r) =>
@@ -136,10 +140,15 @@ client.once(Events.ClientReady, (readyClient) => {
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.mentions.users.has(process.env.BOT_USER_ID!)) {
-    if (message.content === "learn") {
+    const cleanedMessage = cleanReply(message.content);
+
+    if (cleanedMessage === "learn") {
       let messages: Array<{ author: string; content: string }> = (
         await fetchAllParentMessages(message, [])
-      ).map((m) => ({ author: m.author.displayName, content: m.content }));
+      ).map((m) => ({
+        author: m.author.displayName,
+        content: cleanReply(m.content),
+      }));
 
       if (
         message.channel.type === ChannelType.PublicThread &&
@@ -149,7 +158,7 @@ client.on(Events.MessageCreate, async (message) => {
           .filter((m) => m.id !== message.id)
           .map((m) => ({
             author: m.author.displayName,
-            content: m.content,
+            content: cleanReply(m.content),
           }));
       }
 
