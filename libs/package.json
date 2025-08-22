@@ -37,6 +37,10 @@
     "./mongo-counter": {
       "default": "./dist/mongo-counter.js",
       "types": "./dist/mongo-counter.d.ts"
+    },
+    "./jwt": {
+      "default": "./dist/jwt.js",
+      "types": "./dist/jwt.d.ts"
     }
   },
   "typesVersions": {
@@ -61,6 +65,9 @@
       ],
       "mongo-counter": [
         "./dist/mongo-counter.d.ts"
+      ],
+      "jwt": [
+        "./dist/jwt.d.ts"
       ]
     }
   },
@@ -71,6 +78,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.13.9",
     "prisma": "^6.4.1",
     "typescript": "^5.8.2"
@@ -78,6 +86,7 @@
   "dependencies": {
     "@faker-js/faker": "^9.6.0",
     "@prisma/client": "^6.4.1",
+    "jsonwebtoken": "^9.0.2",
     "zod": "^3.25.51"
   }
 }

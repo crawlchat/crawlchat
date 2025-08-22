@@ -4,7 +4,7 @@ dotenv.config();
 import { App } from "@slack/bolt";
 import { InstallationStore } from "@slack/oauth";
 import { prisma } from "libs/prisma";
-import { createToken } from "./jwt";
+import { createToken } from "libs/jwt";
 import { learn, query } from "./api";
 import slackifyMarkdown from "slackify-markdown";
 
