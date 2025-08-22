@@ -208,9 +208,7 @@ client.on(Events.MessageCreate, async (message) => {
       return;
     }
 
-    let rawQuery = message.content;
-    rawQuery = rawQuery.replace(/^<@\d+> /, "").trim();
-
+    const rawQuery = message.content.replace(/^<@\d+> /, "").trim();
     const previousMessages = (
       await message.channel.messages.fetch({
         limit: 20,
