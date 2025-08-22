@@ -1,15 +1,7 @@
-import { verify, sign, JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "./prisma";
 import { Prisma, ScrapeUser } from "libs/prisma";
-
-interface UserPayload extends JwtPayload {
-  userId: string;
-}
-
-export function verifyToken(token: string): UserPayload {
-  return verify(token, process.env.JWT_SECRET!) as UserPayload;
-}
+import { verifyToken } from "libs/jwt";
 
 export async function authenticate(
   req: Request,
@@ -62,14 +54,4 @@ export function authoriseScrapeUser(
   if (!scrapeUsers.find((su) => su.scrapeId === scrapeId)) {
     throw new Error("Unauthorised");
   }
-}
-
-export function createToken(
-  userId: string,
-  options?: { expiresInSeconds?: number }
-) {
-  const expiresInSeconds = options?.expiresInSeconds ?? 60;
-  return sign({ userId }, process.env.JWT_SECRET!, {
-    expiresIn: `${expiresInSeconds}s`,
-  });
 }

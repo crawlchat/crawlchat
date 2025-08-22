@@ -27,7 +27,7 @@ import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { Button } from "~/components/ui/button";
 import { Field } from "~/components/ui/field";
-import { createToken } from "~/jwt";
+import { createToken } from "libs/jwt";
 import type { Route } from "./+types/new-group";
 import { useEffect, useMemo, useState } from "react";
 import { prisma } from "~/prisma";

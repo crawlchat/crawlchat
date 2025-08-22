@@ -6,7 +6,7 @@ import { makeKbProcesser } from "./kb/factory";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { hasEnoughCredits } from "libs/user-plan";
 import { exit } from "process";
-import { createToken } from "./jwt";
+import { createToken } from "libs/jwt";
 
 async function updateKnowledgeGroup(groupId: string) {
   console.log(`Updating knowledge group ${groupId}`);

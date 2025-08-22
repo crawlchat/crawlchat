@@ -1,7 +1,7 @@
 import { prisma } from "~/prisma";
 import type { Route } from "./+types/page";
 import { Stack } from "@chakra-ui/react";
-import { createToken } from "~/jwt";
+import { createToken } from "libs/jwt";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, type Session } from "react-router";

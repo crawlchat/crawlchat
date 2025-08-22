@@ -49,7 +49,7 @@ import moment from "moment";
 import { Button } from "~/components/ui/button";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "./util";
-import { createToken } from "~/jwt";
+import { createToken } from "libs/jwt";
 import { Switch } from "~/components/ui/switch";
 import { Field } from "~/components/ui/field";
 import {

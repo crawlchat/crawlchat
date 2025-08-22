@@ -7,12 +7,7 @@ import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
-import {
-  authenticate,
-  authoriseScrapeUser,
-  createToken,
-  verifyToken,
-} from "./jwt";
+import { authenticate, authoriseScrapeUser } from "./auth";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { v4 as uuidv4 } from "uuid";
 import { Message, MessageChannel } from "libs/prisma";
@@ -30,6 +25,7 @@ import { Flow } from "./llm/flow";
 import { z } from "zod";
 import { baseAnswerer, AnswerListener, collectSourceLinks } from "./answer";
 import { fillMessageAnalysis } from "./llm/analyse-message";
+import { createToken, verifyToken } from "libs/jwt";
 
 const app: Express = express();
 const expressWs = ws(app);

@@ -16,7 +16,7 @@ import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Link, redirect, useFetcher } from "react-router";
-import { createToken } from "~/jwt";
+import { createToken } from "libs/jwt";
 import { Button } from "~/components/ui/button";
 import { Field } from "~/components/ui/field";
 import type { ScrapeItem } from "@prisma/client";

@@ -24,7 +24,7 @@ import moment from "moment";
 import { GroupStatus } from "./status";
 import { Button } from "~/components/ui/button";
 import { TbTrash } from "react-icons/tb";
-import { createToken } from "~/jwt";
+import { createToken } from "libs/jwt";
 import {
   SelectContent,
   SelectItem,

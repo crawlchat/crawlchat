@@ -14,7 +14,7 @@ import { Box, Group, HStack, Stack } from "@chakra-ui/react";
 import { SegmentedControl } from "~/components/ui/segmented-control";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { useMemo } from "react";
-import { createToken } from "~/jwt";
+import { createToken } from "libs/jwt";
 import { ActionButton } from "./action-button";
 
 export async function loader({ request, params }: Route.LoaderArgs) {

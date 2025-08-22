@@ -9,7 +9,7 @@ import { Group, IconButton, Input, Spinner, Stack } from "@chakra-ui/react";
 import { Tooltip } from "~/components/ui/tooltip";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
-import { createToken } from "~/jwt";
+import { createToken } from "libs/jwt";
 import { toaster } from "~/components/ui/toaster";
 import type { Prisma, ScrapeItem } from "libs/prisma";
 import { SettingsSection } from "~/settings-section";
