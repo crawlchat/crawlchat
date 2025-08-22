@@ -109,6 +109,37 @@ type Message = {
   text?: string;
 };
 
+async function getPreviousMessages(
+  message: any,
+  client: any,
+  botUserId: string
+) {
+  let messages: Message[] = [];
+
+  if ((message as any).thread_ts) {
+    const replies = await client.conversations.replies({
+      channel: message.channel,
+      ts: (message as any).thread_ts,
+    });
+    if (replies.messages) {
+      messages = replies.messages;
+    }
+  } else {
+    const history = await client.conversations.history({
+      channel: message.channel,
+      limit: 15,
+    });
+    if (history.messages) {
+      messages = history.messages.reverse();
+    }
+  }
+
+  return messages.map((m) => ({
+    role: m.user === botUserId ? "assistant" : "user",
+    content: cleanText(m.text ?? ""),
+  }));
+}
+
 app.message(async ({ message, say, client, context }) => {
   const scrape = await prisma.scrape.findFirst({
     where: {
@@ -131,30 +162,11 @@ app.message(async ({ message, say, client, context }) => {
 
   console.log("Bot mentioned:", context.botUserId, "in message:", messageText);
 
-  let messages: Message[] = [];
-
-  if ((message as any).thread_ts) {
-    const replies = await client.conversations.replies({
-      channel: message.channel,
-      ts: (message as any).thread_ts,
-    });
-    if (replies.messages) {
-      messages = replies.messages;
-    }
-  } else {
-    const history = await client.conversations.history({
-      channel: message.channel,
-      limit: 15,
-    });
-    if (history.messages) {
-      messages = history.messages.reverse();
-    }
-  }
-
-  const llmMessages = messages.map((m) => ({
-    role: m.user === context.botUserId ? "assistant" : "user",
-    content: cleanText(m.text ?? ""),
-  }));
+  const llmMessages = await getPreviousMessages(
+    message,
+    client,
+    context.botUserId!
+  );
 
   if (cleanText(messageText) === "learn") {
     await learn(
@@ -279,18 +291,56 @@ async function rateReaction(event: any, message: any) {
 }
 
 async function handleReaction(event: any, client: any, context: any) {
-  if (event.reaction !== "+1" && event.reaction !== "-1") {
-    return;
+  if (event.reaction === "+1" || event.reaction === "-1") {
+    const message = await getReactionMessage(client, event);
+
+    if (!message) {
+      return;
+    }
+
+    if (message.user === context.botUserId) {
+      await rateReaction(event, message);
+    }
   }
 
-  const message = await getReactionMessage(client, event);
+  if (event.reaction === "jigsaw") {
+    const message = await getReactionMessage(client, event);
 
-  if (!message) {
+    if (!message) {
+      return;
+    }
+
+    const scrape = await prisma.scrape.findFirst({
+      where: {
+        slackTeamId: context.teamId,
+      },
+    });
+
+    if (!scrape) {
+      return;
+    }
+
+    const llmMessages = await getPreviousMessages(
+      { ...message, channel: event.item.channel },
+      client,
+      context.botUserId!
+    );
+
+    await learn(
+      scrape.id,
+      llmMessages
+        .slice(0, -1)
+        .map((m) => m.content)
+        .join("\n\n"),
+      createToken(scrape.userId)
+    );
+    await client.reactions.add({
+      token: context.botToken,
+      channel: event.item.channel,
+      timestamp: message.ts,
+      name: "white_check_mark",
+    });
     return;
-  }
-
-  if (message.user === context.botUserId) {
-    await rateReaction(event, message);
   }
 }
 
