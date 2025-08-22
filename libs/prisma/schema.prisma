@@ -159,6 +159,7 @@ model Scrape {
   slug                  String?
   showSources           Boolean?
   analyseMessage        Boolean?
+  lowCreditsMailSentAt  DateTime?
 
   user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 

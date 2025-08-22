@@ -25,6 +25,14 @@ export async function action({ request }: Route.LoaderArgs) {
     authoriseScrapeUser(user!.scrapeUsers, scrape.id);
 
     if (!scrape.user.plan?.credits) return;
+    const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
+    const twoDaysAgo = new Date(Date.now() - TWO_DAYS);
+    if (
+      scrape.lowCreditsMailSentAt &&
+      scrape.lowCreditsMailSentAt > twoDaysAgo
+    ) {
+      return;
+    }
 
     const credits =
       scrape.user.plan?.credits[
@@ -41,6 +49,10 @@ export async function action({ request }: Route.LoaderArgs) {
         );
       }
     }
+    await prisma.scrape.update({
+      where: { id: scrape.id },
+      data: { lowCreditsMailSentAt: new Date() },
+    });
   }
 
   return Response.json({ success: true });
