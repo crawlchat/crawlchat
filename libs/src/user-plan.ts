@@ -203,7 +203,7 @@ export const addTopup = async (
 export async function hasEnoughCredits(
   userId: string,
   type: "messages" | "scrapes",
-  options?: { amount?: number }
+  options?: { amount?: number; alert?: { scrapeId: string; token: string } }
 ) {
   const amount = options?.amount ?? 1;
   const user = await prisma.user.findUnique({
@@ -211,7 +211,31 @@ export async function hasEnoughCredits(
     select: { plan: true },
   });
   const available = user?.plan?.credits?.[type] ?? 0;
-  return available >= amount;
+  const has = available >= amount;
+
+  if (!has && options?.alert) {
+    try {
+      const response = await fetch(`${process.env.FRONT_URL}/email-alert`, {
+        method: "POST",
+        body: JSON.stringify({
+          intent: "low-credits",
+          scrapeId: options.alert.scrapeId,
+          creditType: type,
+          amount,
+        }),
+        headers: {
+          Authorization: `Bearer ${options.alert.token}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Error from request. ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error("Failed to send low credits alert", error);
+    }
+  }
+
+  return has;
 }
 
 export async function getLimits(user: User) {

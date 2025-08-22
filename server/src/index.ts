@@ -7,7 +7,12 @@ import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
-import { authenticate, authoriseScrapeUser, verifyToken } from "./jwt";
+import {
+  authenticate,
+  authoriseScrapeUser,
+  createToken,
+  verifyToken,
+} from "./jwt";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { v4 as uuidv4 } from "uuid";
 import { Message, MessageChannel } from "libs/prisma";
@@ -107,14 +112,26 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       () => {},
       {
         hasCredits: (n: number = 1) =>
-          hasEnoughCredits(scrape.userId, "scrapes", { amount: n }),
+          hasEnoughCredits(scrape.userId, "scrapes", {
+            amount: n,
+            alert: {
+              scrapeId: scrape.id,
+              token: createToken(scrape.userId),
+            },
+          }),
         includeMarkdown,
       }
     );
 
     const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
       hasCredits: (n: number = 1) =>
-        hasEnoughCredits(scrape.userId, "scrapes", { amount: n }),
+        hasEnoughCredits(scrape.userId, "scrapes", {
+          amount: n,
+          alert: {
+            scrapeId: scrape.id,
+            token: createToken(scrape.userId),
+          },
+        }),
       limit: getLimit(),
       url,
     });
@@ -261,7 +278,14 @@ expressWs.app.ws("/", (ws: any, req) => {
           throw new Error("Private collection");
         }
 
-        if (!(await hasEnoughCredits(scrape.userId, "messages"))) {
+        if (
+          !(await hasEnoughCredits(scrape.userId, "messages", {
+            alert: {
+              scrapeId: scrape.id,
+              token: createToken(scrape.userId),
+            },
+          }))
+        ) {
           ws.send(
             makeMessage("error", {
               message: "Not enough credits. Contact the owner!",
@@ -388,7 +412,14 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     return;
   }
 
-  if (!(await hasEnoughCredits(scrape.userId, "messages"))) {
+  if (
+    !(await hasEnoughCredits(scrape.userId, "messages", {
+      alert: {
+        scrapeId: scrape.id,
+        token: createToken(scrape.userId),
+      },
+    }))
+  ) {
     res.status(400).json({ message: "Not enough credits" });
     return;
   }
@@ -482,6 +513,10 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
   if (
     !(await hasEnoughCredits(scrape.userId, "scrapes", {
       amount: chunks.length,
+      alert: {
+        scrapeId: scrape.id,
+        token: createToken(scrape.userId),
+      },
     }))
   ) {
     res.status(400).json({ message: "Not enough credits" });
@@ -541,7 +576,14 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     where: { id: req.params.scrapeId },
   });
 
-  if (!(await hasEnoughCredits(scrape.userId, "messages"))) {
+  if (
+    !(await hasEnoughCredits(scrape.userId, "messages", {
+      alert: {
+        scrapeId: scrape.id,
+        token: createToken(scrape.userId),
+      },
+    }))
+  ) {
     res.status(400).json({ message: "Not enough credits" });
     return;
   }
@@ -669,7 +711,14 @@ app.post("/fix-message", authenticate, async (req, res) => {
 
   authoriseScrapeUser(req.user!.scrapeUsers, message.scrapeId);
 
-  if (!(await hasEnoughCredits(userId, "messages"))) {
+  if (
+    !(await hasEnoughCredits(userId, "messages", {
+      alert: {
+        scrapeId: message.scrapeId,
+        token: createToken(userId),
+      },
+    }))
+  ) {
     res.status(400).json({ message: "Not enough credits" });
     return;
   }
