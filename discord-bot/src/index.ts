@@ -134,6 +134,61 @@ async function updateMessageRating(discordMessage: DiscordMessage) {
   });
 }
 
+async function learnMessage(message: DiscordMessage, includeSelf = false) {
+  let messages: Array<{ author: string; content: string; createdAt: Date }> = (
+    await fetchAllParentMessages(message, includeSelf ? [message] : [])
+  ).map((m) => ({
+    author: m.author.displayName,
+    content: cleanReply(m.content),
+    createdAt: m.createdAt,
+  }));
+
+  if (
+    message.channel.type === ChannelType.PublicThread &&
+    message.channel.parent?.id
+  ) {
+    messages = (await message.channel.messages.fetch())
+      .filter((m) => includeSelf || m.id !== message.id)
+      .filter((m) => m.content.length > 0)
+      .map((m) => ({
+        author: m.author.displayName,
+        content: cleanReply(m.content),
+        createdAt: m.createdAt,
+      }));
+
+    const parentMessage = await message.channel.fetchStarterMessage();
+    if (
+      parentMessage &&
+      !messages.some((m) => m.content === cleanReply(parentMessage.content))
+    ) {
+      messages.push({
+        author: parentMessage.author.displayName,
+        content: cleanReply(parentMessage.content),
+        createdAt: parentMessage.createdAt,
+      });
+    }
+  }
+
+  let content = messages
+    .map((m) => `${m.author} (${m.createdAt.toLocaleString()}): ${m.content}`)
+    .reverse()
+    .map(cleanContent)
+    .join("\n\n");
+
+  const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
+
+  if (!scrapeId || !userId) {
+    message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+    return;
+  }
+
+  console.log("Learning", { content, scrapeId, userId });
+
+  await learn(scrapeId, content, createToken(userId));
+
+  message.react("✅");
+}
+
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
@@ -143,44 +198,7 @@ client.on(Events.MessageCreate, async (message) => {
     const cleanedMessage = cleanReply(message.content);
 
     if (cleanedMessage === "learn") {
-      let messages: Array<{ author: string; content: string }> = (
-        await fetchAllParentMessages(message, [])
-      ).map((m) => ({
-        author: m.author.displayName,
-        content: cleanReply(m.content),
-      }));
-
-      if (
-        message.channel.type === ChannelType.PublicThread &&
-        message.channel.parent?.id
-      ) {
-        messages = (await message.channel.messages.fetch())
-          .filter((m) => m.id !== message.id)
-          .map((m) => ({
-            author: m.author.displayName,
-            content: cleanReply(m.content),
-          }));
-      }
-
-      let content = messages
-        .map((m) => `${m.author}: ${m.content}`)
-        .reverse()
-        .map(cleanContent)
-        .join("\n---\n");
-
-      const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
-
-      if (!scrapeId || !userId) {
-        message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
-        return;
-      }
-
-      console.log("Learning", { content, scrapeId, userId });
-
-      await learn(scrapeId, content, createToken(userId));
-
-      message.react("✅");
-      return;
+      return learnMessage(message);
     }
 
     const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
@@ -307,50 +325,52 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
   const emojiStr = reaction.emoji.toString();
 
-  if (emojiStr !== draftEmoji || !draftDestinationChannelId) {
-    return;
+  if (emojiStr === "🧩") {
+    return learnMessage(await reaction.message.fetch(), true);
   }
 
-  const channel = await reaction.message.client.channels.fetch(
-    draftDestinationChannelId
-  );
-
-  if (channel && channel.isThreadOnly()) {
-    const { answer, error } = await query(
-      scrapeId,
-      [
-        {
-          role: "user",
-          content: reaction.message.content!,
-        },
-      ],
-      createToken(userId),
-      {
-        prompt: defaultPrompt,
-      }
+  if (emojiStr !== draftEmoji && draftDestinationChannelId) {
+    const channel = await reaction.message.client.channels.fetch(
+      draftDestinationChannelId
     );
 
-    if (error) {
-      reaction.message.reply(
-        `‼️ Attention required: ${error}. Please contact the support team.`
+    if (channel && channel.isThreadOnly()) {
+      const { answer, error } = await query(
+        scrapeId,
+        [
+          {
+            role: "user",
+            content: reaction.message.content!,
+          },
+        ],
+        createToken(userId),
+        {
+          prompt: defaultPrompt,
+        }
       );
-      return;
+
+      if (error) {
+        reaction.message.reply(
+          `‼️ Attention required: ${error}. Please contact the support team.`
+        );
+        return;
+      }
+
+      let threadName = `${emojiStr}`;
+      if (reaction.message.channel.isThread()) {
+        threadName = `${threadName} ${reaction.message.channel.name}`;
+      }
+
+      const thread = await channel.threads.create({
+        name: threadName,
+        message: {
+          content: `Original message: ${reaction.message.url}
+  Question: ${reaction.message.content}`,
+        },
+      });
+
+      thread.send(answer);
     }
-
-    let threadName = `${emojiStr}`;
-    if (reaction.message.channel.isThread()) {
-      threadName = `${threadName} ${reaction.message.channel.name}`;
-    }
-
-    const thread = await channel.threads.create({
-      name: threadName,
-      message: {
-        content: `Original message: ${reaction.message.url}
-Question: ${reaction.message.content}`,
-      },
-    });
-
-    thread.send(answer);
   }
 });
 
