@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import WelcomeEmail from "emails/welcome";
 import InvitationEmail from "emails/invitation";
 import TeamJoinEmail from "emails/team-join";
+import LowCreditsEmail from "emails/low-credits";
 
 export const sendEmail = async (to: string, subject: string, text: string) => {
   try {
@@ -60,5 +61,24 @@ export const sendTeamJoinEmail = async (
     to,
     `Joined ${scrapeTitle}`,
     <TeamJoinEmail invitedBy={invitedBy} scrapeTitle={scrapeTitle} />
+  );
+};
+
+export const sendLowCreditsEmail = async (
+  to: string,
+  scrapeTitle: string,
+  name: string,
+  creditType: string,
+  credits: number
+) => {
+  await sendReactEmail(
+    to,
+    `Low Credits on ${scrapeTitle || "collection"}`,
+    <LowCreditsEmail
+      name={name}
+      creditType={creditType}
+      credits={credits}
+      scrapeTitle={scrapeTitle}
+    />
   );
 };

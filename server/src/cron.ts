@@ -6,6 +6,7 @@ import { makeKbProcesser } from "./kb/factory";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { hasEnoughCredits } from "libs/user-plan";
 import { exit } from "process";
+import { createToken } from "./jwt";
 
 async function updateKnowledgeGroup(groupId: string) {
   console.log(`Updating knowledge group ${groupId}`);
@@ -37,7 +38,13 @@ async function updateKnowledgeGroup(groupId: string) {
   );
 
   const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
-    hasCredits: () => hasEnoughCredits(knowledgeGroup.userId, "scrapes"),
+    hasCredits: () =>
+      hasEnoughCredits(knowledgeGroup.userId, "scrapes", {
+        alert: {
+          scrapeId: scrape.id,
+          token: createToken(scrape.userId),
+        },
+      }),
   });
 
   await processer.start();
