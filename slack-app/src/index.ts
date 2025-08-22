@@ -109,7 +109,7 @@ type Message = {
   text?: string;
 };
 
-async function getPreviousMessages(
+async function getContextMessages(
   message: any,
   client: any,
   botUserId: string
@@ -131,6 +131,29 @@ async function getPreviousMessages(
     });
     if (history.messages) {
       messages = history.messages.reverse();
+    }
+  }
+
+  return messages.map((m) => ({
+    role: m.user === botUserId ? "assistant" : "user",
+    content: cleanText(m.text ?? ""),
+  }));
+}
+
+async function getLearnMessages(message: any, client: any, botUserId: string) {
+  let messages: Message[] = [message];
+
+  if ((message as any).thread_ts) {
+    const replies = await client.conversations.replies({
+      channel: message.channel,
+      ts: (message as any).thread_ts,
+    });
+    if (replies.messages) {
+      messages = replies.messages.filter((m: any) => {
+        const thisTs = new Date(Number(m.ts.split(".")[0]));
+        const messageTs = new Date(Number(message.ts.split(".")[0]));
+        return thisTs <= messageTs;
+      });
     }
   }
 
@@ -162,30 +185,6 @@ app.message(async ({ message, say, client, context }) => {
 
   console.log("Bot mentioned:", context.botUserId, "in message:", messageText);
 
-  const llmMessages = await getPreviousMessages(
-    message,
-    client,
-    context.botUserId!
-  );
-
-  if (cleanText(messageText) === "learn") {
-    await learn(
-      scrape.id,
-      llmMessages
-        .slice(0, -1)
-        .map((m) => m.content)
-        .join("\n\n"),
-      createToken(scrape.userId)
-    );
-    await client.reactions.add({
-      token: context.botToken,
-      channel: message.channel,
-      timestamp: message.ts,
-      name: "white_check_mark",
-    });
-    return;
-  }
-
   try {
     await client.reactions.add({
       token: context.botToken,
@@ -195,6 +194,11 @@ app.message(async ({ message, say, client, context }) => {
     });
   } catch {}
 
+  const llmMessages = await getContextMessages(
+    message,
+    client,
+    context.botUserId!
+  );
   const {
     answer,
     error,
@@ -290,7 +294,12 @@ async function rateReaction(event: any, message: any) {
   console.log("Rated message", answerMessage.id, rating);
 }
 
-async function handleReaction(event: any, client: any, context: any) {
+async function handleReaction(
+  event: any,
+  client: any,
+  context: any,
+  type: "added" | "removed"
+) {
   if (event.reaction === "+1" || event.reaction === "-1") {
     const message = await getReactionMessage(client, event);
 
@@ -303,24 +312,18 @@ async function handleReaction(event: any, client: any, context: any) {
     }
   }
 
-  if (event.reaction === "jigsaw") {
+  if (type === "added" && event.reaction === "jigsaw") {
     const message = await getReactionMessage(client, event);
-
-    if (!message) {
-      return;
-    }
+    if (!message) return;
 
     const scrape = await prisma.scrape.findFirst({
       where: {
         slackTeamId: context.teamId,
       },
     });
+    if (!scrape) return;
 
-    if (!scrape) {
-      return;
-    }
-
-    const llmMessages = await getPreviousMessages(
+    const llmMessages = await getLearnMessages(
       { ...message, channel: event.item.channel },
       client,
       context.botUserId!
@@ -328,28 +331,26 @@ async function handleReaction(event: any, client: any, context: any) {
 
     await learn(
       scrape.id,
-      llmMessages
-        .slice(0, -1)
-        .map((m) => m.content)
-        .join("\n\n"),
+      llmMessages.map((m) => m.content).join("\n\n"),
       createToken(scrape.userId)
     );
-    await client.reactions.add({
-      token: context.botToken,
-      channel: event.item.channel,
-      timestamp: message.ts,
-      name: "white_check_mark",
-    });
-    return;
+    try {
+      await client.reactions.add({
+        token: context.botToken,
+        channel: event.item.channel,
+        timestamp: message.ts,
+        name: "white_check_mark",
+      });
+    } catch {}
   }
 }
 
 app.event("reaction_added", async ({ event, client, context }) => {
-  await handleReaction(event, client, context);
+  await handleReaction(event, client, context, "added");
 });
 
 app.event("reaction_removed", async ({ event, client, context }) => {
-  await handleReaction(event, client, context);
+  await handleReaction(event, client, context, "removed");
 });
 
 (async () => {

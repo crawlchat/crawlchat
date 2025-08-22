@@ -195,12 +195,6 @@ client.once(Events.ClientReady, (readyClient) => {
 
 client.on(Events.MessageCreate, async (message) => {
   if (message.mentions.users.has(process.env.BOT_USER_ID!)) {
-    const cleanedMessage = cleanReply(message.content);
-
-    if (cleanedMessage === "learn") {
-      return learnMessage(message);
-    }
-
     const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
 
     if (!scrapeId || !userId) {
