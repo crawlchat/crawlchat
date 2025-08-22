@@ -327,7 +327,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     return learnMessage(await reaction.message.fetch(), true);
   }
 
-  if (emojiStr !== draftEmoji && draftDestinationChannelId) {
+  if (emojiStr === draftEmoji && draftDestinationChannelId) {
     const channel = await reaction.message.client.channels.fetch(
       draftDestinationChannelId
     );
