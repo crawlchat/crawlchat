@@ -733,20 +733,17 @@ app.post("/fix-message", authenticate, async (req, res) => {
     return;
   }
 
-  const thread = await prisma.thread.findFirstOrThrow({
-    where: { id: message.threadId },
-    include: {
-      messages: true,
-    },
+  const threadMessages = await prisma.message.findMany({
+    where: { threadId: message.threadId },
     orderBy: {
       createdAt: "desc",
     },
     take: 10,
   });
 
-  const messageIndex = thread.messages.findIndex((m) => m.id === messageId);
+  const messageIndex = threadMessages.findIndex((m) => m.id === messageId);
 
-  const messages = thread.messages
+  const messages = threadMessages
     .slice(0, messageIndex + 1)
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
