@@ -208,30 +208,30 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                 <tbody>
                   <tr>
                     <td>Pages</td>
-                    <td className="text-right">{credits.scrapes}</td>
                     <td className="text-right">{plan.credits.scrapes}</td>
+                    <td className="text-right">{credits.scrapes}</td>
                   </tr>
                   <tr>
                     <td>Messages</td>
-                    <td className="text-right">{credits.messages}</td>
                     <td className="text-right">{plan.credits.messages}</td>
+                    <td className="text-right">{credits.messages}</td>
                   </tr>
                   {limits && (
                     <tr>
                       <td>Collections</td>
+                      <td className="text-right">{limits.scrapes}</td>
                       <td className="text-right">
                         {limits.scrapes - loaderData.scrapes}
                       </td>
-                      <td className="text-right">{limits.scrapes}</td>
                     </tr>
                   )}
                   {limits && (
                     <tr>
-                      <td>Collections</td>
+                      <td>Team Members</td>
+                      <td className="text-right">{limits.teamMembers}</td>
                       <td className="text-right">
                         {limits.teamMembers - loaderData.teamMembers}
                       </td>
-                      <td className="text-right">{limits.teamMembers}</td>
                     </tr>
                   )}
                 </tbody>

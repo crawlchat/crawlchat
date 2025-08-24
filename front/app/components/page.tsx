@@ -51,7 +51,7 @@ export function Page({
               {title}
             </div>
           </div>
-          {right}
+          <div className="flex gap-2 items-center">{right}</div>
         </div>
       </div>
       <div
