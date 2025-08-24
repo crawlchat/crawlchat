@@ -68,6 +68,7 @@ import { SingleLineCell } from "~/components/single-line-cell";
 import { fetchDataGaps } from "~/data-gaps/fetch";
 import { DataGapCard } from "~/data-gaps/page";
 import { RGroup } from "~/components/r-group";
+import { showModal } from "~/components/daisy-utils";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -417,7 +418,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         <div className="flex gap-2">
           <button
             className="btn btn-soft"
-            onClick={() => setNewCollectionDialogOpen(true)}
+            onClick={() => showModal("new-collection-dialog")}
           >
             <TbPlus />
             Collection
@@ -707,6 +708,40 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           </newCollectionFetcher.Form>
         </DialogContent>
       </DialogRoot> */}
+
+      <dialog id="new-collection-dialog" className="modal">
+        <div className="modal-box">
+          <newCollectionFetcher.Form method="post">
+            <h3 className="font-bold text-lg flex gap-2 items-center">
+              <TbPlus />
+              New collection
+            </h3>
+            <p className="py-4">
+              <fieldset className="fieldset">
+                <legend className="fieldset-legend">Give it a name</legend>
+                <input
+                  type="text"
+                  className="input w-full"
+                  placeholder="Ex: MyBot"
+                  required
+                />
+              </fieldset>
+            </p>
+            <div className="modal-action">
+              <form method="dialog">
+                <button className="btn">Close</button>
+              </form>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={newCollectionFetcher.state !== "idle"}
+              >
+                Create
+              </button>
+            </div>
+          </newCollectionFetcher.Form>
+        </div>
+      </dialog>
     </Page>
   );
 }

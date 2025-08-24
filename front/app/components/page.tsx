@@ -35,7 +35,7 @@ export function Page({
       <div
         className={cn(
           "flex flex-col p-4 border-b border-base-300 h-[60px]",
-          "justify-center sticky top-0 bg-base-100"
+          "justify-center sticky top-0 bg-base-100 z-10"
         )}
       >
         <div className="flex justify-between gap-2">
@@ -46,7 +46,7 @@ export function Page({
             >
               <TbMenu2 />
             </label>
-            <div className="flex items-center gap-2 text-xl">
+            <div className="flex items-center gap-2 text-xl font-medium">
               {icon}
               {title}
             </div>

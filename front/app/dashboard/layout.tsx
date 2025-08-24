@@ -121,7 +121,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           dataGapMessages={loaderData.dataGapMessages.length}
         />
 
-        <div className="drawer-side">
+        <div className="drawer-side z-20">
           <label
             htmlFor="side-menu-drawer"
             aria-label="close sidebar"
