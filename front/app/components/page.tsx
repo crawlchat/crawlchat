@@ -1,6 +1,6 @@
-import { Box, Group, Heading, IconButton, Stack, Text } from "@chakra-ui/react";
+import cn from "@meltdownjs/cn";
 import { useContext, useEffect, useRef } from "react";
-import { TbMenu } from "react-icons/tb";
+import { TbMenu2 } from "react-icons/tb";
 import { AppContext } from "~/dashboard/context";
 
 export function Page({
@@ -16,7 +16,7 @@ export function Page({
   right?: React.ReactNode;
   noPadding?: boolean;
 }) {
-  const { menuOpen, setMenuOpen, setContainerWidth } = useContext(AppContext);
+  const { setContainerWidth } = useContext(AppContext);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,44 +31,35 @@ export function Page({
   }, []);
 
   return (
-    <Stack h="full" gap={0}>
-      <Stack
-        p={4}
-        borderBottom={"1px solid"}
-        borderColor={"brand.outline"}
-        h={"60px"}
-        justify="center"
-        position="sticky"
-        top={0}
-        bg="brand.white"
-        zIndex={1}
+    <div className="h-full flex flex-col">
+      <div
+        className={cn(
+          "flex flex-col p-4 border-b border-base-300 h-[60px]",
+          "justify-center sticky top-0 bg-base-100"
+        )}
       >
-        <Group justify="space-between">
-          <Group>
-            <IconButton
-              size={"xs"}
-              display={["flex", "flex", "none"]}
-              variant={"subtle"}
-              onClick={() => setMenuOpen(!menuOpen)}
+        <div className="flex justify-between gap-2">
+          <div className="flex gap-2 items-center">
+            <label
+              htmlFor="side-menu-drawer"
+              className="btn btn-sm btn-square md:hidden"
             >
-              <TbMenu />
-            </IconButton>
-            <Heading display={"flex"} alignItems={"center"} gap={2}>
-              <Text>{icon}</Text>
-              <Text lineClamp={1}>{title}</Text>
-            </Heading>
-          </Group>
+              <TbMenu2 />
+            </label>
+            <div className="flex items-center gap-2 text-xl">
+              {icon}
+              {title}
+            </div>
+          </div>
           {right}
-        </Group>
-      </Stack>
-      <Box
-        p={noPadding ? 0 : 4}
-        h="full"
+        </div>
+      </div>
+      <div
+        className={cn("bg-base-100 h-full", !noPadding && "p-4")}
         ref={containerRef}
-        bg="brand.background"
       >
         {children}
-      </Box>
-    </Stack>
+      </div>
+    </div>
   );
 }

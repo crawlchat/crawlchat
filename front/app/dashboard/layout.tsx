@@ -1,22 +1,16 @@
-import { Group, Stack } from "@chakra-ui/react";
-import { Outlet, useFetcher } from "react-router";
 import type { Route } from "./+types/layout";
+import { Outlet, useFetcher } from "react-router";
 import { AppContext, useApp } from "./context";
 import { getAuthUser } from "~/auth/middleware";
-import { Toaster } from "~/components/ui/toaster";
 import { SideMenu } from "./side-menu";
-import {
-  DrawerBackdrop,
-  DrawerContent,
-  DrawerRoot,
-} from "~/components/ui/drawer";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { PLAN_FREE } from "libs/user-plan";
 import { planMap } from "libs/user-plan";
 import { prisma } from "libs/prisma";
 import { getSession } from "~/session";
 import { vemetric } from "@vemetric/react";
 import { fetchDataGaps } from "~/data-gaps/fetch";
+import { Toaster } from "react-hot-toast";
 
 export function meta() {
   return [
@@ -94,7 +88,6 @@ const drawerWidth = 260;
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
   const app = useApp({ user, scrapeId: loaderData.scrapeId });
-  const contentRef = useRef<HTMLDivElement>(null);
   const scrapeIdFetcher = useFetcher();
 
   useEffect(() => {
@@ -108,12 +101,16 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <AppContext.Provider value={app}>
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen drawer">
+        <input
+          type="checkbox"
+          id="side-menu-drawer"
+          className="drawer-toggle"
+        />
         <SideMenu
           width={drawerWidth}
           loggedInUser={user}
           scrapeOwner={loaderData.scrape?.user!}
-          fixed={true}
           plan={loaderData.plan}
           scrapes={loaderData.scrapes}
           scrapeId={loaderData.scrapeId}
@@ -124,20 +121,16 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           dataGapMessages={loaderData.dataGapMessages.length}
         />
 
-        {/* <DrawerRoot
-          open={app.menuOpen}
-          size={"xs"}
-          placement={"start"}
-          onOpenChange={(e) => !e.open && app.setMenuOpen(false)}
-        >
-          <DrawerBackdrop />
-          <DrawerContent ref={contentRef}>
+        <div className="drawer-side">
+          <label
+            htmlFor="side-menu-drawer"
+            aria-label="close sidebar"
+            className="drawer-overlay"
+          ></label>
+          <ul className="menu bg-base-200 min-h-full w-80 p-4">
             <SideMenu
-              width={drawerWidth}
               loggedInUser={user}
               scrapeOwner={loaderData.scrape?.user!}
-              fixed={false}
-              contentRef={contentRef}
               plan={loaderData.plan}
               scrapes={loaderData.scrapes}
               scrapeId={loaderData.scrapeId}
@@ -145,15 +138,15 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               toBeFixedMessages={loaderData.toBeFixedMessages}
               openTickets={loaderData.openTickets}
               dataGapMessages={loaderData.dataGapMessages.length}
+              scrape={loaderData.scrape}
             />
-          </DrawerContent>
-        </DrawerRoot>
-
-        <Stack flex={1} alignSelf={"stretch"} ml={[0, 0, drawerWidth]}>
+          </ul>
+        </div>
+        <div className="flex flex-col gap-2 flex-1 self-stretch md:ml-[260px]">
           <Outlet />
-        </Stack> */}
+        </div>
       </div>
-      {/* <Toaster /> */}
+      <Toaster position="bottom-right" />
     </AppContext.Provider>
   );
 }

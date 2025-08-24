@@ -202,7 +202,6 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
 }
 
 export function SideMenu({
-  fixed,
   width,
   scrapeOwner,
   loggedInUser,
@@ -216,8 +215,7 @@ export function SideMenu({
   scrape,
   dataGapMessages,
 }: {
-  fixed: boolean;
-  width: number;
+  width?: number;
   scrapeOwner: User;
   loggedInUser: User;
   contentRef?: React.RefObject<HTMLDivElement | null>;
@@ -342,8 +340,12 @@ export function SideMenu({
 
   return (
     <div
-      className="flex flex-col h-screen border-r border-base-300 bg-base-200 gap-0 justify-between fixed left-0 top-0"
-      style={{ width: width }}
+      className={cn(
+        "flex flex-col min-h-screen border-r border-base-300 bg-base-200",
+        "gap-0 justify-between fixed left-0 top-0",
+        width && "hidden md:flex"
+      )}
+      style={{ width: width ?? "100%" }}
     >
       <div className="flex flex-col py-4 gap-4">
         <div className="flex flex-col px-4">

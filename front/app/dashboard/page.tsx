@@ -414,29 +414,28 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       title="Home"
       icon={<TbHome />}
       right={
-        <Group>
-          <Button
-            variant={"subtle"}
+        <div className="flex gap-2">
+          <button
+            className="btn btn-soft"
             onClick={() => setNewCollectionDialogOpen(true)}
           >
             <TbPlus />
             Collection
-          </Button>
+          </button>
           {loaderData.scrape && loaderData.nScrapeItems > 0 && (
-            <Button variant={"subtle"} colorPalette={"brand"} asChild>
-              <a
-                href={`/w/${loaderData.scrape.slug ?? loaderData.scrapeId}`}
-                target="_blank"
-              >
-                <TbMessage />
-                Chat
-              </a>
-            </Button>
+            <a
+              className="btn btn-primary btn-soft"
+              href={`/w/${loaderData.scrape.slug ?? loaderData.scrapeId}`}
+              target="_blank"
+            >
+              <TbMessage />
+              Chat
+            </a>
           )}
-        </Group>
+        </div>
       }
     >
-      {loaderData.noScrapes && (
+      {/* {loaderData.noScrapes && (
         <Center w="full" h="full">
           <EmptyState
             icon={<TbDatabase />}
@@ -707,7 +706,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             </DialogFooter>
           </newCollectionFetcher.Form>
         </DialogContent>
-      </DialogRoot>
+      </DialogRoot> */}
     </Page>
   );
 }
