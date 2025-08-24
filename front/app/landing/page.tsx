@@ -31,7 +31,6 @@ import {
 } from "react-icons/tb";
 import { prisma } from "libs/prisma";
 import type { Route } from "./+types/page";
-import { Badge, Box, Text } from "@chakra-ui/react";
 import { Tooltip } from "~/components/ui/tooltip";
 import { track } from "~/pirsch";
 import { PLAN_FREE, PLAN_PRO, PLAN_STARTER } from "libs/user-plan";
@@ -129,7 +128,7 @@ function NavLink({
   return (
     <a href={href} className="font-medium hover:underline relative">
       {children}
-      {tooltip && (
+      {/* {tooltip && (
         <Tooltip content="New" positioning={{ placement: "top" }}>
           <Badge
             position={"absolute"}
@@ -143,7 +142,7 @@ function NavLink({
             {tooltip}
           </Badge>
         </Tooltip>
-      )}
+      )} */}
     </a>
   );
 }
@@ -546,18 +545,11 @@ function ToolItem({
         {typeof icon === "string" ? (
           <img src={icon} alt={title} className="w-6 h-6" />
         ) : (
-          <Box>
-            <Text
-              fontSize={"32px"}
-              color={"brand.fg"}
-              bg={"brand.subtle"}
-              w="fit"
-              p={4}
-              rounded={"full"}
-            >
+          <div>
+            <div className="text-3xl bg-brand-subtle p-4 rounded-full">
               {icon}
-            </Text>
-          </Box>
+            </div>
+          </div>
         )}
         <h3 className="text-xl font-radio-grotesk">{title}</h3>
       </div>

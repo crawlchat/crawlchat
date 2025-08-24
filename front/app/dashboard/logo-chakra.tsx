@@ -1,18 +1,12 @@
-import { Group, Text } from "@chakra-ui/react";
 import { RiChatVoiceAiFill } from "react-icons/ri";
 
 export function LogoChakra() {
   return (
-    <Group
-      fontSize={"2xl"}
-      color="brand.fg"
-      fontFamily={"Radio Grotesk"}
-      alignItems={"center"}
-    >
-      <Text fontSize={"3xl"}>
+    <div className="flex gap-2 text-2xl text-brand-fg items-center">
+      <div className="text-3xl">
         <RiChatVoiceAiFill />
-      </Text>
-      <Text>CrawlChat</Text>
-    </Group>
+      </div>
+      CrawlChat
+    </div>
   );
 }

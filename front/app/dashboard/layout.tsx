@@ -108,7 +108,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <AppContext.Provider value={app}>
-      <Group align="start" gap={0} w="full" minH="100dvh">
+      <div className="flex flex-col min-h-screen">
         <SideMenu
           width={drawerWidth}
           loggedInUser={user}
@@ -124,7 +124,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           dataGapMessages={loaderData.dataGapMessages.length}
         />
 
-        <DrawerRoot
+        {/* <DrawerRoot
           open={app.menuOpen}
           size={"xs"}
           placement={"start"}
@@ -151,9 +151,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
         <Stack flex={1} alignSelf={"stretch"} ml={[0, 0, drawerWidth]}>
           <Outlet />
-        </Stack>
-      </Group>
-      <Toaster />
+        </Stack> */}
+      </div>
+      {/* <Toaster /> */}
     </AppContext.Provider>
   );
 }

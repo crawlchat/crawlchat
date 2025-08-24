@@ -12,7 +12,6 @@ import {
 import type { Route } from "./+types/root";
 import stylesheet from "./app.css?url";
 import fontsStylesheet from "./fonts.css?url";
-import { Provider } from "./components/ui/provider";
 import { PiArrowBendRightDown } from "react-icons/pi";
 import { useMemo } from "react";
 import { VemetricScript } from "@vemetric/react";
@@ -179,14 +178,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App({ loaderData }: Route.ComponentProps) {
   return (
-    <Provider>
+    <>
       <Outlet />
       <script
         dangerouslySetInnerHTML={{
           __html: `window.ENV = ${JSON.stringify(loaderData.ENV)}`,
         }}
       />
-    </Provider>
+    </>
   );
 }
 
