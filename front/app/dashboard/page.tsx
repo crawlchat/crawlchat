@@ -68,7 +68,7 @@ import { SingleLineCell } from "~/components/single-line-cell";
 import { fetchDataGaps } from "~/data-gaps/fetch";
 import { DataGapCard } from "~/data-gaps/page";
 import { RGroup } from "~/components/r-group";
-import { showModal } from "~/components/daisy-utils";
+import { hideModal, showModal } from "~/components/daisy-utils";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -350,7 +350,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const newCollectionFetcher = useFetcher();
-  const [newCollectionDialogOpen, setNewCollectionDialogOpen] = useState(false);
 
   const chartData = useMemo(() => {
     const data = [];
@@ -390,14 +389,14 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     if (loaderData.noScrapes) {
-      setNewCollectionDialogOpen(true);
+      showModal("new-collection-dialog");
     }
   }, [loaderData.noScrapes]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.get("created")) {
-      setNewCollectionDialogOpen(false);
+      hideModal("new-collection-dialog");
     }
   }, [newCollectionFetcher.state]);
 
@@ -712,6 +711,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       <dialog id="new-collection-dialog" className="modal">
         <div className="modal-box">
           <newCollectionFetcher.Form method="post">
+            <input type="hidden" name="intent" value="create-collection" />
             <h3 className="font-bold text-lg flex gap-2 items-center">
               <TbPlus />
               New collection
@@ -721,6 +721,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <legend className="fieldset-legend">Give it a name</legend>
                 <input
                   type="text"
+                  name="name"
                   className="input w-full"
                   placeholder="Ex: MyBot"
                   required
@@ -736,7 +737,11 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 className="btn btn-primary"
                 disabled={newCollectionFetcher.state !== "idle"}
               >
+                {newCollectionFetcher.state !== "idle" && (
+                  <span className="loading loading-spinner loading-xs" />
+                )}
                 Create
+                <TbCheck />
               </button>
             </div>
           </newCollectionFetcher.Form>

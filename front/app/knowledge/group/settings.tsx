@@ -463,7 +463,7 @@ export default function KnowledgeGroupSettings({
   return (
     <SettingsSectionProvider>
       <SettingsContainer>
-        {loaderData.knowledgeGroup.type === "scrape_web" && (
+        {/* {loaderData.knowledgeGroup.type === "scrape_web" && (
           <WebSettings group={loaderData.knowledgeGroup} />
         )}
         {loaderData.knowledgeGroup.type === "scrape_github" && (
@@ -477,7 +477,7 @@ export default function KnowledgeGroupSettings({
             group={loaderData.knowledgeGroup}
             notionPages={loaderData.notionPages}
           />
-        )}
+        )} */}
 
         <SettingsSection
           id="delete-knowledge-group"
@@ -485,15 +485,17 @@ export default function KnowledgeGroupSettings({
           description="This will delete the knowledge group and all the data that is associated with it. This is not reversible."
           danger
           actionRight={
-            <Button
-              colorPalette={"red"}
+            <button
+              className="btn btn-error"
               onClick={handleDelete}
-              loading={deleteFetcher.state !== "idle"}
-              variant={deleteConfirm ? "solid" : "outline"}
+              disabled={deleteFetcher.state !== "idle"}
             >
+              {deleteFetcher.state !== "idle" && (
+                <span className="loading loading-spinner loading-xs" />
+              )}
               {deleteConfirm ? "Sure to delete?" : "Delete"}
               <TbTrash />
-            </Button>
+            </button>
           }
         />
       </SettingsContainer>

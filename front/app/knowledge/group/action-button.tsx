@@ -55,7 +55,7 @@ export function ActionButton({
               </button>
             ) : (
               <button
-                className={cn("btn btn-primary btn-square", small && "btn-xs")}
+                className={cn("btn btn-square", small && "btn-xs")}
                 type="submit"
                 disabled={refreshFetcher.state !== "idle"}
               >
