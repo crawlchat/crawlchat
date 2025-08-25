@@ -101,33 +101,25 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <AppContext.Provider value={app}>
-      <div className="flex flex-col min-h-screen drawer">
+      <div className="min-h-screen drawer md:drawer-open">
         <input
           type="checkbox"
           id="side-menu-drawer"
           className="drawer-toggle"
         />
-        <SideMenu
-          width={drawerWidth}
-          loggedInUser={user}
-          scrapeOwner={loaderData.scrape?.user!}
-          plan={loaderData.plan}
-          scrapes={loaderData.scrapes}
-          scrapeId={loaderData.scrapeId}
-          scrapeIdFetcher={scrapeIdFetcher}
-          toBeFixedMessages={loaderData.toBeFixedMessages}
-          openTickets={loaderData.openTickets}
-          scrape={loaderData.scrape}
-          dataGapMessages={loaderData.dataGapMessages.length}
-        />
+        <div className="drawer-content flex-1">
+          <div className="flex flex-col gap-2 h-full self-stretch">
+            <Outlet />
+          </div>
+        </div>
 
         <div className="drawer-side z-20">
           <label
             htmlFor="side-menu-drawer"
             aria-label="close sidebar"
             className="drawer-overlay"
-          ></label>
-          <ul className="menu bg-base-200 min-h-full w-80 p-4">
+          />
+          <div className="bg-base-200 min-h-full w-80 p-4">
             <SideMenu
               loggedInUser={user}
               scrapeOwner={loaderData.scrape?.user!}
@@ -140,10 +132,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               dataGapMessages={loaderData.dataGapMessages.length}
               scrape={loaderData.scrape}
             />
-          </ul>
-        </div>
-        <div className="flex flex-col gap-2 flex-1 self-stretch md:ml-[260px]">
-          <Outlet />
+          </div>
         </div>
       </div>
       <Toaster position="bottom-right" />
