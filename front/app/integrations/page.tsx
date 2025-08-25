@@ -13,16 +13,45 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 import { SegmentedControl } from "~/components/ui/segmented-control";
 import { useMemo } from "react";
 import type { Route } from "./+types/page";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   return { user };
 }
 
+const tabs = [
+  {
+    value: "/connect",
+    icon: <TbColorSwatch />,
+    label: "Customise",
+  },
+  {
+    value: "/connect/embed",
+    icon: <TbCode />,
+    label: "Embed",
+  },
+  {
+    value: "/connect/mcp",
+    icon: <TbRobotFace />,
+    label: "MCP",
+  },
+  {
+    value: "/connect/discord",
+    icon: <TbBrandDiscord />,
+    label: "Discord",
+  },
+  {
+    value: "/connect/slack",
+    icon: <TbBrandSlack />,
+    label: "Slack",
+  },
+];
+
 export default function ScrapePage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const tab = useMemo(() => {
+  const activeTab = useMemo(() => {
     return location.pathname;
   }, [location.pathname]);
 
@@ -32,65 +61,30 @@ export default function ScrapePage() {
 
   return (
     <Page title={"Connect"} icon={<TbPlug />}>
-      <Stack>
-        <Box>
-          <SegmentedControl
-            value={tab}
-            onValueChange={(e) => handleTabChange(e.value)}
-            items={[
-              {
-                value: "/connect",
-                label: (
-                  <HStack>
-                    <TbColorSwatch />
-                    Customise
-                  </HStack>
-                ),
-              },
-              {
-                value: "/connect/embed",
-                label: (
-                  <HStack>
-                    <TbCode />
-                    Embed
-                  </HStack>
-                ),
-              },
-              {
-                value: "/connect/mcp",
-                label: (
-                  <HStack>
-                    <TbRobotFace />
-                    MCP
-                  </HStack>
-                ),
-              },
-              {
-                value: "/connect/discord",
-                label: (
-                  <HStack>
-                    <TbBrandDiscord />
-                    Discord
-                  </HStack>
-                ),
-              },
-              {
-                value: "/connect/slack",
-                label: (
-                  <HStack>
-                    <TbBrandSlack />
-                    Slack
-                  </HStack>
-                ),
-              },
-            ]}
-          />
-        </Box>
+      <div className="flex flex-col gap-2">
+        <div>
+          <div role="tablist" className="tabs tabs-box w-fit">
+            {tabs.map((tab) => (
+              <a
+                role="tab"
+                className={cn(
+                  "tab gap-2",
+                  tab.value === activeTab && "tab-active"
+                )}
+                key={tab.value}
+                onClick={() => handleTabChange(tab.value)}
+              >
+                {tab.icon}
+                {tab.label}
+              </a>
+            ))}
+          </div>
+        </div>
 
-        <Stack mt={6}>
+        <div className="flex flex-col gap-2 mt-6">
           <Outlet />
-        </Stack>
-      </Stack>
+        </div>
+      </div>
     </Page>
   );
 }
