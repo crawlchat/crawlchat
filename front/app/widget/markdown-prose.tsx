@@ -5,8 +5,9 @@ import { useState, type PropsWithChildren } from "react";
 import { TbArrowRight, TbCheck, TbCopy } from "react-icons/tb";
 import { jsonrepair } from "jsonrepair";
 const linkifyRegex = require("remark-linkify-regex");
+import cn from "@meltdownjs/cn";
 import "./markdown-prose.css";
-import "highlight.js/styles/vs.css";
+import "highlight.js/styles/xt256.min.css";
 
 const RichCreateTicket = ({
   title: initialTitle,
@@ -86,6 +87,35 @@ const RichCreateTicket = ({
   );
 };
 
+function CodeCopyButton({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function copyCode(code: string) {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+  }
+
+  return (
+    <div
+      className={cn(
+        "absolute top-1 right-1 opacity-0 group-hover:opacity-100",
+        "transition-opacity duration-100",
+        copied && "opacity-100"
+      )}
+    >
+      <button
+        className={cn("btn btn-xs btn-square")}
+        onClick={() => copyCode(code)}
+      >
+        {copied ? <TbCheck /> : <TbCopy />}
+      </button>
+    </div>
+  );
+}
+
 export function MarkdownProse({
   children,
   noMarginCode,
@@ -109,16 +139,6 @@ export function MarkdownProse({
     onSourceMouseLeave?: () => void;
   };
 }>) {
-  const [copied, setCopied] = useState(false);
-
-  function copyCode(code: string) {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
-  }
-
   return (
     <div className="prose markdown-prose">
       <Markdown
@@ -168,15 +188,7 @@ export function MarkdownProse({
             return (
               <div className="group">
                 <div dangerouslySetInnerHTML={{ __html: highlighted }} />
-                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-100">
-                  <button
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => copyCode(code)}
-                    disabled={copied}
-                  >
-                    {copied ? <TbCheck /> : <TbCopy />}
-                  </button>
-                </div>
+                <CodeCopyButton code={code} />
               </div>
             );
           },
@@ -192,6 +204,7 @@ export function MarkdownProse({
             return (
               <pre
                 {...rest}
+                className="no-scrollbar"
                 style={{
                   margin: noMarginCode ? 0 : undefined,
                   position: "relative",
@@ -221,7 +234,10 @@ export function MarkdownProse({
 
             return (
               <span
-                className="badge badge-soft px-1 translate-y-[-6px] text-[10px] p-0 leading-4 h-fit"
+                className={cn(
+                  "badge badge-soft px-1 translate-y-[-6px]",
+                  "text-[10px] leading-4 h-fit"
+                )}
                 onMouseEnter={() => options?.onSourceMouseEnter?.(index)}
                 onMouseLeave={() => options?.onSourceMouseLeave?.()}
               >

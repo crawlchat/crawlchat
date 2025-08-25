@@ -16,7 +16,6 @@ import { sanitizeScrape } from "~/scrapes/util";
 import { getAuthUser } from "~/auth/middleware";
 import { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
-import "highlight.js/styles/vs.css";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);

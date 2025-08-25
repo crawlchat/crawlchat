@@ -302,7 +302,10 @@ function MessageButton({
   return (
     <div className="tooltip" data-tip={tip}>
       <button
-        className={cn("btn btn-circle btn-sm", active && "btn-primary")}
+        className={cn(
+          "btn btn-circle btn-sm shadow-none",
+          active && "btn-primary"
+        )}
         onClick={onClick}
         disabled={disabled}
       >
