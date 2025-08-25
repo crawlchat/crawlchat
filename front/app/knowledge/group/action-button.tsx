@@ -43,7 +43,10 @@ export function ActionButton({
           action={`/knowledge/group/${group.id}`}
         >
           <input type="hidden" name="intent" value="refresh" />
-          <div className="tooltip" data-tip="Refetch it">
+          <div
+            className={cn("tooltip", !small && "tooltip-left")}
+            data-tip="Refetch it"
+          >
             {group.status === "pending" ? (
               <button
                 className={cn("btn btn-primary", small && "btn-xs")}
@@ -68,9 +71,15 @@ export function ActionButton({
       {["processing"].includes(group.status) && (
         <stopFetcher.Form method="post" action={`/knowledge/group/${group.id}`}>
           <input type="hidden" name="intent" value="stop" />
-          <div className="tooltip" data-tip="Stop fetching">
+          <div
+            className={cn("tooltip", !small && "tooltip-left")}
+            data-tip="Stop fetching"
+          >
             <button
-              className={cn("btn btn-error btn-square", small && "btn-xs")}
+              className={cn(
+                "btn btn-error btn-square btn-soft",
+                small && "btn-xs"
+              )}
               type="submit"
               disabled={stopFetcher.state !== "idle"}
             >

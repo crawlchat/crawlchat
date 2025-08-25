@@ -155,7 +155,7 @@ export default function KnowledgeGroupPage({
       icon={getIcon()}
       right={<ActionButton group={loaderData.knowledgeGroup} />}
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 flex-1">
         <div role="tablist" className="tabs tabs-box w-fit">
           {tabs.map((tab) => (
             <Link
