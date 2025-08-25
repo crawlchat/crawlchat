@@ -1,37 +1,20 @@
-import {
-  Group,
-  Stack,
-  Text,
-  Badge,
-  EmptyState,
-  VStack,
-  Link,
-  Center,
-  Table,
-} from "@chakra-ui/react";
-import {
-  TbBox,
-  TbMessage,
-  TbMessages,
-  TbPointer,
-  TbSettingsBolt,
-} from "react-icons/tb";
-import { Page } from "~/components/page";
+import type { Message } from "libs/prisma";
 import type { Route } from "./+types/layout";
+import { TbChartBar, TbMessage, TbMessages, TbPointer } from "react-icons/tb";
+import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
-import moment from "moment";
 import { makeMessagePairs } from "./analyse";
-import { Tooltip } from "~/components/ui/tooltip";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import type { Message } from "libs/prisma";
 import { getScoreColor } from "~/score";
 import { Outlet, Link as RouterLink } from "react-router";
 import { ViewSwitch } from "./view-switch";
 import { CountryFlag } from "./country-flag";
-import { SingleLineCell } from "~/components/single-line-cell";
 import { ChannelIcon } from "./channel-icon";
 import { Rating } from "./rating-badge";
+import { EmptyState } from "~/components/empty-state";
+import moment from "moment";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -67,122 +50,105 @@ function getMessageContent(message?: Message) {
 export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
   return (
     <Page title="Messages" icon={<TbMessage />} right={<ViewSwitch />}>
-      <Stack>
+      <div className="flex flex-col gap-2 flex-1">
         {loaderData.messagePairs.length === 0 && (
-          <EmptyState.Root>
-            <EmptyState.Content>
-              <EmptyState.Indicator>
-                <TbMessage />
-              </EmptyState.Indicator>
-              <VStack textAlign="center">
-                <EmptyState.Title>No messages yet!</EmptyState.Title>
-                <EmptyState.Description maxW={"lg"}>
-                  Embed the chatbot, use MCP server or the Discord Bot to let
-                  your customers talk with your documentation.
-                </EmptyState.Description>
-              </VStack>
-            </EmptyState.Content>
-          </EmptyState.Root>
+          <div className="flex flex-1 justify-center items-center">
+            <EmptyState
+              title="No messages yet!"
+              description="Embed the chatbot, use MCP server or the Discord Bot to let your customers talk with your documentation."
+              icon={<TbMessage />}
+            />
+          </div>
         )}
         {loaderData.messagePairs.length > 0 && (
-          <Stack>
-            <Text opacity={0.5} mb={2}>
+          <div className="flex flex-col gap-2">
+            <div className="text-base-content/50">
               Showing messages in last 7 days
-            </Text>
-
-            {loaderData.messagePairs.length === 0 && (
-              <Center my={8} flexDir={"column"} gap={2}>
-                <Text fontSize={"6xl"} opacity={0.5}>
-                  <TbBox />
-                </Text>
-                <Text textAlign={"center"}>No messages for the filter</Text>
-              </Center>
-            )}
+            </div>
 
             {loaderData.messagePairs.length > 0 && (
-              <Table.Root variant={"outline"} rounded={"sm"}>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.ColumnHeader>Question</Table.ColumnHeader>
-                    <Table.ColumnHeader w={"180px"}></Table.ColumnHeader>
-                    <Table.ColumnHeader w={"100px"}>Channel</Table.ColumnHeader>
-                    <Table.ColumnHeader w={"200px"} textAlign={"end"}>
-                      Time
-                    </Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {loaderData.messagePairs.map((pair, index) => (
-                    <Table.Row key={index}>
-                      <Table.Cell>
-                        <Link asChild>
-                          <RouterLink to={`/messages/${pair.queryMessage?.id}`}>
-                            <SingleLineCell tooltip={false}>
-                              {getMessageContent(pair.queryMessage)}
-                            </SingleLineCell>
-                          </RouterLink>
-                        </Link>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <Group>
-                          {!pair.queryMessage?.thread.isDefault && (
-                            <Tooltip
-                              content="View the conversation"
-                              showArrow
-                              positioning={{ placement: "top" }}
+              <div className="overflow-x-auto">
+                <table className="table">
+                  {/* head */}
+                  <thead>
+                    <tr>
+                      <th>Question</th>
+                      <th>Details</th>
+                      <th>Channel</th>
+                      <th className="text-end">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loaderData.messagePairs.map((pair, index) => (
+                      <tr key={index}>
+                        <td>
+                          <div className="w-md truncate">
+                            <RouterLink
+                              className="link link-hover"
+                              to={`/messages/${pair.queryMessage?.id}`}
                             >
-                              <Link asChild>
+                              {getMessageContent(pair.queryMessage)}
+                            </RouterLink>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="flex gap-2">
+                            {!pair.queryMessage?.thread.isDefault && (
+                              <div
+                                className="tooltip"
+                                data-tip="View the conversation"
+                              >
                                 <RouterLink
+                                  className="btn btn-xs btn-square"
                                   to={`/messages/conversations?id=${pair.queryMessage?.threadId}`}
                                 >
                                   <TbMessages />
                                 </RouterLink>
-                              </Link>
-                            </Tooltip>
-                          )}
-                          {pair.queryMessage?.thread.location && (
-                            <CountryFlag
-                              location={pair.queryMessage.thread.location}
-                            />
-                          )}
-                          {pair.actionCalls.length > 0 && (
-                            <Badge colorPalette={"orange"} variant={"surface"}>
-                              <TbPointer />
-                              {pair.actionCalls.length}
-                            </Badge>
-                          )}
-                          {pair.maxScore !== undefined && (
-                            <Badge
-                              colorPalette={getScoreColor(pair.maxScore)}
-                              variant={"surface"}
-                            >
-                              {pair.maxScore.toFixed(2)}
-                            </Badge>
-                          )}
-                          <Rating rating={pair.responseMessage.rating} />
-                          {pair.responseMessage.correctionItemId && (
-                            <Tooltip content="Corrected the answer" showArrow>
-                              <Badge colorPalette={"brand"} variant={"surface"}>
-                                <TbSettingsBolt />
-                              </Badge>
-                            </Tooltip>
-                          )}
-                        </Group>
-                      </Table.Cell>
-                      <Table.Cell>
-                        <ChannelIcon channel={pair.queryMessage?.channel} />
-                      </Table.Cell>
-                      <Table.Cell textAlign={"end"}>
-                        {moment(pair.queryMessage?.createdAt).fromNow()}
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
+                              </div>
+                            )}
+                            {pair.queryMessage?.thread.location && (
+                              <CountryFlag
+                                location={pair.queryMessage.thread.location}
+                              />
+                            )}
+
+                            {pair.actionCalls.length > 0 && (
+                              <div className="badge badge-primary badge-soft gap-1 px-2">
+                                <TbPointer />
+                                {pair.actionCalls.length}
+                              </div>
+                            )}
+
+                            {pair.maxScore !== undefined && (
+                              <div
+                                className={cn(
+                                  "badge badge-soft badge-primary px-2 gap-1",
+                                  getScoreColor(pair.maxScore)
+                                )}
+                              >
+                                <TbChartBar />
+                                {pair.maxScore.toFixed(2)}
+                              </div>
+                            )}
+                            <Rating rating={pair.responseMessage.rating} />
+                          </div>
+                        </td>
+                        <td>
+                          <ChannelIcon channel={pair.queryMessage?.channel} />
+                        </td>
+                        <td className="text-end">
+                          {moment(pair.queryMessage?.createdAt).fromNow()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
-          </Stack>
+          </div>
         )}
-      </Stack>
+      </div>
+
       <Outlet />
     </Page>
   );
