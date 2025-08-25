@@ -219,26 +219,24 @@ export function MarkdownProse({
             const index = parseInt(match[1]);
             const source = sources[index];
 
-            return index + 1;
-
             return (
               <span
-                className="tooltip"
-                data-tip={source?.title ?? "Loading..."}
+                className="badge badge-soft px-1 translate-y-[-6px] text-[10px] p-0 leading-4 h-fit"
+                onMouseEnter={() => options?.onSourceMouseEnter?.(index)}
+                onMouseLeave={() => options?.onSourceMouseLeave?.()}
               >
-                <span
-                  className="badge badge-soft px-1 translate-y-[-6px]"
-                  onMouseEnter={() => options?.onSourceMouseEnter?.(index)}
-                  onMouseLeave={() => options?.onSourceMouseLeave?.()}
-                >
-                  {source?.url ? (
-                    <a href={source.url} target="_blank">
-                      {index + 1}
-                    </a>
-                  ) : (
-                    <span>{index + 1}</span>
-                  )}
-                </span>
+                {source?.url ? (
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    className="no-underline"
+                    title={source?.title}
+                  >
+                    {index + 1}
+                  </a>
+                ) : (
+                  <span>{index + 1}</span>
+                )}
               </span>
             );
           },
