@@ -255,6 +255,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
       <scrapeFetcher.Form method="post" encType="multipart/form-data">
         <div className="flex flex-col gap-2">
           <RadioCard
+            name="type"
             value={type}
             onChange={(value) => setType(value)}
             options={types.map((item) => ({

@@ -54,13 +54,13 @@ export function SettingsSection({
       <div
         className={cn(
           "border border-base-300 rounded-box flex flex-col",
-          "outline-primary outline-offset-3 overflow-hidden",
-          danger && "border-red-300",
+          "outline-primary outline-offset-3",
+          danger && "border-red-300 bg-red-200",
           targeted && "outline-2"
         )}
         ref={ref}
       >
-        <div className={cn("flex flex-col gap-4 p-4", danger && "bg-red-200")}>
+        <div className={cn("flex flex-col gap-4 p-4")}>
           <div className="flex flex-col gap-2">
             {title && <div className="text-lg font-medium">{title}</div>}
             {description && (
@@ -73,7 +73,7 @@ export function SettingsSection({
           <div
             className={cn(
               "flex justify-between p-4 py-3 border-t border-base-300",
-              "bg-base-200 w-full justify-between",
+              "bg-base-200 w-full justify-between rounded-b-box",
               danger && "bg-red-200 border-red-300"
             )}
           >

@@ -17,6 +17,7 @@ import { toaster } from "~/components/ui/toaster";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
 import { RadioCard } from "~/components/radio-card";
+import { DataList } from "~/components/data-list";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -161,7 +162,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
           {
             label: "OpenAI 4o-mini",
             value: "gpt_4o_mini",
-            
+
             description: "Base model, does the job.",
             summary: "1 credit / message",
             disabled: !isAllowed(["free", "starter", "pro"]),
@@ -169,25 +170,29 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
           {
             label: "Gemini 2.5-flash",
             value: "gemini_2_5_flash",
-            
+
             description: "Good for most of the use cases.",
             summary: "1 credit / message",
             disabled: !isAllowed(["starter", "pro"]),
-            content: <div className="badge badge-soft badge-primary">
-              <TbCrown /> Starter
-            </div>
+            content: (
+              <div className="badge badge-soft badge-primary">
+                <TbCrown /> Starter
+              </div>
+            ),
           },
           {
             label: "OpenAI o4-mini",
             value: "o4_mini",
-            
+
             description:
               "Best for complex use cases, programming docs, better searches.",
             summary: "2 credits / message",
             disabled: !isAllowed(["pro"]),
-            content: <div className="badge badge-soft badge-primary">
-              <TbCrown /> Pro
-            </div>
+            content: (
+              <div className="badge badge-soft badge-primary">
+                <TbCrown /> Pro
+              </div>
+            ),
           },
         ]}
         name="llmModel"
@@ -313,18 +318,18 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
     <Page title="Settings" icon={<TbSettings />}>
       <SettingsSectionProvider>
         <SettingsContainer>
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <div className="w-24 text-base-content/50">Created</div>
-              <div className="w-sm">
-                {moment(loaderData.scrape.createdAt).fromNow()}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <div className="w-24 text-base-content/50">Id</div>
-              <div className="w-sm">{loaderData.scrape.id}</div>
-            </div>
-          </div>
+          <DataList
+            data={[
+              {
+                label: "Created",
+                value: moment(loaderData.scrape.createdAt).fromNow(),
+              },
+              {
+                label: "Id",
+                value: loaderData.scrape.id,
+              },
+            ]}
+          />
 
           <SettingsSection
             id="name"

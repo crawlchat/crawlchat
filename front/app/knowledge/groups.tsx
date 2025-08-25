@@ -233,138 +233,22 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                     </div>
                   </td>
                   <td>
-                     <div className="flex gap-2">
-                       {[
-                         "scrape_web",
-                         "scrape_github",
-                         "github_issues",
-                       ].includes(item.group.type) && (
-                         <ActionButton group={item.group} small />
-                       )}
-                     </div>
-                   </td>
+                    <div className="flex gap-2">
+                      {[
+                        "scrape_web",
+                        "scrape_github",
+                        "github_issues",
+                        "notion",
+                      ].includes(item.group.type) && (
+                        <ActionButton group={item.group} small />
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-
-        // <Table.Root>
-        //   <Table.Header>
-        //     <Table.Row>
-        //       <Table.ColumnHeader w="12%">Type</Table.ColumnHeader>
-        //       <Table.ColumnHeader>Title</Table.ColumnHeader>
-        //       <Table.ColumnHeader
-        //         w="18%"
-        //         display={["none", "none", "table-cell"]}
-        //       >
-        //         Citations
-        //       </Table.ColumnHeader>
-        //       <Table.ColumnHeader
-        //         w="10%"
-        //         display={["none", "none", "table-cell"]}
-        //       >
-        //         # Items
-        //       </Table.ColumnHeader>
-        //       <Table.ColumnHeader
-        //         w="10%"
-        //         display={["none", "none", "table-cell"]}
-        //       >
-        //         Status
-        //       </Table.ColumnHeader>
-        //       <Table.ColumnHeader
-        //         w="16%"
-        //         display={["none", "none", "table-cell"]}
-        //       >
-        //         Updated
-        //       </Table.ColumnHeader>
-        //       <Table.ColumnHeader w="10%">Actions</Table.ColumnHeader>
-        //     </Table.Row>
-        //   </Table.Header>
-        //   <Table.Body>
-        //     {groups.map((item) => (
-        //       <Table.Row key={item.group.id}>
-        //         <Table.Cell>
-        //           <Badge>
-        //             {item.icon}
-        //             {item.typeText}
-        //           </Badge>
-        //         </Table.Cell>
-        //         <Table.Cell>
-        //           <ChakraLink
-        //             asChild
-        //             variant={"underline"}
-        //             _hover={{
-        //               color: "brand.fg",
-        //             }}
-        //           >
-        //             <Link to={`/knowledge/group/${item.group.id}`}>
-        //               {item.group.title ?? "Untitled"}
-        //             </Link>
-        //           </ChakraLink>
-        //         </Table.Cell>
-        //         <Table.Cell display={["none", "none", "table-cell"]}>
-        //           <Group w="full">
-        //             <Text fontSize={"xs"}>
-        //               {item.citedNum} / {item.totalCited}
-        //             </Text>
-        //             <Progress.Root
-        //               w="50px"
-        //               value={item.citationPct}
-        //               min={0}
-        //               max={100}
-        //             >
-        //               <Progress.Track>
-        //                 <Progress.Range />
-        //               </Progress.Track>
-        //             </Progress.Root>
-        //           </Group>
-        //         </Table.Cell>
-        //         <Table.Cell display={["none", "none", "table-cell"]}>
-        //           <Badge variant={"subtle"}>
-        //             {loaderData.counts[item.group.id] ?? 0}
-        //           </Badge>
-        //         </Table.Cell>
-        //         <Table.Cell display={["none", "none", "table-cell"]}>
-        //           <GroupStatus status={item.group.status} />
-        //         </Table.Cell>
-        //         <Table.Cell display={["none", "none", "table-cell"]}>
-        //           <Text>
-        //             {moment(item.group.updatedAt).fromNow()}
-        //             {item.group.nextUpdateAt && (
-        //               <Tooltip
-        //                 content={`Next update at ${moment(
-        //                   item.group.nextUpdateAt
-        //                 ).format("DD/MM/YYYY HH:mm")}`}
-        //                 showArrow
-        //               >
-        //                 <Badge
-        //                   ml={1}
-        //                   colorPalette={"brand"}
-        //                   variant={"surface"}
-        //                   as={"span"}
-        //                 >
-        //                   <TbAutomation />
-        //                 </Badge>
-        //               </Tooltip>
-        //             )}
-        //           </Text>
-        //         </Table.Cell>
-        //         <Table.Cell>
-        //           <Group>
-        //             {[
-        //               "scrape_web",
-        //               "scrape_github",
-        //               "github_issues",
-        //             ].includes(item.group.type) && (
-        //               <ActionButton group={item.group} />
-        //             )}
-        //           </Group>
-        //         </Table.Cell>
-        //       </Table.Row>
-        //     ))}
-        //   </Table.Body>
-        // </Table.Root>
       )}
     </Page>
   );
