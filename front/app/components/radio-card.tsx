@@ -8,6 +8,7 @@ export type RadioCardOption = {
   summary?: string;
   disabled?: boolean;
   content?: React.ReactNode;
+  icon?: React.ReactNode;
 };
 
 export function RadioCard({
@@ -41,6 +42,9 @@ export function RadioCard({
           }}
         >
           <div className="flex flex-col gap-1">
+            {option.icon && (
+              <div className="text-2xl">{option.icon}</div>
+            )}
             <span className="font-medium">{option.label}</span>
             {option.summary && (
               <span className="text-xs text-base-content/50">
