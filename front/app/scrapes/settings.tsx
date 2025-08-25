@@ -8,7 +8,7 @@ import {
 } from "~/settings-section";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import { TbCheck, TbCrown, TbSettings, TbTrash } from "react-icons/tb";
+import { TbCrown, TbSettings, TbTrash } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { useEffect, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "./util";
@@ -16,6 +16,7 @@ import { createToken } from "libs/jwt";
 import { toaster } from "~/components/ui/toaster";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
+import { RadioCard } from "~/components/radio-card";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -139,30 +140,6 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
   const [selectedModel, setSelectedModel] = useState<LlmModel>(
     scrape.llmModel ?? "gpt_4o_mini"
   );
-  const models = [
-    {
-      label: "OpenAI 4o-mini",
-      value: "gpt_4o_mini",
-      creditsPerMessage: 1,
-      description: "Base model, does the job.",
-      plans: ["free", "starter", "pro"],
-    },
-    {
-      label: "Gemini 2.5-flash",
-      value: "gemini_2_5_flash",
-      creditsPerMessage: 1,
-      description: "Good for most of the use cases.",
-      plans: ["starter", "pro"],
-    },
-    {
-      label: "OpenAI o4-mini",
-      value: "o4_mini",
-      creditsPerMessage: 2,
-      description:
-        "Best for complex use cases, programming docs, better searches.",
-      plans: ["pro"],
-    },
-  ];
 
   function isAllowed(plans: string[]) {
     if (plans.includes("free")) {
@@ -179,56 +156,44 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
       description="Select the AI model to use for the messages across channels."
       fetcher={modelFetcher}
     >
-      <div className="flex gap-2">
-        <input type="hidden" name="llmModel" value={selectedModel} />
-        {models.map((item) => (
-          <div
-            key={item.value}
-            className={cn(
-              "flex gap-2 flex-1 border border-base-300 p-4",
-              "rounded-box justify-between cursor-pointer",
-              selectedModel === item.value &&
-                "border-primary outline outline-primary",
-              !isAllowed(item.plans) && "opacity-50 cursor-not-allowed"
-            )}
-            onClick={() => {
-              if (!isAllowed(item.plans)) {
-                return;
-              }
-              setSelectedModel(item.value as LlmModel);
-            }}
-          >
-            <div className="flex flex-col gap-1">
-              <span className="font-medium">{item.label}</span>
-              <span className="text-xs text-base-content/50">
-                {item.creditsPerMessage} credits / message
-              </span>
-              <span className="text-sm text-base-content/50">
-                {item.description}
-              </span>
-              {item.plans[0] === "pro" && (
-                <div className="badge badge-soft badge-primary">
-                  <TbCrown /> Pro
-                </div>
-              )}
-              {item.plans[0] === "starter" && (
-                <div className="badge badge-soft badge-primary">
-                  <TbCrown /> Starter
-                </div>
-              )}
+      <RadioCard
+        options={[
+          {
+            label: "OpenAI 4o-mini",
+            value: "gpt_4o_mini",
+            
+            description: "Base model, does the job.",
+            summary: "1 credit / message",
+            disabled: !isAllowed(["free", "starter", "pro"]),
+          },
+          {
+            label: "Gemini 2.5-flash",
+            value: "gemini_2_5_flash",
+            
+            description: "Good for most of the use cases.",
+            summary: "1 credit / message",
+            disabled: !isAllowed(["starter", "pro"]),
+            content: <div className="badge badge-soft badge-primary">
+              <TbCrown /> Starter
             </div>
-            <div>
-              <TbCheck
-                className={cn(
-                  "text-2xl",
-                  selectedModel !== item.value && "text-base-content/20",
-                  selectedModel === item.value && "text-primary"
-                )}
-              />
+          },
+          {
+            label: "OpenAI o4-mini",
+            value: "o4_mini",
+            
+            description:
+              "Best for complex use cases, programming docs, better searches.",
+            summary: "2 credits / message",
+            disabled: !isAllowed(["pro"]),
+            content: <div className="badge badge-soft badge-primary">
+              <TbCrown /> Pro
             </div>
-          </div>
-        ))}
-      </div>
+          },
+        ]}
+        name="llmModel"
+        value={selectedModel}
+        onChange={(value) => setSelectedModel(value as LlmModel)}
+      />
     </SettingsSection>
   );
 }

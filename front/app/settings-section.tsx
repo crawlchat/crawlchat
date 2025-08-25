@@ -74,7 +74,7 @@ export function SettingsSection({
             className={cn(
               "flex justify-between p-4 py-3 border-t border-base-300",
               "bg-base-200 w-full justify-between",
-              danger && "bg-red-300 border-red-400"
+              danger && "bg-red-200 border-red-300"
             )}
           >
             <div></div>

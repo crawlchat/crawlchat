@@ -416,7 +416,7 @@ export function SideMenu({
 
       <div className="p-4 flex flex-col gap-4">
         {scrapeId && <SetupProgress scrapeId={scrapeId} />}
-        <div className="flex flex-col gap-2 bg-base-100 rounded-box p-2">
+        <div className="flex flex-col gap-2 bg-base-100 rounded-box p-4 border border-base-300">
           <CreditProgress
             title="Messages"
             used={usedMessages}
