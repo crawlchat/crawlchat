@@ -1,34 +1,21 @@
-import {
-  Group,
-  Stack,
-  Text,
-  Badge,
-  Link,
-  Table,
-  Drawer,
-  Portal,
-  IconButton,
-  Heading,
-  DataList,
-} from "@chakra-ui/react";
-import { TbCopy, TbSettingsBolt } from "react-icons/tb";
+import type { Route } from "./+types/message";
+import { TbChartBar, TbMessage, TbSettingsBolt } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
-import moment from "moment";
-import { useMemo, useState } from "react";
-import { makeMessagePairs, type MessagePair } from "./analyse";
+import { useEffect, useMemo, useState } from "react";
+import { makeMessagePairs } from "./analyse";
 import { prisma, type ApiAction, type Message } from "libs/prisma";
-import { getScoreColor } from "~/score";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 import { CountryFlag } from "./country-flag";
 import { extractCitations } from "libs/citation";
-import { Button } from "~/components/ui/button";
-import { truncate } from "~/util";
 import { toaster } from "~/components/ui/toaster";
-import type { Route } from "./+types/message";
+import { DataList } from "~/components/data-list";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { ChannelIcon } from "./channel-icon";
 import { Rating } from "./rating-badge";
+import { Page } from "~/components/page";
+import cn from "@meltdownjs/cn";
+import moment from "moment";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -89,7 +76,7 @@ function AssistantMessage({
   );
 
   return (
-    <Stack gap={4}>
+    <div className="flex flex-col gap-4">
       <MarkdownProse
         sources={Object.values(citation.citedLinks).map((link) => ({
           title: link?.title ?? link?.url ?? "Source",
@@ -115,100 +102,96 @@ function AssistantMessage({
       </MarkdownProse>
 
       {message.links.length > 0 && (
-        <Stack>
-          <Heading size={"lg"}>Resources</Heading>
-          <Table.Root variant={"outline"}>
-            <Table.Header>
-              <Table.Row>
-                <Table.ColumnHeader>Knowledge Item</Table.ColumnHeader>
-                <Table.ColumnHeader>Query</Table.ColumnHeader>
-                <Table.ColumnHeader textAlign="end">Score</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body background={"brand.white"}>
-              {message.links.map((link, index) => (
-                <Table.Row
-                  key={index}
-                  bg={
-                    hoveredUniqueId === link.fetchUniqueId
-                      ? "brand.gray.100"
-                      : "brand.white"
-                  }
-                >
-                  <Table.Cell>
-                    <Group>
-                      <Link
-                        href={`/knowledge/item/${link.scrapeItemId}`}
+        <div className="flex flex-col gap-2">
+          <div className="text-lg">Resources</div>
+          <div className="overflow-x-auto border border-base-300 rounded-box">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Query</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {message.links.map((link, index) => (
+                  <tr
+                    className={cn(
+                      hoveredUniqueId === link.fetchUniqueId
+                        ? "bg-brand-gray-100"
+                        : "bg-brand-white"
+                    )}
+                    key={index}
+                  >
+                    <td>
+                      <RouterLink
+                        className="link link-hover"
+                        to={`/knowledge/item/${link.scrapeItemId}`}
                         target="_blank"
                       >
                         {link.title || link.url}
-                      </Link>
-                    </Group>
-                  </Table.Cell>
-                  <Table.Cell>{link.searchQuery ?? "-"}</Table.Cell>
-                  <Table.Cell textAlign="end">
-                    <Badge
-                      colorPalette={getScoreColor(link.score ?? 0)}
-                      variant={"surface"}
-                    >
-                      {link.score?.toFixed(2)}
-                    </Badge>
-                  </Table.Cell>
-                </Table.Row>
-              ))}
-            </Table.Body>
-          </Table.Root>
-        </Stack>
+                      </RouterLink>
+                    </td>
+                    <td>{link.searchQuery ?? "-"}</td>
+                    <td>
+                      <div className="badge badge-primary badge-soft">
+                        <TbChartBar />
+                        {link.score?.toFixed(2)}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
       {message.apiActionCalls.length > 0 && (
-        <Stack>
-          <Heading>Actions</Heading>
+        <div className="flex flex-col gap-2">
+          <div className="text-lg">Actions</div>
           {message.apiActionCalls.map((call) => (
-            <Stack
-              border={"1px solid"}
-              borderColor={"brand.outline"}
-              p={4}
-              rounded={"md"}
-            >
-              <DataList.Root>
-                <DataList.Item>
-                  <DataList.ItemLabel>Title</DataList.ItemLabel>
-                  <DataList.ItemValue>
-                    {actionsMap.get(call.actionId)?.title}
-                  </DataList.ItemValue>
-                </DataList.Item>
-
-                <DataList.Item>
-                  <DataList.ItemLabel>Status code</DataList.ItemLabel>
-                  <DataList.ItemValue>{call.statusCode}</DataList.ItemValue>
-                </DataList.Item>
-
-                <DataList.Item>
-                  <DataList.ItemLabel>Input</DataList.ItemLabel>
-                  <DataList.ItemValue overflowX="auto">
-                    {JSON.stringify(call.data, null, 2)}
-                  </DataList.ItemValue>
-                </DataList.Item>
-
-                <DataList.Item>
-                  <DataList.ItemLabel>Output</DataList.ItemLabel>
-                  <DataList.ItemValue overflowX="auto">
-                    {call.response as string}
-                  </DataList.ItemValue>
-                </DataList.Item>
-              </DataList.Root>
-            </Stack>
+            <div className="flex flex-col gap-2 border border-base-300 rounded-box p-4">
+              <DataList
+                data={[
+                  {
+                    label: "Title",
+                    value: actionsMap.get(call.actionId)?.title,
+                  },
+                  {
+                    label: "Status code",
+                    value: call.statusCode,
+                  },
+                  {
+                    label: "Input",
+                    value: JSON.stringify(call.data, null, 2),
+                  },
+                  {
+                    label: "Output",
+                    value: call.response as string,
+                  },
+                ]}
+              />
+            </div>
           ))}
-        </Stack>
+        </div>
       )}
-    </Stack>
+    </div>
   );
 }
 
 export default function Message({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const drawer = document.getElementById(
+      "message-drawer"
+    ) as HTMLInputElement;
+    if (drawer) {
+      drawer.checked = true;
+    }
+  }, [location.pathname]);
 
   const messagePair = loaderData.messagePair;
   const actionsMap = loaderData.actionsMap;
@@ -223,70 +206,47 @@ export default function Message({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <Drawer.Root open={!!messagePair} size={"lg"}>
-      <Portal>
-        <Drawer.Backdrop />
-        <Drawer.Positioner>
-          <Drawer.Content>
-            <Drawer.Header>
-              <Drawer.Title>
-                {truncate(
-                  (messagePair?.queryMessage?.llmMessage as any)?.content ?? "",
-                  500
-                )}
-              </Drawer.Title>
-              <Group mt={2} justifyContent={"space-between"} w="full">
-                <Group>
-                  <ChannelIcon channel={messagePair?.queryMessage?.channel} />
-                  {messagePair?.responseMessage.rating && (
-                    <Rating rating={messagePair?.responseMessage.rating} />
-                  )}
-                  {messagePair?.queryMessage?.thread.location && (
-                    <CountryFlag
-                      location={messagePair?.queryMessage?.thread.location}
-                    />
-                  )}
-                  <Text>
-                    {moment(messagePair?.queryMessage?.createdAt).fromNow()}
-                  </Text>
-                </Group>
+    <Page
+      title="Message"
+      icon={<TbMessage />}
+      right={
+        <>
+          <button className="btn btn-primary">
+            <TbSettingsBolt />
+            Correct it
+          </button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <div className="text-2xl">
+            {(messagePair?.queryMessage?.llmMessage as any)?.content}
+          </div>
 
-                <Group>
-                  <IconButton
-                    variant={"subtle"}
-                    size={"xs"}
-                    onClick={copyMessage}
-                  >
-                    <TbCopy />
-                  </IconButton>
-                </Group>
-              </Group>
-            </Drawer.Header>
-            <Drawer.Body py={0}>
-              {messagePair && (
-                <AssistantMessage
-                  message={messagePair.responseMessage}
-                  actionsMap={actionsMap}
-                />
-              )}
-            </Drawer.Body>
-            <Drawer.Footer>
-              <Button variant="outline" onClick={() => navigate(-1)}>
-                Close
-              </Button>
-              <Button asChild>
-                <RouterLink
-                  to={`/messages/${messagePair?.responseMessage?.id}/fix`}
-                >
-                  <TbSettingsBolt />
-                  Correct it
-                  {messagePair?.responseMessage.correctionItemId && " again"}
-                </RouterLink>
-              </Button>
-            </Drawer.Footer>
-          </Drawer.Content>
-        </Drawer.Positioner>
-      </Portal>
-    </Drawer.Root>
+          <div className="flex gap-2 items-center">
+            <ChannelIcon channel={messagePair?.queryMessage?.channel} />
+            {messagePair?.responseMessage.rating && (
+              <Rating rating={messagePair?.responseMessage.rating} />
+            )}
+            {messagePair?.queryMessage?.thread.location && (
+              <CountryFlag
+                location={messagePair?.queryMessage?.thread.location}
+              />
+            )}
+            <span>
+              {moment(messagePair?.queryMessage?.createdAt).fromNow()}
+            </span>
+          </div>
+        </div>
+
+        {messagePair && (
+          <AssistantMessage
+            message={messagePair.responseMessage}
+            actionsMap={actionsMap}
+          />
+        )}
+      </div>
+    </Page>
   );
 }

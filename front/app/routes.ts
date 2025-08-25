@@ -38,12 +38,8 @@ export default [
     route("tickets", "tickets/list.tsx"),
     route("tickets/settings", "tickets/settings.tsx"),
 
-    layout("message/layout.tsx", [
-      ...prefix("messages", [
-        index("message/messages.tsx"),
-        route(":queryMessageId", "message/message.tsx"),
-      ]),
-    ]),
+    route("messages", "message/messages.tsx"),
+    route("messages/:queryMessageId", "message/message.tsx"),
 
     route("connect", "integrations/page.tsx", [
       index("integrations/customise.tsx"),
@@ -90,11 +86,11 @@ export default [
     route("pricing", "landing/pricing.tsx"),
   ]),
 
-  ...prefix("admin-fowl", [
-    index("admin/page.tsx"),
-  ]),
+  ...prefix("admin-fowl", [index("admin/page.tsx")]),
 
   route("email-alert", "email-alert.ts"),
+
+  route("test", "test.tsx"),
 
   route("w/:id", "widget/page.tsx"),
   route("s/:id", "widget/share.tsx"),
