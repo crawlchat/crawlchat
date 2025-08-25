@@ -1,5 +1,5 @@
+import type { Route } from "./+types/page";
 import { Page } from "~/components/page";
-import { Box, HStack, Stack } from "@chakra-ui/react";
 import { getAuthUser } from "~/auth/middleware";
 import {
   TbRobotFace,
@@ -10,9 +10,7 @@ import {
   TbColorSwatch,
 } from "react-icons/tb";
 import { Outlet, useLocation, useNavigate } from "react-router";
-import { SegmentedControl } from "~/components/ui/segmented-control";
 import { useMemo } from "react";
-import type { Route } from "./+types/page";
 import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {

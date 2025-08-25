@@ -192,11 +192,15 @@ function ChatInput() {
 
       <button
         className={cn(
-          "btn btn-sm btn-circle text-lg shadow-none",
+          "btn btn-sm btn-circle text-lg shadow-none border-0",
           cleanedQuery.length > 0 ? "btn-primary" : "btn-soft"
         )}
         onClick={handleAsk}
         disabled={isDisabled}
+        style={{
+          backgroundColor: !isDisabled ? bg ?? undefined : undefined,
+          color: !isDisabled ? color ?? undefined : undefined,
+        }}
       >
         <TbArrowUp />
       </button>
@@ -223,7 +227,9 @@ export function SourceLink({
       )}
       href={link.url ?? undefined}
       target="_blank"
-      color={color}
+      style={{
+        color: color ?? undefined,
+      }}
     >
       <TbFileDescription />
       {link.title}
@@ -272,7 +278,9 @@ export function Sources({
           showSources && "opacity-100"
         )}
         onClick={() => setShowSources(!showSources)}
-        color={color}
+        style={{
+          color: color ?? undefined,
+        }}
       >
         {citedLinks.length} Source{citedLinks.length > 1 ? "s" : ""}
         {showSources ? <TbChevronUp /> : <TbChevronDown />}
@@ -623,10 +631,14 @@ function Toolbar() {
       className={cn(
         "flex h-[60px] gap-2 border-b border-base-300",
         "p-4 w-full justify-between bg-base-200 items-center",
-        "md:rounded-t-box"
+        "md:rounded-t-box items-center"
       )}
+      style={{
+        backgroundColor: bg ?? undefined,
+        color: color ?? undefined,
+      }}
     >
-      <div className="flex flex-1 gap-2">
+      <div className="flex flex-1 gap-2 items-center">
         {fullscreen && (
           <button className="btn btn-square btn-soft" onClick={() => close()}>
             <TbX />
@@ -640,11 +652,7 @@ function Toolbar() {
           />
         )}
 
-        <div className="text-xl font-bold">
-          {screen === "ticket-create"
-            ? "Create support ticket"
-            : scrape.title ?? "Ask AI"}
-        </div>
+        <div className="text-xl font-bold">{scrape.title ?? "Ask AI"}</div>
 
         {admin &&
           overallScore !== undefined &&
@@ -659,7 +667,7 @@ function Toolbar() {
 
       <div className="flex gap-2">
         {screen === "mcp" && (
-          <div className="tooltip" data-tip="Switch to chat">
+          <div className="tooltip tooltip-left" data-tip="Switch to chat">
             <ToolbarButton onClick={() => setScreen("chat")}>
               <TbMessage />
             </ToolbarButton>
@@ -683,7 +691,10 @@ function Toolbar() {
           </ToolbarButton>
           <ul
             tabIndex={0}
-            className="menu dropdown-content bg-base-100 rounded-box z-1 w-34 p-2 shadow-sm"
+            className={cn(
+              "menu dropdown-content bg-base-100 rounded-box",
+              "z-1 w-34 p-2 shadow-sm text-base-content"
+            )}
           >
             <li>
               <a onClick={() => handleMenuSelect("share")}>
@@ -753,13 +764,16 @@ export function ChatboxContainer({
     >
       <div
         className={cn(
-          "flex flex-col bg-base-100 relative md:rounded-xl",
+          "flex flex-col bg-base-100 relative md:rounded-xl overflow-hidden",
           "md:border md:shadow-2xl w-full h-full md:h-auto border-base-300",
           scrape.widgetConfig?.size !== "large" &&
             "md:w-[520px] md:max-h-[460px]",
           scrape.widgetConfig?.size === "large" &&
             "md:w-[700px] md:max-h-[600px]"
         )}
+        style={{
+          borderColor: borderColor ?? undefined,
+        }}
       >
         {children}
       </div>

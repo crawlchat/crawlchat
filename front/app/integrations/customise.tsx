@@ -39,8 +39,17 @@ import { Switch } from "~/components/ui/switch";
 import { useEffect, useMemo, useState } from "react";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
-import { TbHome, TbMessage, TbPlus, TbTrash, TbX } from "react-icons/tb";
+import {
+  TbColorPicker,
+  TbHome,
+  TbMessage,
+  TbPlus,
+  TbTrash,
+  TbX,
+} from "react-icons/tb";
 import { SegmentedControl } from "~/components/ui/segmented-control";
+import { HexColorPicker, HexColorInput } from "react-colorful";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -184,20 +193,15 @@ function AskAIButton({
   text?: string | null;
 }) {
   return (
-    <Box
-      bg={bg ?? "#7b2cbf"}
-      color={color ?? "white"}
-      p={"8px 20px"}
-      rounded={"20px"}
-      w={"fit-content"}
-      transition={"scale 0.1s ease"}
-      cursor={"pointer"}
-      _hover={{
-        scale: 1.05,
+    <div
+      className="bg-[#7b2cbf] text-white px-5 py-2 rounded-full transition-all cursor-pointer hover:scale-105"
+      style={{
+        backgroundColor: bg ?? "#7b2cbf",
+        color: color ?? "white",
       }}
     >
-      {text ?? "Ask AI"}
-    </Box>
+      {text || "Ask AI"}
+    </div>
   );
 }
 
@@ -215,30 +219,42 @@ function ColorPicker({
   onClear: () => void;
 }) {
   return (
-    <Group alignItems={"flex-end"} flex={1}>
-      <ColorPickerRoot
-        flex={1}
-        name={color ? name : undefined}
-        value={color ? parseColor(color) : undefined}
-        onValueChange={(e) => setColor(e.valueAsString)}
-      >
-        <ColorPickerLabel>{label}</ColorPickerLabel>
-        <ColorPickerControl>
-          <ColorPickerInput />
-          <ColorPickerTrigger />
-        </ColorPickerControl>
-        <ColorPickerContent>
-          <ColorPickerArea />
-          <HStack>
-            <ColorPickerEyeDropper />
-            <ColorPickerSliders />
-          </HStack>
-        </ColorPickerContent>
-      </ColorPickerRoot>
-      <IconButton variant={"subtle"} onClick={onClear}>
-        <TbX />
-      </IconButton>
-    </Group>
+    <div className="flex-1 flex gap-1 items-end">
+      <fieldset className="fieldset flex-1">
+        <legend className="fieldset-legend">{label}</legend>
+        <HexColorInput
+          name={name}
+          color={color ?? undefined}
+          onChange={setColor}
+          className="input input-bordered w-full"
+          placeholder={"Pick a color"}
+          prefixed
+        />
+      </fieldset>
+
+      <div className="dropdown dropdown-end">
+        <button
+          type="button"
+          className="btn btn-square mb-1"
+          style={{ backgroundColor: color ?? undefined }}
+        >
+          <TbColorPicker />
+        </button>
+        <div
+          className={cn(
+            "dropdown-content bg-base-100 rounded-box z-1",
+            "w-56 h-56 shadow-sm flex justify-center items-center"
+          )}
+        >
+          <HexColorPicker color={color ?? undefined} onChange={setColor} />
+        </div>
+      </div>
+      <fieldset className="fieldset">
+        <button className="btn btn-square" onClick={onClear}>
+          <TbX />
+        </button>
+      </fieldset>
+    </div>
   );
 }
 
@@ -331,31 +347,15 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
 
   function clearPrimaryColor() {
     setPrimaryColor(null);
-    widgetConfigFetcher.submit(
-      {
-        primaryColor: null,
-      },
-      {
-        method: "post",
-      }
-    );
   }
 
   function clearButtonTextColor() {
     setButtonTextColor(null);
-    widgetConfigFetcher.submit(
-      {
-        buttonTextColor: null,
-      },
-      {
-        method: "post",
-      }
-    );
   }
 
   return (
-    <Group alignItems={"flex-start"} gap={4}>
-      <Stack flex={1} gap={4}>
+    <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 flex-1">
         <SettingsSection
           id="button-chatbox"
           title="Button & Chatbox"
@@ -364,78 +364,62 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         >
           <input type="hidden" name="from-widget" value={"true"} />
 
-          <Stack flex={1}>
-            <Stack gap={4}>
-              <Group>
-                <ColorPicker
-                  name="primaryColor"
-                  label="Background"
-                  color={primaryColor}
-                  setColor={setPrimaryColor}
-                  onClear={clearPrimaryColor}
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2 items-center">
+              <ColorPicker
+                name="primaryColor"
+                label="Background"
+                color={primaryColor}
+                setColor={setPrimaryColor}
+                onClear={clearPrimaryColor}
+              />
+
+              <ColorPicker
+                name="buttonTextColor"
+                label="Text color"
+                color={buttonTextColor}
+                setColor={setButtonTextColor}
+                onClear={clearButtonTextColor}
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <fieldset className="fieldset flex-1">
+                <legend className="fieldset-legend">Button text</legend>
+                <input
+                  className="input input-bordered w-full"
+                  type="text"
+                  placeholder="Button text"
+                  name="buttonText"
+                  value={buttonText ?? ""}
+                  onChange={(e) => setButtonText(e.target.value)}
                 />
+              </fieldset>
 
-                <ColorPicker
-                  name="buttonTextColor"
-                  label="Text color"
-                  color={buttonTextColor}
-                  setColor={setButtonTextColor}
-                  onClear={clearButtonTextColor}
+              <fieldset className="fieldset flex-1">
+                <legend className="fieldset-legend">Logo URL</legend>
+                <input
+                  className="input input-bordered w-full"
+                  type="text"
+                  placeholder="Logo URL"
+                  name="logoUrl"
+                  value={logoUrl ?? ""}
+                  onChange={(e) => setLogoUrl(e.target.value)}
                 />
-              </Group>
+              </fieldset>
+            </div>
 
-              <Group>
-                <Field label="Button text">
-                  <Input
-                    placeholder="Button text"
-                    name="buttonText"
-                    value={buttonText ?? ""}
-                    onChange={(e) => setButtonText(e.target.value)}
-                  />
-                </Field>
-              </Group>
-
-              {/* <Group>
-                <Field label="Tooltip">
-                  <Input
-                    placeholder="Ex: Ask AI or reach out to us!"
-                    name="tooltip"
-                    value={tooltip ?? ""}
-                    onChange={(e) => setTooltip(e.target.value)}
-                  />
-                </Field>
-              </Group> */}
-
-              <Group>
-                <Field label="Logo URL">
-                  <Input
-                    placeholder="Ex: https://example.com/logo.png"
-                    name="logoUrl"
-                    value={logoUrl ?? ""}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                  />
-                </Field>
-              </Group>
-
-              {/* <Group>
-                <Switch
-                  name="showLogo"
-                  checked={showLogo}
-                  onCheckedChange={(e) => setShowLogo(e.checked)}
-                >
-                  Show logo on Ask AI button
-                </Switch>
-              </Group> */}
-
-              <Switch
+            <label className="label">
+              <input
+                type="checkbox"
+                className="toggle"
                 name="applyColorsToChatbox"
                 checked={applyColorsToChatbox}
-                onCheckedChange={(e) => setApplyColorsToChatbox(e.checked)}
-              >
-                Apply colors to chatbox
-              </Switch>
-            </Stack>
-          </Stack>
+                onChange={(e) => setApplyColorsToChatbox(e.target.checked)}
+              />
+              Apply colors to chatbox
+            </label>
+          </div>
         </SettingsSection>
 
         <SettingsSection
@@ -444,7 +428,8 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           description="Add your custom welcome message to the widget. Supports markdown."
           fetcher={welcomeMessageFetcher}
         >
-          <Textarea
+          <textarea
+            className="textarea textarea-bordered w-full"
             name="welcomeMessage"
             value={welcomeMessage ?? ""}
             onChange={(e) => setWelcomeMessage(e.target.value)}
@@ -461,8 +446,10 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         >
           <input type="hidden" name="from-questions" value={"true"} />
           {questions.map((question, i) => (
-            <Group key={i}>
-              <Input
+            <div key={i} className="flex gap-2 items-center">
+              <input
+                className="input input-bordered w-full"
+                type="text"
                 name={"questions"}
                 placeholder={"Ex: How to use the product?"}
                 value={question.text}
@@ -472,21 +459,21 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                   setQuestions(newQuestions);
                 }}
               />
-              <IconButton
-                variant={"subtle"}
+              <button
+                className="btn btn-error btn-soft btn-square"
+                type="button"
                 onClick={() => removeQuestion(i)}
-                colorPalette={"red"}
               >
                 <TbTrash />
-              </IconButton>
-            </Group>
+              </button>
+            </div>
           ))}
-          <Box>
-            <Button size="sm" variant={"subtle"} onClick={addQuestion}>
+          <div>
+            <button className="btn" type="button" onClick={addQuestion}>
               <TbPlus />
               Add question
-            </Button>
-          </Box>
+            </button>
+          </div>
         </SettingsSection>
 
         <SettingsSection
@@ -495,7 +482,9 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           description="Set the placeholder text for the text input field"
           fetcher={textInputPlaceholderFetcher}
         >
-          <Input
+          <input
+            className="input input-bordered w-full"
+            type="text"
             name="textInputPlaceholder"
             value={textInputPlaceholder ?? ""}
             onChange={(e) => setTextInputPlaceholder(e.target.value)}
@@ -510,52 +499,56 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           fetcher={mcpSetupFetcher}
         >
           <input type="hidden" name="from-mcp-setup" value={"true"} />
-          <Switch
-            name="showMcpSetup"
-            checked={showMcpSetup}
-            onCheckedChange={(e) => setShowMcpSetup(e.checked)}
-          >
-            Show it
-          </Switch>
-        </SettingsSection>
-      </Stack>
-      <Stack flex={1} position={"sticky"} top={"80px"} gap={4}>
-        <Center>
-          <Box>
-            <SegmentedControl
-              value={previewType}
-              onValueChange={(e) => setPreviewType(e.value as "home" | "chat")}
-              items={[
-                {
-                  value: "home",
-                  label: (
-                    <HStack>
-                      <TbHome />
-                      Home
-                    </HStack>
-                  ),
-                },
-                {
-                  value: "chat",
-                  label: (
-                    <HStack>
-                      <TbMessage />
-                      Chat
-                    </HStack>
-                  ),
-                },
-              ]}
+          <label className="label">
+            <input
+              type="checkbox"
+              className="toggle"
+              name="showMcpSetup"
+              checked={showMcpSetup}
+              onChange={(e) => setShowMcpSetup(e.target.checked)}
             />
-          </Box>
-        </Center>
-        <Center>
+            Show it
+          </label>
+        </SettingsSection>
+      </div>
+
+      <div className="flex flex-col gap-4 flex-1 sticky top-[80px]">
+        <div className="flex justify-center">
+          <div>
+            <div role="tablist" className="tabs tabs-box">
+              <a
+                role="tab"
+                className={cn(
+                  "tab gap-2",
+                  previewType === "home" && "tab-active"
+                )}
+                onClick={() => setPreviewType("home")}
+              >
+                <TbHome /> Home
+              </a>
+              <a
+                role="tab"
+                className={cn(
+                  "tab gap-2",
+                  previewType === "chat" && "tab-active"
+                )}
+                onClick={() => setPreviewType("chat")}
+              >
+                <TbMessage /> Chat
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
           <AskAIButton
             bg={primaryColor}
             color={buttonTextColor}
             text={buttonText}
           />
-        </Center>
-        <Stack rounded={"md"} overflow={"hidden"} w={"full"} pb={8} pt={4}>
+        </div>
+
+        <div className="flex flex-col gap-2 rounded-box overflow-hidden w-full pb-8 pt-4">
           <ChatBoxProvider
             key={previewType}
             admin={false}
@@ -606,8 +599,8 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
               <ChatBox />
             </ChatboxContainer>
           </ChatBoxProvider>
-        </Stack>
-      </Stack>
-    </Group>
+        </div>
+      </div>
+    </div>
   );
 }
