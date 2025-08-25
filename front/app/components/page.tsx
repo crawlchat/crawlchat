@@ -31,7 +31,7 @@ export function Page({
   }, []);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col flex-1">
       <div
         className={cn(
           "flex flex-col p-4 border-b border-base-300 h-[60px]",
@@ -55,7 +55,7 @@ export function Page({
         </div>
       </div>
       <div
-        className={cn("bg-base-100 h-full", !noPadding && "p-4")}
+        className={cn("bg-base-100 flex-1 flex flex-col", !noPadding && "p-4")}
         ref={containerRef}
       >
         {children}
