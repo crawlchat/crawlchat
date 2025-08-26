@@ -137,7 +137,6 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
     <Page
       title="Conversations"
       icon={<TbMessages />}
-      noPadding
       right={<ViewSwitch />}
     >
       {loaderData.threads.length === 0 && (
@@ -151,19 +150,19 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
       )}
 
       {loaderData.threads.length > 0 && (
-        <div className="flex h-full">
+        <div className="flex h-full gap-4">
           <div
             className={cn(
-              "flex flex-col max-w-md w-full",
-              "border-r border-base-300 h-full overflow-y-auto"
+              "flex flex-col w-full gap-4",
+              "h-full overflow-y-auto flex-1"
             )}
           >
-            <div className="p-4 text-base-content/50">
+            <div className="text-base-content/50">
               Here are the conversations made by your customers or community on
               your website
             </div>
 
-            <div className="flex gap-2 items-center p-4">
+            <div className="flex gap-2 items-center">
               <Link
                 className="btn btn-square"
                 to={
@@ -196,73 +195,85 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
               </Link>
             </div>
 
-            {loaderData.threads.map((thread) => (
-              <div
-                key={thread.id}
-                className={cn(
-                  "flex flex-col gap-1 px-4 py-2",
-                  "border-t border-base-300",
-                  "cursor-pointer last:border-b",
-                  "hover:bg-base-200",
-                  selectedThread?.id === thread.id && "bg-base-200"
-                )}
-                onClick={() => setSelectedThread(thread)}
-              >
-                <div className="flex gap-2 items-center justify-between">
-                  <div className="flex gap-2 items-center">
-                    {thread.location?.country && (
-                      <CountryFlag location={thread.location} />
-                    )}
-                    <span className="text-base-content/80">
-                      {thread.id.substring(thread.id.length - 4)}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    {thread.ticketStatus && (
+            <div
+              className={cn(
+                "bg-base-100 p-2 rounded-box border border-base-300",
+                "shadow-sm"
+              )}
+            >
+              <div className="rounded-box overflow-hidden border border-base-300">
+              {loaderData.threads.map((thread) => (
+                <div
+                  key={thread.id}
+                  className={cn(
+                    "flex flex-col gap-1 px-4 py-2",
+                    "border-b border-base-300",
+                    "cursor-pointer last:border-0",
+                    "hover:bg-base-200",
+                    selectedThread?.id === thread.id && "bg-base-200"
+                  )}
+                  onClick={() => setSelectedThread(thread)}
+                >
+                  <div className="flex gap-2 items-center justify-between">
+                    <div className="flex gap-2 items-center">
+                      {thread.location?.country && (
+                        <CountryFlag location={thread.location} />
+                      )}
+                      <span className="text-base-content/80">
+                        {thread.id.substring(thread.id.length - 4)}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      {thread.ticketStatus && (
+                        <div
+                          className="tooltip tooltip-left"
+                          data-tip="Ticket created"
+                        >
+                          <span className="badge badge-primary px-1">
+                            <TbTicket />
+                          </span>
+                        </div>
+                      )}
                       <div
                         className="tooltip tooltip-left"
-                        data-tip="Ticket created"
+                        data-tip="Avg score"
                       >
-                        <span className="badge badge-primary px-1">
-                          <TbTicket />
+                        <span className="badge badge-primary badge-soft">
+                          {getMessagesScore(thread.messages).toFixed(2)}
                         </span>
                       </div>
-                    )}
-                    <div className="tooltip tooltip-left" data-tip="Avg score">
-                      <span className="badge badge-primary badge-soft">
-                        {getMessagesScore(thread.messages).toFixed(2)}
-                      </span>
-                    </div>
-                    <div
-                      className="tooltip tooltip-left"
-                      data-tip="Number of messages"
-                    >
-                      <span className="badge badge-primary badge-soft">
-                        <TbMessage />
-                        {thread.messages.length}
-                      </span>
+                      <div
+                        className="tooltip tooltip-left"
+                        data-tip="Number of messages"
+                      >
+                        <span className="badge badge-primary badge-soft">
+                          <TbMessage />
+                          {thread.messages.length}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  <span className="text-base-content/50 text-sm">
+                    {moment(thread.createdAt).fromNow()}
+                  </span>
+                  <div className="flex flex-col gap-0.5">
+                    {thread.customTags &&
+                      Object.keys(thread.customTags).map((key) => (
+                        <div key={key}>
+                          <span className="badge badge-primary px-1">
+                            {key}:{" "}
+                            {(thread.customTags as Record<string, any>)[key]}
+                          </span>
+                        </div>
+                      ))}
+                  </div>
                 </div>
-                <span className="text-base-content/50 text-sm">
-                  {moment(thread.createdAt).fromNow()}
-                </span>
-                <div className="flex flex-col gap-0.5">
-                  {thread.customTags &&
-                    Object.keys(thread.customTags).map((key) => (
-                      <div key={key}>
-                        <span className="badge badge-primary px-1">
-                          {key}:{" "}
-                          {(thread.customTags as Record<string, any>)[key]}
-                        </span>
-                      </div>
-                    ))}
-                </div>
+              ))}
               </div>
-            ))}
+            </div>
           </div>
 
-          <div className="h-full w-full flex-1 bg-base-200 relative p-4">
+          <div className="h-full w-[500px] bg-base-200 relative">
             {selectedThread && (
               <ChatBoxProvider
                 key={selectedThread.id}
@@ -279,7 +290,7 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
               </ChatBoxProvider>
             )}
 
-            <div className="absolute top-0 right-0 p-4">
+            <div className="absolute top-0 right-0">
               <deleteFetcher.Form method="post">
                 <input type="hidden" name="id" value={selectedThread?.id} />
                 <input type="hidden" name="intent" value="delete" />

@@ -632,7 +632,7 @@ function Toolbar() {
       className={cn(
         "flex h-[60px] gap-2 border-b border-base-300",
         "p-4 w-full justify-between bg-base-200 items-center",
-        "md:rounded-t-box items-center"
+        "items-center"
       )}
       style={{
         backgroundColor: bg ?? undefined,
@@ -829,7 +829,7 @@ export default function ScrapeWidget() {
         {screen === "mcp" && <MCPSetup />}
       </div>
       {screen === "chat" && <ChatInput />}
-      <div className="px-4 py-2 bg-base-300/80 border-t border-base-300 rounded-b-box">
+      <div className="px-4 py-2 bg-base-300/80 border-t border-base-300">
         <PoweredBy />
       </div>
     </>

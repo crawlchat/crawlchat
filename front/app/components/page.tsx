@@ -34,8 +34,8 @@ export function Page({
     <div className="flex flex-col flex-1">
       <div
         className={cn(
-          "flex flex-col p-4 border-b border-base-300 h-[60px]",
-          "justify-center sticky top-0 bg-base-100 z-10"
+          "flex flex-col p-4 h-[60px]",
+          "justify-center sticky top-0 z-10 bg-base-200"
         )}
       >
         <div className="flex justify-between gap-2">
@@ -55,7 +55,7 @@ export function Page({
         </div>
       </div>
       <div
-        className={cn("bg-base-100 flex-1 flex flex-col", !noPadding && "p-4")}
+        className={cn("bg-base-200 flex-1 flex flex-col", !noPadding && "p-4")}
         ref={containerRef}
       >
         {children}

@@ -77,7 +77,7 @@ export default function SlackIntegrations({
 
         <div className="flex items-center gap-2">
           <a
-            className="btn"
+            className="btn btn-outline"
             href="https://guides.crawlchat.app/guide/get-the-team-id-for-slack-app-integration-28"
             target="_blank"
           >
@@ -85,7 +85,7 @@ export default function SlackIntegrations({
           </a>
 
           <a
-            className="btn"
+            className="btn btn-neutral"
             href="https://slack.crawlchat.app/install"
             target="_blank"
           >

@@ -13,13 +13,7 @@ import {
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import { Page } from "~/components/page";
-import {
-  XAxis,
-  CartesianGrid,
-  Tooltip,
-  AreaChart,
-  Area,
-} from "recharts";
+import { XAxis, CartesianGrid, Tooltip, AreaChart, Area } from "recharts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
 import { commitSession } from "~/session";
@@ -274,7 +268,7 @@ export function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="stats shadow flex-1">
+    <div className="stats shadow flex-1 bg-base-100">
       <div className="stat">
         <div className="stat-figure text-4xl">{icon}</div>
         <div className="stat-title">{label}</div>
@@ -466,7 +460,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <TbMessage />
               <span className="text-lg font-medium">Latest questions</span>
             </div>
-            <div className="overflow-x-auto border border-base-300 rounded-box">
+            <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100">
               <table className="table">
                 <thead>
                   <tr>

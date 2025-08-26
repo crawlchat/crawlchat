@@ -84,7 +84,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
       )}
       {loaderData.items.length > 0 && (
         <div className="flex flex-col gap-2">
-          <div className="overflow-x-auto border border-base-300 rounded-box">
+          <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100">
             <table className="table">
               <thead>
                 <tr>

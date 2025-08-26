@@ -57,18 +57,20 @@ function SideMenuItem({
       {({ isPending, isActive }) => (
         <div
           className={cn(
-            "flex px-3 py-1 w-full justify-between rounded-box transition-all hover:bg-accent hover:text-accent-content",
+            "flex px-3 py-1 w-full justify-between rounded-box",
+            "transition-all hover:bg-accent hover:text-accent-content",
             isActive && "bg-accent text-accent-content"
           )}
         >
           <div className="flex gap-2 items-center">
             {link.icon}
             {link.label}
-            {badge}
             {isPending && (
               <span className="loading loading-spinner loading-xs" />
             )}
           </div>
+
+          {badge}
         </div>
       )}
     </NavLink>
@@ -324,7 +326,7 @@ export function SideMenu({
   return (
     <div
       className={cn(
-        "flex flex-col min-h-screen border-r border-base-300 bg-base-200",
+        "flex flex-col min-h-screen bg-base-200",
         "gap-0 justify-between fixed left-0 top-0 w-full"
       )}
     >
@@ -400,7 +402,7 @@ export function SideMenu({
           <div className="flex gap-2 items-center">
             {loggedInUser.photo ? (
               <div className="avatar">
-                <div className="w-10 rounded-full">
+                <div className="w-8 rounded-full">
                   <img src={loggedInUser.photo} />
                 </div>
               </div>

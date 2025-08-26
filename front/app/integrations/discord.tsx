@@ -88,7 +88,7 @@ export default function DiscordIntegrations({
         </div>
         <div className="flex items-center gap-2">
           <a
-            className="btn"
+            className="btn btn-neutral"
             href="https://discord.com/oauth2/authorize?client_id=1346845279692918804"
             target="_blank"
           >
@@ -98,7 +98,7 @@ export default function DiscordIntegrations({
           </a>
 
           <a
-            className="btn"
+            className="btn btn-neutral"
             href="https://discord.com/oauth2/authorize?client_id=1353765834321039502"
             target="_blank"
           >
