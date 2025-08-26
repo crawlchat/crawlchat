@@ -4,7 +4,12 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { useEffect, useMemo, useState } from "react";
 import { makeMessagePairs } from "./analyse";
 import { prisma, type ApiAction, type Message } from "libs/prisma";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router";
+import {
+  Link,
+  Link as RouterLink,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import { CountryFlag } from "./country-flag";
 import { extractCitations } from "libs/citation";
 import { toaster } from "~/components/ui/toaster";
@@ -210,12 +215,13 @@ export default function Message({ loaderData }: Route.ComponentProps) {
       title="Message"
       icon={<TbMessage />}
       right={
-        <>
-          <button className="btn btn-primary">
-            <TbSettingsBolt />
-            Correct it
-          </button>
-        </>
+        <Link
+          className="btn btn-primary"
+          to={`/messages/${messagePair?.queryMessage?.id}/fix`}
+        >
+          <TbSettingsBolt />
+          Correct it
+        </Link>
       }
     >
       <div className="flex flex-col gap-6">
