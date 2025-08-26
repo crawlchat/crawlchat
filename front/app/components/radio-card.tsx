@@ -23,7 +23,7 @@ export function RadioCard({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col md:flex-row gap-2">
       <input type="hidden" name={name} value={value} />
       {options.map((option) => (
         <div

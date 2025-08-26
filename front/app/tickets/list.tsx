@@ -190,7 +190,7 @@ export default function Tickets({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page title="Tickets" icon={<TbTicket />}>
-      <div className="flex flex-col gap-2 h-full">
+      <div className="flex flex-col gap-4 h-full">
         <div className="flex items-center gap-2 justify-between">
           <div />
           <div className="join">

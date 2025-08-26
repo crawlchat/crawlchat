@@ -142,7 +142,7 @@ function AssistantMessage({
                         {link.title || link.url}
                       </RouterLink>
                     </td>
-                    <td className="w-56">{link.searchQuery ?? "-"}</td>
+                    <td className="w-18 md:w-56">{link.searchQuery ?? "-"}</td>
                     <td className="w-24">
                       <div className="badge badge-primary badge-soft">
                         <TbChartBar />

@@ -324,7 +324,7 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
               </span>{" "}
               {loaderData.thread.title}
             </h1>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col md:flex-row md:items-center gap-2">
               <div
                 className={cn(
                   "badge badge-soft",

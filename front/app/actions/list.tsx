@@ -105,15 +105,17 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
                         {item.title}
                       </Link>
                     </td>
-                    <td>{item.url}</td>
-                    <td className="w-22">{item.method.toUpperCase()}</td>
-                    <td className="w-16">
+                    <td>
+                      <div className="truncate">{item.url}</div>
+                    </td>
+                    <td className="min-w-22">{item.method.toUpperCase()}</td>
+                    <td className="min-w-16">
                       <div className="badge badge-soft badge-primary gap-2">
                         <TbPointer />
                         {loaderData.counts[item.id]}
                       </div>
                     </td>
-                    <td className="text-end w-32">
+                    <td className="text-end min-w-32">
                       {moment(item.createdAt).fromNow()}
                     </td>
                   </tr>

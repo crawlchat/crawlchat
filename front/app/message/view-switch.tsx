@@ -16,7 +16,7 @@ export function ViewSwitch() {
   }, [matches]);
 
   return (
-    <div className="join">
+    <div className="join hidden md:flex">
       <div className="tooltip tooltip-left" data-tip="Messages">
         <Link
           to={"/messages"}

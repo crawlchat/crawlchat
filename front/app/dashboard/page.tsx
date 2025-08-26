@@ -269,7 +269,7 @@ export function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="stats shadow flex-1 bg-base-200">
+    <div className="stats shadow flex-1 bg-base-200 w-full">
       <div className="stat">
         <div className="stat-figure text-4xl">{icon}</div>
         <div className="stat-title">{label}</div>
@@ -388,7 +388,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
       {!loaderData.noScrapes && (
         <div className="h-full gap-8 flex flex-col" ref={containerRef}>
-          <div className="flex gap-4 items-center">
+          <div className="flex flex-col justify-stretch md:flex-row gap-4 items-center">
             <StatCard
               label="Today"
               value={loaderData.messagesToday}

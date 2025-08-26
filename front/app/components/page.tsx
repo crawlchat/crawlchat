@@ -42,13 +42,13 @@ export function Page({
           <div className="flex gap-2 items-center">
             <label
               htmlFor="side-menu-drawer"
-              className="btn btn-sm btn-square md:hidden"
+              className="btn btn-square md:hidden"
             >
               <TbMenu2 />
             </label>
             <div className="flex items-center gap-2 text-xl font-medium">
               {icon}
-              {title}
+              <div className="line-clamp-1">{title}</div>
             </div>
           </div>
           <div className="flex gap-2 items-center">{right}</div>

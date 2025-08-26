@@ -201,7 +201,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                       {item.group.title ?? "Untitled"}
                     </Link>
                   </td>
-                  <td>
+                  <td className="min-w-38">
                     <div className="flex gap-2 items-center">
                       {item.citedNum} / {item.totalCited}
                       <progress
@@ -216,10 +216,10 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                       {loaderData.counts[item.group.id] ?? 0}
                     </span>
                   </td>
-                  <td>
+                  <td className="min-w-38">
                     <GroupStatus status={item.group.status} />
                   </td>
-                  <td>
+                  <td className="min-w-38">
                     <div>
                       {moment(item.group.updatedAt).fromNow()}
                       {item.group.nextUpdateAt && (

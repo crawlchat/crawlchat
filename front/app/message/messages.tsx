@@ -130,7 +130,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                         <td className="w-10">
                           <ChannelBadge channel={pair.queryMessage?.channel} />
                         </td>
-                        <td className="text-end w-34">
+                        <td className="text-end min-w-34">
                           {moment(pair.queryMessage?.createdAt).fromNow()}
                         </td>
                       </tr>

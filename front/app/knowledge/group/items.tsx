@@ -111,7 +111,11 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                       </Link>
                     </td>
 
-                    <td>{truncateStart(item.title?.trim() || "-", 50)}</td>
+                    <td>
+                      <div className="line-clamp-1">
+                        {truncateStart(item.title?.trim() || "-", 50)}
+                      </div>
+                    </td>
 
                     <td className="w-24">
                       <div
@@ -134,7 +138,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                         {item.status === "completed" ? "Success" : "Failed"}
                       </div>
                     </td>
-                    <td className="w-34 text-end">
+                    <td className="min-w-38 text-end">
                       {moment(item.updatedAt).fromNow()}
                     </td>
                   </tr>
