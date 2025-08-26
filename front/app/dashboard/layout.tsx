@@ -119,7 +119,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             aria-label="close sidebar"
             className="drawer-overlay"
           />
-          <div className="bg-base-200 min-h-full w-80 p-4">
+          <div className="bg-base-200 min-h-full w-68 p-4">
             <SideMenu
               loggedInUser={user}
               scrapeOwner={loaderData.scrape?.user!}

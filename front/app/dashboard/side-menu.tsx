@@ -6,19 +6,15 @@ import {
   TbChevronDown,
   TbChevronUp,
   TbCreditCard,
-  TbCrown,
   TbHome,
-  TbLock,
   TbLogout,
   TbMessage,
   TbPlug,
   TbPointer,
   TbSettings,
-  TbThumbDown,
   TbTicket,
   TbUser,
   TbUsers,
-  TbWorld,
   TbX,
 } from "react-icons/tb";
 import {
@@ -41,10 +37,12 @@ import { LogoChakra } from "./logo-chakra";
 import { AppContext } from "./context";
 import { track } from "~/pirsch";
 import cn from "@meltdownjs/cn";
+import { ScrapePrivacyBadge } from "~/components/scrape-type-badge";
+import { PlanIconBadge } from "~/components/plan-icon-badge";
 
 function SideMenuItem({
   link,
-  number,
+  badge,
 }: {
   link: {
     label: string;
@@ -52,11 +50,7 @@ function SideMenuItem({
     icon: React.ReactNode;
     external?: boolean;
   };
-  number?: {
-    value: number;
-    color?: string;
-    icon?: React.ReactNode;
-  };
+  badge?: React.ReactNode;
 }) {
   return (
     <NavLink to={link.to} target={link.external ? "_blank" : undefined}>
@@ -70,16 +64,9 @@ function SideMenuItem({
           <div className="flex gap-2 items-center">
             {link.icon}
             {link.label}
+            {badge}
             {isPending && (
               <span className="loading loading-spinner loading-xs" />
-            )}
-          </div>
-          <div className="flex gap-1">
-            {number && (
-              <span className="badge badge-primary px-2">
-                {number.icon}
-                {number.value}
-              </span>
             )}
           </div>
         </div>
@@ -105,7 +92,7 @@ function CreditProgress({
     <div className="flex flex-col gap-1">
       <div className="flex justify-between text-sm">
         {title}
-        <div className="tooltip" data-tip={tip}>
+        <div className="tooltip tooltip-left" data-tip={tip}>
           {numberToKMB(used)} / {numberToKMB(total)}
         </div>
       </div>
@@ -202,10 +189,8 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
 }
 
 export function SideMenu({
-  width,
   scrapeOwner,
   loggedInUser,
-  contentRef,
   plan,
   scrapes,
   scrapeId,
@@ -215,7 +200,6 @@ export function SideMenu({
   scrape,
   dataGapMessages,
 }: {
-  width?: number;
   scrapeOwner: User;
   loggedInUser: User;
   contentRef?: React.RefObject<HTMLDivElement | null>;
@@ -299,29 +283,28 @@ export function SideMenu({
     scrapeOwner?.plan?.credits?.scrapes ?? plan.credits.scrapes;
   const usedScrapes = totalScrapes - availableScrapes;
 
-  function getLinkNumber(label: string) {
+  function getMenuBadge(label: string) {
     if (label === "Tickets" && openTickets > 0) {
-      return {
-        value: openTickets,
-        icon: <TbTicket />,
-        color: "blue",
-      };
+      return (
+        <span className="badge badge-primary px-2 badge-soft">
+          {openTickets}
+        </span>
+      );
     }
     if (label === "Messages" && toBeFixedMessages > 0) {
-      return {
-        value: toBeFixedMessages,
-        icon: <TbThumbDown />,
-        color: "orange",
-      };
+      return (
+        <span className="badge badge-error px-2 badge-soft">
+          {toBeFixedMessages}
+        </span>
+      );
     }
     if (label === "Data gaps" && dataGapMessages > 0) {
-      return {
-        value: dataGapMessages,
-        icon: <TbChartBarOff />,
-        color: "orange",
-      };
+      return (
+        <span className="badge badge-error px-2 badge-soft">
+          {dataGapMessages}
+        </span>
+      );
     }
-    return undefined;
   }
 
   function handleChangeScrape(scrapeId: string) {
@@ -342,38 +325,18 @@ export function SideMenu({
     <div
       className={cn(
         "flex flex-col min-h-screen border-r border-base-300 bg-base-200",
-        "gap-0 justify-between fixed left-0 top-0",
-        width && "hidden md:flex"
+        "gap-0 justify-between fixed left-0 top-0 w-full"
       )}
-      style={{ width: width ?? "100%" }}
     >
       <div className="flex flex-col py-4 gap-4">
         <div className="flex flex-col px-4">
           <div className="flex justify-between">
             <LogoChakra />
             <div className="flex gap-1">
-              <div
-                className="tooltip tooltip-bottom h-fit"
-                data-tip={
-                  scrape?.widgetConfig?.private
-                    ? "Private collection. Only secured channels such as Discord, Slack can be used."
-                    : "Public collection. Anyone can chat with it."
-                }
-              >
-                <span className="badge badge-neutral px-1">
-                  {scrape?.widgetConfig?.private ? <TbLock /> : <TbWorld />}
-                </span>
-              </div>
-              {["pro", "starter"].includes(planId ?? "") && (
-                <div
-                  className="tooltip tooltip-bottom h-fit"
-                  data-tip={`Collection on ${planId} plan`}
-                >
-                  <span className="badge badge-primary px-1">
-                    <TbCrown />
-                  </span>
-                </div>
-              )}
+              <ScrapePrivacyBadge
+                private={scrape?.widgetConfig?.private ?? false}
+              />
+              <PlanIconBadge planId={planId} />
             </div>
           </div>
         </div>
@@ -408,7 +371,7 @@ export function SideMenu({
             <SideMenuItem
               key={index}
               link={link}
-              number={getLinkNumber(link.label)}
+              badge={getMenuBadge(link.label)}
             />
           ))}
         </div>
@@ -416,7 +379,12 @@ export function SideMenu({
 
       <div className="p-4 flex flex-col gap-4">
         {scrapeId && <SetupProgress scrapeId={scrapeId} />}
-        <div className="flex flex-col gap-2 bg-base-100 rounded-box p-4 border border-base-300">
+        <div
+          className={cn(
+            "flex flex-col gap-2 bg-base-100 rounded-box",
+            "p-4 border border-base-300"
+          )}
+        >
           <CreditProgress
             title="Messages"
             used={usedMessages}
