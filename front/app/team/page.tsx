@@ -305,7 +305,7 @@ function Invite() {
               they have not signed up yet.
             </p>
             <input
-              className="input input-bordered w-full"
+              className="input w-full"
               placeholder="Ex: team-member@example.com"
               name="email"
               required

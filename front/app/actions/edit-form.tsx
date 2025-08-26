@@ -19,7 +19,7 @@ function DataItemForm({
   removeDataItem: (index: number) => void;
 }) {
   return (
-    <div className="flex flex-col border border-base-300 rounded-box p-4">
+    <div className="flex flex-col border border-base-300 rounded-box p-4 bg-base-100">
       <div className="flex gap-2">
         <fieldset className="fieldset flex-1">
           <legend className="fieldset-legend">Type</legend>
@@ -51,7 +51,7 @@ function DataItemForm({
         <fieldset className="fieldset flex-1">
           <legend className="fieldset-legend">Key</legend>
           <input
-            className="input input-bordered w-full"
+            className="input w-full"
             placeholder="Enter your key"
             value={item.key}
             onChange={(e) => updateDataItem(index, "key", e.target.value)}
@@ -62,7 +62,7 @@ function DataItemForm({
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">Description</legend>
             <input
-              className="input input-bordered w-full"
+              className="input w-full"
               placeholder="Enter your description"
               value={item.description}
               onChange={(e) =>
@@ -75,7 +75,7 @@ function DataItemForm({
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">Value</legend>
             <input
-              className="input input-bordered w-full"
+              className="input w-full"
               placeholder="Enter the value"
               value={item.value ?? ""}
               onChange={(e) => updateDataItem(index, "value", e.target.value)}
@@ -128,7 +128,7 @@ export function EditForm() {
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">Title</legend>
             <input
-              className="input input-bordered w-full"
+              className="input w-full"
               type="text"
               placeholder="Enter the title"
               value={title}
@@ -139,7 +139,7 @@ export function EditForm() {
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">Description</legend>
             <input
-              className="input input-bordered w-full"
+              className="input w-full"
               placeholder="Enter the description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -151,7 +151,7 @@ export function EditForm() {
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">URL</legend>
             <input
-              className="input input-bordered w-full"
+              className="input w-full"
               placeholder="Enter the URL"
               value={url}
               onChange={(e) => setUrl(e.target.value)}

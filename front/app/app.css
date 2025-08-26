@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@plugin "daisyui";
 @plugin "@tailwindcss/typography";
+@plugin "daisyui";
   
 @plugin "daisyui/theme" {
   name: "brand";

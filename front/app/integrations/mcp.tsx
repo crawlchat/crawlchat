@@ -90,7 +90,7 @@ export default function ScrapeMcp({ loaderData }: Route.ComponentProps) {
         >
           <input
             type="text"
-            className="input input-bordered"
+            className="input"
             name="mcpToolName"
             defaultValue={loaderData.scrape.mcpToolName ?? ""}
             placeholder="Ex: search_mytool_documentation"

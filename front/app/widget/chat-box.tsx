@@ -737,12 +737,10 @@ function PoweredBy() {
 
 export function ChatboxContainer({
   children,
-  width,
-  height,
+  noShadow,
 }: {
   children: React.ReactNode;
-  width?: string | null;
-  height?: string | null;
+  noShadow?: boolean;
 }) {
   const { close, scrape } = useChatBoxContext();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -766,11 +764,12 @@ export function ChatboxContainer({
       <div
         className={cn(
           "flex flex-col bg-base-100 relative md:rounded-xl overflow-hidden",
-          "md:border md:shadow-2xl w-full h-full md:h-auto border-base-300",
+          "md:border w-full h-full md:h-auto border-base-300",
           scrape.widgetConfig?.size !== "large" &&
             "md:w-[520px] md:max-h-[460px]",
           scrape.widgetConfig?.size === "large" &&
-            "md:w-[700px] md:max-h-[600px]"
+            "md:w-[700px] md:max-h-[600px]",
+          !noShadow && "md:shadow-2xl"
         )}
         style={{
           borderColor: borderColor ?? undefined,

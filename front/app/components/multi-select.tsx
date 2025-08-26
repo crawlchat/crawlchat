@@ -75,7 +75,7 @@ export function MultiSelect({
           </select>
         ) : (
           <input
-            className="input input-bordered"
+            className="input"
             placeholder={placeholder ?? "Enter value"}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}

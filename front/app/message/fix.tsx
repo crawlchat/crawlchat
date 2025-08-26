@@ -194,7 +194,7 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
                 <input
                   type="text"
                   placeholder="Ex: Price details"
-                  className="input input-bordered w-full"
+                  className="input w-full"
                   name="title"
                   defaultValue={summarizeFetcher.data.title}
                   disabled={saveFetcher.state !== "idle"}

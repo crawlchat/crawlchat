@@ -126,7 +126,7 @@ function NameSection({ item }: { item: ScrapeItem }) {
     >
       <input type="hidden" name="intent" value="update" />
       <input
-        className="input input-bordered"
+        className="input"
         type="text"
         name="title"
         placeholder="Example: FAQ Document"
@@ -152,7 +152,7 @@ function UrlSection({ item }: { item: ScrapeItem }) {
     >
       <input type="hidden" name="intent" value="update" />
       <input
-        className="input input-bordered"
+        className="input"
         type="url"
         name="url"
         placeholder="Example: https://example.com/faq"

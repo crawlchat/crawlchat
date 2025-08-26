@@ -226,7 +226,7 @@ function ColorPicker({
           name={name}
           color={color ?? undefined}
           onChange={setColor}
-          className="input input-bordered w-full"
+          className="input w-full"
           placeholder={"Pick a color"}
           prefixed
         />
@@ -387,7 +387,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
               <fieldset className="fieldset flex-1">
                 <legend className="fieldset-legend">Button text</legend>
                 <input
-                  className="input input-bordered w-full"
+                  className="input w-full"
                   type="text"
                   placeholder="Button text"
                   name="buttonText"
@@ -399,7 +399,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
               <fieldset className="fieldset flex-1">
                 <legend className="fieldset-legend">Logo URL</legend>
                 <input
-                  className="input input-bordered w-full"
+                  className="input w-full"
                   type="text"
                   placeholder="Logo URL"
                   name="logoUrl"
@@ -448,7 +448,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           {questions.map((question, i) => (
             <div key={i} className="flex gap-2 items-center">
               <input
-                className="input input-bordered w-full"
+                className="input w-full"
                 type="text"
                 name={"questions"}
                 placeholder={"Ex: How to use the product?"}
@@ -483,7 +483,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           fetcher={textInputPlaceholderFetcher}
         >
           <input
-            className="input input-bordered w-full"
+            className="input w-full"
             type="text"
             name="textInputPlaceholder"
             value={textInputPlaceholder ?? ""}
@@ -515,7 +515,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
       <div className="flex flex-col gap-4 w-[500px] sticky top-[80px]">
         <div className="flex justify-center">
           <div>
-            <div role="tablist" className="tabs tabs-box">
+            <div role="tablist" className="tabs tabs-box shadow-none p-0">
               <a
                 role="tab"
                 className={cn(
@@ -595,7 +595,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
             token={null}
             fullscreen={false}
           >
-            <ChatboxContainer>
+            <ChatboxContainer noShadow>
               <ChatBox />
             </ChatboxContainer>
           </ChatBoxProvider>

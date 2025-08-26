@@ -339,7 +339,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
           >
             <input
               type="text"
-              className="input input-bordered max-w-sm"
+              className="input max-w-sm"
               name="title"
               defaultValue={loaderData.scrape.title ?? ""}
               placeholder="Enter a name for this scrape."
@@ -354,7 +354,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
           >
             <input
               type="text"
-              className="input input-bordered max-w-sm"
+              className="input max-w-sm"
               name="slug"
               defaultValue={loaderData.scrape.slug ?? ""}
               placeholder="Ex: remotion"

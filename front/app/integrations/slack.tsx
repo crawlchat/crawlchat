@@ -102,7 +102,7 @@ export default function SlackIntegrations({
           fetcher={teamIdFetcher}
         >
           <input
-            className="input input-bordered w-full"
+            className="input w-full"
             name="slackTeamId"
             placeholder="Ex: T060PNXZXXX"
             defaultValue={loaderData.scrape.slackTeamId ?? ""}

@@ -164,7 +164,7 @@ export default function LoginPage() {
               </div>
 
               <input
-                className="input input-bordered w-full"
+                className="input w-full"
                 ref={emailRef}
                 type="email"
                 placeholder="myemail@example.com"

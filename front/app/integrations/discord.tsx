@@ -134,7 +134,7 @@ export default function DiscordIntegrations({
           fetcher={discordServerIdFetcher}
         >
           <input
-            className="input input-bordered w-full"
+            className="input w-full"
             name="discordServerId"
             placeholder="Enter your Discord server ID"
             defaultValue={loaderData.scrape.discordServerId ?? ""}

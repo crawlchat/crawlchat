@@ -387,7 +387,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
       {!loaderData.noScrapes && (
         <div className="h-full gap-8 flex flex-col" ref={containerRef}>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-4 items-center">
             <StatCard
               label="Today"
               value={loaderData.messagesToday}
@@ -413,45 +413,69 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             />
           </div>
 
-          <div className="flex gap-2">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-4">
                 <TbMessage />
                 <span className="text-lg font-medium">Messages</span>
               </div>
-              <AreaChart width={width / 2} height={200} data={chartData}>
-                <XAxis dataKey="name" hide />
-                <Tooltip />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Area
-                  type="monotone"
-                  dataKey="Messages"
-                  stroke={"var(--color-primary)"}
-                  fill={"var(--color-primary-content)"}
-                />
-              </AreaChart>
+              <div className="rounded-box overflow-hidden border border-base-300 p-2">
+                <AreaChart width={width / 2 - 20} height={200} data={chartData}>
+                  <XAxis dataKey="name" hide />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "var(--radius-box)",
+                      backgroundColor: "var(--color-primary)",
+                      color: "var(--color-primary-content)",
+                      gap: "0",
+                    }}
+                    itemStyle={{
+                      color: "var(--color-primary-content)",
+                    }}
+                  />
+                  <CartesianGrid strokeDasharray="6 6" vertical={false} />
+                  <Area
+                    type="monotone"
+                    dataKey="Messages"
+                    stroke={"var(--color-primary)"}
+                    fill={"var(--color-primary-content)"}
+                  />
+                </AreaChart>
+              </div>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <TbChartBar />
                 <span className="text-lg font-medium">Score distribution</span>
               </div>
-              <AreaChart
-                width={width / 2}
-                height={200}
-                data={scoreDistributionData}
-              >
-                <XAxis dataKey="score" hide />
-                <Tooltip />
-                <CartesianGrid strokeDasharray="3 3" />
-                <Area
-                  type="monotone"
-                  dataKey="Messages"
-                  fill={"var(--color-primary-content)"}
-                  stroke={"var(--color-primary)"}
-                />
-              </AreaChart>
+              <div className="rounded-box overflow-hidden border border-base-300 p-2">
+                <AreaChart
+                  width={width / 2 - 20}
+                  height={200}
+                  data={scoreDistributionData}
+                >
+                  <XAxis dataKey="score" hide />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: "var(--radius-box)",
+                      backgroundColor: "var(--color-primary)",
+                      color: "var(--color-primary-content)",
+                      gap: "0",
+                    }}
+                    itemStyle={{
+                      color: "var(--color-primary-content)",
+                    }}
+                  />
+                  <CartesianGrid strokeDasharray="6 6" vertical={false} />
+                  <Area
+                    type="monotone"
+                    dataKey="Messages"
+                    fill={"var(--color-primary-content)"}
+                    stroke={"var(--color-primary)"}
+                  />
+                </AreaChart>
+              </div>
             </div>
           </div>
 

@@ -269,7 +269,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           placeholder="Ex: #sidebar, #header, #footer"
           defaultValue={group.removeHtmlTags ?? ""}
           name="removeHtmlTags"
-          className="input input-bordered"
+          className="input"
         />
       </SettingsSection>
 
@@ -287,7 +287,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           name="itemContext"
           defaultValue={group.itemContext ?? ""}
           placeholder="Ex: v1, v2, node, bun, etc."
-          className="input input-bordered"
+          className="input"
         />
         <div className="text-sm text-base-content/50">
           This requires re-fetching the knowledge group.
@@ -302,7 +302,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
       >
         <input
           placeholder="Ex: #panel"
-          className="input input-bordered"
+          className="input"
           defaultValue={group.scrollSelector ?? ""}
           name="scrollSelector"
         />

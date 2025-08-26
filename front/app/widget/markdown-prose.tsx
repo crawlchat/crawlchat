@@ -43,7 +43,7 @@ const RichCreateTicket = ({
         <>
           <div className="text-lg font-bold">Create a support ticket</div>
           <input
-            className="input input-sm input-bordered"
+            className="input input-sm"
             placeholder="Title"
             defaultValue={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -58,7 +58,7 @@ const RichCreateTicket = ({
             disabled={disabled}
           />
           <input
-            className="input input-sm input-bordered"
+            className="input input-sm"
             placeholder="Email"
             defaultValue={email}
             onChange={(e) => setEmail(e.target.value)}
