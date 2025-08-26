@@ -29,7 +29,7 @@ export function RadioCard({
         <div
           key={option.value}
           className={cn(
-            "flex gap-2 flex-1 border border-base-300 p-4",
+            "flex gap-2 flex-1 border border-base-300 p-4 bg-base-100",
             "rounded-box justify-between cursor-pointer",
             value === option.value && "border-primary outline outline-primary",
             option.disabled && "opacity-50 cursor-not-allowed"

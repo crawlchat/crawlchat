@@ -107,7 +107,7 @@ export function DataGapCard({
   };
 
   return (
-    <div className="flex flex-col gap-4 border border-base-300 p-4 rounded-box">
+    <div className="flex flex-col gap-4 border border-base-300 p-4 rounded-box bg-base-200">
       <div className="flex flex-col gap-2">
         <div className="font-bold">{message.analysis!.dataGapTitle}</div>
         <div className="flex gap-2">

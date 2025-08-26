@@ -165,7 +165,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
         </div>
       )}
       {groups.length > 0 && (
-        <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100">
+        <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
           <table className="table">
             <thead>
               <tr>

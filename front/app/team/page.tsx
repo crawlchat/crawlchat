@@ -428,7 +428,7 @@ export default function TeamPage({ loaderData }: Route.ComponentProps) {
         <p className="text-base-content/50">
           Invite your team members and manage their access.
         </p>
-        <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100">
+        <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
           <table className="table">
             <thead>
               <tr>

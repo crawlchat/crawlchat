@@ -326,7 +326,7 @@ export function SideMenu({
   return (
     <div
       className={cn(
-        "flex flex-col min-h-screen bg-base-200",
+        "flex flex-col min-h-screen",
         "gap-0 justify-between fixed left-0 top-0 w-full"
       )}
     >
@@ -348,7 +348,7 @@ export function SideMenu({
             <button
               tabIndex={0}
               role="button"
-              className="btn bg-base-100 mb-1 w-full flex justify-between"
+              className="btn bg-base-200 mb-1 w-full flex justify-between"
             >
               {scrapeId ? scrape?.title : "Select collection"}
               <TbChevronDown />
@@ -383,7 +383,7 @@ export function SideMenu({
         {scrapeId && <SetupProgress scrapeId={scrapeId} />}
         <div
           className={cn(
-            "flex flex-col gap-2 bg-base-100 rounded-box",
+            "flex flex-col gap-2 bg-base-200 rounded-box",
             "p-4 border border-base-300"
           )}
         >
@@ -420,7 +420,7 @@ export function SideMenu({
           <div className="dropdown dropdown-top dropdown-end">
             <button
               tabIndex={0}
-              className="btn btn-sm btn-circle mt-1 btn-square bg-base-100"
+              className="btn btn-sm btn-circle mt-1 btn-square bg-base-200"
             >
               <TbChevronUp />
             </button>

@@ -19,7 +19,7 @@ function DataItemForm({
   removeDataItem: (index: number) => void;
 }) {
   return (
-    <div className="flex flex-col border border-base-300 rounded-box p-4 bg-base-100">
+    <div className="flex flex-col border border-base-300 rounded-box p-4 bg-base-200">
       <div className="flex gap-2">
         <fieldset className="fieldset flex-1">
           <legend className="fieldset-legend">Type</legend>

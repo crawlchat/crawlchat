@@ -231,10 +231,11 @@ function Message({
     <div
       className={cn(
         "flex flex-col gap-0 border border-base-300 rounded-box overflow-hidden",
+        "bg-base-200",
         shouldHighlight && "border-primary border-2"
       )}
     >
-      <div className="flex items-center gap-2 p-2 px-4 border-b border-base-300 bg-base-200">
+      <div className="flex items-center gap-2 p-2 px-4 border-b border-base-300">
         {message.role === "agent" && (
           <img
             className="max-h-[18px]"
@@ -312,7 +313,7 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2 items-center">
+    <div className="flex flex-col gap-2 items-center bg-base-100 min-h-screen">
       <div className="flex flex-col gap-8 p-4 max-w-3xl w-full">
         <Nav scrape={loaderData.thread.scrape} />
         {loaderData.thread.title && (

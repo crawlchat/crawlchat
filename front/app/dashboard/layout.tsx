@@ -101,7 +101,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
   return (
     <AppContext.Provider value={app}>
-      <div className="min-h-screen drawer md:drawer-open">
+      <div className="min-h-screen drawer md:drawer-open bg-base-100">
         <input
           type="checkbox"
           id="side-menu-drawer"
@@ -119,7 +119,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             aria-label="close sidebar"
             className="drawer-overlay"
           />
-          <div className="bg-base-200 min-h-full w-68 p-4">
+          <div className="min-h-full w-68 p-4">
             <SideMenu
               loggedInUser={user}
               scrapeOwner={loaderData.scrape?.user!}

@@ -60,23 +60,21 @@ export default function ScrapePage() {
   return (
     <Page title={"Connect"} icon={<TbPlug />}>
       <div className="flex flex-col gap-4">
-        <div>
-          <div role="tablist" className="tabs tabs-box w-fit shadow-none p-0">
-            {tabs.map((tab) => (
-              <a
-                role="tab"
-                className={cn(
-                  "tab gap-2",
-                  tab.value === activeTab && "tab-active"
-                )}
-                key={tab.value}
-                onClick={() => handleTabChange(tab.value)}
-              >
-                {tab.icon}
-                {tab.label}
-              </a>
-            ))}
-          </div>
+        <div role="tablist" className="tabs tabs-lift p-0 w-full">
+          {tabs.map((tab) => (
+            <a
+              role="tab"
+              className={cn(
+                "tab gap-2",
+                tab.value === activeTab && "tab-active"
+              )}
+              key={tab.value}
+              onClick={() => handleTabChange(tab.value)}
+            >
+              {tab.icon}
+              {tab.label}
+            </a>
+          ))}
         </div>
 
         <div className="flex flex-col gap-2">

@@ -109,7 +109,7 @@ function AssistantMessage({
       {message.links.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="text-lg">Resources</div>
-          <div className="overflow-x-auto border border-base-300 rounded-box">
+          <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
             <table className="table">
               <thead>
                 <tr>
@@ -156,7 +156,7 @@ function AssistantMessage({
         <div className="flex flex-col gap-2">
           <div className="text-lg">Actions</div>
           {message.apiActionCalls.map((call) => (
-            <div className="flex flex-col gap-2 border border-base-300 rounded-box p-4">
+            <div className="flex flex-col gap-2 border border-base-300 rounded-box p-4 bg-base-200">
               <DataList
                 data={[
                   {

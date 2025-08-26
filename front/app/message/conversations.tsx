@@ -197,11 +197,11 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
 
             <div
               className={cn(
-                "bg-base-100 p-2 rounded-box border border-base-300",
+                "bg-base-200 p-2 rounded-box border border-base-300",
                 "shadow-sm"
               )}
             >
-              <div className="rounded-box overflow-hidden border border-base-300">
+              <div className="rounded-box overflow-hidden border border-base-300 bg-base-100">
               {loaderData.threads.map((thread) => (
                 <div
                   key={thread.id}

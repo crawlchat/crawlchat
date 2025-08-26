@@ -76,7 +76,7 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
             APIs are called from backend in a secured way.
           </div>
 
-          <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100">
+          <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
             <table className="table">
               <thead>
                 <tr>

@@ -268,7 +268,7 @@ export function StatCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="stats shadow flex-1 bg-base-100">
+    <div className="stats shadow flex-1 bg-base-200">
       <div className="stat">
         <div className="stat-figure text-4xl">{icon}</div>
         <div className="stat-title">{label}</div>
@@ -419,7 +419,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <TbMessage />
                 <span className="text-lg font-medium">Messages</span>
               </div>
-              <div className="rounded-box overflow-hidden border border-base-300 p-2">
+              <div className="rounded-box overflow-hidden border border-base-300 p-1 bg-base-200">
                 <AreaChart width={width / 2 - 20} height={200} data={chartData}>
                   <XAxis dataKey="name" hide />
                   <Tooltip
@@ -449,7 +449,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <TbChartBar />
                 <span className="text-lg font-medium">Score distribution</span>
               </div>
-              <div className="rounded-box overflow-hidden border border-base-300 p-2">
+              <div className="rounded-box overflow-hidden border border-base-300 p-1 bg-base-200">
                 <AreaChart
                   width={width / 2 - 20}
                   height={200}
@@ -484,7 +484,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <TbMessage />
               <span className="text-lg font-medium">Latest questions</span>
             </div>
-            <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100">
+            <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
               <table className="table">
                 <thead>
                   <tr>
@@ -511,7 +511,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   ))}
                   {loaderData.latestQuestions.length === 0 && (
                     <tr>
-                      <td colSpan={2} className="text-center">
+                      <td colSpan={999} className="text-center">
                         No data
                       </td>
                     </tr>
