@@ -657,7 +657,7 @@ function Toolbar() {
         {admin &&
           overallScore !== undefined &&
           Number.isFinite(overallScore) && (
-            <div className="tooltip" data-tip="Avg score of all messages">
+            <div className="tooltip tooltip-right" data-tip="Avg score">
               <span className="badge badge-primary badge-soft">
                 {overallScore.toFixed(2)}
               </span>

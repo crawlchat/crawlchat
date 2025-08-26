@@ -1,16 +1,5 @@
-import {
-  Badge,
-  Box,
-  Center,
-  EmptyState,
-  Flex,
-  Group,
-  IconButton,
-  Spinner,
-  Stack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import type { Route } from "./+types/conversations";
+import type { Prisma } from "libs/prisma";
 import { Page } from "~/components/page";
 import {
   TbChevronLeft,
@@ -20,20 +9,19 @@ import {
   TbTicket,
   TbTrash,
 } from "react-icons/tb";
-import type { Route } from "./+types/conversations";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import type { Prisma } from "libs/prisma";
 import { prisma } from "~/prisma";
-import moment from "moment";
 import { useEffect, useState } from "react";
-import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
-import { getMessagesScore, getScoreColor } from "~/score";
-import { Tooltip } from "~/components/ui/tooltip";
+import { getMessagesScore } from "~/score";
 import { Link, redirect, useFetcher } from "react-router";
 import { ViewSwitch } from "./view-switch";
 import { CountryFlag } from "./country-flag";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
+import { EmptyState } from "~/components/empty-state";
+import moment from "moment";
+import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
+import cn from "@meltdownjs/cn";
 
 type ThreadWithMessages = Prisma.ThreadGetPayload<{
   include: {
@@ -153,193 +141,164 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
       right={<ViewSwitch />}
     >
       {loaderData.threads.length === 0 && (
-        <EmptyState.Root>
-          <EmptyState.Content>
-            <EmptyState.Indicator>
-              <TbMessages />
-            </EmptyState.Indicator>
-            <VStack textAlign="center">
-              <EmptyState.Title>No conversations found</EmptyState.Title>
-              <EmptyState.Description>
-                Integrate the collection on your website to start making
-                conversations
-              </EmptyState.Description>
-            </VStack>
-          </EmptyState.Content>
-        </EmptyState.Root>
+        <div className="flex h-full w-full items-center justify-center">
+          <EmptyState
+            icon={<TbMessages />}
+            title="No conversations found"
+            description="Integrate the collection on your website to start making conversations"
+          />
+        </div>
       )}
+
       {loaderData.threads.length > 0 && (
-        <Flex h="full">
-          <Stack
-            maxW="300px"
-            w="full"
-            borderRight={"1px solid"}
-            borderColor="brand.outline"
-            h="full"
-            maxH={"calc(100dvh - 60px)"}
-            gap={0}
-            overflowY={"auto"}
+        <div className="flex h-full">
+          <div
+            className={cn(
+              "flex flex-col max-w-md w-full",
+              "border-r border-base-300 h-full overflow-y-auto"
+            )}
           >
-            <Text p={4} opacity={0.5}>
+            <div className="p-4 text-base-content/50">
               Here are the conversations made by your customers or community on
               your website
-            </Text>
+            </div>
 
-            <Group p={4}>
-              <IconButton
-                size={"sm"}
-                variant={"subtle"}
-                disabled={loaderData.page === 1}
+            <div className="flex gap-2 items-center p-4">
+              <Link
+                className="btn btn-square"
+                to={
+                  loaderData.page > 1
+                    ? `/messages/conversations?page=${loaderData.page - 1}`
+                    : "#"
+                }
               >
-                <Link
-                  to={
-                    loaderData.page > 1
-                      ? `/messages/conversations?page=${loaderData.page - 1}`
-                      : "#"
-                  }
-                >
-                  <TbChevronLeft />
-                </Link>
-              </IconButton>
-              <Group flex={1} justifyContent={"center"} gap={4} fontSize={"sm"}>
-                <Text>
+                <TbChevronLeft />
+              </Link>
+
+              <div className="flex items-center flex-1 justify-center gap-4 text-sm">
+                <span>
                   {loaderData.from} - {loaderData.to}
-                </Text>
-                <Text>
-                  {loaderData.page} / {loaderData.totalPages}
-                </Text>
-              </Group>
-              <IconButton
-                size={"sm"}
-                variant={"subtle"}
-                disabled={loaderData.page === loaderData.totalPages}
+                </span>
+                <span>
+                  [{loaderData.page} / {loaderData.totalPages}]
+                </span>
+              </div>
+
+              <Link
+                className="btn btn-square"
+                to={
+                  loaderData.page < loaderData.totalPages
+                    ? `/messages/conversations?page=${loaderData.page + 1}`
+                    : "#"
+                }
               >
-                <Link
-                  to={
-                    loaderData.page < loaderData.totalPages
-                      ? `/messages/conversations?page=${loaderData.page + 1}`
-                      : "#"
-                  }
-                >
-                  <TbChevronRight />
-                </Link>
-              </IconButton>
-            </Group>
+                <TbChevronRight />
+              </Link>
+            </div>
 
             {loaderData.threads.map((thread) => (
-              <Stack
+              <div
                 key={thread.id}
-                borderTop={"1px solid"}
-                borderColor="brand.outline"
-                px={4}
-                py={2}
-                gap={1}
-                cursor={"pointer"}
-                bg={
-                  selectedThread?.id === thread.id ? "brand.gray.50" : undefined
-                }
-                _hover={{ bg: "brand.gray.50" }}
-                _last={{
-                  borderBottom: "1px solid",
-                  borderColor: "brand.outline",
-                }}
+                className={cn(
+                  "flex flex-col gap-1 px-4 py-2",
+                  "border-t border-base-300",
+                  "cursor-pointer last:border-b",
+                  "hover:bg-base-200",
+                  selectedThread?.id === thread.id && "bg-base-200"
+                )}
                 onClick={() => setSelectedThread(thread)}
               >
-                <Group justifyContent={"space-between"}>
-                  <Group>
+                <div className="flex gap-2 items-center justify-between">
+                  <div className="flex gap-2 items-center">
                     {thread.location?.country && (
                       <CountryFlag location={thread.location} />
                     )}
-                    <Text opacity={0.8}>
+                    <span className="text-base-content/80">
                       {thread.id.substring(thread.id.length - 4)}
-                    </Text>
-                  </Group>
-                  <Group>
+                    </span>
+                  </div>
+                  <div className="flex gap-2 items-center">
                     {thread.ticketStatus && (
-                      <Tooltip content="Ticket created" showArrow>
-                        <Badge colorPalette={"brand"} variant={"surface"}>
-                          <TbTicket />
-                        </Badge>
-                      </Tooltip>
-                    )}
-                    <Tooltip content="Avg score of all the messages" showArrow>
-                      <Badge
-                        colorPalette={getScoreColor(
-                          getMessagesScore(thread.messages)
-                        )}
-                        variant={"surface"}
+                      <div
+                        className="tooltip tooltip-left"
+                        data-tip="Ticket created"
                       >
+                        <span className="badge badge-primary px-1">
+                          <TbTicket />
+                        </span>
+                      </div>
+                    )}
+                    <div className="tooltip tooltip-left" data-tip="Avg score">
+                      <span className="badge badge-primary badge-soft">
                         {getMessagesScore(thread.messages).toFixed(2)}
-                      </Badge>
-                    </Tooltip>
-                    <Badge colorPalette={"brand"} variant={"surface"}>
-                      <TbMessage />
-                      {thread.messages.length}
-                    </Badge>
-                  </Group>
-                </Group>
-                <Text opacity={0.5} fontSize={"sm"}>
+                      </span>
+                    </div>
+                    <div
+                      className="tooltip tooltip-left"
+                      data-tip="Number of messages"
+                    >
+                      <span className="badge badge-primary badge-soft">
+                        <TbMessage />
+                        {thread.messages.length}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <span className="text-base-content/50 text-sm">
                   {moment(thread.createdAt).fromNow()}
-                </Text>
-                <Stack gap={0.2}>
+                </span>
+                <div className="flex flex-col gap-0.5">
                   {thread.customTags &&
                     Object.keys(thread.customTags).map((key) => (
-                      <Box key={key}>
-                        <Badge variant={"surface"}>
+                      <div key={key}>
+                        <span className="badge badge-primary px-1">
                           {key}:{" "}
                           {(thread.customTags as Record<string, any>)[key]}
-                        </Badge>
-                      </Box>
+                        </span>
+                      </div>
                     ))}
-                </Stack>
-              </Stack>
+                </div>
+              </div>
             ))}
-          </Stack>
-          <Stack h="full" flex={1} bg="brand.gray.100">
-            <Center h="full" w="full" position={"relative"}>
-              {selectedThread && (
-                <ChatBoxProvider
-                  key={selectedThread.id}
-                  scrape={loaderData.scrape!}
-                  thread={selectedThread}
-                  messages={selectedThread.messages}
-                  embed={false}
-                  admin={true}
-                  token={null}
-                >
-                  <ChatboxContainer>
-                    <ChatBox />
-                  </ChatboxContainer>
-                </ChatBoxProvider>
-              )}
+          </div>
 
-              <Group position={"absolute"} top={0} right={0} p={4}>
-                <deleteFetcher.Form method="post">
-                  <input type="hidden" name="id" value={selectedThread?.id} />
-                  <input type="hidden" name="intent" value="delete" />
-                  <Tooltip
-                    content="Delete the conversation. Will be deleted for the user as well."
-                    showArrow
-                    positioning={{ placement: "left" }}
-                  >
-                    <IconButton
-                      colorPalette={"red"}
-                      variant={"subtle"}
-                      type="submit"
-                      size={"sm"}
-                    >
-                      {deleteFetcher.state === "submitting" ? (
-                        <Spinner size={"sm"} />
-                      ) : (
-                        <TbTrash />
-                      )}
-                    </IconButton>
-                  </Tooltip>
-                </deleteFetcher.Form>
-              </Group>
-            </Center>
-          </Stack>
-        </Flex>
+          <div className="h-full w-full flex-1 bg-base-200 relative p-4">
+            {selectedThread && (
+              <ChatBoxProvider
+                key={selectedThread.id}
+                scrape={loaderData.scrape!}
+                thread={selectedThread}
+                messages={selectedThread.messages}
+                embed={false}
+                admin={true}
+                token={null}
+              >
+                <ChatboxContainer>
+                  <ChatBox />
+                </ChatboxContainer>
+              </ChatBoxProvider>
+            )}
+
+            <div className="absolute top-0 right-0 p-4">
+              <deleteFetcher.Form method="post">
+                <input type="hidden" name="id" value={selectedThread?.id} />
+                <input type="hidden" name="intent" value="delete" />
+                <div
+                  className="tooltip tooltip-left"
+                  data-tip="Delete the conversation"
+                >
+                  <button className="btn btn-error btn-square" type="submit">
+                    {deleteFetcher.state === "submitting" ? (
+                      <span className="loading loading-spinner loading-sm" />
+                    ) : (
+                      <TbTrash />
+                    )}
+                  </button>
+                </div>
+              </deleteFetcher.Form>
+            </div>
+          </div>
+        </div>
       )}
     </Page>
   );
