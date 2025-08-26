@@ -231,7 +231,7 @@ function Message({
     <div
       className={cn(
         "flex flex-col gap-0 border border-base-300 rounded-box overflow-hidden",
-        "bg-base-200",
+        "bg-base-200/50",
         shouldHighlight && "border-primary border-2"
       )}
     >
