@@ -1,28 +1,8 @@
-import {
-  Group,
-  Stack,
-  HStack,
-  Icon,
-  Stat,
-  Heading,
-  Text,
-  DialogHeader,
-  Input,
-  DialogCloseTrigger,
-  Center,
-  Table,
-  Badge,
-  Box,
-  Flex,
-} from "@chakra-ui/react";
 import type { Route } from "./+types/page";
+import type { Message } from "libs/prisma";
 import {
-  TbAlertCircle,
-  TbArrowRight,
-  TbChartBarOff,
   TbCheck,
   TbDatabase,
-  TbExternalLink,
   TbHelp,
   TbHome,
   TbMessage,
@@ -46,29 +26,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
-import { Link, redirect, useFetcher } from "react-router";
-import { Button } from "~/components/ui/button";
-import {
-  DialogBackdrop,
-  DialogBody,
-  DialogContent,
-  DialogFooter,
-  DialogRoot,
-  DialogTitle,
-} from "~/components/ui/dialog";
-import { Field } from "~/components/ui/field";
-import { EmptyState } from "~/components/ui/empty-state";
-import { Tooltip as ChakraTooltip } from "~/components/ui/tooltip";
+import { redirect, useFetcher } from "react-router";
 import { getLimits } from "libs/user-plan";
 import { toaster } from "~/components/ui/toaster";
-import moment from "moment";
-import type { Message } from "libs/prisma";
-import { truncate } from "~/util";
-import { SingleLineCell } from "~/components/single-line-cell";
 import { fetchDataGaps } from "~/data-gaps/fetch";
-import { DataGapCard } from "~/data-gaps/page";
-import { RGroup } from "~/components/r-group";
 import { hideModal, showModal } from "~/components/daisy-utils";
+import { EmptyState } from "~/components/empty-state";
+import moment from "moment";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -305,45 +269,20 @@ export function StatCard({
   label,
   value,
   icon,
-  href,
-  color,
 }: {
   label: string;
   value: number;
   icon: React.ReactNode;
-  href?: string;
-  color?: string;
 }) {
-  function render() {
-    return (
-      <Stat.Root
-        flex={1}
-        borderWidth="1px"
-        p="4"
-        rounded="md"
-        _hover={{ bg: href ? "brand.gray.50" : undefined }}
-        transition={"background-color 0.2s ease-in-out"}
-      >
-        <HStack justify="space-between" align={"start"}>
-          <Stat.Label>{label}</Stat.Label>
-          <Icon color={color ?? "fg.muted"} size={"xl"}>
-            {icon}
-          </Icon>
-        </HStack>
-        <Stat.ValueText fontSize={"3xl"}>{numberToKMB(value)}</Stat.ValueText>
-      </Stat.Root>
-    );
-  }
-
-  if (href) {
-    return (
-      <Link to={href} style={{ flex: 1 }}>
-        {render()}
-      </Link>
-    );
-  }
-
-  return render();
+  return (
+    <div className="stats shadow flex-1">
+      <div className="stat">
+        <div className="stat-figure text-4xl">{icon}</div>
+        <div className="stat-title">{label}</div>
+        <div className="stat-value">{numberToKMB(value)}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
@@ -435,27 +374,27 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         </div>
       }
     >
-      {/* {loaderData.noScrapes && (
-        <Center w="full" h="full">
+      {loaderData.noScrapes && (
+        <div className="flex justify-center items-center h-full">
           <EmptyState
             icon={<TbDatabase />}
             title="No collections"
             description="Create a new collection to get started"
           >
-            <Button
-              colorPalette={"brand"}
-              onClick={() => setNewCollectionDialogOpen(true)}
+            <button
+              className="btn btn-primary"
+              onClick={() => showModal("new-collection-dialog")}
             >
               <TbPlus />
               New collection
-            </Button>
+            </button>
           </EmptyState>
-        </Center>
+        </div>
       )}
 
       {!loaderData.noScrapes && (
-        <Stack height={"100%"} gap={8} ref={containerRef}>
-          <RGroup>
+        <div className="h-full gap-8 flex flex-col" ref={containerRef}>
+          <div className="flex gap-2 items-center">
             <StatCard
               label="Today"
               value={loaderData.messagesToday}
@@ -473,35 +412,26 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               label="Helpful"
               value={loaderData.ratingUpCount}
               icon={<TbThumbUp />}
-              color="green.500"
             />
             <StatCard
               label="Not helpful"
               value={loaderData.ratingDownCount}
               icon={<TbThumbDown />}
-              color="red.600"
             />
-          </RGroup>
+          </div>
 
-          <Flex gap={8} display={["none", "none", "flex"]}>
-            <Stack>
-              <Heading>
-                <Group>
-                  <TbMessage />
-                  <Text>Messages</Text>
-                  <ChakraTooltip
-                    showArrow
-                    content={
-                      "Shows the number of messages in conversations in the last 7 days across all the channels"
-                    }
-                    positioning={{ placement: "right" }}
-                  >
-                    <Icon opacity={0.5}>
-                      <TbHelp />
-                    </Icon>
-                  </ChakraTooltip>
-                </Group>
-              </Heading>
+          <div className="flex gap-8">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <TbMessage />
+                <span className="text-lg font-bold">Messages</span>
+                <div
+                  className="tooltip tooltip-right"
+                  data-tip={"Messages in the last 7 days"}
+                >
+                  <TbHelp />
+                </div>
+              </div>
               <AreaChart width={width / 2 - 20} height={200} data={chartData}>
                 <XAxis dataKey="name" />
                 <Tooltip />
@@ -509,29 +439,25 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <Area
                   type="monotone"
                   dataKey="Messages"
-                  stroke={"var(--chakra-colors-brand-emphasized)"}
-                  fill={"var(--chakra-colors-brand-muted)"}
+                  stroke={"var(--color-primary)"}
+                  fill={"var(--color-primary-content)"}
                 />
               </AreaChart>
-            </Stack>
+            </div>
 
-            <Stack>
-              <Heading>
-                <Group>
-                  <TbMessage />
-                  <Text>Score distribution</Text>
-                  <ChakraTooltip
-                    showArrow
-                    content={
-                      "Shows how the score of each message from AI is distributed from 0 to 1. 0 is worst and 1 is best."
-                    }
-                  >
-                    <Icon opacity={0.5}>
-                      <TbHelp />
-                    </Icon>
-                  </ChakraTooltip>
-                </Group>
-              </Heading>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <TbMessage />
+                <span className="text-lg font-bold">Score distribution</span>
+                <div
+                  className="tooltip tooltip-right"
+                  data-tip={
+                    "Shows how the score of each message from AI is distributed from 0 to 1. 0 is worst and 1 is best."
+                  }
+                >
+                  <TbHelp />
+                </div>
+              </div>
               <BarChart
                 width={width / 2 - 20}
                 height={200}
@@ -543,170 +469,95 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <Bar
                   type="monotone"
                   dataKey="Messages"
-                  fill={"var(--chakra-colors-brand-emphasized)"}
+                  fill={"var(--color-primary)"}
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
-            </Stack>
-          </Flex>
+            </div>
+          </div>
 
-          {loaderData.dataGapMessages.length > 0 && (
-            <Stack flex={1}>
-              <Heading>
-                <Group>
-                  <TbChartBarOff />
-                  <Text>Recent data gap</Text>
-                  <ChakraTooltip
-                    showArrow
-                    content={
-                      "Shows the questions that the AI asked but the search results were not good enough"
-                    }
-                    positioning={{ placement: "right" }}
-                  >
-                    <Icon opacity={0.5}>
-                      <TbHelp />
-                    </Icon>
-                  </ChakraTooltip>
-                </Group>
-              </Heading>
-              <DataGapCard
-                key={loaderData.dataGapMessages[0].id}
-                message={loaderData.dataGapMessages[0]}
-                noControls
-              />
-              <Group justifyContent={"end"}>
-                <Button variant={"subtle"} size={"xs"} asChild>
-                  <Link to="/data-gaps">
-                    Show all <TbArrowRight />
-                  </Link>
-                </Button>
-              </Group>
-            </Stack>
-          )}
+          <div className="flex gap-8">
+            <div className="flex flex-col gap-2 flex-1">
+              <div className="flex items-center gap-2">
+                <TbDatabase />
+                <span className="text-lg font-bold">Top cited pages</span>
+                <div
+                  className="tooltip tooltip-right"
+                  data-tip={"Top cited pages"}
+                >
+                  <TbHelp />
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  {/* head */}
+                  <thead>
+                    <tr>
+                      <th>Page</th>
+                      <th className="text-right">Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loaderData.topItems.map((item) => (
+                      <tr key={item[0]}>
+                        <td>{item[0] || "Untitled"}</td>
+                        <td className="text-right">{item[1]}</td>
+                      </tr>
+                    ))}
+                    {loaderData.topItems.length === 0 && (
+                      <tr>
+                        <td colSpan={2} className="text-center">
+                          No data
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-          <RGroup gap={8} align={"start"}>
-            <Stack flex={1} w="full">
-              <Heading>
-                <Group>
-                  <TbDatabase />
-                  <Text>Top cited pages</Text>
-                </Group>
-              </Heading>
-              <Table.Root size="sm" flex={1} variant={"outline"} rounded={"sm"}>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.ColumnHeader>Page</Table.ColumnHeader>
-                    <Table.ColumnHeader textAlign="end">
-                      Count
-                    </Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {loaderData.topItems.length === 0 && (
-                    <Table.Row>
-                      <Table.Cell colSpan={3} textAlign="center">
-                        No data
-                      </Table.Cell>
-                    </Table.Row>
-                  )}
-
-                  {loaderData.topItems.map((item) => (
-                    <Table.Row key={item[0]}>
-                      <Table.Cell>
-                        <SingleLineCell>{item[0] || "Untitled"}</SingleLineCell>
-                      </Table.Cell>
-                      <Table.Cell textAlign="end">{item[1]}</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
-            </Stack>
-
-            <Stack flex={1} w="full">
-              <Heading>
-                <Group>
-                  <TbMessage />
-                  <Text>Latest questions</Text>
-                </Group>
-              </Heading>
-              <Table.Root size="sm" flex={1} variant={"outline"} rounded={"sm"}>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.ColumnHeader>Question</Table.ColumnHeader>
-                    <Table.ColumnHeader textAlign="end" width="200px">
-                      Created at
-                    </Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {loaderData.latestQuestions.length === 0 && (
-                    <Table.Row>
-                      <Table.Cell colSpan={3} textAlign="center">
-                        No data
-                      </Table.Cell>
-                    </Table.Row>
-                  )}
-                  {loaderData.latestQuestions.map((question) => (
-                    <Table.Row key={question.id}>
-                      <Table.Cell>
-                        <SingleLineCell>
-                          {(question.llmMessage as any).content}
-                        </SingleLineCell>
-                      </Table.Cell>
-                      <Table.Cell textAlign="end">
-                        {moment(question.createdAt).fromNow()}
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
-            </Stack>
-          </RGroup>
-        </Stack>
+            <div className="flex flex-col gap-2 flex-1">
+              <div className="flex items-center gap-2">
+                <TbMessage />
+                <span className="text-lg font-bold">Latest questions</span>
+                <div
+                  className="tooltip tooltip-right"
+                  data-tip={"Latest questions"}
+                >
+                  <TbHelp />
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Question</th>
+                      <th className="text-right">Created at</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loaderData.latestQuestions.map((question) => (
+                      <tr key={question.id}>
+                        <td>{(question.llmMessage as any).content}</td>
+                        <td className="text-right">
+                          {moment(question.createdAt).fromNow()}
+                        </td>
+                      </tr>
+                    ))}
+                    {loaderData.latestQuestions.length === 0 && (
+                      <tr>
+                        <td colSpan={2} className="text-center">
+                          No data
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
-
-      <DialogRoot
-        open={newCollectionDialogOpen}
-        onOpenChange={(e) => setNewCollectionDialogOpen(e.open)}
-      >
-        <DialogBackdrop />
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              <Group>
-                <TbPlus />
-                <Text>New collection</Text>
-              </Group>
-            </DialogTitle>
-          </DialogHeader>
-          <newCollectionFetcher.Form method="post">
-            <DialogBody>
-              <input type="hidden" name="intent" value="create-collection" />
-              <Field label="Give it a name">
-                <Input name="name" placeholder="Collection name" required />
-              </Field>
-            </DialogBody>
-            <DialogFooter>
-              <Group>
-                <DialogCloseTrigger
-                  asChild
-                  disabled={newCollectionFetcher.state !== "idle"}
-                >
-                  <Button variant={"outline"}>Cancel</Button>
-                </DialogCloseTrigger>
-                <Button
-                  type="submit"
-                  colorPalette={"brand"}
-                  loading={newCollectionFetcher.state !== "idle"}
-                >
-                  Create
-                  <TbCheck />
-                </Button>
-              </Group>
-            </DialogFooter>
-          </newCollectionFetcher.Form>
-        </DialogContent>
-      </DialogRoot> */}
 
       <dialog id="new-collection-dialog" className="modal">
         <div className="modal-box">
@@ -717,6 +568,10 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               New collection
             </h3>
             <p className="py-4">
+              <div className="text-base-content/50">
+                A collection lets you setup your knowledge base and lets you
+                connect bot on multiple channels.
+              </div>
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">Give it a name</legend>
                 <input
