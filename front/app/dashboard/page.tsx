@@ -1,9 +1,9 @@
 import type { Route } from "./+types/page";
 import type { Message } from "libs/prisma";
 import {
+  TbChartBar,
   TbCheck,
   TbDatabase,
-  TbHelp,
   TbHome,
   TbMessage,
   TbPlus,
@@ -19,8 +19,6 @@ import {
   Tooltip,
   AreaChart,
   Area,
-  Bar,
-  BarChart,
 } from "recharts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
@@ -32,6 +30,7 @@ import { toaster } from "~/components/ui/toaster";
 import { fetchDataGaps } from "~/data-gaps/fetch";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
+import { ChannelBadge } from "~/components/channel-badge";
 import moment from "moment";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -420,20 +419,14 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             />
           </div>
 
-          <div className="flex gap-8">
-            <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <TbMessage />
-                <span className="text-lg font-bold">Messages</span>
-                <div
-                  className="tooltip tooltip-right"
-                  data-tip={"Messages in the last 7 days"}
-                >
-                  <TbHelp />
-                </div>
+                <span className="text-lg font-medium">Messages</span>
               </div>
-              <AreaChart width={width / 2 - 20} height={200} data={chartData}>
-                <XAxis dataKey="name" />
+              <AreaChart width={width / 2} height={200} data={chartData}>
+                <XAxis dataKey="name" hide />
                 <Tooltip />
                 <CartesianGrid strokeDasharray="3 3" />
                 <Area
@@ -445,115 +438,68 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               </AreaChart>
             </div>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <TbMessage />
-                <span className="text-lg font-bold">Score distribution</span>
-                <div
-                  className="tooltip tooltip-right"
-                  data-tip={
-                    "Shows how the score of each message from AI is distributed from 0 to 1. 0 is worst and 1 is best."
-                  }
-                >
-                  <TbHelp />
-                </div>
+                <TbChartBar />
+                <span className="text-lg font-medium">Score distribution</span>
               </div>
-              <BarChart
-                width={width / 2 - 20}
+              <AreaChart
+                width={width / 2}
                 height={200}
                 data={scoreDistributionData}
               >
-                <XAxis dataKey="score" />
+                <XAxis dataKey="score" hide />
                 <Tooltip />
                 <CartesianGrid strokeDasharray="3 3" />
-                <Bar
+                <Area
                   type="monotone"
                   dataKey="Messages"
-                  fill={"var(--color-primary)"}
-                  radius={[4, 4, 0, 0]}
+                  fill={"var(--color-primary-content)"}
+                  stroke={"var(--color-primary)"}
                 />
-              </BarChart>
+              </AreaChart>
             </div>
           </div>
 
-          <div className="flex gap-8">
-            <div className="flex flex-col gap-2 flex-1">
-              <div className="flex items-center gap-2">
-                <TbDatabase />
-                <span className="text-lg font-bold">Top cited pages</span>
-                <div
-                  className="tooltip tooltip-right"
-                  data-tip={"Top cited pages"}
-                >
-                  <TbHelp />
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="table">
-                  {/* head */}
-                  <thead>
-                    <tr>
-                      <th>Page</th>
-                      <th className="text-right">Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loaderData.topItems.map((item) => (
-                      <tr key={item[0]}>
-                        <td>{item[0] || "Untitled"}</td>
-                        <td className="text-right">{item[1]}</td>
-                      </tr>
-                    ))}
-                    {loaderData.topItems.length === 0 && (
-                      <tr>
-                        <td colSpan={2} className="text-center">
-                          No data
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <TbMessage />
+              <span className="text-lg font-medium">Latest questions</span>
             </div>
-
-            <div className="flex flex-col gap-2 flex-1">
-              <div className="flex items-center gap-2">
-                <TbMessage />
-                <span className="text-lg font-bold">Latest questions</span>
-                <div
-                  className="tooltip tooltip-right"
-                  data-tip={"Latest questions"}
-                >
-                  <TbHelp />
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Question</th>
-                      <th className="text-right">Created at</th>
+            <div className="overflow-x-auto">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th className="w-10">Channel</th>
+                    <th className="w-42 text-right">Created at</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loaderData.latestQuestions.map((question) => (
+                    <tr key={question.id}>
+                      <td>
+                        <span className="line-clamp-1">
+                          {(question.llmMessage as any).content}
+                        </span>
+                      </td>
+                      <td>
+                        <ChannelBadge channel={question.channel} />
+                      </td>
+                      <td className="text-right">
+                        {moment(question.createdAt).fromNow()}
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {loaderData.latestQuestions.map((question) => (
-                      <tr key={question.id}>
-                        <td>{(question.llmMessage as any).content}</td>
-                        <td className="text-right">
-                          {moment(question.createdAt).fromNow()}
-                        </td>
-                      </tr>
-                    ))}
-                    {loaderData.latestQuestions.length === 0 && (
-                      <tr>
-                        <td colSpan={2} className="text-center">
-                          No data
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                  ))}
+                  {loaderData.latestQuestions.length === 0 && (
+                    <tr>
+                      <td colSpan={2} className="text-center">
+                        No data
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
