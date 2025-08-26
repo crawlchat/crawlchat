@@ -61,6 +61,10 @@
   -webkit-text-fill-color: transparent !important;
 }
 
+.font-radio-grotesk {
+  font-family: "Radio Grotesk", sans-serif;
+}
+
 .widget-highlighter {
   display: none;
 }
