@@ -62,7 +62,7 @@ export function SettingsSection({
       >
         <div className={cn("flex flex-col gap-4 p-4")}>
           <div className="flex flex-col gap-2">
-            {title && <div className="text-lg font-medium">{title}</div>}
+            {title && <div className="text-md font-medium">{title}</div>}
             {description && (
               <div className="text-sm text-base-content/50">{description}</div>
             )}
@@ -121,10 +121,10 @@ export function SettingsContainer({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex gap-8 items-start w-full">
-      <div className="flex flex-col gap-5 flex-1">{children}</div>
+      <div className="flex flex-col gap-4 flex-1">{children}</div>
       <div className="w-[200px] h-full sticky top-[80px] hidden md:flex flex-col gap-2">
         <div className="text-sm font-medium">On this page</div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           {sections.map((section) => (
             <Link
               key={section.id}

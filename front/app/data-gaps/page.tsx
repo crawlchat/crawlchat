@@ -110,43 +110,51 @@ export function DataGapCard({
     <div className="flex flex-col gap-4 border border-base-300 p-4 rounded-box">
       <div className="flex flex-col gap-2">
         <div className="font-bold">{message.analysis!.dataGapTitle}</div>
-        <div className="flex items-center gap-2">
-          <Link
-            className="btn btn-sm btn-square"
-            to={`/messages/${message.questionId}`}
-          >
-            <TbMessage />
-          </Link>
+        <div className="flex gap-2">
+          <div className="join">
+            <Link
+              className="btn btn-sm btn-square join-item"
+              to={`/messages/${message.questionId}`}
+            >
+              <TbMessage />
+            </Link>
+
+            <button
+              className="btn btn-square btn-sm join-item"
+              onClick={handleCopy}
+            >
+              <TbCopy />
+            </button>
+          </div>
+
           {!noControls && (
-            <>
+            <div className="join">
               <doneFetcher.Form method="post">
                 <input type="hidden" name="messageId" value={message.id} />
                 <input type="hidden" name="intent" value="done" />
                 <button
-                  className="btn btn-sm btn-success btn-square"
+                  className="btn btn-sm btn-success join-item"
                   type="submit"
                   disabled={doneFetcher.state !== "idle"}
                 >
                   <TbCheck />
+                  Done
                 </button>
               </doneFetcher.Form>
               <deleteFetcher.Form method="post">
                 <input type="hidden" name="messageId" value={message.id} />
                 <input type="hidden" name="intent" value="delete" />
                 <button
-                  className="btn btn-sm btn-error btn-square"
+                  className="btn btn-sm btn-error join-item"
                   disabled={deleteFetcher.state !== "idle"}
                   type="submit"
                 >
                   <TbTrash />
+                  Delete
                 </button>
               </deleteFetcher.Form>
-            </>
+            </div>
           )}
-
-          <button className="btn btn-square btn-sm" onClick={handleCopy}>
-            <TbCopy />
-          </button>
         </div>
       </div>
       <MarkdownProse>{message.analysis!.dataGapDescription}</MarkdownProse>

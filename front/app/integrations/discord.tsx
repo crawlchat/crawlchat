@@ -81,68 +81,65 @@ export default function DiscordIntegrations({
   return (
     <SettingsSectionProvider>
       <SettingsContainer>
-        <div className="flex flex-col gap-6">
-          <div className="text-base-content/50">
-            You have two Discord bots that you can install on your server with
-            different bot names. Pick your favorite one from the following
-            options and install. You need to enter the server id below to make
-            it work!
-          </div>
-          <div className="flex items-center gap-2">
-            <a
-              className="btn"
-              href="https://discord.com/oauth2/authorize?client_id=1346845279692918804"
-              target="_blank"
-            >
-              <TbBrandDiscord />
-              @CrawlChat
-              <TbArrowRight />
-            </a>
+        <div className="text-base-content/50">
+          You have two Discord bots that you can install on your server with
+          different bot names. Pick your favorite one from the following options
+          and install. You need to enter the server id below to make it work!
+        </div>
+        <div className="flex items-center gap-2">
+          <a
+            className="btn"
+            href="https://discord.com/oauth2/authorize?client_id=1346845279692918804"
+            target="_blank"
+          >
+            <TbBrandDiscord />
+            @CrawlChat
+            <TbArrowRight />
+          </a>
 
-            <a
-              className="btn"
-              href="https://discord.com/oauth2/authorize?client_id=1353765834321039502"
-              target="_blank"
-            >
-              <TbBrandDiscord />
-              @AiBot-CrawlChat
-              <TbArrowRight />
-            </a>
-          </div>
+          <a
+            className="btn"
+            href="https://discord.com/oauth2/authorize?client_id=1353765834321039502"
+            target="_blank"
+          >
+            <TbBrandDiscord />
+            @AiBot-CrawlChat
+            <TbArrowRight />
+          </a>
+        </div>
 
-          <SettingsSection
-            id="discord-server-id"
-            title={
-              <div className="flex items-center gap-2">
-                <span>Discord Server Id</span>
-                <div className="dropdown">
-                  <div tabIndex={0} role="button" className="btn btn-xs mb-1">
-                    <TbInfoCircle />
-                  </div>
-                  <div
-                    tabIndex={0}
-                    className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-4 shadow-sm"
-                  >
-                    <ol className="list-decimal list-inside">
-                      <li>Go to "Server Settings"</li>
-                      <li>Click on "Widget"</li>
-                      <li>Copy the server ID</li>
-                    </ol>
-                  </div>
+        <SettingsSection
+          id="discord-server-id"
+          title={
+            <div className="flex items-center gap-2">
+              <span>Discord Server Id</span>
+              <div className="dropdown">
+                <div tabIndex={0} role="button" className="btn btn-xs mb-1">
+                  <TbInfoCircle />
+                </div>
+                <div
+                  tabIndex={0}
+                  className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-4 shadow-sm"
+                >
+                  <ol className="list-decimal list-inside">
+                    <li>Go to "Server Settings"</li>
+                    <li>Click on "Widget"</li>
+                    <li>Copy the server ID</li>
+                  </ol>
                 </div>
               </div>
-            }
-            description="Integrate CrawlChat with your Discord server to bother answer the queries and also to learn from the conversations."
-            fetcher={discordServerIdFetcher}
-          >
-            <input
-              className="input input-bordered w-full"
-              name="discordServerId"
-              placeholder="Enter your Discord server ID"
-              defaultValue={loaderData.scrape.discordServerId ?? ""}
-            />
-          </SettingsSection>
-        </div>
+            </div>
+          }
+          description="Integrate CrawlChat with your Discord server to bother answer the queries and also to learn from the conversations."
+          fetcher={discordServerIdFetcher}
+        >
+          <input
+            className="input input-bordered w-full"
+            name="discordServerId"
+            placeholder="Enter your Discord server ID"
+            defaultValue={loaderData.scrape.discordServerId ?? ""}
+          />
+        </SettingsSection>
       </SettingsContainer>
     </SettingsSectionProvider>
   );

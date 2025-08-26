@@ -189,17 +189,15 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                   </td>
                   <td>
                     <Link
-                      className="link link-hover"
+                      className="link link-hover line-clamp-1 max-w-40"
                       to={`/knowledge/group/${item.group.id}`}
                     >
                       {item.group.title ?? "Untitled"}
                     </Link>
                   </td>
                   <td>
-                    <div className="flex gap-1 items-center">
-                      <span className="text-xs">
-                        {item.citedNum} / {item.totalCited}
-                      </span>
+                    <div className="flex gap-2 items-center">
+                      {item.citedNum} / {item.totalCited}
                       <progress
                         className="progress w-10"
                         value={item.citationPct}

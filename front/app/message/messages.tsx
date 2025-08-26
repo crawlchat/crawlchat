@@ -1,20 +1,19 @@
 import type { Message } from "libs/prisma";
 import type { Route } from "./+types/messages";
-import { TbChartBar, TbMessage, TbMessages, TbPointer } from "react-icons/tb";
+import { TbMessage, TbMessages, TbPointer } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import { makeMessagePairs } from "./analyse";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { getScoreColor } from "~/score";
 import { Outlet, Link as RouterLink } from "react-router";
 import { ViewSwitch } from "./view-switch";
 import { CountryFlag } from "./country-flag";
-import { ChannelIcon } from "./channel-icon";
 import { Rating } from "./rating-badge";
 import { EmptyState } from "~/components/empty-state";
+import { ScoreBadge } from "~/components/score-badge";
+import { ChannelBadge } from "~/components/channel-badge";
 import moment from "moment";
-import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -80,7 +79,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                     {loaderData.messagePairs.map((pair, index) => (
                       <tr key={index}>
                         <td>
-                          <div className="w-md truncate">
+                          <div className="w-md line-clamp-1">
                             <RouterLink
                               className="link link-hover"
                               to={`/messages/${pair.queryMessage?.id}`}
@@ -111,30 +110,22 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                             )}
 
                             {pair.actionCalls.length > 0 && (
-                              <div className="badge badge-primary badge-soft gap-1 px-2">
+                              <div className="badge badge-secondary badge-soft gap-1 px-2">
                                 <TbPointer />
                                 {pair.actionCalls.length}
                               </div>
                             )}
 
                             {pair.maxScore !== undefined && (
-                              <div
-                                className={cn(
-                                  "badge badge-soft badge-primary px-2 gap-1",
-                                  getScoreColor(pair.maxScore)
-                                )}
-                              >
-                                <TbChartBar />
-                                {pair.maxScore.toFixed(2)}
-                              </div>
+                              <ScoreBadge score={pair.maxScore} />
                             )}
                             <Rating rating={pair.responseMessage.rating} />
                           </div>
                         </td>
-                        <td>
-                          <ChannelIcon channel={pair.queryMessage?.channel} />
+                        <td className="w-10">
+                          <ChannelBadge channel={pair.queryMessage?.channel} />
                         </td>
-                        <td className="text-end">
+                        <td className="text-end w-34">
                           {moment(pair.queryMessage?.createdAt).fromNow()}
                         </td>
                       </tr>

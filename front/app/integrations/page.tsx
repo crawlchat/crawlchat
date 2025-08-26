@@ -59,7 +59,7 @@ export default function ScrapePage() {
 
   return (
     <Page title={"Connect"} icon={<TbPlug />}>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4">
         <div>
           <div role="tablist" className="tabs tabs-box w-fit">
             {tabs.map((tab) => (
@@ -79,7 +79,7 @@ export default function ScrapePage() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 mt-6">
+        <div className="flex flex-col gap-2">
           <Outlet />
         </div>
       </div>

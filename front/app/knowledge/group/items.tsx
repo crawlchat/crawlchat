@@ -91,24 +91,24 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                   <th>Key</th>
                   <th>Title</th>
                   <th>Status</th>
-                  <th>Updated</th>
+                  <th className="text-end">Updated</th>
                 </tr>
               </thead>
               <tbody>
                 {loaderData.items.map((item) => (
                   <tr key={item.id}>
-                    <td>
+                    <td className="max-w-64">
                       <Link
-                        className="link link-hover"
+                        className="link link-hover line-clamp-1"
                         to={`/knowledge/item/${item.id}`}
                       >
-                        {truncateEnd(getKey(item), 50)}
+                        {getKey(item)}
                       </Link>
                     </td>
 
                     <td>{truncateStart(item.title?.trim() || "-", 50)}</td>
 
-                    <td>
+                    <td className="w-24">
                       <div
                         className={cn(
                           "badge badge-soft",
@@ -129,7 +129,9 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                         {item.status === "completed" ? "Success" : "Failed"}
                       </div>
                     </td>
-                    <td>{moment(item.updatedAt).fromNow()}</td>
+                    <td className="w-34 text-end">
+                      {moment(item.updatedAt).fromNow()}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -512,7 +512,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         </SettingsSection>
       </div>
 
-      <div className="flex flex-col gap-4 flex-1 sticky top-[80px]">
+      <div className="flex flex-col gap-4 w-[500px] sticky top-[80px]">
         <div className="flex justify-center">
           <div>
             <div role="tablist" className="tabs tabs-box">

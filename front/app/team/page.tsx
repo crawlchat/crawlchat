@@ -425,7 +425,7 @@ export default function TeamPage({ loaderData }: Route.ComponentProps) {
       }
     >
       <div className="flex flex-col gap-4">
-        <p className="text-sm text-base-content/50">
+        <p className="text-base-content/50">
           Invite your team members and manage their access.
         </p>
         <div className="overflow-x-auto">

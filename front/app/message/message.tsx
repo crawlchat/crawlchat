@@ -16,11 +16,11 @@ import { toaster } from "~/components/ui/toaster";
 import { DataList } from "~/components/data-list";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { ChannelIcon } from "./channel-icon";
 import { Rating } from "./rating-badge";
 import { Page } from "~/components/page";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
+import { ChannelBadge } from "~/components/channel-badge";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -81,7 +81,7 @@ function AssistantMessage({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 max-w-prose">
       <MarkdownProse
         sources={Object.values(citation.citedLinks).map((link) => ({
           title: link?.title ?? link?.url ?? "Source",
@@ -137,8 +137,8 @@ function AssistantMessage({
                         {link.title || link.url}
                       </RouterLink>
                     </td>
-                    <td>{link.searchQuery ?? "-"}</td>
-                    <td>
+                    <td className="w-56">{link.searchQuery ?? "-"}</td>
+                    <td className="w-24">
                       <div className="badge badge-primary badge-soft">
                         <TbChartBar />
                         {link.score?.toFixed(2)}
@@ -231,7 +231,7 @@ export default function Message({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div className="flex gap-2 items-center">
-            <ChannelIcon channel={messagePair?.queryMessage?.channel} />
+            <ChannelBadge channel={messagePair?.queryMessage?.channel} />
             {messagePair?.responseMessage.rating && (
               <Rating rating={messagePair?.responseMessage.rating} />
             )}
