@@ -64,9 +64,8 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
             </div>
 
             {loaderData.messagePairs.length > 0 && (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto border border-base-300 rounded-box">
                 <table className="table">
-                  {/* head */}
                   <thead>
                     <tr>
                       <th>Question</th>

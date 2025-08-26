@@ -76,9 +76,8 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
             APIs are called from backend in a secured way.
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto border border-base-300 rounded-box">
             <table className="table">
-              {/* head */}
               <thead>
                 <tr>
                   <th>Title</th>
@@ -91,7 +90,7 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
               <tbody>
                 {loaderData.actions.map((item) => (
                   <tr key={item.id}>
-                    <td>
+                    <td className="max-w-44 truncate">
                       <Link
                         className="link link-hover"
                         to={`/actions/${item.id}`}
@@ -101,14 +100,14 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
                       </Link>
                     </td>
                     <td>{item.url}</td>
-                    <td>{item.method.toUpperCase()}</td>
-                    <td>
+                    <td className="w-22">{item.method.toUpperCase()}</td>
+                    <td className="w-16">
                       <div className="badge badge-soft badge-primary gap-2">
                         <TbPointer />
                         {loaderData.counts[item.id]}
                       </div>
                     </td>
-                    <td className="text-end">
+                    <td className="text-end w-32">
                       {moment(item.createdAt).fromNow()}
                     </td>
                   </tr>

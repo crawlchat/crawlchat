@@ -466,7 +466,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <TbMessage />
               <span className="text-lg font-medium">Latest questions</span>
             </div>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto border border-base-300 rounded-box">
               <table className="table">
                 <thead>
                   <tr>
