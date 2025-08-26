@@ -7,6 +7,7 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { prisma } from "libs/prisma";
 import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -76,7 +77,12 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
             APIs are called from backend in a secured way.
           </div>
 
-          <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
+          <div
+            className={cn(
+              "overflow-x-auto border border-base-300",
+              "rounded-box bg-base-200/50 shadow"
+            )}
+          >
             <table className="table">
               <thead>
                 <tr>

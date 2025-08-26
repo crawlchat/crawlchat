@@ -758,7 +758,7 @@ export function ChatboxContainer({
   return (
     <div
       data-theme="light"
-      className={cn("flex w-full h-full md:p-4", "md:justify-center md:items-center")}
+      className={cn("flex w-full h-full", "md:justify-center md:items-center")}
       onClick={handleBgClick}
       ref={containerRef}
     >

@@ -20,6 +20,7 @@ import { sendInvitationEmail, sendTeamJoinEmail } from "~/email";
 import { getLimits } from "libs/user-plan";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import toast from "react-hot-toast";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -428,7 +429,12 @@ export default function TeamPage({ loaderData }: Route.ComponentProps) {
         <p className="text-base-content/50">
           Invite your team members and manage their access.
         </p>
-        <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
+        <div
+          className={cn(
+            "overflow-x-auto border border-base-300",
+            "rounded-box bg-base-200/50 shadow"
+          )}
+        >
           <table className="table">
             <thead>
               <tr>

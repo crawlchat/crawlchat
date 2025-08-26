@@ -8,7 +8,7 @@ export function Rating({ rating }: { rating: Message["rating"] }) {
   return (
     <div
       className={cn(
-        "badge badge-outline badge-soft badge-primary px-2",
+        "badge badge-soft badge-primary px-2",
         rating === "up" ? "badge-success" : "badge-error"
       )}
     >

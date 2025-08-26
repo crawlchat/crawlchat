@@ -14,6 +14,7 @@ import { EmptyState } from "~/components/empty-state";
 import { ScoreBadge } from "~/components/score-badge";
 import { ChannelBadge } from "~/components/channel-badge";
 import moment from "moment";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -58,13 +59,18 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
           </div>
         )}
         {loaderData.messagePairs.length > 0 && (
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-4">
             <div className="text-base-content/50">
               Showing messages in last 7 days
             </div>
 
             {loaderData.messagePairs.length > 0 && (
-              <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
+              <div
+                className={cn(
+                  "overflow-x-auto border border-base-300",
+                  "rounded-box bg-base-200/50 shadow"
+                )}
+              >
                 <table className="table">
                   <thead>
                     <tr>

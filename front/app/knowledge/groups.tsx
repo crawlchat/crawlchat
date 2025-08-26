@@ -34,6 +34,7 @@ import { ActionButton } from "./group/action-button";
 import { SiDocusaurus } from "react-icons/si";
 import { Tooltip } from "~/components/ui/tooltip";
 import { EmptyState } from "~/components/empty-state";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -165,7 +166,12 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
         </div>
       )}
       {groups.length > 0 && (
-        <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
+        <div
+          className={cn(
+            "overflow-x-auto border border-base-300",
+            "rounded-box bg-base-200/50 shadow"
+          )}
+        >
           <table className="table">
             <thead>
               <tr>

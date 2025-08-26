@@ -109,7 +109,12 @@ function AssistantMessage({
       {message.links.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="text-lg">Resources</div>
-          <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
+          <div
+            className={cn(
+              "overflow-x-auto border border-base-300",
+              "rounded-box bg-base-200/50 shadow"
+            )}
+          >
             <table className="table">
               <thead>
                 <tr>

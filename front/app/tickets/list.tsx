@@ -218,7 +218,12 @@ export default function Tickets({ loaderData }: Route.ComponentProps) {
         {loaderData.threads.length === 0 ? (
           <NoTickets />
         ) : (
-          <div className="flex flex-col border border-base-300 w-full rounded-box bg-base-200">
+          <div
+            className={cn(
+              "flex flex-col border border-base-300 w-full",
+              "rounded-box bg-base-200/50 shadow"
+            )}
+          >
             {loaderData.threads.map((thread) => (
               <Ticket key={thread.id} thread={thread} />
             ))}

@@ -26,6 +26,7 @@ import { hideModal, showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
 import { ChannelBadge } from "~/components/channel-badge";
 import moment from "moment";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -419,7 +420,12 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <TbMessage />
                 <span className="text-lg font-medium">Messages</span>
               </div>
-              <div className="rounded-box overflow-hidden border border-base-300 p-1 bg-base-200">
+              <div
+                className={cn(
+                  "rounded-box overflow-hidden border",
+                  "border-base-300 p-1 bg-base-200/50 shadow"
+                )}
+              >
                 <AreaChart width={width / 2 - 20} height={200} data={chartData}>
                   <XAxis dataKey="name" hide />
                   <Tooltip
@@ -449,7 +455,12 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <TbChartBar />
                 <span className="text-lg font-medium">Score distribution</span>
               </div>
-              <div className="rounded-box overflow-hidden border border-base-300 p-1 bg-base-200">
+              <div
+                className={cn(
+                  "rounded-box overflow-hidden border",
+                  "border-base-300 p-1 bg-base-200/50 shadow"
+                )}
+              >
                 <AreaChart
                   width={width / 2 - 20}
                   height={200}
@@ -484,7 +495,13 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <TbMessage />
               <span className="text-lg font-medium">Latest questions</span>
             </div>
-            <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200">
+            <div
+              className={cn(
+                "overflow-x-auto border border-base-300",
+                "rounded-box bg-base-200/50 shadow",
+                "shadow"
+              )}
+            >
               <table className="table">
                 <thead>
                   <tr>

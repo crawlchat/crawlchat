@@ -343,7 +343,7 @@ export function SideMenu({
           </div>
         </div>
 
-        <div className="px-3 w-full">
+        <div className="px-3 w-full mt-4">
           <div className="dropdown w-full">
             <button
               tabIndex={0}
@@ -355,7 +355,7 @@ export function SideMenu({
             </button>
             <ul
               tabIndex={0}
-              className="menu dropdown-content bg-base-100 rounded-box z-1 w-full shadow-sm"
+              className="menu dropdown-content bg-base-100 rounded-box z-1 w-full shadow"
             >
               {scrapes.map((scrape) => (
                 <li key={scrape.id}>

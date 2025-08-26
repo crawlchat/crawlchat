@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { EditActionContext } from "./use-edit-action";
 import { TbPlus, TbTrash } from "react-icons/tb";
 import type { ApiActionDataItem, ApiActionMethod } from "libs/prisma";
+import cn from "@meltdownjs/cn";
 
 function DataItemForm({
   item,
@@ -19,7 +20,12 @@ function DataItemForm({
   removeDataItem: (index: number) => void;
 }) {
   return (
-    <div className="flex flex-col border border-base-300 rounded-box p-4 bg-base-200">
+    <div
+      className={cn(
+        "flex flex-col border border-base-300",
+        "rounded-box p-4 bg-base-200/50 shadow"
+      )}
+    >
       <div className="flex gap-2">
         <fieldset className="fieldset flex-1">
           <legend className="fieldset-legend">Type</legend>
@@ -123,7 +129,7 @@ export function EditForm() {
         and uses it appropriately.
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col bg-base-200/50 rounded-box p-4 shadow">
         <div className="flex gap-2">
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">Title</legend>

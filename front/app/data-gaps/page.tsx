@@ -17,6 +17,7 @@ import { fetchDataGaps } from "./fetch";
 import { toaster } from "~/components/ui/toaster";
 import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
+import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -107,7 +108,12 @@ export function DataGapCard({
   };
 
   return (
-    <div className="flex flex-col gap-4 border border-base-300 p-4 rounded-box bg-base-200">
+    <div
+      className={cn(
+        "flex flex-col gap-4 border border-base-300",
+        "p-4 rounded-box bg-base-200/50 shadow"
+      )}
+    >
       <div className="flex flex-col gap-2">
         <div className="font-bold">{message.analysis!.dataGapTitle}</div>
         <div className="flex gap-2">
