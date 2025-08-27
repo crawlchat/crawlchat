@@ -80,9 +80,9 @@ export default function DiscordBotPage() {
                 </li>
               ))}
             </ul>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {tags.map((tag) => (
-                <div key={tag} className="badge badge-primary badge-soft">
+                <div key={tag} className="badge badge-primary badge-soft text-nowrap">
                   {tag}
                 </div>
               ))}
