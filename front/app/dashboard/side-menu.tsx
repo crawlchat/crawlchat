@@ -22,7 +22,7 @@ import {
 } from "react-icons/tb";
 import { Link, NavLink, useFetcher } from "react-router";
 import { numberToKMB } from "~/number-util";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import {
   getPendingActions,
   getSkippedActions,
