@@ -331,38 +331,42 @@ export function SideMenu({
           <div className="flex justify-between">
             <Logo />
             <div className="flex gap-1">
-              <ScrapePrivacyBadge
-                private={scrape?.widgetConfig?.private ?? false}
-              />
+              {scrape && (
+                <ScrapePrivacyBadge
+                  private={scrape?.widgetConfig?.private ?? false}
+                />
+              )}
               <PlanIconBadge planId={planId} />
             </div>
           </div>
         </div>
 
-        <div className="px-3 w-full mt-4">
-          <div className="dropdown w-full">
-            <button
-              tabIndex={0}
-              role="button"
-              className="btn bg-base-200 mb-1 w-full flex justify-between"
-            >
-              {scrapeId ? scrape?.title : "Select collection"}
-              <TbChevronDown />
-            </button>
-            <ul
-              tabIndex={0}
-              className="menu dropdown-content bg-base-100 rounded-box z-1 w-full shadow"
-            >
-              {scrapes.map((scrape) => (
-                <li key={scrape.id}>
-                  <a onClick={() => handleChangeScrape(scrape.id)}>
-                    {scrape.title ?? "Untitled"}
-                  </a>
-                </li>
-              ))}
-            </ul>
+        {scrape && (
+          <div className="px-3 w-full mt-4">
+            <div className="dropdown w-full">
+              <button
+                tabIndex={0}
+                role="button"
+                className="btn bg-base-200 mb-1 w-full flex justify-between"
+              >
+                {scrapeId ? scrape?.title : "Select collection"}
+                <TbChevronDown />
+              </button>
+              <ul
+                tabIndex={0}
+                className="menu dropdown-content bg-base-100 rounded-box z-1 w-full shadow"
+              >
+                {scrapes.map((scrape) => (
+                  <li key={scrape.id}>
+                    <a onClick={() => handleChangeScrape(scrape.id)}>
+                      {scrape.title ?? "Untitled"}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex flex-col gap-1 px-3 w-full">
           {links.map((link, index) => (
