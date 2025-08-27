@@ -94,7 +94,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                           </div>
                         </td>
                         <td>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 items-center">
                             {!pair.queryMessage?.thread.isDefault && (
                               <div
                                 className="tooltip"

@@ -275,21 +275,23 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          <div className="h-full w-[500px] bg-base-200 relative">
+          <div className="w-[500px] relative">
             {selectedThread && (
-              <ChatBoxProvider
-                key={selectedThread.id}
-                scrape={loaderData.scrape!}
-                thread={selectedThread}
-                messages={selectedThread.messages}
-                embed={false}
-                admin={true}
-                token={null}
-              >
-                <ChatboxContainer>
-                  <ChatBox />
-                </ChatboxContainer>
-              </ChatBoxProvider>
+                <ChatBoxProvider
+                  key={selectedThread.id}
+                  scrape={loaderData.scrape!}
+                  thread={selectedThread}
+                  messages={selectedThread.messages}
+                  embed={false}
+                  admin={true}
+                  token={null}
+                  readonly={true}
+                >
+                  <ChatboxContainer>
+                    <ChatBox />
+                  </ChatboxContainer>
+                </ChatBoxProvider>
+              
             )}
 
             <div className="absolute top-0 right-0">

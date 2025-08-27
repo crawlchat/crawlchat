@@ -327,7 +327,7 @@ export function SideMenu({
       )}
     >
       <div className="flex flex-col py-4 gap-4">
-        <div className="flex flex-col px-4">
+        <div className="flex flex-col px-4 mb-4">
           <div className="flex justify-between">
             <Logo />
             <div className="flex gap-1">
@@ -342,7 +342,7 @@ export function SideMenu({
         </div>
 
         {scrape && (
-          <div className="px-3 w-full mt-4">
+          <div className="px-3 w-full">
             <div className="dropdown w-full">
               <button
                 tabIndex={0}

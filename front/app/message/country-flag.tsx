@@ -15,7 +15,7 @@ export function CountryFlag({ location }: { location: Location }) {
       <img
         src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${location.country.toUpperCase()}.svg`}
         alt={location.country}
-        className="w-4 h-3"
+        className="h-5 rounded-box"
       />
     </div>
   );

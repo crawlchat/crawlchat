@@ -757,12 +757,12 @@ export function ChatboxContainer({
 
   return (
     <div
-      data-theme="light"
       className={cn("flex w-full h-full", "md:justify-center md:items-center")}
       onClick={handleBgClick}
       ref={containerRef}
     >
       <div
+        data-theme="light"
         className={cn(
           "flex flex-col bg-base-100 relative md:rounded-xl overflow-hidden",
           "md:border w-full h-full md:h-auto border-base-300",
