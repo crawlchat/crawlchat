@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@11labs/react": "^0.0.4",
-    "@chakra-ui/react": "^3.4.0",
     "@emotion/react": "^11.14.0",
     "@meltdownjs/cn": "^1.2.1",
     "@mjackson/form-data-parser": "^0.7.0",
