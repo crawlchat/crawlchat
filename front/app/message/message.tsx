@@ -229,7 +229,7 @@ export default function Message({ loaderData }: Route.ComponentProps) {
       }
     >
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 max-w-prose">
           <div className="text-2xl">
             {(messagePair?.queryMessage?.llmMessage as any)?.content}
           </div>

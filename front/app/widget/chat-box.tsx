@@ -83,27 +83,40 @@ function ChatInput() {
     useChatBoxContext();
 
   const [query, setQuery] = useState("");
-  const [height, setHeight] = useState(64);
   const cleanedQuery = useMemo(() => {
     return query.trim();
   }, [query]);
 
-  useEffect(adjustHeight, [query]);
-
   useEffect(() => {
     if (!inputRef.current) return;
 
+    const adjustHeight = () => {
+      if (inputRef.current) {
+        inputRef.current.style.height = "auto";
+        inputRef.current!.style.height = `${inputRef.current!.scrollHeight}px`;
+      }
+    };
+
+    adjustHeight();
+
     const handleInput: EventListener = () => {
-      inputRef.current!.style.height = "auto";
-      inputRef.current!.style.height = `${inputRef.current!.scrollHeight}px`;
+      adjustHeight();
+    };
+
+    const handlePaste: EventListener = () => {
+      setTimeout(() => {
+        adjustHeight();
+      }, 0);
     };
 
     inputRef.current.addEventListener("input", handleInput);
+    inputRef.current.addEventListener("paste", handlePaste);
 
     return () => {
       inputRef.current?.removeEventListener("input", handleInput);
+      inputRef.current?.removeEventListener("paste", handlePaste);
     };
-  }, []);
+  }, [chat.askStage]);
 
   useEffect(
     function () {
@@ -146,13 +159,6 @@ function ChatInput() {
     return scrape.widgetConfig?.textInputPlaceholder ?? "Ask your question";
   }
 
-  function adjustHeight() {
-    const rect = inputRef.current?.getBoundingClientRect();
-    if (rect) {
-      setHeight(rect.height + 36);
-    }
-  }
-
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey) {
       handleAsk();
@@ -170,10 +176,7 @@ function ChatInput() {
     : undefined;
 
   return (
-    <div
-      className="flex gap-2 border-t border-base-300 justify-between p-4"
-      style={{ height: `${height}px` }}
-    >
+    <div className="flex gap-2 border-t border-base-300 justify-between p-4">
       <div className="flex-1">
         <textarea
           ref={inputRef}
