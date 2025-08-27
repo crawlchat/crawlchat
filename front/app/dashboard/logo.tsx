@@ -1,7 +1,7 @@
 import cn from "@meltdownjs/cn";
 import { RiChatVoiceAiFill } from "react-icons/ri";
 
-export function LogoChakra() {
+export function Logo() {
   return (
     <div
       className={cn(

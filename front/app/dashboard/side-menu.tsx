@@ -1,3 +1,6 @@
+import type { Scrape, User } from "libs/prisma";
+import type { Plan } from "libs/user-plan";
+import type { FetcherWithComponents } from "react-router";
 import {
   TbArrowDown,
   TbArrowRight,
@@ -17,14 +20,7 @@ import {
   TbUsers,
   TbX,
 } from "react-icons/tb";
-import {
-  Link,
-  NavLink,
-  useFetcher,
-  type FetcherWithComponents,
-} from "react-router";
-import type { Scrape, User } from "libs/prisma";
-import type { Plan } from "libs/user-plan";
+import { Link, NavLink, useFetcher } from "react-router";
 import { numberToKMB } from "~/number-util";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -33,12 +29,12 @@ import {
   setSkippedActions,
   type SetupProgressInput,
 } from "./setup-progress";
-import { LogoChakra } from "./logo-chakra";
+import { Logo } from "./logo";
 import { AppContext } from "./context";
 import { track } from "~/pirsch";
-import cn from "@meltdownjs/cn";
 import { ScrapePrivacyBadge } from "~/components/scrape-type-badge";
 import { PlanIconBadge } from "~/components/plan-icon-badge";
+import cn from "@meltdownjs/cn";
 
 function SideMenuItem({
   link,
@@ -333,7 +329,7 @@ export function SideMenu({
       <div className="flex flex-col py-4 gap-4">
         <div className="flex flex-col px-4">
           <div className="flex justify-between">
-            <LogoChakra />
+            <Logo />
             <div className="flex gap-1">
               <ScrapePrivacyBadge
                 private={scrape?.widgetConfig?.private ?? false}

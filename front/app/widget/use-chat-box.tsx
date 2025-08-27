@@ -8,8 +8,8 @@ import {
   useRef,
   useState,
 } from "react";
+import toast from "react-hot-toast";
 import { useFetcher } from "react-router";
-import { toaster } from "~/components/ui/toaster";
 import { getMessagesScore } from "~/score";
 import { useScrapeChat } from "~/widget/use-chat";
 
@@ -157,10 +157,7 @@ export function useChatBox({
 
   useEffect(() => {
     if (ticketCreateFetcher.data) {
-      toaster.create({
-        title: "Ticket created",
-        description: "You will be notified on email on updates!",
-      });
+      toast.success("Ticket created & check your email.");
     }
   }, [ticketCreateFetcher.data]);
 
@@ -199,10 +196,7 @@ export function useChatBox({
   }, [eraseAt]);
 
   function rate(id: string, rating: MessageRating) {
-    toaster.create({
-      title: "Rating submitted",
-      description: "Thank you for your feedback!",
-    });
+    toast.success("Thank you for your feedback!");
     rateFetcher.submit({ intent: "rate", id, rating }, { method: "post" });
   }
 

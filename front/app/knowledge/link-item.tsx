@@ -7,13 +7,13 @@ import { TbBook2, TbRefresh, TbTrash } from "react-icons/tb";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { createToken } from "libs/jwt";
-import { toaster } from "~/components/ui/toaster";
 import type { Prisma, ScrapeItem } from "libs/prisma";
 import { SettingsSection } from "~/settings-section";
 import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
 import cn from "@meltdownjs/cn";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import toast from "react-hot-toast";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -169,10 +169,7 @@ export default function ScrapeItem({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     if (refreshFetcher.data) {
-      toaster.success({
-        title: "Initiated",
-        description: "This item is added to fetch queue",
-      });
+      toast.success("Added to fetch queue");
     }
   }, [refreshFetcher.data]);
 

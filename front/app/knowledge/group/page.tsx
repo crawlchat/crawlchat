@@ -1,7 +1,7 @@
+import type { Route } from "./+types/page";
 import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import type { Route } from "./+types/page";
 import { Page } from "~/components/page";
 import {
   TbBook2,
@@ -10,8 +10,6 @@ import {
   TbSettings,
   TbWorld,
 } from "react-icons/tb";
-import { Box, Group, HStack, Stack } from "@chakra-ui/react";
-import { SegmentedControl } from "~/components/ui/segmented-control";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { useMemo } from "react";
 import { createToken } from "libs/jwt";
@@ -161,7 +159,10 @@ export default function KnowledgeGroupPage({
             <Link
               to={tab.value}
               role="tab"
-              className={cn("tab gap-2", tab.value === activeTab && "tab-active")}
+              className={cn(
+                "tab gap-2",
+                tab.value === activeTab && "tab-active"
+              )}
               key={tab.value}
             >
               {tab.icon}

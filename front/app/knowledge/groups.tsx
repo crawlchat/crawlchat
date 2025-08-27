@@ -1,13 +1,3 @@
-import {
-  Badge,
-  Group,
-  Link as ChakraLink,
-  Stack,
-  Table,
-  Text,
-  Center,
-  Progress,
-} from "@chakra-ui/react";
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
@@ -21,18 +11,15 @@ import {
   TbBrandSlack,
   TbFile,
   TbPlus,
-  TbRefresh,
   TbWorld,
 } from "react-icons/tb";
 import { Link } from "react-router";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
-import { Button } from "~/components/ui/button";
 import { useMemo } from "react";
 import { GroupStatus } from "./group/status";
 import { ActionButton } from "./group/action-button";
 import { SiDocusaurus } from "react-icons/si";
-import { Tooltip } from "~/components/ui/tooltip";
 import { EmptyState } from "~/components/empty-state";
 import cn from "@meltdownjs/cn";
 

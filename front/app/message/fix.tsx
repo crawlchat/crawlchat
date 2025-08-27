@@ -13,7 +13,7 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Link, redirect, useFetcher } from "react-router";
 import { createToken } from "libs/jwt";
 import { useEffect } from "react";
-import { toaster } from "~/components/ui/toaster";
+import toast from "react-hot-toast";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -144,19 +144,13 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     if (summarizeFetcher.data?.error) {
-      toaster.error({
-        title: "Error",
-        description: summarizeFetcher.data.error,
-      });
+      toast.error(summarizeFetcher.data.error);
     }
   }, [summarizeFetcher.data]);
 
   useEffect(() => {
     if (saveFetcher.data?.error) {
-      toaster.error({
-        title: "Error",
-        description: saveFetcher.data.error,
-      });
+      toast.error(saveFetcher.data.error);
     }
   }, [saveFetcher.data]);
 

@@ -13,11 +13,11 @@ import { Page } from "~/components/page";
 import { useEffect, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "./util";
 import { createToken } from "libs/jwt";
-import { toaster } from "~/components/ui/toaster";
-import cn from "@meltdownjs/cn";
-import moment from "moment";
 import { RadioCard } from "~/components/radio-card";
 import { DataList } from "~/components/data-list";
+import toast from "react-hot-toast";
+import cn from "@meltdownjs/cn";
+import moment from "moment";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -297,10 +297,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     if (slugFetcher.data?.error) {
-      toaster.error({
-        title: "Error",
-        description: slugFetcher.data.error,
-      });
+      toast.error(slugFetcher.data.error);
     }
   }, [slugFetcher.data?.error]);
 

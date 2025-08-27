@@ -1,41 +1,15 @@
-import {
-  Box,
-  Button,
-  Center,
-  Code,
-  Group,
-  HStack,
-  IconButton,
-  Input,
-  parseColor,
-  Stack,
-  Textarea,
-} from "@chakra-ui/react";
-import { prisma } from "~/prisma";
-import { getAuthUser } from "~/auth/middleware";
-import { SettingsSection } from "~/settings-section";
-import { useFetcher } from "react-router";
+import type { Route } from "./+types/embed";
 import type {
   Scrape,
   WidgetConfig,
   WidgetQuestion,
   WidgetSize,
 } from "libs/prisma";
-import {
-  ColorPickerArea,
-  ColorPickerContent,
-  ColorPickerControl,
-  ColorPickerEyeDropper,
-  ColorPickerInput,
-  ColorPickerLabel,
-  ColorPickerRoot,
-  ColorPickerSliders,
-  ColorPickerTrigger,
-} from "~/components/ui/color-picker";
-import { Field } from "~/components/ui/field";
-import type { Route } from "./+types/embed";
+import { prisma } from "~/prisma";
+import { getAuthUser } from "~/auth/middleware";
+import { SettingsSection } from "~/settings-section";
+import { useFetcher } from "react-router";
 import { authoriseScrapeUser, getSessionScrapeId } from "../scrapes/util";
-import { Switch } from "~/components/ui/switch";
 import { useEffect, useMemo, useState } from "react";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
@@ -47,7 +21,6 @@ import {
   TbTrash,
   TbX,
 } from "react-icons/tb";
-import { SegmentedControl } from "~/components/ui/segmented-control";
 import { HexColorPicker, HexColorInput } from "react-colorful";
 import cn from "@meltdownjs/cn";
 

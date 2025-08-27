@@ -8,10 +8,10 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { redirect } from "react-router";
 import { Link as RouterLink } from "react-router";
 import { useMemo } from "react";
-import { toaster } from "~/components/ui/toaster";
 import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
+import toast from "react-hot-toast";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -101,9 +101,7 @@ function Ticket({ thread }: { thread: Thread }) {
 
   function copyToClipboard(value: string) {
     navigator.clipboard.writeText(value);
-    toaster.success({
-      title: "Copied to clipboard",
-    });
+    toast.success("Copied to clipboard");
   }
 
   return (

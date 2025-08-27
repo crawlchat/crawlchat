@@ -1,9 +1,10 @@
 import type { Route } from "./+types/message";
+import type { ApiAction, Message } from "libs/prisma";
 import { TbChartBar, TbMessage, TbSettingsBolt } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { useEffect, useMemo, useState } from "react";
 import { makeMessagePairs } from "./analyse";
-import { prisma, type ApiAction, type Message } from "libs/prisma";
+import { prisma } from "libs/prisma";
 import {
   Link,
   Link as RouterLink,
@@ -12,15 +13,15 @@ import {
 } from "react-router";
 import { CountryFlag } from "./country-flag";
 import { extractCitations } from "libs/citation";
-import { toaster } from "~/components/ui/toaster";
 import { DataList } from "~/components/data-list";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Rating } from "./rating-badge";
 import { Page } from "~/components/page";
+import { ChannelBadge } from "~/components/channel-badge";
+import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
-import { ChannelBadge } from "~/components/channel-badge";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -210,9 +211,7 @@ export default function Message({ loaderData }: Route.ComponentProps) {
     navigator.clipboard.writeText(
       (messagePair?.queryMessage?.llmMessage as any)?.content ?? ""
     );
-    toaster.success({
-      title: "Copied to clipboard",
-    });
+    toast.success("Copied to clipboard");
   }
 
   return (

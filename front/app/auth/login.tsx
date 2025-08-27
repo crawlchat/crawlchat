@@ -5,7 +5,7 @@ import { commitSession, getSession } from "~/session";
 import { useEffect, useRef, useState } from "react";
 import { TbArrowRight, TbCircleCheck, TbCircleX } from "react-icons/tb";
 import { getAuthUser } from "./middleware";
-import { LogoChakra } from "~/dashboard/logo-chakra";
+import { Logo } from "~/dashboard/logo";
 import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -153,10 +153,10 @@ export default function LoginPage() {
           <div
             className={cn(
               "flex flex-col w-82 gap-4 items-center border",
-              "border-base-300 rounded-box p-6"
+              "border-base-300 rounded-box p-6 bg-base-200/50 shadow"
             )}
           >
-            <LogoChakra />
+            <Logo />
 
             <div className="flex flex-col gap-4 w-full">
               <div className="text-center text-base-content/50 text-sm">

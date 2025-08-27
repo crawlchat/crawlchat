@@ -20,13 +20,13 @@ import { commitSession } from "~/session";
 import { getSession } from "~/session";
 import { redirect, useFetcher } from "react-router";
 import { getLimits } from "libs/user-plan";
-import { toaster } from "~/components/ui/toaster";
 import { fetchDataGaps } from "~/data-gaps/fetch";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
 import { ChannelBadge } from "~/components/channel-badge";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
+import toast from "react-hot-toast";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -335,10 +335,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     if (newCollectionFetcher.data?.error) {
-      toaster.error({
-        title: "Error",
-        description: newCollectionFetcher.data.error,
-      });
+      toast.error(newCollectionFetcher.data.error);
     }
   }, [newCollectionFetcher.data]);
 

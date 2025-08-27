@@ -18,8 +18,8 @@ import { parseFormData } from "@mjackson/form-data-parser";
 import { useEffect, useMemo, useState } from "react";
 import { prisma } from "~/prisma";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { toaster } from "~/components/ui/toaster";
 import { RadioCard } from "~/components/radio-card";
+import toast from "react-hot-toast";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -236,13 +236,11 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     if (scrapeFetcher.data?.error) {
-      toaster.error({
-        title: "Error",
-        description:
-          scrapeFetcher.data.error ??
+      toast.error(
+        scrapeFetcher.data.error ??
           scrapeFetcher.data.message ??
-          "Unknown error",
-      });
+          "Unknown error"
+      );
     }
   }, [scrapeFetcher.data]);
 
