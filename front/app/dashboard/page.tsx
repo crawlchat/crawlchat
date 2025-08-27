@@ -384,7 +384,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       )}
 
       {!loaderData.noScrapes && (
-        <div className="h-full gap-8 flex flex-col" ref={containerRef}>
+        <div className="h-full gap-4 flex flex-col" ref={containerRef}>
           <div className="flex flex-col justify-stretch md:flex-row gap-4 items-center">
             <StatCard
               label="Today"
