@@ -33,7 +33,7 @@ export default function EmbedDemo() {
           <div className="flex gap-2 items-center">
             <TbWorld size={26} />
             <div className="text-2xl font-bold hidden md:block">
-              Demo Remotion
+              Demo
             </div>
           </div>
 

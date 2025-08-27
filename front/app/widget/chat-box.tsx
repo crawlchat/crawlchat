@@ -94,7 +94,7 @@ function ChatInput() {
     if (!inputRef.current) return;
 
     const handleInput: EventListener = () => {
-      console.log("input", inputRef.current!.scrollHeight);
+      inputRef.current!.style.height = "auto";
       inputRef.current!.style.height = `${inputRef.current!.scrollHeight}px`;
     };
 
