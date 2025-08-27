@@ -128,21 +128,17 @@ function NavLink({
   return (
     <a href={href} className="font-medium hover:underline relative">
       {children}
-      {/* {tooltip && (
-        <Tooltip content="New" positioning={{ placement: "top" }}>
-          <Badge
-            position={"absolute"}
-            top={0}
-            right={0}
-            colorPalette={"red"}
-            variant={"solid"}
-            size={"xs"}
-            transform={"translate(20%, -80%)"}
-          >
-            {tooltip}
-          </Badge>
-        </Tooltip>
-      )} */}
+      {tooltip && (
+        <div
+          className={cn(
+            "absolute top-0 right-0 text-[8px]",
+            "bg-secondary text-secondary-content px-2 py-[2px] rounded-full",
+            "translate-x-[20%] -translate-y-[80%]"
+          )}
+        >
+          {tooltip}
+        </div>
+      )}
     </a>
   );
 }
