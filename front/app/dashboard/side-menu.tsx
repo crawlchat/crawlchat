@@ -53,7 +53,7 @@ function SideMenuItem({
       {({ isPending, isActive }) => (
         <div
           className={cn(
-            "flex px-3 py-1 w-full justify-between rounded-box",
+            "flex pl-3 pr-2 py-1 w-full justify-between rounded-box",
             "transition-all hover:bg-accent hover:text-accent-content",
             isActive && "bg-accent text-accent-content"
           )}

@@ -742,7 +742,7 @@ export function ChatboxContainer({
   children: React.ReactNode;
   noShadow?: boolean;
 }) {
-  const { close, scrape } = useChatBoxContext();
+  const { close, scrape, theme } = useChatBoxContext();
   const containerRef = useRef<HTMLDivElement>(null);
 
   function handleBgClick(event: React.MouseEvent<HTMLDivElement>) {
@@ -762,7 +762,7 @@ export function ChatboxContainer({
       ref={containerRef}
     >
       <div
-        data-theme="light"
+        data-theme={theme}
         className={cn(
           "flex flex-col bg-base-100 relative md:rounded-xl overflow-hidden",
           "md:border w-full h-full md:h-auto border-base-300",

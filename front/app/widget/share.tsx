@@ -132,7 +132,9 @@ function AssistantMessage({
       >
         {citation.content}
       </MarkdownProse>
-      <MessageCopyButton content={content} />
+      <div>
+        <MessageCopyButton content={content} />
+      </div>
     </div>
   );
 }

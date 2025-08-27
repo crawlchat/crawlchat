@@ -38,19 +38,24 @@ const RichCreateTicket = ({
   }
 
   return (
-    <div className="flex flex-col gap-2 border-4 border-brand-outline p-4 rounded-2xl max-w-400px w-full my-8">
+    <div
+      className={cn(
+        "flex flex-col gap-2 border-4 border-base-300",
+        "p-4 rounded-2xl max-w-[400px] w-full my-8",
+      )}
+    >
       {!loading && (
         <>
           <div className="text-lg font-bold">Create a support ticket</div>
           <input
-            className="input input-sm"
+            className="input w-full"
             placeholder="Title"
             defaultValue={title}
             onChange={(e) => setTitle(e.target.value)}
             disabled={disabled}
           />
           <textarea
-            className="textarea textarea-sm textarea-bordered"
+            className="textarea textarea-bordered w-full"
             placeholder="Message"
             defaultValue={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -58,7 +63,7 @@ const RichCreateTicket = ({
             disabled={disabled}
           />
           <input
-            className="input input-sm"
+            className="input w-full"
             placeholder="Email"
             defaultValue={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -66,7 +71,7 @@ const RichCreateTicket = ({
           />
           <div className="flex justify-end">
             <button
-              className="btn btn-sm"
+              className="btn"
               onClick={handleSubmit}
               disabled={disabled}
             >
