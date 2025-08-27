@@ -296,7 +296,7 @@ export function Heading({ children }: PropsWithChildren) {
 
 function HeadingHighlight({ children }: PropsWithChildren) {
   return (
-    <span className="text-primary bg-primary-subtle px-4 rounded-lg md:leading-[1.4]">
+    <span className="text-primary bg-primary-content px-4 rounded-lg md:leading-[1.4]">
       {children}
     </span>
   );
@@ -1030,7 +1030,7 @@ export function LandingPage({ children }: PropsWithChildren) {
       <div
         className={cn(
           "hidden md:block aspect-[1440/960] w-full bg-[url('/new-landing/clouds.png')]",
-          // "dark:bg-[url('/new-landing/clouds-dark.png')]",
+          "dark:bg-[url('/new-landing/clouds-dark.png')]",
           "bg-contain bg-no-repeat absolute top-0 left-0"
         )}
       >
