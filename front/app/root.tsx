@@ -1,3 +1,4 @@
+import type { Route } from "./+types/root";
 import {
   isRouteErrorResponse,
   Links,
@@ -8,11 +9,9 @@ import {
   useLocation,
   useMatches,
 } from "react-router";
-
-import type { Route } from "./+types/root";
-import stylesheet from "./app.css?url";
 import { useMemo } from "react";
 import { VemetricScript } from "@vemetric/react";
+import stylesheet from "./app.css?url";
 
 declare global {
   interface Window {
