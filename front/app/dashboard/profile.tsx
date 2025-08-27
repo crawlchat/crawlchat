@@ -172,7 +172,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                   {!loaderData.subscription && (
                     <>
                       <a
-                        className="btn btn-primary btn-soft"
+                        className="btn btn-primary btn-soft hidden md:flex"
                         href={
                           "https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
                         }
@@ -183,7 +183,18 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                       </a>
 
                       <a
-                        className="btn btn-primary"
+                        className="btn btn-primary btn-soft md:hidden"
+                        href={
+                          "https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
+                        }
+                        target="_blank"
+                      >
+                        <TbCrown />
+                        To Starter
+                      </a>
+
+                      <a
+                        className="btn btn-primary hidden md:flex"
                         href={
                           "https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
                         }
@@ -191,6 +202,17 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                       >
                         <TbCrown />
                         Upgrade to Pro
+                      </a>
+
+                      <a
+                        className="btn btn-primary md:hidden"
+                        href={
+                          "https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
+                        }
+                        target="_blank"
+                      >
+                        <TbCrown />
+                        To Pro
                       </a>
                     </>
                   )}

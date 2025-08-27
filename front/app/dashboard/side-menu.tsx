@@ -322,8 +322,8 @@ export function SideMenu({
   return (
     <div
       className={cn(
-        "flex flex-col min-h-screen",
-        "gap-0 justify-between fixed left-0 top-0 w-full"
+        "flex flex-col h-full",
+        "gap-0 justify-between w-full"
       )}
     >
       <div className="flex flex-col py-4 gap-4">
