@@ -55,7 +55,7 @@ export function SettingsSection({
         className={cn(
           "border border-base-300 rounded-box flex flex-col",
           "outline-primary outline-offset-3 bg-base-200/50 shadow-sm",
-          danger && "border-red-200 bg-red-50",
+          danger && "border-red-200 bg-red-50 text-error",
           targeted && "outline-2"
         )}
         ref={ref}
@@ -64,7 +64,14 @@ export function SettingsSection({
           <div className="flex flex-col gap-2">
             {title && <div className="text-md font-medium">{title}</div>}
             {description && (
-              <div className="text-sm text-base-content/50">{description}</div>
+              <div
+                className={cn(
+                  "text-sm text-base-content/50",
+                  danger && "text-error/50"
+                )}
+              >
+                {description}
+              </div>
             )}
           </div>
           {children}
@@ -130,7 +137,8 @@ export function SettingsContainer({ children }: { children: React.ReactNode }) {
               key={section.id}
               className={cn(
                 "text-sm opacity-50 hover:opacity-100",
-                activeId === section.id && "font-medium text-primary opacity-100"
+                activeId === section.id &&
+                  "font-medium text-primary opacity-100"
               )}
               to={`#${section.id}`}
               preventScrollReset

@@ -1026,8 +1026,14 @@ function Hero() {
 
 export function LandingPage({ children }: PropsWithChildren) {
   return (
-    <div className="bg-base-200 font-aeonik">
-      <div className="hidden md:block aspect-[1440/960] w-full bg-[url('/new-landing/clouds.png')] dark:bg-[url('/new-landing/clouds-dark.png')] bg-contain bg-no-repeat absolute top-0 left-0">
+    <div data-theme="brand" className="bg-base-200 font-aeonik">
+      <div
+        className={cn(
+          "hidden md:block aspect-[1440/960] w-full bg-[url('/new-landing/clouds.png')]",
+          // "dark:bg-[url('/new-landing/clouds-dark.png')]",
+          "bg-contain bg-no-repeat absolute top-0 left-0"
+        )}
+      >
         <div className="w-full h-full bg-gradient-to-b from-[rgba(246,246,245,0)] to-base-200"></div>
       </div>
 
