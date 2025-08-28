@@ -131,8 +131,8 @@ function isDataGap(
       contextRelevanceScore: 0.5,
     },
     high: {
-      questionRelevanceScore: 0.6,
-      contextRelevanceScore: 0.4,
+      questionRelevanceScore: 0.8,
+      contextRelevanceScore: 0.2,
     },
   };
 

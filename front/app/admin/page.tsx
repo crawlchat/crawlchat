@@ -145,26 +145,6 @@ function Score({ message }: { message: Message }) {
   return `[${min}, ${avg}, ${max}]`;
 }
 
-function WithPopover({
-  title,
-  popoverContent,
-  children,
-}: {
-  title?: string;
-  popoverContent: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="dropdown">
-      <div className="btn mb-1">{children}</div>
-      <div className="dropdown-content bg-base-100 rounded-box z-1 w-80 p-2 shadow-sm">
-        <div className="font-bold">{title}</div>
-        {popoverContent}
-      </div>
-    </div>
-  );
-}
-
 function MessagesTable({
   messageDetails,
 }: {
@@ -196,16 +176,22 @@ function MessagesTable({
               <td>{messageDetail.message.channel ?? "chatbot"}</td>
               <td>
                 {messageDetail.message.analysis?.dataGapTitle && (
-                  <WithPopover
-                    title={messageDetail.message.analysis.dataGapTitle}
-                    popoverContent={
+                  <div className="dropdown dropdown-end">
+                    <div tabIndex={0} className="btn mb-1">
+                      Yes
+                    </div>
+                    <div
+                      tabIndex={0}
+                      className="dropdown-content bg-base-100 rounded-box z-1 w-80 p-4 shadow-sm"
+                    >
+                      <div className="text-lg font-bold mb-2">
+                        {messageDetail.message.analysis.dataGapTitle}
+                      </div>
                       <MarkdownProse>
                         {messageDetail.message.analysis.dataGapDescription}
                       </MarkdownProse>
-                    }
-                  >
-                    Yes
-                  </WithPopover>
+                    </div>
+                  </div>
                 )}
               </td>
               <td>{messageDetail.message.createdAt.toLocaleString()}</td>
