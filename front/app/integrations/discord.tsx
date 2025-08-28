@@ -1,6 +1,6 @@
 import type { Route } from "./+types/discord";
 import type { Prisma } from "libs/prisma";
-import { useFetcher } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
 import {
   SettingsContainer,
   SettingsSection,
@@ -10,6 +10,8 @@ import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { TbArrowRight, TbBrandDiscord, TbInfoCircle } from "react-icons/tb";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
+import { MultiSelect } from "~/components/multi-select";
+import { useState } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -33,6 +35,10 @@ export async function action({ request }: Route.ActionArgs) {
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const formData = await request.formData();
+
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId },
+  });
 
   const update: Prisma.ScrapeUpdateInput = {};
 
@@ -65,18 +71,59 @@ export async function action({ request }: Route.ActionArgs) {
     }
   }
 
-  const scrape = await prisma.scrape.update({
+  if (formData.has("from-reply-as-thread")) {
+    update.discordConfig = {
+      ...(scrape!.discordConfig! as any),
+      replyAsThread: formData.get("replyAsThread") === "on",
+    };
+  }
+
+  if (formData.has("onlyChannelNames")) {
+    update.discordConfig = {
+      ...(scrape!.discordConfig! as any),
+      onlyChannelNames: formData.get("onlyChannelNames") as string,
+    };
+  }
+
+  const updatedScrape = await prisma.scrape.update({
     where: { id: scrapeId },
     data: update,
   });
 
-  return { scrape };
+  return { scrape: updatedScrape };
+}
+
+function ChannelNames() {
+  const { scrape } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher();
+  const [value, setValue] = useState<string[]>(
+    scrape.discordConfig?.onlyChannelNames?.split(",") ?? []
+  );
+
+  return (
+    <SettingsSection
+      id="channel-names"
+      title="Channel names"
+      description="Configure the channels from which the bot will answer the queries. If none mentioned, it will answer everywhere on the server."
+      fetcher={fetcher}
+    >
+      <input type="hidden" name="onlyChannelNames" value={value.join(",")} />
+      <MultiSelect
+        placeholder="Ex: ask-ai, help, etc."
+        value={value}
+        onChange={(value) => {
+          setValue(value);
+        }}
+      />
+    </SettingsSection>
+  );
 }
 
 export default function DiscordIntegrations({
   loaderData,
 }: Route.ComponentProps) {
   const discordServerIdFetcher = useFetcher();
+  const replyAsThreadFetcher = useFetcher();
 
   return (
     <SettingsSectionProvider>
@@ -110,6 +157,7 @@ export default function DiscordIntegrations({
 
         <SettingsSection
           id="discord-server-id"
+          plainTitle="Server Id"
           title={
             <div className="flex items-center gap-2">
               <span>Discord Server Id</span>
@@ -139,6 +187,28 @@ export default function DiscordIntegrations({
             placeholder="Enter your Discord server ID"
             defaultValue={loaderData.scrape.discordServerId ?? ""}
           />
+        </SettingsSection>
+
+        <ChannelNames />
+
+        <SettingsSection
+          id="reply-as-thread"
+          title="Reply as thread"
+          description="Reply to messages as threads instead of just sending it as reply. Keeps the channel clutter free and better organization."
+          fetcher={replyAsThreadFetcher}
+        >
+          <input type="hidden" name="from-reply-as-thread" value="on" />
+          <label className="label">
+            <input
+              type="checkbox"
+              name="replyAsThread"
+              className="toggle"
+              defaultChecked={
+                loaderData.scrape.discordConfig?.replyAsThread ?? false
+              }
+            />
+            Active
+          </label>
         </SettingsSection>
       </SettingsContainer>
     </SettingsSectionProvider>

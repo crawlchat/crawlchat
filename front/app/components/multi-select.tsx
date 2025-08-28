@@ -1,3 +1,4 @@
+import cn from "@meltdownjs/cn";
 import { useState } from "react";
 import { TbCheck, TbX } from "react-icons/tb";
 
@@ -44,7 +45,10 @@ export function MultiSelect({
       <div className="flex gap-1">
         {value.map((value, index) => (
           <div
-            className="flex gap-2 items-center bg-base-200 rounded-box p-2 pl-4"
+            className={cn(
+              "flex gap-2 items-center bg-base-200 rounded-box p-2 pl-4",
+              "border border-base-300"
+            )}
             key={index}
           >
             <span className="text-sm">{getTitle(value)}</span>

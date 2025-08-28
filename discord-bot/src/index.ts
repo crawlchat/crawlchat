@@ -11,6 +11,7 @@ import {
   Partials,
   PublicThreadChannel,
   TextChannel,
+  ThreadAutoArchiveDuration,
 } from "discord.js";
 import { learn, query } from "./api";
 import { createToken } from "libs/jwt";
@@ -92,6 +93,7 @@ const getDiscordDetails = async (channelId: string) => {
     draftChannelIds: scrape.discordDraftConfig?.sourceChannelIds ?? [],
     draftEmoji: scrape.discordDraftConfig?.emoji,
     draftDestinationChannelId: scrape.discordDraftConfig?.destinationChannelId,
+    scrape,
   };
 };
 
@@ -190,6 +192,38 @@ async function learnMessage(message: DiscordMessage, includeSelf = false) {
   message.react("✅");
 }
 
+async function getPreviousMessages(message: DiscordMessage) {
+  const messages = (
+    await message.channel.messages.fetch({
+      limit: 20,
+      before: message.id,
+    })
+  ).map((m) => m);
+  return messages;
+}
+
+async function isMessageFromChannels(
+  message: DiscordMessage,
+  channelNames: string[]
+) {
+  if (message.channel.type === ChannelType.GuildText) {
+    const textChannel = message.channel as TextChannel;
+    return channelNames.includes(textChannel.name);
+  }
+
+  if (message.channel.type === ChannelType.PublicThread) {
+    const threadChannel = message.channel as PublicThreadChannel;
+    const parentChannel = threadChannel.parent;
+
+    if (parentChannel && parentChannel.type === ChannelType.GuildText) {
+      const textParentChannel = parentChannel as TextChannel;
+      return channelNames.includes(textParentChannel.name);
+    }
+  }
+
+  return false;
+}
+
 client.once(Events.ClientReady, (readyClient) => {
   console.log(`Ready! Logged in as ${readyClient.user.tag}`);
 });
@@ -199,20 +233,27 @@ client.on(Events.MessageCreate, async (message) => {
     message.mentions.users.has(process.env.BOT_USER_ID!) &&
     message.author.id !== process.env.BOT_USER_ID!
   ) {
-    const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
+    const { scrape } = await getDiscordDetails(message.guildId!);
 
-    if (!scrapeId || !userId) {
+    if (!scrape) {
       message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
       return;
     }
 
+    if (
+      scrape.discordConfig?.onlyChannelNames &&
+      !(await isMessageFromChannels(
+        message,
+        scrape.discordConfig.onlyChannelNames.split(",")
+      ))
+    ) {
+      return;
+    }
+
+    const { stopTyping } = await sendTyping(message.channel as TextChannel);
+
     const rawQuery = message.content.replace(/^<@\d+> /, "").trim();
-    const previousMessages = (
-      await message.channel.messages.fetch({
-        limit: 20,
-        before: message.id,
-      })
-    ).map((m) => m);
+    const previousMessages = await getPreviousMessages(message);
     const replyMessages = await fetchAllParentMessages(message, []);
 
     const contextMessages = [...previousMessages, ...replyMessages].sort(
@@ -229,14 +270,12 @@ client.on(Events.MessageCreate, async (message) => {
       content: cleanContent(rawQuery),
     });
 
-    const { stopTyping } = await sendTyping(message.channel as TextChannel);
-
     let response = "Something went wrong";
     const {
       answer,
       error,
       message: answerMessage,
-    } = await query(scrapeId, messages, createToken(userId), {
+    } = await query(scrape.id, messages, createToken(scrape.userId), {
       prompt: defaultPrompt,
     });
 
@@ -249,7 +288,23 @@ client.on(Events.MessageCreate, async (message) => {
 
     stopTyping();
 
-    const replyResult = await message.reply(response);
+    let replyResult;
+
+    if (
+      scrape.discordConfig?.replyAsThread &&
+      message.channel.type !== ChannelType.PublicThread
+    ) {
+      const shortQuery = rawQuery.substring(0, 50);
+      const thread = await message.startThread({
+        name: `Response to: ${shortQuery}${
+          shortQuery.length > 50 ? "..." : ""
+        }`,
+        autoArchiveDuration: ThreadAutoArchiveDuration.ThreeDays,
+      });
+      replyResult = await thread.send(response);
+    } else {
+      replyResult = await message.reply(response);
+    }
 
     await prisma.message.update({
       where: { id: answerMessage.id },
