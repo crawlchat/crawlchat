@@ -12,6 +12,7 @@ import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -74,6 +75,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   const hasPrevious = page > 1;
 
   return { threads, total, closed, open, hasNext, hasPrevious, status, page };
+}
+
+export function meta() {
+  return makeMeta({
+    title: "Tickets - CrawlChat",
+  });
 }
 
 function Ticket({ thread }: { thread: Thread }) {

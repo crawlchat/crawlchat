@@ -7,6 +7,7 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { EmptyState } from "~/components/empty-state";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -42,6 +43,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   return { scrape, items, knowledgeGroup };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: `${data.knowledgeGroup.title ?? "Untitled"} items - CrawlChat`,
+  });
 }
 
 function getKey(item: { id: string; url?: string | null }) {

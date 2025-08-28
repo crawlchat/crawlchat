@@ -7,6 +7,7 @@ import { TbArrowRight, TbCircleCheck, TbCircleX } from "react-icons/tb";
 import { getAuthUser } from "./middleware";
 import { Logo } from "~/dashboard/logo";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request, { dontRedirect: true });
@@ -21,11 +22,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta() {
-  return [
-    {
-      title: "Login - CrawlChat",
-    },
-  ];
+  return makeMeta({
+    title: "Login - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

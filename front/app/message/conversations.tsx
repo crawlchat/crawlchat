@@ -22,6 +22,7 @@ import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 type ThreadWithMessages = Prisma.ThreadGetPayload<{
   include: {
@@ -100,6 +101,13 @@ export async function loader({ request }: Route.LoaderArgs) {
     to: (page - 1) * pageSize + pageSize,
   };
 }
+
+export function meta() {
+  return makeMeta({
+    title: "Conversations - CrawlChat",
+  });
+}
+
 
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);

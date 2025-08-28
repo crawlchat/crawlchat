@@ -7,31 +7,12 @@ import {
   Heading,
 } from "~/landing/page";
 import {
-  TbBolt,
-  TbChartBar,
-  TbCircleFilled,
   TbClock,
   TbClockCheck,
   TbHeart,
-  TbMail,
   TbMessage,
-  TbShieldLock,
-  TbTicket,
   TbUserHeart,
 } from "react-icons/tb";
-
-export function meta() {
-  return [
-    {
-      title: "Support tickets - CrawlChat",
-    },
-    {
-      name: "description",
-      content:
-        "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
-    },
-  ];
-}
 
 function Step({
   number,

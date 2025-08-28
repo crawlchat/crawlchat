@@ -22,6 +22,7 @@ import { ActionButton } from "./group/action-button";
 import { SiDocusaurus } from "react-icons/si";
 import { EmptyState } from "~/components/empty-state";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -72,6 +73,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   return { scrape, knowledgeGroups, counts, citationCounts };
+}
+
+export function meta() {
+  return makeMeta({
+    title: "Knowledge - CrawlChat",
+  });
 }
 
 export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {

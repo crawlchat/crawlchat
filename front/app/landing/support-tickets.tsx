@@ -14,18 +14,14 @@ import {
   TbShieldLock,
   TbTicket,
 } from "react-icons/tb";
+import { makeMeta } from "~/meta";
 
 export function meta() {
-  return [
-    {
-      title: "Support tickets - CrawlChat",
-    },
-    {
-      name: "description",
-      content:
-        "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
-    },
-  ];
+  return makeMeta({
+    title: "Support tickets - CrawlChat",
+    description:
+      "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
+  });
 }
 
 function Step({

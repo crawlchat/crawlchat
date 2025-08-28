@@ -18,6 +18,7 @@ import { DataList } from "~/components/data-list";
 import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -33,6 +34,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   return { scrape, user: user! };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "Settings - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

@@ -12,6 +12,7 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { makeCursorMcpJson, makeMcpName } from "~/mcp/setup";
 import { makeMcpCommand } from "~/mcp/setup";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -27,6 +28,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   return { scrape };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "MCP - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

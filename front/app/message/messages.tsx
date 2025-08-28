@@ -15,6 +15,7 @@ import { ScoreBadge } from "~/components/score-badge";
 import { ChannelBadge } from "~/components/channel-badge";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -39,6 +40,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   return { messagePairs: makeMessagePairs(messages) };
+}
+
+export function meta() {
+  return makeMeta({
+    title: "Messages - CrawlChat",
+  });
 }
 
 function getMessageContent(message?: Message) {

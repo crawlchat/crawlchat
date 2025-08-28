@@ -23,6 +23,7 @@ import {
 } from "react-icons/tb";
 import { HexColorPicker, HexColorInput } from "react-colorful";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -36,6 +37,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   return { scrape };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "Customise - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

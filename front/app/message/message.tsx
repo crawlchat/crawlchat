@@ -23,6 +23,7 @@ import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
 import { ScoreBadge } from "~/components/score-badge";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -63,6 +64,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   );
 
   return { messagePairs, messagePair, actionsMap };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: `${(data.messagePair?.queryMessage?.llmMessage as any)?.content ?? "Message"} - CrawlChat`,
+  });
 }
 
 function getMessageContent(message?: Message) {

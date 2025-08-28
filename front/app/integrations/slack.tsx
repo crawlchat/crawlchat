@@ -11,6 +11,7 @@ import { getAuthUser } from "~/auth/middleware";
 import { TbArrowRight, TbBrandSlack } from "react-icons/tb";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -26,6 +27,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   return { scrape };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "Slack - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

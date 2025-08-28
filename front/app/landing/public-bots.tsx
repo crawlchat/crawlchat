@@ -9,14 +9,13 @@ import {
 import type { Route } from "./+types/public-bots";
 import { TbArrowRight } from "react-icons/tb";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export function meta() {
-  return [
-    {
-      title: "Public AI Chatbots - CrawlChat",
-      description: "Public AI Chatbots for popular libraries and frameworks",
-    },
-  ];
+  return makeMeta({
+    title: "Public AI Chatbots - CrawlChat",
+    description: "Public AI Chatbots for popular libraries and frameworks",
+  });
 }
 
 export function loader() {

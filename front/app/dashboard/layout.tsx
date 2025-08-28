@@ -12,18 +12,14 @@ import { vemetric } from "@vemetric/react";
 import { fetchDataGaps } from "~/data-gaps/fetch";
 import { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export function meta() {
-  return [
-    {
-      title: "CrawlChat",
-    },
-    {
-      name: "description",
-      content:
-        "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
-    },
-  ];
+  return makeMeta({
+    title: "CrawlChat",
+    description:
+      "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
+  });
 }
 
 export async function loader({ request }: Route.LoaderArgs) {

@@ -21,6 +21,7 @@ import { getLimits } from "libs/user-plan";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -42,6 +43,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   return { user, scrapeUsers, scrapeUser, scrape };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "Team - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

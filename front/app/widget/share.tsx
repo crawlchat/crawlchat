@@ -8,6 +8,7 @@ import { RiChatVoiceAiFill } from "react-icons/ri";
 import { MessageCopyButton, Sources } from "~/widget/chat-box";
 import { TbAlertCircle } from "react-icons/tb";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const { id } = params;
@@ -25,11 +26,9 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 export function meta({ data }: Route.MetaArgs) {
   if (!data.thread) {
-    return [
-      {
-        title: "CrawlChat",
-      },
-    ];
+    return makeMeta({
+      title: "CrawlChat",
+    });
   }
 
   let title = data.thread.scrape.title ?? data.thread.scrape.url;
@@ -52,22 +51,10 @@ export function meta({ data }: Route.MetaArgs) {
     ).content.substring(0, 200);
     description = question;
   }
-  return [
-    {
-      title,
-    },
-    {
-      description,
-    },
-    {
-      property: "og:title",
-      content: title,
-    },
-    {
-      property: "og:description",
-      content: description,
-    },
-  ];
+  return makeMeta({
+    title: title ?? "CrawlChat",
+    description,
+  });
 }
 
 function Nav({ scrape }: { scrape: Scrape }) {

@@ -14,6 +14,7 @@ import cn from "@meltdownjs/cn";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import toast from "react-hot-toast";
+import { makeMeta } from "~/meta";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -27,6 +28,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     },
   });
   return { item, scrapeId };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: `${data.item?.title ?? "Untitled"} - CrawlChat`,
+  });
 }
 
 export async function action({ params, request }: Route.ActionArgs) {

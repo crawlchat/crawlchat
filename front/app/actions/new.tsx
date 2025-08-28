@@ -8,6 +8,7 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { redirect, useFetcher } from "react-router";
 import { SaveForm } from "./save-form";
 import { Page } from "~/components/page";
+import { makeMeta } from "~/meta";
 
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
@@ -32,6 +33,13 @@ export async function action({ request }: Route.ActionArgs) {
 
   throw redirect(`/actions`);
 }
+
+export function meta() {
+  return makeMeta({
+    title: "New Action - CrawlChat",
+  });
+}
+
 
 export default function NewAction() {
   const fetcher = useFetcher();

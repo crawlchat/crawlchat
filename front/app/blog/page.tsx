@@ -6,6 +6,7 @@ import { TbClock } from "react-icons/tb";
 import moment from "moment";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { makeMeta } from "~/meta";
 
 export function loader({ params }: Route.LoaderArgs) {
   try {
@@ -16,12 +17,10 @@ export function loader({ params }: Route.LoaderArgs) {
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  return [
-    {
-      title: data.post.title,
-      description: data.post.description,
-    },
-  ];
+  return makeMeta({
+    title: data.post.title,
+    description: data.post.description,
+  });
 }
 
 export default function BlogPage({ loaderData }: Route.ComponentProps) {

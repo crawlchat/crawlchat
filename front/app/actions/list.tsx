@@ -8,6 +8,7 @@ import { prisma } from "libs/prisma";
 import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -36,6 +37,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   return { actions, counts };
+}
+
+export function meta() {
+  return makeMeta({
+    title: "Actions - CrawlChat",
+  });
 }
 
 function NoActions() {

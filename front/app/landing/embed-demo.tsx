@@ -1,12 +1,11 @@
 import { useEffect } from "react";
 import { TbArrowRight, TbSearch, TbWorld } from "react-icons/tb";
+import { makeMeta } from "~/meta";
 
 export function meta() {
-  return [
-    {
-      title: "CrawlChat Embed Demo",
-    },
-  ];
+  return makeMeta({
+    title: "CrawlChat Embed Demo",
+  });
 }
 
 export default function EmbedDemo() {

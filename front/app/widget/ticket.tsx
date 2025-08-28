@@ -26,6 +26,7 @@ import cn from "@meltdownjs/cn";
 import moment from "moment";
 import TicketUserMessageEmail from "emails/ticket-user-message";
 import TicketAdminMessageEmail from "emails/ticket-admin-message";
+import { makeMeta } from "~/meta";
 
 function getRole(thread?: Thread | null, scrapeUsers?: ScrapeUser[] | null) {
   const role: "agent" | "user" =
@@ -65,11 +66,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  return [
-    {
-      title: data.thread?.title ?? "CrawlChat",
-    },
-  ];
+  return makeMeta({
+    title: data.thread?.title ?? "CrawlChat",
+  });
 }
 
 export async function action({ params, request }: Route.ActionArgs) {

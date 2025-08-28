@@ -12,6 +12,7 @@ import {
 } from "~/settings-section";
 import { getSubscription } from "~/lemonsqueezy";
 import { planMap } from "libs/user-plan";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -47,6 +48,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     scrapes: scrapes.length,
     teamMembers,
   };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "Profile - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

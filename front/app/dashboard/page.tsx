@@ -27,6 +27,7 @@ import { ChannelBadge } from "~/components/channel-badge";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -185,12 +186,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function meta() {
-  return [
-    {
-      title: "CrawlChat",
-      description: "Chat with any website!",
-    },
-  ];
+  return makeMeta({
+    title: "Home - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

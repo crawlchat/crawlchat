@@ -2,8 +2,9 @@ import { readPosts } from "./posts";
 import { Cache } from "~/cache";
 import type { Route } from "./+types/list";
 import { TbClock, TbSignature } from "react-icons/tb";
-import { LandingPage, Container, Nav, CTA, Footer } from "~/landing/page";
+import { Container } from "~/landing/page";
 import moment from "moment";
+import { makeMeta } from "~/meta";
 
 const cache = new Cache(
   () => readPosts().filter((b) => b.type === "blog"),
@@ -15,12 +16,9 @@ export function loader() {
 }
 
 export function meta() {
-  return [
-    {
-      title: "Blog - CrawlChat",
-      description: "Read our blog posts",
-    },
-  ];
+  return makeMeta({
+    title: "Blog - CrawlChat",
+  });
 }
 
 export default function BlogPage({ loaderData }: Route.ComponentProps) {

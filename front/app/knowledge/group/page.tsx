@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import { createToken } from "libs/jwt";
 import { ActionButton } from "./action-button";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -44,6 +45,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   return { scrape, knowledgeGroup, items };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: `${data.knowledgeGroup.title ?? "Untitled"} - CrawlChat`,
+  });
 }
 
 export async function action({ request, params }: Route.ActionArgs) {

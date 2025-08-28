@@ -34,18 +34,14 @@ import { PLAN_FREE, PLAN_PRO, PLAN_STARTER } from "libs/user-plan";
 import { useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
 import cn from "@meltdownjs/cn";
+import { makeMeta } from "~/meta";
 
 export function meta() {
-  return [
-    {
-      title: "CrawlChat - AI Chatbot for your documentation and support",
-    },
-    {
-      name: "description",
-      content:
-        "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
-    },
-  ];
+  return makeMeta({
+    title: "CrawlChat - AI Chatbot for your documentation and support",
+    description:
+      "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
+  });
 }
 
 const cache = {

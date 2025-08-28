@@ -18,6 +18,7 @@ import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -28,6 +29,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   return { messages };
 }
+
+export function meta() {
+  return makeMeta({
+    title: "Data gaps - CrawlChat",
+  });
+}
+
 
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);

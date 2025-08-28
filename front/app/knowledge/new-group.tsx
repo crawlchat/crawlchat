@@ -20,6 +20,7 @@ import { prisma } from "~/prisma";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { RadioCard } from "~/components/radio-card";
 import toast from "react-hot-toast";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -34,6 +35,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     token: createToken(user!.id),
     scrapes,
   };
+}
+
+export function meta() {
+  return makeMeta({
+    title: "New knowledge group - CrawlChat",
+  });
 }
 
 export async function action({ request }: { request: Request }) {

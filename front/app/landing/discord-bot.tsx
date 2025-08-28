@@ -1,14 +1,13 @@
 import { useMemo } from "react";
 import { TbArrowRight, TbBrandDiscordFilled, TbCheck } from "react-icons/tb";
+import { makeMeta } from "~/meta";
 
 export function meta() {
-  return [
-    {
-      title: "CrawlChat Discord Bot",
-      content:
-        "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
-    },
-  ];
+  return makeMeta({
+    title: "Discord bot - CrawlChat",
+    description:
+      "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
+  });
 }
 
 export default function DiscordBotPage() {

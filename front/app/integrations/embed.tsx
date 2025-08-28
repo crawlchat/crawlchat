@@ -12,6 +12,7 @@ import { useMemo, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { Select } from "~/components/select";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -25,6 +26,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   return { scrape };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "Embed - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

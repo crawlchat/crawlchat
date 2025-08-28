@@ -8,6 +8,7 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { redirect, useFetcher } from "react-router";
 import { SaveForm } from "./save-form";
 import { Page } from "~/components/page";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -22,6 +23,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   return { action };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: `${data.action?.title ?? "Untitled"} - CrawlChat`,
+  });
 }
 
 export async function action({ request, params }: Route.ActionArgs) {

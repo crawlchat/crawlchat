@@ -12,6 +12,7 @@ import { TbArrowRight, TbBrandDiscord, TbInfoCircle } from "react-icons/tb";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { MultiSelect } from "~/components/multi-select";
 import { useState } from "react";
+import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -27,6 +28,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   return { scrape };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "Discord - CrawlChat",
+  });
 }
 
 export async function action({ request }: Route.ActionArgs) {

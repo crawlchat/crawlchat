@@ -4,13 +4,12 @@ import { LandingPage } from "./page";
 import { Container } from "./page";
 import fs from "fs";
 import path from "path";
+import { makeMeta } from "~/meta";
 
 export function meta() {
-  return [
-    {
-      title: "Privacy Policy - CrawlChat",
-    },
-  ];
+  return makeMeta({
+    title: "Privacy Policy - CrawlChat",
+  });
 }
 
 export async function loader() {

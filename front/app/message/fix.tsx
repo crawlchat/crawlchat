@@ -14,6 +14,7 @@ import { Link, redirect, useFetcher } from "react-router";
 import { createToken } from "libs/jwt";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
+import { makeMeta } from "~/meta";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -45,6 +46,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     message,
   };
 }
+
+export function meta({ data }: Route.MetaArgs) {
+  return makeMeta({
+    title: "Fix message - CrawlChat",
+  });
+}
+
 
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await getAuthUser(request);

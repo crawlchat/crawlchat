@@ -16,6 +16,7 @@ import cn from "@meltdownjs/cn";
 import TicketUserCreateEmail from "emails/ticket-user-create";
 import TicketAdminCreateEmail from "emails/ticket-admin-create";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
+import { makeMeta } from "~/meta";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -116,11 +117,9 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export function meta({ data }: Route.MetaArgs) {
-  return [
-    {
-      title: data.scrape.title ?? data.scrape.url,
-    },
-  ];
+  return makeMeta({
+    title: data.scrape.title ?? data.scrape.url ?? "CrawlChat",
+  });
 }
 
 export async function action({ request, params }: Route.ActionArgs) {

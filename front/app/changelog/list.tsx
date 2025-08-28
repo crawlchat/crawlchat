@@ -4,6 +4,7 @@ import { cache } from "./fetch";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import moment from "moment";
+import { makeMeta } from "~/meta";
 
 export function loader({}: Route.LoaderArgs) {
   return {
@@ -12,12 +13,10 @@ export function loader({}: Route.LoaderArgs) {
 }
 
 export function meta() {
-  return [
-    {
-      title: "Changelog - CrawlChat",
-      description: "Read our changelog",
-    },
-  ];
+  return makeMeta({
+    title: "Changelog - CrawlChat",
+    description: "Read our changelog",
+  });
 }
 
 export default function ChangelogPage({ loaderData }: Route.ComponentProps) {
