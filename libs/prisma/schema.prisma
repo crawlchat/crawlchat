@@ -93,6 +93,11 @@ type DiscordDraftConfig {
   destinationChannelId    String
 }
 
+type DiscordConfig {
+  replyAsThread Boolean?
+  onlyChannelNames String?
+}
+
 enum LlmModel {
   gpt_4o_mini
   o3_mini
@@ -141,6 +146,7 @@ model Scrape {
   indexer               String?
   discordServerId       String?
   discordDraftConfig    DiscordDraftConfig?
+  discordConfig         DiscordConfig?
   logoUrl               String?
   ticketingEnabled      Boolean?
   
