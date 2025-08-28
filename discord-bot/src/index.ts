@@ -202,7 +202,7 @@ async function getPreviousMessages(message: DiscordMessage) {
   return messages;
 }
 
-async function isMessageFromChannel(
+async function isMessageFromChannels(
   message: DiscordMessage,
   channelNames: string[]
 ) {
@@ -242,7 +242,7 @@ client.on(Events.MessageCreate, async (message) => {
 
     if (
       scrape.discordConfig?.onlyChannelNames &&
-      !(await isMessageFromChannel(
+      !(await isMessageFromChannels(
         message,
         scrape.discordConfig.onlyChannelNames.split(",")
       ))
