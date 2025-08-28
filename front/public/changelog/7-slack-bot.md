@@ -2,6 +2,7 @@
 title: Slack bot
 date: 2025-07-31
 type: changelog
+tags: focus
 ---
 
 Released the public version of Slack Bot that will answer the queries on your workspace. 

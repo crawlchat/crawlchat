@@ -1,7 +1,8 @@
 ---
-title: Data gaps & analysis
+title: Data gaps and analysis
 date: 2025-08-19
 type: changelog
+tags: focus
 ---
 
 Now the bot **analyses the data gaps** whenever it gives out an answer for any question across the channels. It primarily checks two aspects

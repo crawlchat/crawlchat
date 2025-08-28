@@ -12,6 +12,7 @@ export type BlogPost = {
   status: BlogPostStatus;
   image?: string;
   type?: string;
+  tags?: string[];
 };
 
 function makePath(path = "blog-posts") {
@@ -55,6 +56,7 @@ export function readPost(slug: string, path?: string): BlogPost {
     image: frontMatter.image,
     type: frontMatter.type ?? "blog",
     status: (frontMatter.status ?? "published") as BlogPostStatus,
+    tags: frontMatter.tags?.split(",").map((tag) => tag.trim()) ?? [],
   };
 }
 

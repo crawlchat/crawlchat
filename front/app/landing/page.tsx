@@ -32,6 +32,7 @@ import { prisma } from "libs/prisma";
 import { track } from "~/pirsch";
 import { PLAN_FREE, PLAN_PRO, PLAN_STARTER } from "libs/user-plan";
 import { useLoaderData } from "react-router";
+import { cache as changelogCache } from "~/changelog/fetch";
 import cn from "@meltdownjs/cn";
 
 export function meta() {
@@ -91,6 +92,11 @@ export async function loader() {
     });
   }
 
+  const focusChangelog = changelogCache
+    .get()
+    .filter((post) => post.tags?.includes("focus"))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+
   return {
     messagesThisWeek: cache.messagesThisWeek,
     messagesDay: cache.messagesDay,
@@ -98,6 +104,7 @@ export async function loader() {
     freePlan: PLAN_FREE,
     starterPlan: PLAN_STARTER,
     proPlan: PLAN_PRO,
+    focusChangelog,
   };
 }
 
@@ -954,6 +961,8 @@ export function ctaClassNames(primary: boolean) {
 }
 
 function Hero() {
+  const { focusChangelog } = useLoaderData<typeof loader>();
+
   function handleAskCrawlChat() {
     track("hero-ask-ai", {
       page: "landing",
@@ -963,22 +972,22 @@ function Hero() {
 
   return (
     <div className="py-4">
-      <a
-        className="flex justify-center mb-8 cursor-pointer hover:scale-[1.02] transition-all"
-        href="/support-tickets"
-      >
-        <div className="bg-red-50 text-sm px-1.5 py-1 rounded-full flex items-center gap-2 pr-2 border border-red-300 text-red-700">
-          <span className="px-2 bg-red-200 rounded-full font-medium border border-red-300">
-            NEW
-          </span>
-          <span className="leading-none">
-            Added support for support tickets
-          </span>
-          <span>
-            <TbChevronRight />
-          </span>
-        </div>
-      </a>
+      {focusChangelog && (
+        <a
+          className="flex justify-center mb-8 cursor-pointer hover:scale-[1.02] transition-all"
+          href={`/changelog/${focusChangelog.slug}`}
+        >
+          <div className="bg-red-50 text-sm px-1.5 py-1 rounded-full flex items-center gap-2 pr-2 border border-red-300 text-red-700">
+            <span className="px-2 bg-red-200 rounded-full font-medium border border-red-300">
+              NEW
+            </span>
+            <span className="leading-none">{focusChangelog.title}</span>
+            <span>
+              <TbChevronRight />
+            </span>
+          </div>
+        </a>
+      )}
 
       <h1 className="font-radio-grotesk text-[42px] md:text-[64px] leading-[1.2] text-center max-w-[800px] mx-auto">
         <span className="text-primary">AI Chatbot</span> for your documentation
@@ -1018,8 +1027,6 @@ function Hero() {
           <TbArrowRight />
         </a>
       </div>
-
-      {/* <DemoWindow /> */}
     </div>
   );
 }
