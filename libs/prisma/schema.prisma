@@ -222,7 +222,6 @@ enum QuestionSentiment {
 }
 
 type MessageAnalysis {
-  contextRelevanceScore Float?
   category  String?
   questionRelevanceScore Float?
   questionSentiment QuestionSentiment?
