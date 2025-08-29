@@ -4,17 +4,90 @@ import {
   MessageSourceLink,
   prisma,
   QuestionSentiment,
+  Scrape,
 } from "libs/prisma";
 import { SimpleAgent } from "./agentic";
 import { z } from "zod";
 import { Flow } from "./flow";
+import { makeIndexer } from "../indexer/factory";
+
+export async function decomposeQuestion(question: string) {
+  const agent = new SimpleAgent({
+    id: "decomposer",
+    prompt: `
+    Your job is to decompose the question into smaller atomic questions.
+    Example: Question: "How to integrate it with Notion?" -> ["How to integrate", "Notion integration"].
+
+    Each question should not be more than 5 words.
+    Each question should be absolute unique and should not be repeated.
+
+    <question>
+    ${question}
+    </question>
+    `,
+    schema: z.object({
+      questions: z.array(z.string()).describe(`
+        The atomic questions decomposed from the question.  
+      `),
+    }),
+  });
+
+  const flow = new Flow([agent], {
+    messages: [],
+  });
+
+  flow.addNextAgents(["decomposer"]);
+
+  await flow.stream();
+
+  const content = flow.getLastMessage().llmMessage.content as string;
+
+  if (!content) {
+    return null;
+  }
+
+  console.log("decomposed questions", content);
+
+  return JSON.parse(content).questions;
+}
+
+export async function getRelevantScore(
+  questions: string[],
+  scrape: Pick<Scrape, "id" | "indexer">
+) {
+  const indexer = makeIndexer({
+    key: scrape.indexer,
+  });
+  const scores = await Promise.all(
+    questions.map(async (q) => {
+      const result = await indexer.search(scrape.id, q, {
+        topK: 10,
+      });
+      const processed = await indexer.process(q, result);
+      return Math.max(...processed.map((p) => p.score));
+    })
+  );
+  const avg = scores.reduce((acc, s) => acc + s, 0) / scores.length;
+  const max = Math.max(...scores);
+
+  const halfMax = scores
+    .sort((a, b) => b - a)
+    .splice(0, Math.floor(scores.length / 2));
+  const halfMaxavg = halfMax.reduce((acc, s) => acc + s, 0) / halfMax.length;
+  const result = {
+    avg,
+    scores,
+    max,
+    halfMax,
+    halfMaxavg,
+  };
+  console.log("scores", result);
+  return result;
+}
 
 export async function analyseMessage(
   question: string,
   answer: string,
-  sources: MessageSourceLink[],
-  context: string,
-  messages: Message[]
 ) {
   const agent = new SimpleAgent({
     id: "analyser",
@@ -29,46 +102,8 @@ export async function analyseMessage(
     <answer>
     ${answer}
     </answer>
-
-    <sources>
-    ${JSON.stringify(
-      sources.map((s) => ({
-        url: s.url,
-        title: s.title,
-        score: s.score,
-        searchQuery: s.searchQuery,
-      }))
-    )}
-    </sources>
-
-    <context>
-    ${context}
-    </context>
-
-    <previous-messages>
-    ${messages
-      .map(
-        (m) => `${(m.llmMessage as any).role}: ${(m.llmMessage as any).content}`
-      )
-      .join("\n")}
-    </previous-messages>
     `,
     schema: z.object({
-      contextRelevanceScore: z.number().describe(`
-          Given the context, answer and question, how relevant is the answer to the question?
-          If there is no answer in the context, it should be 0 and vice versa.
-          If the question is not mentioned in the context, it should be close to 0.
-          If the answer says it has no answer, it should close to 0.
-          It should be from 0 to 1.
-        `),
-      questionRelevanceScore: z.number().describe(
-        `
-          The relevance score of question to the context and previous messages.
-          It is about relevance but not about having answer or not.
-          Only if the question is relevant to the context, it should be close to 1.
-          It should be from 0 to 1.
-          `
-      ),
       questionSentiment: z.nativeEnum(QuestionSentiment).describe(
         `
           The sentiment of the question.
@@ -108,8 +143,6 @@ export async function analyseMessage(
   }
 
   return JSON.parse(content as string) as {
-    questionRelevanceScore: number;
-    contextRelevanceScore: number;
     questionSentiment: QuestionSentiment;
     dataGapTitle: string;
     dataGapDescription: string;
@@ -118,30 +151,27 @@ export async function analyseMessage(
 
 function isDataGap(
   sources: MessageSourceLink[],
-  questionRelevanceScore: number,
-  contextRelevanceScore: number
+  questionRelevanceScore: number
 ) {
   const friction = {
     low: {
-      questionRelevanceScore: 0.4,
+      questionRelevanceScore: 0.1,
       contextRelevanceScore: 0.6,
     },
     medium: {
-      questionRelevanceScore: 0.5,
+      questionRelevanceScore: 0.2,
       contextRelevanceScore: 0.5,
     },
     high: {
-      questionRelevanceScore: 0.8,
-      contextRelevanceScore: 0.2,
+      questionRelevanceScore: 0.3,
+      contextRelevanceScore: 0.4,
     },
   };
 
-  const frictionLevel = friction["high"];
+  const frictionLevel = friction["medium"];
 
   const avgScore =
     sources.reduce((acc, s) => acc + (s.score ?? 0), 0) / sources.length;
-  const contextRelevanceScoreWeighted =
-    avgScore * 0.5 + contextRelevanceScore * 0.5;
 
   return (
     // it actually searched the knowledge base
@@ -149,7 +179,7 @@ function isDataGap(
     // question is relevant to the context
     questionRelevanceScore >= frictionLevel.questionRelevanceScore &&
     // poor answer
-    contextRelevanceScoreWeighted <= frictionLevel.contextRelevanceScore
+    avgScore <= frictionLevel.contextRelevanceScore
   );
 }
 
@@ -158,7 +188,6 @@ export async function fillMessageAnalysis(
   question: string,
   answer: string,
   sources: MessageSourceLink[],
-  context: string
 ) {
   try {
     const message = await prisma.message.findFirstOrThrow({
@@ -172,35 +201,21 @@ export async function fillMessageAnalysis(
       return;
     }
 
-    const messages = await prisma.message.findMany({
-      where: {
-        threadId: message.threadId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 10,
-    });
-
     const partialAnalysis = await analyseMessage(
       question,
       answer,
-      sources,
-      context,
-      messages
+    );
+
+    const questionRelevanceScore = await getRelevantScore(
+      await decomposeQuestion(question),
+      message.scrape
     );
 
     const dataGap =
-      partialAnalysis &&
-      isDataGap(
-        sources,
-        partialAnalysis.questionRelevanceScore,
-        partialAnalysis.contextRelevanceScore
-      );
+      partialAnalysis && isDataGap(sources, questionRelevanceScore.halfMaxavg);
 
     const analysis: MessageAnalysis = {
-      contextRelevanceScore: partialAnalysis?.contextRelevanceScore ?? null,
-      questionRelevanceScore: partialAnalysis?.questionRelevanceScore ?? null,
+      questionRelevanceScore: questionRelevanceScore.avg,
       questionSentiment: partialAnalysis?.questionSentiment ?? null,
       dataGapTitle: null,
       dataGapDescription: null,
