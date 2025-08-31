@@ -162,14 +162,14 @@ export async function analyseMessage(question: string, answer: string) {
 }
 
 function shouldCheckForDataGap(sources: MessageSourceLink[]) {
-  const frictionLevel = friction["medium"];
+  const frictionLevel = friction["high"];
   const avgScore =
     sources.reduce((acc, s) => acc + (s.score ?? 0), 0) / sources.length;
   return avgScore <= frictionLevel.contextRelevanceScore;
 }
 
 function isDataGap(questionRelevanceScore: number) {
-  const frictionLevel = friction["medium"];
+  const frictionLevel = friction["high"];
 
   return questionRelevanceScore >= frictionLevel.questionRelevanceScore;
 }
