@@ -270,7 +270,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     loaderData.scrape?.widgetConfig?.welcomeMessage
   );
   const [showMcpSetup, setShowMcpSetup] = useState(
-    loaderData.scrape?.widgetConfig?.showMcpSetup ?? false
+    loaderData.scrape?.widgetConfig?.showMcpSetup ?? true
   );
   const [textInputPlaceholder, setTextInputPlaceholder] = useState(
     loaderData.scrape?.widgetConfig?.textInputPlaceholder
