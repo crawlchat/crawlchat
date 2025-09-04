@@ -85,7 +85,6 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   console.log("Scraping for", scrape.id);
 
   const url = req.body.url ? cleanUrl(req.body.url) : req.body.url;
-  const roomId = req.body.roomId;
   const includeMarkdown = req.body.includeMarkdown;
 
   (async function () {

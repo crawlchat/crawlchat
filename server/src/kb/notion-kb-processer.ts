@@ -1,13 +1,13 @@
 import { KnowledgeGroup } from "libs/prisma";
 import { BaseKbProcesser, KbProcesserListener } from "./kb-processer";
-import { Client } from "@notionhq/client";
+import { Client, ListCommentsResponse } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
 
 function getPageTitle(page: any): string | undefined {
   if (!page.properties) {
     return undefined;
   }
-  
+
   for (const key in page.properties) {
     const prop = page.properties[key];
     if (prop.type === "title" && prop.title?.length > 0) {
@@ -15,6 +15,52 @@ function getPageTitle(page: any): string | undefined {
     }
   }
   return undefined;
+}
+
+function getProperties(page: any): Record<string, string> {
+  const properties = (page as any).properties;
+  const customPropertis: Record<string, string> = {};
+  for (const key in properties) {
+    if (
+      properties[key].type === "rich_text" &&
+      properties[key].rich_text.length > 0
+    ) {
+      customPropertis[key] = properties[key].rich_text[0].plain_text;
+    }
+    if (properties[key].type === "status") {
+      customPropertis[key] = properties[key].status.name;
+    }
+  }
+  return customPropertis;
+}
+
+export async function getComments(page: any, client: Client) {
+  const plainComments: {
+    text: string;
+    created_time: string;
+  }[] = [];
+  let comments: ListCommentsResponse | null = null;
+  try {
+    while (comments === null || comments.next_cursor) {
+      comments = await client.comments.list({
+        block_id: page.id,
+        start_cursor: comments?.next_cursor ?? undefined,
+      });
+      plainComments.push(
+        ...comments.results.map((comment) => ({
+          text: comment.rich_text.map((t) => t.plain_text).join(""),
+          created_time: comment.created_time,
+        }))
+      );
+    }
+  } catch (error: any) {
+    if (error.code === "restricted_resource") {
+      return [];
+    }
+    throw error;
+  }
+
+  return plainComments;
 }
 
 export class NotionKbProcesser extends BaseKbProcesser {
@@ -25,6 +71,7 @@ export class NotionKbProcesser extends BaseKbProcesser {
     private readonly knowledgeGroup: KnowledgeGroup,
     protected readonly options: {
       hasCredits: () => Promise<boolean>;
+      url?: string;
     }
   ) {
     super(listener, options);
@@ -51,12 +98,18 @@ export class NotionKbProcesser extends BaseKbProcesser {
     const skipRegexes = (
       this.knowledgeGroup.skipPageRegex?.split(",") ?? []
     ).filter(Boolean);
-    const filteredPages = pages.results.filter((page) => {
-      return !skipRegexes.some((regex) => {
-        const r = new RegExp(regex.trim());
-        return r.test(page.id);
+    const filteredPages = pages.results
+      .filter(
+        (page) =>
+          !this.options.url ||
+          (page as any).url.toLowerCase() === this.options.url.toLowerCase()
+      )
+      .filter((page) => {
+        return !skipRegexes.some((regex) => {
+          const r = new RegExp(regex.trim());
+          return r.test(page.id);
+        });
       });
-    });
 
     for (let i = 0; i < filteredPages.length; i++) {
       const page = filteredPages[i];
@@ -67,12 +120,33 @@ export class NotionKbProcesser extends BaseKbProcesser {
       const mdblocks = await n2m.pageToMarkdown(page.id);
       const mdString = n2m.toMarkdownString(mdblocks);
 
-      if (!mdString.parent) return;
+      const contentParts: string[] = [];
+
+      if (title) {
+        contentParts.push(`# ${title}`);
+      }
+
+      const properties = getProperties(page);
+      if (Object.keys(properties).length > 0) {
+        contentParts.push(
+          `<properties>\n${JSON.stringify(properties, null, 2)}\n</properties>`
+        );
+      }
+
+      const comments = await getComments(page, this.client);
+      if (comments.length > 0) {
+        contentParts.push(
+          `<comments>\n${JSON.stringify(comments, null, 2)}\n</comments>`
+        );
+      }
+
+      contentParts.push(mdString.parent);
+      const text = contentParts.filter(Boolean).join("\n\n");
 
       this.onContentAvailable(
         url,
         {
-          text: mdString.parent,
+          text,
           title: title || "Untitled",
         },
         {
