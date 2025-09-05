@@ -314,7 +314,9 @@ expressWs.app.ws("/", (ws: any, req) => {
               break;
 
             case "stream-delta":
-              ws?.send(makeMessage("llm-chunk", { content: event.delta }));
+              if (event.delta) {
+                ws?.send(makeMessage("llm-chunk", { content: event.delta }));
+              }
               break;
 
             case "tool-call":

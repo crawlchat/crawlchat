@@ -8,7 +8,7 @@ import {
 } from "~/settings-section";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import { TbCrown, TbSettings, TbTrash } from "react-icons/tb";
+import { TbBolt, TbBrain, TbCrown, TbSettings, TbStar, TbTrash } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { useEffect, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "./util";
@@ -168,6 +168,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
       fetcher={modelFetcher}
     >
       <RadioCard
+        cols={2}
         options={[
           {
             label: "OpenAI 4o-mini",
@@ -176,6 +177,11 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             description: "Base model, does the job.",
             summary: "1 credit / message",
             disabled: !isAllowed(["free", "starter", "pro"]),
+            content: (
+              <div className="badge badge-secondary badge-soft">
+                <TbBolt /> Fast
+              </div>
+            ),
           },
           {
             label: "OpenAI GPT 5-nano",
@@ -185,8 +191,13 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             summary: "1 credit / message",
             disabled: !isAllowed(["starter", "pro"]),
             content: (
-              <div className="badge badge-soft badge-primary">
-                <TbCrown /> Starter
+              <div className="flex gap-2">
+                <div className="badge badge-secondary badge-soft">
+                  <TbBrain /> Smart + Fast
+                </div>
+                <div className="badge badge-soft badge-primary">
+                  <TbCrown /> Starter
+                </div>
               </div>
             ),
           },
@@ -199,8 +210,32 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             summary: "2 credits / message",
             disabled: !isAllowed(["pro"]),
             content: (
-              <div className="badge badge-soft badge-primary">
-                <TbCrown /> Pro
+              <div className="flex gap-2">
+                <div className="badge badge-secondary badge-soft">
+                  <TbBrain /> Reason
+                </div>
+                <div className="badge badge-soft badge-primary">
+                  <TbCrown /> Pro
+                </div>
+              </div>
+            ),
+          },
+          {
+            label: "OpenAI GPT 5",
+            value: "gpt_5",
+
+            description:
+              "Best for complex use cases, programming docs, better searches.",
+            summary: "2 credits / message",
+            disabled: !isAllowed(["pro"]),
+            content: (
+              <div className="flex gap-2">
+                <div className="badge badge-secondary badge-soft">
+                  <TbStar /> Takes time & Best
+                </div>
+                <div className="badge badge-soft badge-primary">
+                  <TbCrown /> Pro
+                </div>
               </div>
             ),
           },

@@ -16,14 +16,31 @@ export function RadioCard({
   name,
   value,
   onChange,
+  cols,
 }: {
   options: RadioCardOption[];
   name?: string;
   value: string;
   onChange: (value: string) => void;
+  cols?: number;
 }) {
+  cols = cols ?? options.length;
   return (
-    <div className="flex flex-col md:flex-row gap-2">
+    <div
+      className={cn(
+        "grid grid-cols-1 gap-4",
+        cols === 1 && "md:grid-cols-1",
+        cols === 2 && "md:grid-cols-2",
+        cols === 3 && "md:grid-cols-3",
+        cols === 4 && "md:grid-cols-4",
+        cols === 5 && "md:grid-cols-5",
+        cols === 6 && "md:grid-cols-6",
+        cols === 7 && "md:grid-cols-7",
+        cols === 8 && "md:grid-cols-8",
+        cols === 9 && "md:grid-cols-9",
+        cols === 10 && "md:grid-cols-10"
+      )}
+    >
       <input type="hidden" name={name} value={value} />
       {options.map((option) => (
         <div
@@ -42,9 +59,7 @@ export function RadioCard({
           }}
         >
           <div className="flex flex-col gap-1">
-            {option.icon && (
-              <div className="text-2xl">{option.icon}</div>
-            )}
+            {option.icon && <div className="text-2xl">{option.icon}</div>}
             <span className="font-medium">{option.label}</span>
             {option.summary && (
               <span className="text-xs text-base-content/50">

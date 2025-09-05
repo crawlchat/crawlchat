@@ -109,6 +109,8 @@ enum LlmModel {
   o4_mini
 
   gpt_5_nano
+  gpt_5_mini
+  gpt_5
 }
 
 type RichBlockConfig {
