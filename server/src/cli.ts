@@ -22,30 +22,16 @@ import { baseAnswerer } from "./answer";
 import { makeIndexer } from "./indexer/factory";
 
 async function main() {
-  const question1 =
-    "how can i make a animation about sphere spinning, then explode from its inner core, then reverse time, and become back the original spinning perfect sphere?";
-  const question2 = "is it normal that a video rendered in the <Video> has jitters if theres a lot of computation going on?";
-  const question3 = "diplay console";
-  const question4 = "How to identify center of dynamiz zoom?";
-  const question8 = "can add gradient shapes";
-  const question9 = "I want to color grade a video";
+  const apiKey = process.env.CALCOM_API_KEY!;
+  // const me = await getMe(apiKey);
+  // const bookings = await getBookings(apiKey);
+  // const slots = await getSlots(apiKey);
+  // const eventTypes = await getEventTypes(apiKey);
+  // console.log(eventTypes.eventTypeGroups[0].eventTypes);
 
-  const question5 = "How to preview Remotion player on Notion page?";
-  const question6 = "I want to add a SidePanel (custom) to the Remotion Editor - how do you extend the UI and add in new panels?";
-  const question7 = `Hey, I’m a bit confused about Remotion’s licensing and would appreciate some clarification.
-Specifically, why does self‑hosted rendering incur additional costs with a Commercial license, while with the Free license you only pay the AWS Lambda fees?
-Also, how are the development accounts accounted for and how does it differ between development accounts and normal usage`;
+  // const booking = await createBooking(apiKey);
 
-  const questions = await decomposeQuestion(question8);
-
-  const scrape = await prisma.scrape.findFirstOrThrow({
-    where: {
-      id: "67c1d700cb1ec09c237bab8a",
-    },
-  });
-
-  const score = await getRelevantScore(questions, scrape);
-  console.log(score);
+  // console.log(booking)
 }
 
 console.log("Starting...");

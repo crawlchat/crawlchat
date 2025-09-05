@@ -41,6 +41,10 @@
     "./jwt": {
       "default": "./dist/jwt.js",
       "types": "./dist/jwt.d.ts"
+    },
+    "./cal": {
+      "default": "./dist/cal.js",
+      "types": "./dist/cal.d.ts"
     }
   },
   "typesVersions": {
@@ -68,6 +72,9 @@
       ],
       "jwt": [
         "./dist/jwt.d.ts"
+      ],
+      "cal": [
+        "./dist/cal.d.ts"
       ]
     }
   },
