@@ -286,26 +286,31 @@ export function makeActionTools(
 
       const bookSlotTool = new SimpleTool({
         id: "book-slot",
-        description: `Book a slot for the user. ${action.description}`,
+        description: `Book a slot. 
+        Ask the user to provide the name and email. 
+        You need to absolutely collect the name and the email from the user.
+        Don't use dummy or default name or email.
+        Don't use this tool without collecting the name and email from the user.
+        Don't make up the name and email yourself. This is very important.
+         
+        ${action.description}`,
         schema: z.object({
-          start: z
-            .string()
-            .describe(
-              "The start date and time of the booking. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
-            ),
-          name: z
-            .string()
-            .describe(
-              "The name of the user. Collect it from the user. It is required"
-            ),
-          email: z
-            .string()
-            .describe(
-              "The email of the user. Collect it from the user. It is required"
-            ),
-          timeZone: z
-            .string()
-            .describe("The time zone of the user. Example: Asia/Kolkata"),
+          start: z.string({
+            description:
+              "The start date and time of the booking. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z",
+          }),
+          name: z.string({
+            description:
+              "The name of the user. Collect it from the user. It is required and don't use dummy or default name.",
+          }),
+          email: z.string({
+            description:
+              "The email of the user. Collect it from the user. It is required and don't use dummy or default email.",
+          }),
+          timeZone: z.string({
+            description:
+              "The time zone of the user. Don't ask the user, it must be available already. Example: Asia/Kolkata",
+          }),
         }),
         execute: async ({
           start,
@@ -318,6 +323,21 @@ export function makeActionTools(
           email: string;
           timeZone: string;
         }) => {
+          if (!name || !email) {
+            return {
+              content: "Name and email are required. Please provide them.",
+            };
+          }
+          if (
+            name.toLowerCase().includes("user") ||
+            email.toLowerCase().includes("user") ||
+            email.toLowerCase().includes("example")
+          ) {
+            return {
+              content: "Need a valid name and email. Please provide them.",
+            };
+          }
+
           options?.onPreAction?.("book slot");
           const booking = await createBooking(
             action.calConfig!.apiKey!,
