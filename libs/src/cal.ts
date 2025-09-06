@@ -6,11 +6,7 @@ export async function getMe(apiKey: string) {
     },
   });
 
-  if (!response.ok) {
-    throw new Error(`Failed to get me: ${await response.text()}`);
-  }
-
-  return response.json().then((data) => data.data);
+  return response;
 }
 
 export async function getEventTypes(apiKey: string) {

@@ -3,9 +3,22 @@ import type {
   ApiActionData,
   ApiActionDataItem,
   ApiActionMethod,
+  CalActionConfig,
 } from "libs/prisma";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createContext } from "react";
+import { getEventTypes, getMe } from "libs/cal";
+
+type CalEventType = {
+  id: number;
+  title: string;
+};
+
+type CalProfile = {
+  id: number;
+  email: string;
+  username: string;
+};
 
 export function useEditAction(initAction?: ApiAction) {
   const [title, setTitle] = useState<string>(initAction?.title ?? "");
@@ -22,24 +35,65 @@ export function useEditAction(initAction?: ApiAction) {
   const [headers, setHeaders] = useState<ApiActionData>(
     initAction?.headers ?? { items: [] }
   );
+  const [type, setType] = useState<string>(initAction?.type ?? "custom");
+  const [calConfig, setCalConfig] = useState<CalActionConfig>(
+    initAction?.calConfig ?? { apiKey: null, eventTypeId: null }
+  );
+
+  const [calEventTypes, setCalEventTypes] = useState<CalEventType[]>([]);
+  const [calProfile, setCalProfile] = useState<CalProfile | null>(null);
 
   const canSubmit = useMemo(() => {
-    if (!title || !url || !method || !description) return false;
+    if (!title || !description) return false;
 
-    for (const item of data.items) {
-      if (!item.key || !item.type || !item.dataType) return false;
-      if (item.type === "dynamic" && !item.description) return false;
-      if (item.type === "value" && !item.value) return false;
+    if (type === "custom") {
+      if (!url || !method) return false;
+
+      for (const item of data.items) {
+        if (!item.key || !item.type || !item.dataType) return false;
+        if (item.type === "dynamic" && !item.description) return false;
+        if (item.type === "value" && !item.value) return false;
+      }
+
+      for (const item of headers.items) {
+        if (!item.key || !item.type || !item.dataType) return false;
+        if (item.type === "dynamic" && !item.description) return false;
+        if (item.type === "value" && !item.value) return false;
+      }
     }
 
-    for (const item of headers.items) {
-      if (!item.key || !item.type || !item.dataType) return false;
-      if (item.type === "dynamic" && !item.description) return false;
-      if (item.type === "value" && !item.value) return false;
+    if (type === "cal") {
+      if (!calConfig.apiKey) return false;
+      if (!calProfile) return false;
+      if (!calConfig.eventTypeId) return false;
     }
 
     return true;
-  }, [title, url, method, data, headers, description]);
+  }, [
+    title,
+    url,
+    method,
+    data,
+    headers,
+    description,
+    type,
+    calConfig,
+    calProfile,
+  ]);
+
+  useEffect(() => {
+    if (!calConfig.apiKey) return;
+
+    getMe(calConfig.apiKey).then(async (res) => {
+      const json = await res.json();
+      setCalProfile(json.data);
+    });
+
+    getEventTypes(calConfig.apiKey).then(async (res) => {
+      const json = await res.json();
+      setCalEventTypes(json.data.eventTypeGroups[0].eventTypes);
+    });
+  }, [calConfig.apiKey]);
 
   const addDataItem = (item: ApiActionDataItem) => {
     setData((prev) => ({
@@ -113,6 +167,12 @@ export function useEditAction(initAction?: ApiAction) {
     canSubmit,
     description,
     setDescription,
+    type,
+    setType,
+    calConfig,
+    setCalConfig,
+    calEventTypes,
+    calProfile,
   };
 }
 

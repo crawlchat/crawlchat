@@ -1,10 +1,10 @@
 import type { Route } from "./+types/list";
-import { TbPlus, TbPointer } from "react-icons/tb";
+import { TbPlus, TbPointer, TbWebhook } from "react-icons/tb";
 import { Link } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { prisma } from "libs/prisma";
+import { ApiActionType, prisma } from "libs/prisma";
 import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
@@ -63,6 +63,21 @@ function NoActions() {
   );
 }
 
+function ActionType({ type }: { type: ApiActionType | null }) {
+  if (type === "cal")
+    return (
+      <div className="min-w-22">
+        <img src="/cal.png" alt="Cal" className="w-6 h-6 rounded-box" />
+      </div>
+    );
+
+  return (
+    <div className="min-w-22">
+      <TbWebhook />
+    </div>
+  );
+}
+
 export default function Actions({ loaderData }: Route.ComponentProps) {
   return (
     <Page
@@ -91,11 +106,16 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
             )}
           >
             <table className="table">
+              <colgroup>
+                <col className="w-[5%]" />
+                <col />
+                <col className="w-[16%]" />
+                <col className="min-w-24 w-[14%]" />
+              </colgroup>
               <thead>
                 <tr>
+                  <th>Type</th>
                   <th>Title</th>
-                  <th>URL</th>
-                  <th>Method</th>
                   <th>Calls</th>
                   <th className="text-end">Created</th>
                 </tr>
@@ -103,7 +123,10 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
               <tbody>
                 {loaderData.actions.map((item) => (
                   <tr key={item.id}>
-                    <td className="max-w-44 truncate">
+                    <td>
+                      <ActionType type={item.type} />
+                    </td>
+                    <td className="truncate">
                       <Link
                         className="link link-hover"
                         to={`/actions/${item.id}`}
@@ -112,17 +135,14 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
                         {item.title}
                       </Link>
                     </td>
+
                     <td>
-                      <div className="truncate">{item.url}</div>
-                    </td>
-                    <td className="min-w-22">{item.method.toUpperCase()}</td>
-                    <td className="min-w-16">
                       <div className="badge badge-soft badge-primary gap-2">
                         <TbPointer />
                         {loaderData.counts[item.id]}
                       </div>
                     </td>
-                    <td className="text-end min-w-32">
+                    <td className="text-end">
                       {moment(item.createdAt).fromNow()}
                     </td>
                   </tr>

@@ -9,6 +9,7 @@ export type RadioCardOption = {
   disabled?: boolean;
   content?: React.ReactNode;
   icon?: React.ReactNode;
+  img?: string;
 };
 
 export function RadioCard({
@@ -60,6 +61,13 @@ export function RadioCard({
         >
           <div className="flex flex-col gap-1">
             {option.icon && <div className="text-2xl">{option.icon}</div>}
+            {option.img && (
+              <img
+                src={option.img}
+                alt={option.label}
+                className="w-14 h-14 rounded-box shadow"
+              />
+            )}
             <span className="font-medium">{option.label}</span>
             {option.summary && (
               <span className="text-xs text-base-content/50">

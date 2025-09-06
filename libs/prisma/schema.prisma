@@ -516,6 +516,16 @@ enum ApiActionMethod {
   put
 }
 
+enum ApiActionType {
+  custom
+  cal
+}
+
+type CalActionConfig {
+  apiKey  String?
+  eventTypeId String?
+}
+
 model ApiAction {
   id              String  @id @default(auto()) @map("_id") @db.ObjectId
   userId          String  @db.ObjectId
@@ -527,6 +537,8 @@ model ApiAction {
   data            ApiActionData
   headers         ApiActionData
   description     String
+  type            ApiActionType?
+  calConfig       CalActionConfig?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

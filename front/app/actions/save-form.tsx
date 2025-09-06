@@ -10,8 +10,17 @@ export function SaveForm({
   fetcher: FetcherWithComponents<any>;
   deleteFetcher?: FetcherWithComponents<any>;
 }) {
-  const { title, url, method, data, headers, canSubmit, description } =
-    useContext(EditActionContext);
+  const {
+    title,
+    url,
+    method,
+    data,
+    headers,
+    canSubmit,
+    description,
+    type,
+    calConfig,
+  } = useContext(EditActionContext);
 
   return (
     <>
@@ -39,6 +48,8 @@ export function SaveForm({
             data,
             headers,
             description,
+            type,
+            calConfig,
           })}
         />
         <button

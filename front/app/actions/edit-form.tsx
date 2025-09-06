@@ -1,8 +1,9 @@
 import { useContext } from "react";
 import { EditActionContext } from "./use-edit-action";
-import { TbPlus, TbTrash } from "react-icons/tb";
+import { TbCircleCheck, TbCircleX, TbPlus, TbTrash } from "react-icons/tb";
 import type { ApiActionDataItem, ApiActionMethod } from "libs/prisma";
 import cn from "@meltdownjs/cn";
+import { RadioCard } from "~/components/radio-card";
 
 function DataItemForm({
   item,
@@ -101,7 +102,7 @@ function DataItemForm({
   );
 }
 
-export function EditForm() {
+function CustomForm() {
   const {
     data,
     addDataItem,
@@ -122,13 +123,7 @@ export function EditForm() {
   } = useContext(EditActionContext);
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="text-base-content/50">
-        Add the external APIs to be used by the chatbot whenever it is required.
-        Give URL and describe about the API below so that the AI knows about it
-        and uses it appropriately.
-      </div>
-
+    <>
       <div className="flex flex-col bg-base-200/50 rounded-box p-4 shadow">
         <div className="flex gap-2">
           <fieldset className="fieldset flex-1">
@@ -136,7 +131,7 @@ export function EditForm() {
             <input
               className="input w-full"
               type="text"
-              placeholder="Enter the title"
+              placeholder="Ex: Find customer"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
@@ -146,7 +141,7 @@ export function EditForm() {
             <legend className="fieldset-legend">Description</legend>
             <input
               className="input w-full"
-              placeholder="Enter the description"
+              placeholder="Ex: Find a customer by email when required."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
@@ -250,6 +245,142 @@ export function EditForm() {
           />
         ))}
       </div>
+    </>
+  );
+}
+
+function CalForm() {
+  const {
+    title,
+    setTitle,
+    description,
+    setDescription,
+    calConfig,
+    setCalConfig,
+    calProfile,
+    calEventTypes,
+  } = useContext(EditActionContext);
+
+  return (
+    <>
+      {calProfile && (
+        <div role="alert" className="alert alert-success">
+          <TbCircleCheck />
+          <span>
+            Valid API key found for{" "}
+            <span className="font-bold">{calProfile?.username}</span>
+          </span>
+        </div>
+      )}
+
+      {!calProfile && (
+        <div role="alert" className="alert alert-error">
+          <TbCircleX />
+          <span>Enter a valid API key from Cal.com</span>
+        </div>
+      )}
+
+      <div className="flex flex-col bg-base-200/50 rounded-box p-4 shadow">
+        <div className="flex gap-2">
+          <fieldset className="fieldset flex-1">
+            <legend className="fieldset-legend">Title</legend>
+            <input
+              className="input w-full"
+              type="text"
+              placeholder="Ex: Book a meeting"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </fieldset>
+
+          <fieldset className="fieldset flex-1">
+            <legend className="fieldset-legend">Description</legend>
+            <input
+              className="input w-full"
+              placeholder="Explain when to use it"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </fieldset>
+        </div>
+
+        <div className="flex gap-2">
+          <fieldset className="fieldset flex-1">
+            <legend className="fieldset-legend">API Key</legend>
+            <input
+              className="input w-full"
+              type="text"
+              placeholder="Ex: sk-1234567890"
+              value={calConfig.apiKey ?? ""}
+              onChange={(e) =>
+                setCalConfig({ ...calConfig, apiKey: e.target.value })
+              }
+            />
+          </fieldset>
+        </div>
+
+        <div className="flex gap-2">
+          <fieldset className="fieldset flex-1">
+            <legend className="fieldset-legend">Event Type</legend>
+            <select
+              className="select w-full"
+              value={calConfig.eventTypeId ?? ""}
+              onChange={(e) =>
+                setCalConfig({ ...calConfig, eventTypeId: e.target.value })
+              }
+              disabled={!calEventTypes.length}
+            >
+              <option value="">Select an event type</option>
+              {calEventTypes.map((eventType) => (
+                <option key={eventType.id} value={eventType.id}>
+                  {eventType.title}
+                </option>
+              ))}
+            </select>
+          </fieldset>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function EditForm() {
+  const { type, setType } = useContext(EditActionContext);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="text-base-content/50">
+        Add the external APIs to be used by the chatbot whenever it is required.
+        Give URL and describe about the API below so that the AI knows about it
+        and uses it appropriately.
+      </div>
+
+      <div
+        className={cn("p-4 bg-base-200/50 rounded-box border border-base-300")}
+      >
+        <RadioCard
+          name="type"
+          value={type}
+          onChange={setType}
+          options={[
+            {
+              label: "Custom",
+              value: "custom",
+              description: "Custom API",
+              icon: <TbPlus />,
+            },
+            {
+              label: "Cal.com",
+              value: "cal",
+              description: "Lets the chatbot to book meetings on Cal.com",
+              img: "/cal.png",
+            },
+          ]}
+        />
+      </div>
+
+      {type === "custom" && <CustomForm />}
+      {type === "cal" && <CalForm />}
     </div>
   );
 }

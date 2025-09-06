@@ -13,7 +13,7 @@ export function DataList({
       {data.map((item, index) => (
         <div className="flex gap-2" key={index}>
           <div className="w-32 text-base-content/50">{item.label}</div>
-          <div className="flex-1">{item.value}</div>
+          <div className="flex-1 overflow-auto">{item.value}</div>
         </div>
       ))}
     </div>

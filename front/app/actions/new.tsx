@@ -18,7 +18,7 @@ export async function action({ request }: Route.ActionArgs) {
   const formData = await request.formData();
   const data = JSON.parse(formData.get("data") as string);
 
-  const action = await prisma.apiAction.create({
+  await prisma.apiAction.create({
     data: {
       scrapeId,
       userId: user!.id,
@@ -28,6 +28,8 @@ export async function action({ request }: Route.ActionArgs) {
       data: data.data,
       headers: data.headers,
       description: data.description,
+      type: data.type,
+      calConfig: data.calConfig,
     },
   });
 
