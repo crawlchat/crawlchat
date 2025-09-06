@@ -60,6 +60,7 @@ export type Answerer = (
     showSources?: boolean;
     actions?: ApiAction[];
     channel?: MessageChannel;
+    clientData?: any;
   }
 ) => Promise<AnswerCompleteEvent | null>;
 
@@ -195,6 +196,7 @@ export const baseAnswerer: Answerer = async (
       minScore: scrape.minScore ?? undefined,
       showSources: scrape.showSources ?? false,
       actions: options?.actions,
+      clientData: options?.clientData,
     }
   );
 

@@ -237,16 +237,30 @@ export function makeActionTools(
           end: z
             .string()
             .describe(
-              "The end date and time of the availability. Make it 30 minutes from the start time. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
+              "The end date and time of the availability. Make it 6 hours from the start time. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
+            ),
+          timeZone: z
+            .string()
+            .describe(
+              "The time zone of the availability. Example: Asia/Kolkata"
             ),
         }),
-        execute: async ({ start, end }: { start: string; end: string }) => {
+        execute: async ({
+          start,
+          end,
+          timeZone,
+        }: {
+          start: string;
+          end: string;
+          timeZone: string;
+        }) => {
           options?.onPreAction?.("get availability");
           const slots = await getSlots(
             action.calConfig!.apiKey!,
             start,
             end,
-            Number(action.calConfig!.eventTypeId!)
+            Number(action.calConfig!.eventTypeId!),
+            timeZone
           );
           const json = await slots.json();
           return {
@@ -254,7 +268,13 @@ export function makeActionTools(
             customMessage: {
               actionCall: {
                 actionId: action.id,
-                data: { start, end },
+                data: {
+                  start,
+                  end,
+                  api: "get-slots",
+                  timeZone,
+                  eventTypeId: action.calConfig!.eventTypeId!,
+                },
                 response: JSON.stringify(json),
                 statusCode: 200,
                 createdAt: new Date(),
@@ -283,15 +303,20 @@ export function makeActionTools(
             .describe(
               "The email of the user. Collect it from the user. It is required"
             ),
+          timeZone: z
+            .string()
+            .describe("The time zone of the user. Example: Asia/Kolkata"),
         }),
         execute: async ({
           start,
           name,
           email,
+          timeZone,
         }: {
           start: string;
           name: string;
           email: string;
+          timeZone: string;
         }) => {
           options?.onPreAction?.("book slot");
           const booking = await createBooking(
@@ -300,7 +325,7 @@ export function makeActionTools(
             start,
             name,
             email,
-            "Asia/Kolkata"
+            timeZone
           );
           const json = await booking.json();
           return {
@@ -308,7 +333,14 @@ export function makeActionTools(
             customMessage: {
               actionCall: {
                 actionId: action.id,
-                data: { start, name, email },
+                data: {
+                  start,
+                  name,
+                  email,
+                  api: "book-slot",
+                  timeZone,
+                  eventTypeId: action.calConfig!.eventTypeId!,
+                },
                 response: JSON.stringify(json),
                 statusCode: 200,
                 createdAt: new Date(),
@@ -342,6 +374,7 @@ export function makeFlow(
     minScore?: number;
     showSources?: boolean;
     actions?: ApiAction[];
+    clientData?: any;
   }
 ) {
   const ragTool = makeRagTool(scrapeId, indexerKey, options);
@@ -376,7 +409,7 @@ export function makeFlow(
     "Cite only for the sources that are used to answer the query.",
     "Cite every fact that is used in the answer.",
     "Pick most relevant sources and cite them.",
-    "You should definitely cite sources that you used to answer the query.",
+    "You should definitely cite sources that you used to answer the query if the id is available in the context.",
     "Add the citation wherever applicable either in middle of the sentence or at the end of the sentence.",
     "But don't add it as a separate section at the end of the answer.",
   ]);
@@ -429,6 +462,8 @@ export function makeFlow(
       "Don't ask more than 3 questions for the entire answering flow.",
       "Be polite when you don't have the answer, explain in a friendly way and inform that it is better to reach out the support team.",
       systemPrompt,
+
+      `<client-data>\n${JSON.stringify(options?.clientData)}\n</client-data>`,
     ]),
     tools: [ragTool.make(), ...actionTools.map((tool) => tool.make())],
     model: options?.model,

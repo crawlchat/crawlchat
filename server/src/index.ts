@@ -391,6 +391,7 @@ expressWs.app.ws("/", (ws: any, req) => {
               listen: answerListener,
               actions,
               channel: "widget",
+              clientData: message.data.clientData,
             }
           );
         });

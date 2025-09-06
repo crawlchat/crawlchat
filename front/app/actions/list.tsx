@@ -1,14 +1,15 @@
 import type { Route } from "./+types/list";
+import type { ApiActionType } from "libs/prisma";
 import { TbPlus, TbPointer, TbWebhook } from "react-icons/tb";
 import { Link } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { ApiActionType, prisma } from "libs/prisma";
+import { prisma } from "libs/prisma";
 import { EmptyState } from "~/components/empty-state";
+import { makeMeta } from "~/meta";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
-import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

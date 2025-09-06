@@ -24,10 +24,17 @@ export async function getSlots(
   apiKey: string,
   start: string,
   end: string,
-  eventTypeId: number
+  eventTypeId: number,
+  timeZone: string
 ) {
+  const urlParams = new URLSearchParams({
+    start,
+    end,
+    eventTypeId: eventTypeId.toString(),
+    timeZone,
+  });
   const response = await fetch(
-    `https://api.cal.com/v2/slots?start=${start}&end=${end}&eventTypeId=${eventTypeId}`,
+    `https://api.cal.com/v2/slots?${urlParams.toString()}`,
     {
       headers: {
         Authorization: `Bearer ${apiKey}`,

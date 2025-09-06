@@ -167,7 +167,15 @@ export function useScrapeChat({
     if (query.length === 0) return -1;
 
     socket.current!.send(
-      makeMessage("ask-llm", { threadId, query, delete: options?.delete })
+      makeMessage("ask-llm", {
+        threadId,
+        query,
+        delete: options?.delete,
+        clientData: {
+          currentTimeISO: new Date().toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      })
     );
     const messagesCount = messages.length;
     setMessages((prev) => [
@@ -189,6 +197,8 @@ export function useScrapeChat({
         slackMessageId: null,
         discordMessageId: null,
         apiActionCalls: [],
+        questionId: null,
+        analysis: null,
       },
     ]);
     setAskStage("asked");
