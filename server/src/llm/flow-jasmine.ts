@@ -15,7 +15,7 @@ import {
 import { Flow } from "./flow";
 import { z } from "zod";
 import { richMessageBlocks } from "libs/rich-message-block";
-import { createBooking, getMe, getSlots } from "libs/cal";
+import { createBooking, getSlots } from "libs/cal";
 import zodToJsonSchema from "zod-to-json-schema";
 
 export type RAGAgentCustomMessage = {
@@ -170,58 +170,156 @@ export function makeActionTools(
       schameItems[item.key] = itemToZod(item);
     }
 
-    const tool = new SimpleTool({
-      id: titleToId(action.title),
-      description: action.description,
-      schema: z.object(schameItems),
-      execute: async (input) => {
-        console.log("Executing action", action.id);
+    if (!action.type || action.type === "custom") {
+      const tool = new SimpleTool({
+        id: titleToId(action.title),
+        description: action.description,
+        schema: z.object(schameItems),
+        execute: async (input) => {
+          console.log("Executing action", action.id);
 
-        const data: Record<string, any> = {};
-        for (const item of action.data.items) {
-          data[item.key] = typeCast(makeValue(input, item), item.dataType);
-        }
+          const data: Record<string, any> = {};
+          for (const item of action.data.items) {
+            data[item.key] = typeCast(makeValue(input, item), item.dataType);
+          }
 
-        const queryParams =
-          action.method === "get"
-            ? "?" + new URLSearchParams(data).toString()
-            : "";
-        const body = action.method === "get" ? undefined : JSON.stringify(data);
+          const queryParams =
+            action.method === "get"
+              ? "?" + new URLSearchParams(data).toString()
+              : "";
+          const body =
+            action.method === "get" ? undefined : JSON.stringify(data);
 
-        const headers: Record<string, any> = {};
-        for (const item of action.headers.items) {
-          headers[item.key] = typeCast(makeValue(input, item), item.dataType);
-        }
+          const headers: Record<string, any> = {};
+          for (const item of action.headers.items) {
+            headers[item.key] = typeCast(makeValue(input, item), item.dataType);
+          }
 
-        if (options?.onPreAction) {
-          options.onPreAction(action.title);
-        }
+          if (options?.onPreAction) {
+            options.onPreAction(action.title);
+          }
 
-        const response = await fetch(action.url + queryParams, {
-          method: action.method,
-          body,
-          headers,
-        });
+          const response = await fetch(action.url + queryParams, {
+            method: action.method,
+            body,
+            headers,
+          });
 
-        const content = await response.text();
+          const content = await response.text();
 
-        console.log("Action response", action.id, response.status);
-        return {
-          content,
-          customMessage: {
-            actionCall: {
-              actionId: action.id,
-              data: input,
-              response: content,
-              statusCode: response.status,
-              createdAt: new Date(),
+          console.log("Action response", action.id, response.status);
+          return {
+            content,
+            customMessage: {
+              actionCall: {
+                actionId: action.id,
+                data: input,
+                response: content,
+                statusCode: response.status,
+                createdAt: new Date(),
+              },
             },
-          },
-        };
-      },
-    });
+          };
+        },
+      });
 
-    tools.push(tool);
+      tools.push(tool);
+    } else if (action.type === "cal" && action.calConfig) {
+      const getSlotsTool = new SimpleTool({
+        id: "get-slots",
+        description: `Get the availability slots of the user. ${action.description}`,
+        schema: z.object({
+          start: z
+            .string()
+            .describe(
+              "The start date and time of the availability. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
+            ),
+          end: z
+            .string()
+            .describe(
+              "The end date and time of the availability. Make it 30 minutes from the start time. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
+            ),
+        }),
+        execute: async ({ start, end }: { start: string; end: string }) => {
+          options?.onPreAction?.("get availability");
+          const slots = await getSlots(
+            action.calConfig!.apiKey!,
+            start,
+            end,
+            Number(action.calConfig!.eventTypeId!)
+          );
+          const json = await slots.json();
+          return {
+            content: JSON.stringify(json),
+            customMessage: {
+              actionCall: {
+                actionId: action.id,
+                data: { start, end },
+                response: JSON.stringify(json),
+                statusCode: 200,
+                createdAt: new Date(),
+              },
+            },
+          };
+        },
+      });
+
+      const bookSlotTool = new SimpleTool({
+        id: "book-slot",
+        description: `Book a slot for the user. ${action.description}`,
+        schema: z.object({
+          start: z
+            .string()
+            .describe(
+              "The start date and time of the booking. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
+            ),
+          name: z
+            .string()
+            .describe(
+              "The name of the user. Collect it from the user. It is required"
+            ),
+          email: z
+            .string()
+            .describe(
+              "The email of the user. Collect it from the user. It is required"
+            ),
+        }),
+        execute: async ({
+          start,
+          name,
+          email,
+        }: {
+          start: string;
+          name: string;
+          email: string;
+        }) => {
+          options?.onPreAction?.("book slot");
+          const booking = await createBooking(
+            action.calConfig!.apiKey!,
+            Number(action.calConfig!.eventTypeId!),
+            start,
+            name,
+            email,
+            "Asia/Kolkata"
+          );
+          const json = await booking.json();
+          return {
+            content: JSON.stringify(json),
+            customMessage: {
+              actionCall: {
+                actionId: action.id,
+                data: { start, name, email },
+                response: JSON.stringify(json),
+                statusCode: 200,
+                createdAt: new Date(),
+              },
+            },
+          };
+        },
+      });
+
+      tools.push(getSlotsTool, bookSlotTool);
+    }
   }
 
   return tools;
@@ -283,110 +381,10 @@ export function makeFlow(
     "But don't add it as a separate section at the end of the answer.",
   ]);
 
-  const calAvailabilityTool = new SimpleTool({
-    id: "cal-availability",
-    description: "Get the availability slots of the user",
-    schema: z.object({
-      start: z
-        .string()
-        .describe(
-          "The start date and time of the availability. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
-        ),
-      end: z
-        .string()
-        .describe(
-          "The end date and time of the availability. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
-        ),
-    }),
-    execute: async ({ start, end }: { start: string; end: string }) => {
-      options?.onPreAction?.("get availability");
-      const profile = await getSlots(
-        process.env.CALCOM_API_KEY!,
-        start,
-        end,
-        598811
-      );
-      return {
-        content: JSON.stringify(profile),
-        customMessage: {
-          actionCall: {
-            actionId: "6896b7bf86fdbacdc59568da",
-            data: {},
-            response: JSON.stringify(profile),
-            statusCode: 200,
-            createdAt: new Date(),
-          },
-        },
-      };
-    },
-  });
-
-  const calBookingTool = new SimpleTool({
-    id: "cal-booking",
-    description: "Book a slot for the user",
-    schema: z.object({
-      start: z
-        .string()
-        .describe(
-          "The start date and time of the booking. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
-        ),
-      end: z
-        .string()
-        .describe(
-          "The end date and time of the booking. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
-        ),
-      name: z
-        .string()
-        .describe(
-          "The name of the user. Collect it from the user. It is required"
-        ),
-      email: z
-        .string()
-        .describe(
-          "The email of the user. Collect it from the user. It is required"
-        ),
-    }),
-    execute: async ({
-      start,
-      name,
-      email,
-    }: {
-      start: string;
-      name: string;
-      email: string;
-    }) => {
-      options?.onPreAction?.("book slot");
-      const booking = await createBooking(
-        process.env.CALCOM_API_KEY!,
-        598811,
-        start,
-        name,
-        email,
-        "Asia/Kolkata"
-      );
-      return {
-        content: JSON.stringify(booking),
-        customMessage: {
-          actionCall: {
-            actionId: "6896b7bf86fdbacdc59568da",
-            data: { start, name, email },
-            response: JSON.stringify(booking),
-            statusCode: 200,
-            createdAt: new Date(),
-          },
-        },
-      };
-    },
-  });
-
   const actionTools = options?.actions
-    ? [
-        ...makeActionTools(options.actions, {
-          onPreAction: options.onPreAction,
-        }),
-        calAvailabilityTool,
-        calBookingTool,
-      ]
+    ? makeActionTools(options.actions, {
+        onPreAction: options.onPreAction,
+      })
     : [];
 
   const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
