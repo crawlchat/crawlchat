@@ -2,6 +2,7 @@
 title: Introducing Actions
 date: 2025-09-07
 description: CrawlChat Actions let chatbots call APIs to fetch data or perform tasks. Configure with URL, method, and data. Logged in analytics, executed securely on servers, with sensitive details protected.
+image: /blog-images/action/introducing-actions.png
 ---
 
 Providing support from help documentation is the minimal for any support system. Often times, the chatbot requires to fetch some information from external system such as user information, real time data, etc., or to perform some kind of actions such as booking an appointment, upgrading the user to higher plan etc.
