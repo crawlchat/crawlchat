@@ -259,7 +259,7 @@ function ShowSourcesSetting({ scrape, user }: { scrape: Scrape; user: User }) {
     <SettingsSection
       id="show-sources"
       title="Show sources"
-      description="Show the sources that the chatbot used from the knowledge base. It will be visible on the chat widget under every answer and on Discord/Slcack messages."
+      description="Show the sources that the chatbot used from the knowledge base. It will be visible on the chat widget under every answer and on Discord/Slack messages."
       fetcher={showSourcesFetcher}
     >
       <div className="flex gap-2">

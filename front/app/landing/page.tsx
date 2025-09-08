@@ -11,17 +11,19 @@ import {
   TbBrandSlack,
   TbBrandX,
   TbChartBar,
+  TbChartBarOff,
   TbChartLine,
   TbChevronDown,
   TbChevronRight,
   TbChevronUp,
+  TbCircleCheckFilled,
+  TbCircleXFilled,
   TbClock,
   TbCode,
   TbDashboard,
   TbDatabase,
   TbFile,
   TbMessage,
-  TbPencil,
   TbRobotFace,
   TbScoreboard,
   TbSettings,
@@ -33,8 +35,8 @@ import { track } from "~/pirsch";
 import { PLAN_FREE, PLAN_PRO, PLAN_STARTER } from "libs/user-plan";
 import { useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
-import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
+import cn from "@meltdownjs/cn";
 
 export function meta() {
   return makeMeta({
@@ -675,13 +677,17 @@ function PricingBox({
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
             <li key={item.text} className="flex gap-2 items-center">
-              <img
-                src={`/new-landing/${
-                  item.excluded ? "bold-cross" : "bold-check"
-                }.png`}
-                alt="Check"
-                className="w-4 h-4"
-              />
+              {item.excluded && (
+                <span className="text-error">
+                  <span className="w-0 h-0 block overflow-hidden">Excluded</span>
+                  <TbCircleXFilled size={20} />
+                </span>
+              )}
+              {!item.excluded && (
+                <span className="text-success">
+                  <TbCircleCheckFilled size={20} />
+                </span>
+              )}
               <span className="font-medium">{item.text}</span>
             </li>
           ))}
@@ -692,7 +698,7 @@ function PricingBox({
             variant={popular ? "solid" : "outline"}
             href={href}
           >
-            {free ? "Get started" : "Purchase"}
+            {free ? "Get started" : "🚀 Purchase"}
             <TbArrowRight />
           </Button>
         </div>
@@ -714,10 +720,10 @@ export function Pricing() {
         <PricingBox
           free
           title="Free"
-          description="For personal use"
+          description="Try it out now"
           price={`$${freePlan.price}`}
           items={[
-            { text: `${freePlan.credits.scrapes} page scrapes` },
+            { text: `${freePlan.credits.scrapes} pages` },
             { text: `${freePlan.credits.messages} message credits` },
             { text: `${freePlan.limits.scrapes} collection` },
             { text: `${freePlan.limits.teamMembers} team member` },
@@ -736,7 +742,7 @@ export function Pricing() {
           description="Start your journey with CrawlChat"
           price={`$${starterPlan.price}`}
           items={[
-            { text: `${starterPlan.credits.scrapes} scrapes/month` },
+            { text: `${starterPlan.credits.scrapes} page credits/month` },
             { text: `${starterPlan.credits.messages} message credits/month` },
             { text: `${starterPlan.limits.scrapes} collections` },
             { text: `${starterPlan.limits.teamMembers} team members` },
@@ -756,7 +762,7 @@ export function Pricing() {
           popular
           price={`$${proPlan.price}`}
           items={[
-            { text: `${proPlan.credits.scrapes} scrapes/month` },
+            { text: `${proPlan.credits.scrapes} page credits/month` },
             { text: `${proPlan.credits.messages} message credits/month` },
             { text: `${proPlan.limits.scrapes} collections` },
             { text: `${proPlan.limits.teamMembers} team members` },
@@ -778,9 +784,9 @@ export function Pricing() {
 export function CTA({ text }: { text?: string }) {
   return (
     <div className="mt-32" id="cta">
-      <div className="w-full bg-gradient-to-b from-base-100 to-base-200 shadow-md rounded-2xl py-20 px-10 relative">
+      <div className="w-full bg-gradient-to-b from-base-100 to-base-200 shadow-md rounded-2xl py-16 px-10 relative">
         <h2 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2] font-medium text-center max-w-[800px] mx-auto">
-          {text || "Reduce your support queries and make your users happy now!"}
+          {text || "Make your own AI chatbot from your documentation now!"}
         </h2>
 
         <div className="flex justify-center mt-8">
@@ -1193,7 +1199,7 @@ export function CustomTestimonial({
 
 function CTH({ children }: PropsWithChildren) {
   return (
-    <span className="bg-primary-subtle text-primary px-2 mx-1 whitespace-nowrap">
+    <span className="bg-primary text-primary-content px-3 mx-1 whitespace-nowrap rounded-box">
       {children}
     </span>
   );
@@ -1244,7 +1250,7 @@ export function CustomTestimonials() {
           </div>
         }
         author="Maurits Koekoek"
-        authorImage="https://media.licdn.com/dms/image/v2/D4E03AQG-zmBs0zHLvA/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1683012930288?e=1756339200&v=beta&t=MxfQWsU6WS3fxC1vAKYR_bb-z-sfNfXIAcEWXBw2iQA"
+        authorImage="https://media.licdn.com/dms/image/v2/D4E03AQG-zmBs0zHLvA/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1683012930288?e=1759968000&v=beta&t=4Q_NhlyWwWzn48ZqWllrHwonzwjOHr37rDgU4txRacA"
         authorLink="https://www.linkedin.com/feed/update/urn:li:activity:7353688013584977920?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7353688013584977920%2C7353699420036571137%29&dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287353699420036571137%2Curn%3Ali%3Aactivity%3A7353688013584977920%29"
         icon={<TbBrandLinkedin />}
         authorCompany="270 Degrees"
@@ -1468,43 +1474,44 @@ function Gallery() {
   const steps = [
     {
       title: "Dashboard",
-      img: "/dashboard.png",
+      img: "/gallery/dashboard.png",
       icon: <TbDashboard />,
     },
     {
       title: "Add knowledge",
-      img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/add-knowledge.gif",
+      img: "/gallery/add-knowledge-group.png",
       icon: <TbBook />,
     },
     {
       title: "View knowledge",
-      img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/view-knowledge.gif",
+      img: "/gallery/knowledge-groups.png",
       icon: <TbBook2 />,
     },
     {
       title: "Embed chatbot",
-      img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/customise-embed.gif",
+      img: "/gallery/customise-chatbot.png",
       icon: <TbCode />,
     },
     {
       title: "Analytics",
-      img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/base-analytics.gif",
+      img: "/gallery/analytics.png",
       icon: <TbChartBar />,
     },
     {
       title: "Conversations",
-      img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/view-conversations.gif",
+      img: "/gallery/messages.png",
       icon: <TbMessage />,
     },
     {
       title: "Performance",
-      img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/view-performance.gif",
+      img: "/gallery/performance.png",
       icon: <TbChartLine />,
     },
     {
-      title: "Answer correction",
-      img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/answer-correction.gif",
-      icon: <TbPencil />,
+      title: "Data gaps",
+      img: "/gallery/data-gaps.png",
+      icon: <TbChartBarOff />,
+      new: true,
     },
   ];
 
@@ -1570,7 +1577,7 @@ function Gallery() {
             key={index}
             className={cn(
               "flex items-center p-1 rounded-md w-fit px-3 text-sm gap-1",
-              "transition-all duration-200 cursor-pointer",
+              "transition-all duration-200 cursor-pointer relative",
               activeStep === index && "bg-primary text-primary-content",
               activeStep !== index && "hover:bg-base-300",
               isLoading && "opacity-50 cursor-not-allowed"
@@ -1580,6 +1587,17 @@ function Gallery() {
           >
             {step.icon}
             {step.title}
+            {step.new && (
+              <span
+                className={cn(
+                  "badge badge-error badge-xs",
+                  "absolute top-0 right-0",
+                  "translate-x-1/2 -translate-y-1/2"
+                )}
+              >
+                New
+              </span>
+            )}
           </button>
         ))}
       </div>
