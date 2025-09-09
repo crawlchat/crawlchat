@@ -15,7 +15,7 @@ import {
 } from "discord.js";
 import { learn, query } from "./api";
 import { createToken } from "libs/jwt";
-import { MessageRating, prisma } from "libs/prisma";
+import { MessageRating, prisma, Scrape } from "libs/prisma";
 
 type DiscordMessage = Message<boolean>;
 
@@ -83,10 +83,10 @@ const removeBotMentions = (content: string) => {
     .trim();
 };
 
-const makeMessage = (message: DiscordMessage) => {
+const makeMessage = (message: DiscordMessage, scrape: Scrape) => {
   let content: any = cleanContent(removeBotMentions(message.content));
 
-  if (message.attachments.size > 0) {
+  if (scrape.discordConfig?.sendImages && message.attachments.size > 0) {
     const imageUrls = [];
 
     for (const [_, attachment] of message.attachments) {
@@ -293,9 +293,9 @@ client.on(Events.MessageCreate, async (message) => {
       (a, b) => a.createdTimestamp - b.createdTimestamp
     );
 
-    const messages = contextMessages.map((m) => makeMessage(m));
+    const messages = contextMessages.map((m) => makeMessage(m, scrape));
 
-    messages.push(makeMessage(message));
+    messages.push(makeMessage(message, scrape));
 
     let response = "Something went wrong";
     const {
@@ -348,11 +348,21 @@ client.on(Events.MessageCreate, async (message) => {
   ) {
     const { scrapeId, userId, draftDestinationChannelId } =
       await getDiscordDetails(message.guildId!);
+
+    const scrape = await prisma.scrape.findFirst({
+      where: { id: scrapeId! },
+    });
+
+    if (!scrape) {
+      message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+      return;
+    }
+
     if (message.channel.parent.id === draftDestinationChannelId) {
       const { stopTyping } = await sendTyping(message.channel);
 
       const messages = await message.channel.messages.fetch();
-      const llmMessages = messages.map((m) => makeMessage(m)).reverse();
+      const llmMessages = messages.map((m) => makeMessage(m, scrape)).reverse();
 
       const { answer, error } = await query(
         scrapeId,
@@ -396,6 +406,15 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     return;
   }
 
+  const scrape = await prisma.scrape.findFirst({
+    where: { id: scrapeId! },
+  });
+
+  if (!scrape) {
+    reaction.message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+    return;
+  }
+
   await updateMessageRating(await reaction.message.fetch());
 
   const emojiStr = reaction.emoji.toString();
@@ -412,7 +431,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     if (channel && channel.isThreadOnly()) {
       const { answer, error } = await query(
         scrapeId,
-        [makeMessage(await reaction.message.fetch())],
+        [makeMessage(await reaction.message.fetch(), scrape)],
         createToken(userId),
         {
           prompt: defaultPrompt,

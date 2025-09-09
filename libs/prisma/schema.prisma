@@ -97,6 +97,7 @@ type DiscordDraftConfig {
 type DiscordConfig {
   replyAsThread Boolean?
   onlyChannelNames String?
+  sendImages Boolean?
 }
 
 enum LlmModel {

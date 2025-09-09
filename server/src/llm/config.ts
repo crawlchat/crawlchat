@@ -6,6 +6,7 @@ export type LlmConfig = {
   ragTopN: number;
   creditsPerMessage: number;
   baseURL?: string;
+  supportsImages?: boolean;
 };
 
 export const getConfig = (model?: LlmModel | null): LlmConfig => {
@@ -59,6 +60,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       apiKey: process.env.OPENAI_API_KEY!,
       ragTopN: 4,
       creditsPerMessage: 2,
+      supportsImages: true,
     };
   }
   if (model === LlmModel.gpt_5_nano) {
@@ -67,6 +69,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       apiKey: process.env.OPENAI_API_KEY!,
       ragTopN: 6,
       creditsPerMessage: 1,
+      supportsImages: true,
     };
   }
   if (model === LlmModel.gpt_5) {
@@ -75,7 +78,8 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       apiKey: process.env.OPENROUTER_API_KEY!,
       ragTopN: 6,
       creditsPerMessage: 2,
-      baseURL: "https://openrouter.ai/api/v1"
+      baseURL: "https://openrouter.ai/api/v1",
+      supportsImages: true,
     };
   }
   return {
@@ -83,5 +87,6 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
     apiKey: process.env.OPENAI_API_KEY!,
     ragTopN: 4,
     creditsPerMessage: 1,
+    supportsImages: true,
   };
 };

@@ -8,7 +8,12 @@ import {
 } from "~/settings-section";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import { TbArrowRight, TbBrandDiscord, TbInfoCircle } from "react-icons/tb";
+import {
+  TbArrowRight,
+  TbBrandDiscord,
+  TbCrown,
+  TbInfoCircle,
+} from "react-icons/tb";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { MultiSelect } from "~/components/multi-select";
 import { useState } from "react";
@@ -21,6 +26,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const scrape = await prisma.scrape.findUnique({
     where: { id: scrapeId },
+    include: {
+      user: true,
+    },
   });
 
   if (!scrape) {
@@ -92,6 +100,13 @@ export async function action({ request }: Route.ActionArgs) {
     };
   }
 
+  if (formData.has("from-send-images")) {
+    update.discordConfig = {
+      ...(scrape!.discordConfig! as any),
+      sendImages: formData.get("sendImages") === "on",
+    };
+  }
+
   const updatedScrape = await prisma.scrape.update({
     where: { id: scrapeId },
     data: update,
@@ -122,6 +137,41 @@ function ChannelNames() {
           setValue(value);
         }}
       />
+    </SettingsSection>
+  );
+}
+
+function ImageAttachments() {
+  const { scrape } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher();
+
+  function isAllowed(plans: string[]) {
+    return plans.includes(scrape.user.plan?.planId ?? "free");
+  }
+
+  return (
+    <SettingsSection
+      id="image-attachments"
+      title="Image attachments"
+      description="Should the bot send the attached images to the bot? Very helpful when users attach screenshots and ask questions about them."
+      fetcher={fetcher}
+    >
+      <div className="flex gap-2">
+        <input type="hidden" name="from-send-images" value="on" />
+        <label className="label">
+          <input
+            type="checkbox"
+            name="sendImages"
+            className="toggle"
+            defaultChecked={scrape.discordConfig?.sendImages ?? false}
+            disabled={!isAllowed(["pro"])}
+          />
+          Active
+        </label>
+        <div className="badge badge-soft badge-primary">
+          <TbCrown /> Pro
+        </div>
+      </div>
     </SettingsSection>
   );
 }
@@ -217,6 +267,8 @@ export default function DiscordIntegrations({
             Active
           </label>
         </SettingsSection>
+
+        <ImageAttachments />
       </SettingsContainer>
     </SettingsSectionProvider>
   );

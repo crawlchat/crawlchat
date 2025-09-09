@@ -18,3 +18,10 @@ export function getImagesCount(query: string | MultimodalContent[]) {
   }
   return query.filter((q) => q.type === "image_url").length;
 }
+
+export function removeImages(query: string | MultimodalContent[]) {
+  if (typeof query === "string") {
+    return query;
+  }
+  return query.filter((q) => q.type !== "image_url");
+}
