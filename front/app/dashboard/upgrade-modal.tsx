@@ -1,4 +1,4 @@
-import type { Scrape } from "libs/prisma";
+import type { Scrape, User } from "libs/prisma";
 import type { Plan } from "libs/user-plan";
 import { useEffect } from "react";
 import { showModal } from "~/components/daisy-utils";
@@ -10,15 +10,18 @@ export function UpgradeModal({
   proPlan,
   hobbyPlan,
   scrape,
+  user,
 }: {
   freePlan: Plan;
   starterPlan: Plan;
   proPlan: Plan;
   hobbyPlan: Plan;
   scrape?: Scrape;
+  user: User;
 }) {
   useEffect(() => {
     if (scrape) return;
+    if (user.plan?.planId !== "free") return;
     showModal("upgrade-modal");
   }, []);
 

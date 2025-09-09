@@ -152,6 +152,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         proPlan={loaderData.proPlan}
         hobbyPlan={loaderData.hobbyPlan}
         scrape={loaderData.scrape}
+        user={loaderData.user}
       />
     </AppContext.Provider>
   );
