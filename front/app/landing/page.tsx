@@ -679,7 +679,9 @@ function PricingBox({
             <li key={item.text} className="flex gap-2 items-center">
               {item.excluded && (
                 <span className="text-error">
-                  <span className="w-0 h-0 block overflow-hidden">Excluded</span>
+                  <span className="w-0 h-0 block overflow-hidden">
+                    Excluded
+                  </span>
                   <TbCircleXFilled size={20} />
                 </span>
               )}
@@ -734,6 +736,7 @@ export function Pricing() {
             { text: "Support tickets", excluded: true },
             { text: "Basic analytics", excluded: true },
             { text: "GitHub issues", excluded: true },
+            { text: "Image inputs", excluded: true },
           ]}
           href="/login"
         />
@@ -753,6 +756,7 @@ export function Pricing() {
             { text: "Support tickets" },
             { text: "Advanced analytics" },
             { text: "GitHub issues", excluded: true },
+            { text: "Image inputs", excluded: true },
           ]}
           href="https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
         />
@@ -773,6 +777,7 @@ export function Pricing() {
             { text: "Support tickets" },
             { text: "Advanced analytics" },
             { text: "GitHub issues" },
+            { text: "Image inputs" },
           ]}
           href="https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
         />

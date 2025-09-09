@@ -8,7 +8,15 @@ import {
 } from "~/settings-section";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import { TbBolt, TbBrain, TbCrown, TbSettings, TbStar, TbTrash } from "react-icons/tb";
+import {
+  TbBolt,
+  TbBrain,
+  TbCrown,
+  TbPhotoX,
+  TbSettings,
+  TbStar,
+  TbTrash,
+} from "react-icons/tb";
 import { Page } from "~/components/page";
 import { useEffect, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "./util";
@@ -178,7 +186,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             summary: "1 credit / message",
             disabled: !isAllowed(["free", "starter", "pro"]),
             content: (
-              <div className="badge badge-secondary badge-soft">
+              <div className="badge badge-accent badge-soft">
                 <TbBolt /> Fast
               </div>
             ),
@@ -190,9 +198,14 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             summary: "1 credit / message",
             disabled: !isAllowed(["free", "starter", "pro"]),
             content: (
-              <div className="badge badge-secondary badge-soft">
-                <TbBolt /> Fast
-              </div>
+              <>
+                <div className="badge badge-accent badge-soft">
+                  <TbBolt /> Fast
+                </div>
+                <div className="badge badge-secondary badge-soft">
+                  <TbPhotoX /> Can't take images
+                </div>
+              </>
             ),
           },
           {
@@ -204,7 +217,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             disabled: !isAllowed(["starter", "pro"]),
             content: (
               <div className="flex gap-2">
-                <div className="badge badge-secondary badge-soft">
+                <div className="badge badge-accent badge-soft">
                   <TbBrain /> Smart + Fast
                 </div>
                 <div className="badge badge-soft badge-primary">
@@ -223,7 +236,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             disabled: !isAllowed(["pro"]),
             content: (
               <div className="flex gap-2">
-                <div className="badge badge-secondary badge-soft">
+                <div className="badge badge-accent badge-soft">
                   <TbBrain /> Reason
                 </div>
                 <div className="badge badge-soft badge-primary">
@@ -242,7 +255,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             disabled: !isAllowed(["pro"]),
             content: (
               <div className="flex gap-2">
-                <div className="badge badge-secondary badge-soft">
+                <div className="badge badge-accent badge-soft">
                   <TbStar /> Takes time & Best
                 </div>
                 <div className="badge badge-soft badge-primary">

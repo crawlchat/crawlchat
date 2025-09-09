@@ -153,7 +153,7 @@ function ImageAttachments() {
     <SettingsSection
       id="image-attachments"
       title="Image attachments"
-      description="Should the bot send the attached images to the bot? Very helpful when users attach screenshots and ask questions about them."
+      description="Should the bot send the attached images to the bot? Very helpful when users attach screenshots and ask questions about them. Make sure the AI model supports image inputs."
       fetcher={fetcher}
     >
       <div className="flex gap-2">
