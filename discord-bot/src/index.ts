@@ -75,6 +75,40 @@ const cleanContent = (content: string) => {
   return content.replace(/\n/g, "\n\n");
 };
 
+const removeBotMentions = (content: string) => {
+  return content
+    .trim()
+    .replace(/^<@\d+>/g, "")
+    .replace(/<@\d+>$/g, "")
+    .trim();
+};
+
+const makeMessage = (message: DiscordMessage) => {
+  let content: any = cleanContent(removeBotMentions(message.content));
+
+  if (message.attachments.size > 0) {
+    const imageUrls = [];
+
+    for (const [_, attachment] of message.attachments) {
+      if (attachment.contentType?.startsWith("image/")) {
+        imageUrls.push(attachment.url);
+      }
+    }
+
+    if (imageUrls.length > 0) {
+      content = [
+        { type: "text", text: content },
+        ...imageUrls.map((url) => ({ type: "image_url", image_url: { url } })),
+      ];
+    }
+  }
+
+  return {
+    role: message.author.id === process.env.BOT_USER_ID! ? "assistant" : "user",
+    content,
+  };
+};
+
 const getDiscordDetails = async (channelId: string) => {
   const scrape = await prisma.scrape.findFirst({
     where: { discordServerId: channelId },
@@ -252,7 +286,6 @@ client.on(Events.MessageCreate, async (message) => {
 
     const { stopTyping } = await sendTyping(message.channel as TextChannel);
 
-    const rawQuery = message.content.replace(/^<@\d+> /, "").trim();
     const previousMessages = await getPreviousMessages(message);
     const replyMessages = await fetchAllParentMessages(message, []);
 
@@ -260,15 +293,9 @@ client.on(Events.MessageCreate, async (message) => {
       (a, b) => a.createdTimestamp - b.createdTimestamp
     );
 
-    const messages = contextMessages.map((m) => ({
-      role: m.author.id === process.env.BOT_USER_ID! ? "assistant" : "user",
-      content: cleanContent(m.content),
-    }));
+    const messages = contextMessages.map((m) => makeMessage(m));
 
-    messages.push({
-      role: "user",
-      content: cleanContent(rawQuery),
-    });
+    messages.push(makeMessage(message));
 
     let response = "Something went wrong";
     const {
@@ -294,7 +321,9 @@ client.on(Events.MessageCreate, async (message) => {
       scrape.discordConfig?.replyAsThread &&
       message.channel.type !== ChannelType.PublicThread
     ) {
-      const shortQuery = rawQuery.substring(0, 50);
+      const shortQuery = cleanContent(
+        removeBotMentions(message.content)
+      ).substring(0, 50);
       const thread = await message.startThread({
         name: `Response to: ${shortQuery}${
           shortQuery.length > 50 ? "..." : ""
@@ -323,12 +352,7 @@ client.on(Events.MessageCreate, async (message) => {
       const { stopTyping } = await sendTyping(message.channel);
 
       const messages = await message.channel.messages.fetch();
-      const llmMessages = messages
-        .map((m) => ({
-          role: m.author.id === process.env.BOT_USER_ID! ? "assistant" : "user",
-          content: cleanContent(m.content),
-        }))
-        .reverse();
+      const llmMessages = messages.map((m) => makeMessage(m)).reverse();
 
       const { answer, error } = await query(
         scrapeId,
@@ -388,12 +412,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     if (channel && channel.isThreadOnly()) {
       const { answer, error } = await query(
         scrapeId,
-        [
-          {
-            role: "user",
-            content: reaction.message.content!,
-          },
-        ],
+        [makeMessage(await reaction.message.fetch())],
         createToken(userId),
         {
           prompt: defaultPrompt,

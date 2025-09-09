@@ -16,6 +16,7 @@ import { Flow } from "./flow";
 import { z } from "zod";
 import { richMessageBlocks } from "libs/rich-message-block";
 import { createBooking, getSlots } from "libs/cal";
+import { MultimodalContent } from "libs/llm-message";
 import zodToJsonSchema from "zod-to-json-schema";
 
 export type RAGAgentCustomMessage = {
@@ -380,7 +381,7 @@ export function makeActionTools(
 export function makeFlow(
   scrapeId: string,
   systemPrompt: string,
-  query: string,
+  query: string | MultimodalContent[],
   messages: FlowMessage<RAGAgentCustomMessage>[],
   indexerKey: string | null,
   options?: {

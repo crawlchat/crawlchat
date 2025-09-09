@@ -1,6 +1,8 @@
+import { MultimodalContent } from "libs/llm-message";
+
 export async function query(
   scrapeId: string,
-  messages: { role: string; content: string }[],
+  messages: { role: string; content: string | MultimodalContent[] }[],
   token: string,
   options?: {
     prompt?: string;

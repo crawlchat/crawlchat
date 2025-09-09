@@ -14,7 +14,9 @@ import { Message, MessageChannel } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
-import { RAGAgentCustomMessage } from "./llm/flow-jasmine";
+import {
+  RAGAgentCustomMessage,
+} from "./llm/flow-jasmine";
 import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
@@ -26,6 +28,7 @@ import { z } from "zod";
 import { baseAnswerer, AnswerListener, collectSourceLinks } from "./answer";
 import { fillMessageAnalysis } from "./llm/analyse-message";
 import { createToken, verifyToken } from "libs/jwt";
+import { MultimodalContent, getQueryString } from "libs/llm-message";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -50,14 +53,6 @@ async function updateLastMessageAt(threadId: string) {
     where: { id: threadId },
     data: { lastMessageAt: new Date() },
   });
-}
-
-function getContext(messages: FlowMessage<RAGAgentCustomMessage>[]) {
-  return messages
-    .filter((m) => m.custom?.result)
-    .flatMap((m) => m.custom!.result!)
-    .map((m) => m.content)
-    .join("\n\n");
 }
 
 app.get("/", function (req: Request, res: Response) {
@@ -611,9 +606,12 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       },
     });
   }
-  let query = req.body.query as string;
+  let query = req.body.query as string | MultimodalContent[];
 
-  const messages = req.body.messages as { role: string; content: string }[];
+  const messages = req.body.messages as {
+    role: string;
+    content: string | MultimodalContent[];
+  }[];
   if (messages && messages.length > 0) {
     query = messages[messages.length - 1].content;
   }
@@ -645,7 +643,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     query,
     messages.map((m) => ({
       llmMessage: {
-        role: m.role as "user" | "assistant",
+        role: m.role as any,
         content: m.content,
       },
     })),
@@ -669,7 +667,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   await updateLastMessageAt(thread.id);
   await fillMessageAnalysis(
     newAnswerMessage.id,
-    query,
+    getQueryString(query),
     answer!.content,
     answer!.sources
   );

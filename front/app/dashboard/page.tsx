@@ -28,6 +28,7 @@ import moment from "moment";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
+import { getQueryString } from "libs/llm-message";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -519,7 +520,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                     <tr key={question.id}>
                       <td>
                         <span className="line-clamp-1">
-                          {(question.llmMessage as any).content}
+                          {getQueryString((question.llmMessage as any).content)}
                         </span>
                       </td>
                       <td>

@@ -1,6 +1,6 @@
 import type { Route } from "./+types/message";
 import type { ApiAction, Message } from "libs/prisma";
-import { TbChartBar, TbMessage, TbSettingsBolt } from "react-icons/tb";
+import { TbChartBar, TbMessage, TbPhoto, TbSettingsBolt } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { useEffect, useMemo, useState } from "react";
 import { makeMessagePairs } from "./analyse";
@@ -24,6 +24,7 @@ import cn from "@meltdownjs/cn";
 import moment from "moment";
 import { ScoreBadge } from "~/components/score-badge";
 import { makeMeta } from "~/meta";
+import { getImagesCount, getQueryString } from "libs/llm-message";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -202,8 +203,14 @@ function AssistantMessage({
 }
 
 export default function Message({ loaderData }: Route.ComponentProps) {
-  const navigate = useNavigate();
   const location = useLocation();
+  const imagesCount = useMemo(
+    () =>
+      getImagesCount(
+        (loaderData.messagePair?.queryMessage?.llmMessage as any)?.content
+      ),
+    [loaderData.messagePair]
+  );
 
   useEffect(() => {
     const drawer = document.getElementById(
@@ -216,13 +223,6 @@ export default function Message({ loaderData }: Route.ComponentProps) {
 
   const messagePair = loaderData.messagePair;
   const actionsMap = loaderData.actionsMap;
-
-  function copyMessage() {
-    navigator.clipboard.writeText(
-      (messagePair?.queryMessage?.llmMessage as any)?.content ?? ""
-    );
-    toast.success("Copied to clipboard");
-  }
 
   return (
     <Page
@@ -241,7 +241,9 @@ export default function Message({ loaderData }: Route.ComponentProps) {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2 max-w-prose">
           <div className="text-2xl">
-            {(messagePair?.queryMessage?.llmMessage as any)?.content}
+            {getQueryString(
+              (messagePair?.queryMessage?.llmMessage as any)?.content
+            )}
           </div>
 
           <div className="flex gap-2 items-center">
@@ -253,6 +255,12 @@ export default function Message({ loaderData }: Route.ComponentProps) {
               <CountryFlag
                 location={messagePair?.queryMessage?.thread.location}
               />
+            )}
+            {imagesCount > 0 && (
+              <span className="badge badge-primary badge-soft">
+                <TbPhoto />
+                {imagesCount}
+              </span>
             )}
             <span>
               {moment(messagePair?.queryMessage?.createdAt).fromNow()}

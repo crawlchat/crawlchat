@@ -45,6 +45,10 @@
     "./cal": {
       "default": "./dist/cal.js",
       "types": "./dist/cal.d.ts"
+    },
+    "./llm-message": {
+      "default": "./dist/llm-message.js",
+      "types": "./dist/llm-message.d.ts"
     }
   },
   "typesVersions": {
@@ -75,6 +79,9 @@
       ],
       "cal": [
         "./dist/cal.d.ts"
+      ],
+      "llm-message": [
+        "./dist/llm-message.d.ts"
       ]
     }
   },

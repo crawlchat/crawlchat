@@ -13,6 +13,7 @@ import { Rating } from "./rating-badge";
 import { EmptyState } from "~/components/empty-state";
 import { ScoreBadge } from "~/components/score-badge";
 import { ChannelBadge } from "~/components/channel-badge";
+import { getQueryString } from "libs/llm-message";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
@@ -49,7 +50,8 @@ export function meta() {
 }
 
 function getMessageContent(message?: Message) {
-  return (message?.llmMessage as any)?.content ?? "-";
+  const content = (message?.llmMessage as any)?.content;
+  return getQueryString(content) ?? "-";
 }
 
 export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
