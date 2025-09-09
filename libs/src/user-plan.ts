@@ -28,8 +28,8 @@ export const PLAN_FREE: Plan = {
   price: 0,
   type: "ONE_TIME",
   credits: {
-    scrapes: 100,
-    messages: 40,
+    scrapes: 40,
+    messages: 20,
   },
   limits: {
     scrapes: 1,

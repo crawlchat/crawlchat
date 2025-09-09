@@ -373,7 +373,7 @@ export function SideMenu({
         </div>
       </div>
 
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-4 flex flex-col gap-2">
         <div className="flex justify-center items-center gap-1">
           <div className="tooltip" data-tip="Join on Discord">
             <a
@@ -428,8 +428,15 @@ export function SideMenu({
               </div>
             ) : (
               <div className="avatar avatar-placeholder">
-                <div className="bg-neutral text-neutral-content w-10 rounded-full">
-                  <span className="text-3xl">{visibleName[0]}</span>
+                <div
+                  className={cn(
+                    "bg-neutral text-neutral-content w-10 rounded-full",
+                    "flex items-center justify-center"
+                  )}
+                >
+                  <span className="text-2xl">
+                    {visibleName[0].toUpperCase()}
+                  </span>
                 </div>
               </div>
             )}

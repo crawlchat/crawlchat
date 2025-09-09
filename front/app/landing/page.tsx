@@ -700,7 +700,7 @@ function PricingBox({
             variant={popular ? "solid" : "outline"}
             href={href}
           >
-            {free ? "Get started" : "🚀 Purchase"}
+            {free ? "Try it out" : "🚀 Purchase"}
             <TbArrowRight />
           </Button>
         </div>
