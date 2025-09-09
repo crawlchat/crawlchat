@@ -235,6 +235,9 @@ export default function LoginPage() {
               Login with Google
             </a>
           </div>
+          <div className="text-center p-4 text-xs text-base-content/30">
+            Sign in & purchase a plan to get started
+          </div>
         </fetcher.Form>
       </div>
     </div>

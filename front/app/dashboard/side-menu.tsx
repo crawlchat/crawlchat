@@ -434,7 +434,7 @@ export function SideMenu({
                     "flex items-center justify-center"
                   )}
                 >
-                  <span className="text-2xl">
+                  <span className="text-xl">
                     {visibleName[0].toUpperCase()}
                   </span>
                 </div>
