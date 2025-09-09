@@ -39,6 +39,23 @@ export const PLAN_FREE: Plan = {
   category: "BASE",
 };
 
+export const PLAN_HOBBY: Plan = {
+  id: "hobby",
+  name: "Hobby",
+  price: 21,
+  type: "SUBSCRIPTION",
+  credits: {
+    scrapes: 2500,
+    messages: 1000,
+  },
+  limits: {
+    scrapes: 1,
+    teamMembers: 1,
+  },
+  resetType: "monthly",
+  category: "BASE",
+};
+
 export const PLAN_STARTER: Plan = {
   id: "starter",
   name: "Starter",
@@ -77,6 +94,7 @@ export const planMap: Record<string, Plan> = {
   [PLAN_FREE.id]: PLAN_FREE,
   [PLAN_STARTER.id]: PLAN_STARTER,
   [PLAN_PRO.id]: PLAN_PRO,
+  [PLAN_HOBBY.id]: PLAN_HOBBY,
 };
 
 export const activatePlan = async (

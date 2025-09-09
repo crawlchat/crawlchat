@@ -32,7 +32,13 @@ import {
 } from "react-icons/tb";
 import { prisma } from "libs/prisma";
 import { track } from "~/pirsch";
-import { PLAN_FREE, PLAN_PRO, PLAN_STARTER } from "libs/user-plan";
+import {
+  PLAN_FREE,
+  PLAN_PRO,
+  PLAN_STARTER,
+  PLAN_HOBBY,
+  type Plan,
+} from "libs/user-plan";
 import { useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
 import { makeMeta } from "~/meta";
@@ -102,6 +108,7 @@ export async function loader() {
     freePlan: PLAN_FREE,
     starterPlan: PLAN_STARTER,
     proPlan: PLAN_PRO,
+    hobbyPlan: PLAN_HOBBY,
     focusChangelog,
   };
 }
@@ -709,17 +716,20 @@ function PricingBox({
   );
 }
 
-export function Pricing() {
-  const { freePlan, starterPlan, proPlan } = useLoaderData<typeof loader>();
-
+export function PricingBoxes({
+  freePlan,
+  starterPlan,
+  proPlan,
+  hobbyPlan,
+}: {
+  freePlan: Plan;
+  starterPlan: Plan;
+  proPlan: Plan;
+  hobbyPlan: Plan;
+}) {
   return (
-    <div className="mt-32" id="pricing">
-      <Heading>
-        <HeadingHighlight>Pricing</HeadingHighlight> for everyone
-      </Heading>
-
-      <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
-        <PricingBox
+    <>
+      {/* <PricingBox
           free
           title="Free"
           description="Try it out now"
@@ -730,56 +740,89 @@ export function Pricing() {
             { text: `${freePlan.limits.scrapes} collection` },
             { text: `${freePlan.limits.teamMembers} team member` },
             { text: "Base AI models", excluded: true },
-            { text: "Upload files", excluded: true },
             { text: "MCP server", excluded: true },
             { text: "Discord bot", excluded: true },
             { text: "Support tickets", excluded: true },
-            { text: "Basic analytics", excluded: true },
             { text: "GitHub issues", excluded: true },
             { text: "Image inputs", excluded: true },
           ]}
           href="/login"
-        />
-        <PricingBox
-          title="Starter"
-          description="Start your journey with CrawlChat"
-          price={`$${starterPlan.price}`}
-          items={[
-            { text: `${starterPlan.credits.scrapes} page credits/month` },
-            { text: `${starterPlan.credits.messages} message credits/month` },
-            { text: `${starterPlan.limits.scrapes} collections` },
-            { text: `${starterPlan.limits.teamMembers} team members` },
-            { text: "Smart AI models" },
-            { text: "Upload files" },
-            { text: "MCP server" },
-            { text: "Discord bot" },
-            { text: "Support tickets" },
-            { text: "Advanced analytics" },
-            { text: "GitHub issues", excluded: true },
-            { text: "Image inputs", excluded: true },
-          ]}
-          href="https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
-        />
-        <PricingBox
-          title="Pro"
-          description="For power users and teams"
-          popular
-          price={`$${proPlan.price}`}
-          items={[
-            { text: `${proPlan.credits.scrapes} page credits/month` },
-            { text: `${proPlan.credits.messages} message credits/month` },
-            { text: `${proPlan.limits.scrapes} collections` },
-            { text: `${proPlan.limits.teamMembers} team members` },
-            { text: "Reasoning AI models" },
-            { text: "Upload files" },
-            { text: "MCP server" },
-            { text: "Discord bot" },
-            { text: "Support tickets" },
-            { text: "Advanced analytics" },
-            { text: "GitHub issues" },
-            { text: "Image inputs" },
-          ]}
-          href="https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
+        /> */}
+      <PricingBox
+        title="Hobby"
+        description="Explore the platform"
+        price={`$${hobbyPlan.price}`}
+        items={[
+          { text: `${hobbyPlan.credits.scrapes} page credits/month` },
+          { text: `${hobbyPlan.credits.messages} message credits/month` },
+          { text: `${hobbyPlan.limits.scrapes} collections` },
+          { text: `${hobbyPlan.limits.teamMembers} team members` },
+          { text: "Base AI models" },
+          { text: "MCP server", excluded: true },
+          { text: "Discord bot", excluded: true },
+          { text: "Support tickets" },
+          { text: "GitHub issues", excluded: true },
+          { text: "Image inputs", excluded: true },
+        ]}
+        href="https://beestack.lemonsqueezy.com/buy/19cd8f91-a20d-4563-8557-2325c425d87e"
+      />
+      <PricingBox
+        title="Starter"
+        description="Start your journey with CrawlChat"
+        price={`$${starterPlan.price}`}
+        items={[
+          { text: `${starterPlan.credits.scrapes} page credits/month` },
+          { text: `${starterPlan.credits.messages} message credits/month` },
+          { text: `${starterPlan.limits.scrapes} collections` },
+          { text: `${starterPlan.limits.teamMembers} team members` },
+          { text: "Smart AI models" },
+          { text: "MCP server" },
+          { text: "Discord bot" },
+          { text: "Support tickets" },
+          { text: "GitHub issues", excluded: true },
+          { text: "Image inputs", excluded: true },
+        ]}
+        href="https://beestack.lemonsqueezy.com/buy/a13beb2a-f886-4a9a-a337-bd82e745396a"
+      />
+      <PricingBox
+        title="Pro"
+        description="For power users and teams"
+        popular
+        price={`$${proPlan.price}`}
+        items={[
+          { text: `${proPlan.credits.scrapes} page credits/month` },
+          { text: `${proPlan.credits.messages} message credits/month` },
+          { text: `${proPlan.limits.scrapes} collections` },
+          { text: `${proPlan.limits.teamMembers} team members` },
+          { text: "Reasoning AI models" },
+          { text: "MCP server" },
+          { text: "Discord bot" },
+          { text: "Support tickets" },
+          { text: "GitHub issues" },
+          { text: "Image inputs" },
+        ]}
+        href="https://beestack.lemonsqueezy.com/buy/3a487266-72de-492d-8884-335c576f89c0"
+      />
+    </>
+  );
+}
+
+export function Pricing() {
+  const { freePlan, starterPlan, proPlan, hobbyPlan } =
+    useLoaderData<typeof loader>();
+
+  return (
+    <div className="mt-32" id="pricing">
+      <Heading>
+        <HeadingHighlight>Pricing</HeadingHighlight> for everyone
+      </Heading>
+
+      <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
+        <PricingBoxes
+          freePlan={freePlan}
+          starterPlan={starterPlan}
+          proPlan={proPlan}
+          hobbyPlan={hobbyPlan}
         />
       </div>
     </div>

@@ -8,12 +8,14 @@ import {
   consumeCredits,
   addTopup,
   PLAN_FREE,
+  PLAN_HOBBY,
 } from "libs/user-plan";
 import type { Plan } from "libs/user-plan";
 
 const productIdPlanMap: Record<number, Plan> = {
   "466349": PLAN_STARTER,
   "466350": PLAN_PRO,
+  "631865": PLAN_HOBBY,
 };
 
 function validateRequest(headers: Headers, body: string) {
