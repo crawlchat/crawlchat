@@ -539,10 +539,16 @@ function FeaturesWithImage({
         ))}
         {left}
       </div>
-      <div className="flex-1 bg-ash-strong rounded-2xl shadow-md border border-base-300 aspect-square overflow-hidden">
+      <div
+        className={cn(
+          "flex-1 bg-ash-strong rounded-2xl shadow-md border",
+          "border-base-300 aspect-square overflow-hidden",
+          "w-full aspect-square h-fit"
+        )}
+      >
         <img
           src={features.find((feature) => feature.key === activeTab)?.img}
-          className="w-full h-full aspect-square"
+          className="w-full"
         />
       </div>
     </div>
@@ -572,7 +578,7 @@ function ChannelWidget() {
             title: "Embed on your website",
             description:
               "You can embed the web chatbot on your website under few minutes. You need to copy the embed code that CrawlChat provides and paste it on your website. You instantly get an AI assistant on your website that can handle most of your support queries.",
-            img: "/channels/4-min.png",
+            img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/4-min.png",
             key: "embed",
             icon: <TbPlug />,
           },
@@ -580,7 +586,7 @@ function ChannelWidget() {
             title: "Customise",
             description:
               "You can customise the chatbot's look and feel, and also the tone of the responses to match your brand and support style. You can add your own colors, logo of your brand, labels on the chatbot, and you can customise the behaviour of the chatbot using the AI prompts.",
-            img: "/channels/5-min.png",
+            img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/5-min.png",
             key: "customise",
             icon: <TbColorSwatch />,
           },
@@ -588,7 +594,7 @@ function ChannelWidget() {
             title: "Human support",
             description:
               "CrawlChat respects the user and understands that it might not have answers for all the support queries. Your users can always reach out to you via the support tickets. The chatbot itself prompts the user that it does not have answer and asks to create a support ticket by providing email right from the chat screen.",
-            img: "/channels/6-min.png",
+            img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/6-min.png",
             key: "human-support",
             icon: <TbUserHeart />,
           },
@@ -621,15 +627,15 @@ function ChannelDiscord() {
             title: "Tag the bot",
             description:
               "Once you add the CrawlChat bot to your Discord server, anyone on the Discord server can resolve their queries by just tagging the bot @crawlchat. It uses the same knowledge base you would have in the collection. On the admin side, all the discord messages are tagged with Discord channel.",
-            img: "/channels/1-min.png",
-            key: "sources",
+            img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/1-min.png",
+            key: "tag",
             icon: <TbBrandDiscord />,
           },
           {
             title: "Sources",
             description:
               "The bot attaches the sources it uses to answer the question so that the users can find more help from your documentation. This works the same for the Web chatbot and the Slack bot as well. You can also configure it to reply the answers as a thread for clutter free channels.",
-            img: "/channels/2-min.png",
+            img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/2-min.png",
             key: "sources",
             icon: <TbBook />,
           },
@@ -637,7 +643,7 @@ function ChannelDiscord() {
             title: "Learn & Rate",
             description:
               "It is evident that the bot might get wrong at times and the moderators might give correct answers. You can make the bot learn these correct answers from the Discord server itself. You can react to the correct messages with 🧩 to make the bot learn the message. You users can also react with 👍 and 👎 to rate the message that you can view from the dashboard and take necessary actions.",
-            img: "/channels/3-min.png",
+            img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/3-min.png",
             key: "learn",
             icon: <TbThumbUp />,
           },
@@ -678,7 +684,7 @@ function ChannelMCP() {
             title: "Distribute",
             description:
               "Any AI model would have a cut off date and most probably would not know about your documentation. It is important to provide the docs as context for AI apps such as Cursor, Claude Code, Windsurf etc. You can share the MCP server with your community that provides tools to search through your docs by eht AI apps. This increase the accuracy of the AI apps significantly.",
-            img: "/channels/8-min.png",
+            img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/8-min.png",
             key: "sources",
             icon: <TbShare />,
           },
@@ -686,7 +692,7 @@ function ChannelMCP() {
             title: "Happy developers",
             description:
               "Developers these days spend more time asking AI than finding required help browsing through hunders of pages. MCP server makes it even better that they get the help from their favorite AI app without leaving their workspace. CrawlChat enables you to improve your developers efficiency significantly.",
-            img: "/channels/7-min.png",
+            img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/7-min.png",
             key: "code",
             icon: <TbCode />,
           },

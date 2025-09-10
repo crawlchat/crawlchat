@@ -42,11 +42,11 @@ export const PLAN_FREE: Plan = {
 export const PLAN_HOBBY: Plan = {
   id: "hobby",
   name: "Hobby",
-  price: 21,
+  price: 9,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 2500,
-    messages: 1000,
+    scrapes: 400,
+    messages: 300,
   },
   limits: {
     scrapes: 1,
