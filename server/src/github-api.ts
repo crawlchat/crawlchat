@@ -1,4 +1,4 @@
-import { getLimiter } from "./rate-limiter";
+import { githubApiRateLimiter } from "./rate-limiter";
 
 type GithubIssue = {
   url: string;
@@ -171,7 +171,7 @@ export async function getJustIssues({
     });
     issues.push(...newIssues.filter((issue) => !issue.pull_request));
     pagination = newPagination;
-    await getLimiter("github-api").wait();
+    await githubApiRateLimiter.wait();
   } while (issues.length < n && pagination.nextUrl);
 
   return issues.slice(0, n);

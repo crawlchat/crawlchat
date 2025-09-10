@@ -27,6 +27,7 @@ import { baseAnswerer, AnswerListener, collectSourceLinks } from "./answer";
 import { fillMessageAnalysis } from "./llm/analyse-message";
 import { createToken, verifyToken } from "libs/jwt";
 import { MultimodalContent, getQueryString } from "libs/llm-message";
+import { wsRateLimiter } from "./rate-limiter";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -218,6 +219,8 @@ expressWs.app.ws("/", (ws: any, req) => {
   let userId: string | null = null;
 
   ws.on("message", async (msg: Buffer | string) => {
+    wsRateLimiter.check();
+    
     try {
       const message = JSON.parse(msg.toString());
 
@@ -590,6 +593,8 @@ app.post("/resource/:scrapeId", authenticate, async (req, res) => {
 
 app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   console.log("Answer request for", req.params.scrapeId);
+
+  wsRateLimiter.check();
 
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: req.params.scrapeId },
