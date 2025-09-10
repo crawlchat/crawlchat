@@ -1,26 +1,15 @@
 import dotenv from "dotenv";
 import { SimpleAgent } from "./llm/agentic";
 import { Flow } from "./llm/flow";
+import { wsRateLimiter } from "./rate-limiter";
 dotenv.config();
 
 async function main() {
-  const agent = new SimpleAgent({
-    id: "test",
-    prompt: "You are a test agent.",
-  });
-  const flow = new Flow([agent], {
-    messages: [
-      {
-        llmMessage: {
-          role: "user",
-          content: [],
-        },
-      },
-    ],
-  });
-  flow.addNextAgents(["test"]);
-  await flow.stream();
-  console.log(flow.getLastMessage().llmMessage.content);
+  for (let i = 0; i < 100; i++) {
+    console.log(`Checking ${i}...`);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    wsRateLimiter.check();
+  }
 }
 
 console.log("Starting...");

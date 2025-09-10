@@ -5,7 +5,7 @@ import {
   getIssueTimeline,
   getJustIssues,
 } from "../github-api";
-import { getLimiter } from "../rate-limiter";
+import { githubApiRateLimiter } from "../rate-limiter";
 
 export class GithubIssuesKbProcesser extends BaseKbProcesser {
   constructor(
@@ -57,7 +57,7 @@ export class GithubIssuesKbProcesser extends BaseKbProcesser {
         { remaining: issues.length - i, completed: i }
       );
 
-      await getLimiter("github-api").wait();
+      await githubApiRateLimiter.wait();
     }
   }
 }
