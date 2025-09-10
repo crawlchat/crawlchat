@@ -227,12 +227,26 @@ async function learnMessage(message: DiscordMessage, includeSelf = false) {
 }
 
 async function getPreviousMessages(message: DiscordMessage) {
+  if (message.channel.type === ChannelType.PublicThread) {
+    const threadChannel = message.channel as PublicThreadChannel;
+    const messages = (
+      await threadChannel.messages.fetch({
+        limit: 20,
+        before: message.id,
+      })
+    ).map((m) => m);
+    return messages;
+  }
+
   const messages = (
     await message.channel.messages.fetch({
       limit: 20,
       before: message.id,
     })
-  ).map((m) => m);
+  )
+    .filter((m) => m.channel.type !== ChannelType.PublicThread)
+    .map((m) => m);
+
   return messages;
 }
 
