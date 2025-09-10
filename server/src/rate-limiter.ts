@@ -48,5 +48,5 @@ export async function wait(ms: number) {
 
 
 export const githubApiRateLimiter = new RateLimiter(20, "github-api");
-export const wsRateLimiter = new RateLimiter(40, "ws");
+export const wsRateLimiter = new RateLimiter(30, "ws");
 
