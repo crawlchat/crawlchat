@@ -91,6 +91,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
           {"window.lemonSqueezyAffiliateConfig = { store: 'beestack' };"}
         </script>
         <script src="https://lmsqueezy.com/affiliate.js" defer></script>
+        <script
+          async
+          defer
+          src="https://affonso.io/js/pixel.min.js"
+          data-affonso="cmffjjn7l0055yo9yqofummw1"
+          data-cookie_duration="30"
+        ></script>
         <Meta />
         <Links />
       </head>
