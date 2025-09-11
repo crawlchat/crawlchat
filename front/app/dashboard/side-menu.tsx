@@ -169,7 +169,10 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
             </button>
           </div>
         )}
-        <div className="tooltip w-full" data-tip={action.description}>
+        <div
+          className="tooltip w-full before:max-w-[220px]"
+          data-tip={action.description}
+        >
           <Link
             className="btn btn-primary btn-block"
             to={fetcher.data ? action.url(fetcher.data.input) : ""}
