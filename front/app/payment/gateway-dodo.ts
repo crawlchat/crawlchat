@@ -18,6 +18,11 @@ async function validateRequest(headers: Headers, body: string) {
 }
 
 const productIdPlanMap: Record<string, Plan> = {
+  pdt_IcrpqSx48qoCenz4lnLi1: PLAN_HOBBY,
+  pdt_vgCVfRAaCT99LM1Dfk5qF: PLAN_STARTER,
+  pdt_P68hLo9a0At8cgn4WbzBe: PLAN_PRO,
+  
+  // dev
   pdt_CDgenxMUiAKjzBDVROTDr: PLAN_STARTER,
   pdt_7tO1wC3NRoQsCXh8oIFEi: PLAN_PRO,
   pdt_lpFZp5sBEu5bzKwCbE5Y8: PLAN_HOBBY,
