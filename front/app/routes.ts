@@ -22,6 +22,7 @@ export default [
   route("shopify-app-bot", "landing/shopify-app-bot.tsx"),
 
   route("payment/lemonsqueezy-webhook", "payment/lemonsqueezy-webhook.ts"),
+  route("payment/dodo-webhook", "payment/dodo-webhook.ts"),
 
   ...prefix("triggers", [
     route("weekly", "triggers/weekly.tsx"),

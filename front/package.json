@@ -32,6 +32,7 @@
     "arctic": "^3.7.0",
     "countries-list": "^3.1.1",
     "crypto-js": "^4.2.0",
+    "dodopayments": "^2.0.1",
     "elevenlabs": "^1.50.4",
     "highlight.js": "^11.11.1",
     "isbot": "^5.1.17",
@@ -57,6 +58,7 @@
     "remix-auth-form": "^3.0.0",
     "remix-auth-oauth2": "^3.4.1",
     "resend": "^4.1.1",
+    "standardwebhooks": "^1.0.0",
     "tailwindcss": "^4.1.12",
     "uuid": "^11.1.0",
     "vite-plugin-commonjs": "^0.10.4"

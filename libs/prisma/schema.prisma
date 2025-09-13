@@ -350,6 +350,7 @@ model ScrapeItem {
 enum UserPlanProvider {
   STRIPE
   LEMONSQUEEZY
+  DODO
   CUSTOM
 }
 

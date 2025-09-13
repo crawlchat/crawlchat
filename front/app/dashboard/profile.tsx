@@ -13,13 +13,17 @@ import {
 import { getSubscription } from "~/lemonsqueezy";
 import { planMap } from "libs/user-plan";
 import { makeMeta } from "~/meta";
+import { getPaymentGateway } from "~/payment/factory";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
   let subscription = null;
   if (user!.plan?.subscriptionId) {
-    subscription = await getSubscription(user!.plan.subscriptionId);
+    const gateway = getPaymentGateway(user!.plan.provider);
+    if (gateway) {
+      subscription = await gateway.getSubscription(user!.plan.subscriptionId);
+    }
   }
 
   const plan = planMap[user!.plan!.planId];
@@ -164,10 +168,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                   {loaderData.subscription && (
                     <a
                       className="btn btn-neutral"
-                      href={
-                        loaderData.subscription.data.attributes.urls
-                          .customer_portal
-                      }
+                      href={loaderData.subscription.customerPortalUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                     >

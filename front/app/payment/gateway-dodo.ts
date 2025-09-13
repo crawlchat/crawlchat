@@ -1,0 +1,75 @@
+import { PLAN_HOBBY, PLAN_PRO, PLAN_STARTER, type Plan } from "libs/user-plan";
+import type { PaymentGateway, PaymentGatewayWebhookType } from "./gateway";
+import { Webhook } from "standardwebhooks";
+import { DodoPayments } from "dodopayments";
+
+async function validateRequest(headers: Headers, body: string) {
+  const webhook = new Webhook(process.env.DODO_WEBHOOK_SECRET!);
+
+  const webhookHeaders = {
+    "webhook-id": headers.get("webhook-id") as string,
+    "webhook-signature": headers.get("webhook-signature") as string,
+    "webhook-timestamp": headers.get("webhook-timestamp") as string,
+  };
+
+  await webhook.verify(body, webhookHeaders);
+
+  return true;
+}
+
+const productIdPlanMap: Record<string, Plan> = {
+  pdt_CDgenxMUiAKjzBDVROTDr: PLAN_STARTER,
+  pdt_7tO1wC3NRoQsCXh8oIFEi: PLAN_PRO,
+  pdt_lpFZp5sBEu5bzKwCbE5Y8: PLAN_HOBBY,
+};
+
+const typeMap: Record<string, PaymentGatewayWebhookType> = {
+  "subscription.active": "created",
+  "subscription.cancelled": "cancelled",
+  "subscription.expired": "expired",
+  "subscription.renewed": "resumed",
+};
+
+const client = new DodoPayments({
+  bearerToken: process.env.DODO_API_KEY!,
+  environment:
+    (process.env.DODO_ENVIRONMENT as "live_mode" | "test_mode" | undefined) ??
+    "live_mode",
+});
+
+export const dodoGateway: PaymentGateway = {
+  provider: "DODO",
+  validateWebhookRequest: async (body, headers) => {
+    if (!validateRequest(headers, body)) {
+      throw new Error(
+        JSON.stringify({ error: "Invalid request", status: 400 })
+      );
+    }
+
+    const payload = JSON.parse(body);
+    console.log("Dodo webhook", headers.get("webhook-id"));
+
+    const email = payload.data.customer.email;
+    const eventName = typeMap[payload.type];
+    const productId = payload.data.product_id;
+    const plan = productIdPlanMap[productId];
+    const subscriptionId = payload.data.subscription_id;
+
+    if (!plan) {
+      throw new Error(JSON.stringify({ error: "Plan not found", status: 401 }));
+    }
+
+    return { email, type: eventName, productId, plan, subscriptionId };
+  },
+
+  getSubscription: async (subscriptionId) => {
+    console.log("Getting subscription", subscriptionId);
+    const customerPortalSession = await client.customers.customerPortal.create(
+      "customer_id"
+    );
+    return {
+      id: subscriptionId,
+      customerPortalUrl: customerPortalSession.link,
+    };
+  },
+};
