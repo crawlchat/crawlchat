@@ -68,7 +68,6 @@ export const dodoGateway: PaymentGateway = {
   },
 
   getSubscription: async (subscriptionId) => {
-    console.log("Getting subscription", subscriptionId);
     const customerPortalSession = await client.customers.customerPortal.create(
       "customer_id"
     );
