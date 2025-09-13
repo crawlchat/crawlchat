@@ -28,7 +28,7 @@ const typeMap: Record<string, PaymentGatewayWebhookType> = {
   "subscription_created": "created",
   "subscription_cancelled": "cancelled",
   "subscription_expired": "expired",
-  "subscription_payment_success": "resumed",
+  "subscription_payment_success": "renewed",
 };
 
 

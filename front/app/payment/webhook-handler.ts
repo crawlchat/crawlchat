@@ -56,7 +56,7 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
       return Response.json({ message: "Updated plan to expired" });
     }
 
-    if (webhook.type === "resumed") {
+    if (webhook.type === "renewed") {
       await resetCredits(user.id, webhook.plan.id);
 
       return Response.json({ message: "Updated plan to active" });

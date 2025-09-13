@@ -32,7 +32,7 @@ const typeMap: Record<string, PaymentGatewayWebhookType> = {
   "subscription.active": "created",
   "subscription.cancelled": "cancelled",
   "subscription.expired": "expired",
-  "subscription.renewed": "resumed",
+  "subscription.renewed": "renewed",
 };
 
 const client = new DodoPayments({

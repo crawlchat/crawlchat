@@ -11,7 +11,7 @@ export type PaymentGatewayWebhookType =
   | "created"
   | "cancelled"
   | "expired"
-  | "resumed";
+  | "renewed";
 
 export type PaymentGatewayWebhook = {
   email: string;
