@@ -258,7 +258,7 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
-  if (intent === "payment-links") {
+  if (intent === "payment-link") {
     const referralId = formData.get("referralId") as string;
     const planId = formData.get("planId") as string;
 

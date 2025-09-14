@@ -1,6 +1,7 @@
 import type { Scrape, User } from "libs/prisma";
 import type { Plan } from "libs/user-plan";
 import { useEffect } from "react";
+import { TbCrown } from "react-icons/tb";
 import { useFetcher } from "react-router";
 import { PricingBoxes } from "~/landing/page";
 
@@ -37,7 +38,7 @@ export function UpgradeModal({
   function handlePayClick(planId: string) {
     paymentFetcher.submit(
       {
-        intent: "payment-links",
+        intent: "payment-link",
         referralId: user.id,
         planId,
       },
@@ -53,7 +54,15 @@ export function UpgradeModal({
       <input type="checkbox" id="upgrade-modal" className="modal-toggle" />
       <dialog className="modal z-90">
         <div className="modal-box w-11/12 max-w-5xl">
-          <h3 className="font-bold text-xl mb-4">Upgrade</h3>
+          <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
+            <TbCrown />
+            Upgrade
+          </h3>
+          <p className="text-base-content/50 mb-4">
+            Choose the plan that best fits your needs. Start your 7 days free
+            trial using the <span className="font-bold">Hobby plan</span> if you
+            want to explore the platform.
+          </p>
           <div className="flex flex-col md:flex-row gap-4">
             <PricingBoxes
               freePlan={freePlan}

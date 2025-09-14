@@ -1047,9 +1047,17 @@ export function CTA({ text }: { text?: string }) {
   );
 }
 
-function FooterLink({ children, href }: PropsWithChildren<{ href: string }>) {
+function FooterLink({
+  children,
+  href,
+  external,
+}: PropsWithChildren<{ href: string; external?: boolean }>) {
   return (
-    <a href={href} className="opacity-60 font-medium hover:underline">
+    <a
+      href={href}
+      className="opacity-60 font-medium hover:underline"
+      target={external ? "_blank" : undefined}
+    >
       {children}
     </a>
   );
@@ -1137,26 +1145,21 @@ export function Footer() {
                 <FooterLink href="/pricing">Pricing</FooterLink>
               </li>
               <li>
-                <FooterLink href="/#features">Features</FooterLink>
-              </li>
-              <li>
                 <FooterLink href="/changelog">Changelog</FooterLink>
-              </li>
-              <li>
-                <FooterLink href="https://guides.crawlchat.app">
-                  Guides
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink href="https://crawlchat.features.vote/roadmap">
-                  Roadmap
-                </FooterLink>
               </li>
               <li>
                 <FooterLink href="/blog">Blog</FooterLink>
               </li>
               <li>
                 <FooterLink href="/discord-bot">Discord bot</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="https://crawlchat.affonso.io" external>
+                  Affiliate program{" "}
+                  <span className="whitespace-nowrap text-primary text-sm">
+                    30% commission!
+                  </span>
+                </FooterLink>
               </li>
             </ul>
           </div>
