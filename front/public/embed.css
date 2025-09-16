@@ -72,3 +72,50 @@
   white-space: nowrap;
   font-size: 14px;
 }
+
+:root {
+  --crawlchat-sidepanel-width: 400px;
+  --crawlchat-navbar-height: 60px;
+}
+
+#crawlchat-sidepanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  transition: all 0.2s ease;
+  border-left: 1px solid #e0e0e0;
+  width: var(--crawlchat-sidepanel-width);
+}
+
+[data-theme="dark"] #crawlchat-sidepanel {
+  border-left: 1px solid #222;
+}
+
+#crawlchat-sidepanel iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  background-color: transparent;
+  opacity: 1;
+}
+
+#crawlchat-sidepanel.hidden {
+  right: -100%;
+}
+
+#__docusaurus.crawlchat-with-sidepanel {
+  transition: width 0.2s ease;
+  width: 100%;
+  height: 100vh;
+}
+
+#__docusaurus.crawlchat-with-sidepanel.crawlchat-sidepanel-open {
+  width: calc(100% - var(--crawlchat-sidepanel-width));
+  overflow-y: auto;
+}
+
+nav.navbar {
+  min-height: var(--crawlchat-navbar-height);
+}

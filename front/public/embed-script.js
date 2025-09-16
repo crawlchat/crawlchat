@@ -10,6 +10,7 @@ class CrawlChatEmbed {
     this.lastScrollTop = 0;
     this.lastBodyStyle = {};
     this.widgetConfig = {};
+    this.sidepanelId = "crawlchat-sidepanel";
   }
 
   getCustomTags() {
@@ -30,13 +31,19 @@ class CrawlChatEmbed {
     style.href = `${this.host}/embed.css`;
     document.head.appendChild(style);
 
+    const customTags = this.getCustomTags();
+
+    if (customTags.sidepanel === "true") {
+      this.mountSidePanel();
+      return;
+    }
+
     const iframe = document.createElement("iframe");
     iframe.id = this.iframeId;
 
     const params = new URLSearchParams({
       embed: "true",
     });
-    const customTags = this.getCustomTags();
     if (Object.keys(customTags).length > 0) {
       params.set("tags", btoa(JSON.stringify(customTags)));
     }
@@ -119,11 +126,7 @@ class CrawlChatEmbed {
     }
     if (data.type === "embed-ready") {
       this.widgetConfig = data.widgetConfig;
-
-      const script = document.getElementById(this.scriptId);
-      if (!script.getAttribute("data-hide-ask-ai")) {
-        await this.showAskAIButton();
-      }
+      await this.showAskAIButton();
     }
   }
 
@@ -135,9 +138,7 @@ class CrawlChatEmbed {
   async showAskAIButton() {
     const script = document.getElementById(this.scriptId);
 
-    if (!script) {
-      return;
-    }
+    if (!script || script?.getAttribute("data-hide-ask-ai")) return;
 
     const text =
       this.widgetConfig.buttonText ??
@@ -209,6 +210,54 @@ class CrawlChatEmbed {
     div.innerText = text;
     div.className = "tooltip";
     return div;
+  }
+
+  showSidePanel() {
+    document.getElementById("__docusaurus")?.classList.add("crawlchat-sidepanel-open");
+    document.getElementById(this.sidepanelId)?.classList.remove("hidden");
+  }
+
+  hideSidePanel() {
+    document.getElementById("__docusaurus")?.classList.remove("crawlchat-sidepanel-open");
+    document.getElementById(this.sidepanelId)?.classList.add("hidden");
+  }
+
+  mountSidePanel() {
+    document.getElementById("__docusaurus")?.classList.add("crawlchat-with-sidepanel");
+    const sidepanel = document.createElement("div");
+    sidepanel.id = this.sidepanelId;
+    sidepanel.classList.add("hidden");
+
+    const iframe = document.createElement("iframe");
+    iframe.src = `${this.host}/w/${this.scrapeId}?embed=true&fullscreen=true&sidepanel=true`;
+    iframe.allowTransparency = "true";
+    iframe.allow = "clipboard-write";
+    iframe.className = "crawlchat-embed";
+
+    sidepanel.appendChild(iframe);
+
+    document.body.appendChild(sidepanel);
+
+    const handleKeyDown = (e) => {
+      if (e.metaKey && e.key === "i") {
+        window.crawlchatEmbed.toggleSidePanel();
+      }
+    };
+    document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+  }
+
+  toggleSidePanel() {
+    if (this.isSidePanelOpen()) {
+      this.hideSidePanel();
+    } else {
+      this.showSidePanel();
+    }
+  }
+
+  isSidePanelOpen() {
+    const sidepanel = document.getElementById(this.sidepanelId);
+    return !sidepanel?.classList.contains("hidden");
   }
 }
 
