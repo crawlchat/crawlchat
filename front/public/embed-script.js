@@ -31,6 +31,8 @@ class CrawlChatEmbed {
     style.href = `${this.host}/embed.css`;
     document.head.appendChild(style);
 
+    window.addEventListener("message", (e) => this.handleOnMessage(e));
+
     const customTags = this.getCustomTags();
 
     if (customTags.sidepanel === "true") {
@@ -64,7 +66,6 @@ class CrawlChatEmbed {
 
     div.appendChild(iframe);
     document.body.appendChild(div);
-    window.addEventListener("message", (e) => this.handleOnMessage(e));
   }
 
   getScrapeId() {
@@ -98,7 +99,7 @@ class CrawlChatEmbed {
     window.scrollTo(0, this.lastScrollTop);
 
     const div = document.getElementById(this.embedDivId);
-    div.classList.remove("open");
+    div?.classList.remove("open");
     setTimeout(() => {
       window.focus();
     }, this.transitionDuration);
@@ -113,7 +114,9 @@ class CrawlChatEmbed {
 
   async handleOnMessage(event) {
     if (event.data === "close") {
-      return window.crawlchatEmbed.hide();
+      window.crawlchatEmbed.hide();
+      window.crawlchatEmbed.hideSidePanel();
+      return;
     }
     if (event.origin !== this.host) {
       return;
