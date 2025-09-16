@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import express from "express";
-import type { Express, Request, Response } from "express";
+import type { Express, NextFunction, Request, Response } from "express";
 import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
@@ -32,6 +32,14 @@ import { mcpRateLimiter, wsRateLimiter } from "./rate-limiter";
 const app: Express = express();
 const expressWs = ws(app);
 const port = process.env.PORT || 3000;
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
 
 app.use(/\/((?!sse).)*/, express.json({ limit: "50mb" }));
 app.use(cors());
@@ -220,7 +228,7 @@ expressWs.app.ws("/", (ws: any, req) => {
 
   ws.on("message", async (msg: Buffer | string) => {
     wsRateLimiter.check();
-    
+
     try {
       const message = JSON.parse(msg.toString());
 
@@ -817,6 +825,20 @@ app.post("/fix-message", authenticate, async (req, res) => {
   await consumeCredits(userId, "messages", 1);
 
   res.json({ content: correctAnswer, title });
+});
+
+// Error handling middleware - must be last
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error("Express Error:", error);
+  res.status(500).json({
+    message: "Internal server error",
+    error: process.env.NODE_ENV === "development" ? error.message : undefined,
+  });
+});
+
+// 404 handler for unmatched routes
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ message: "Route not found" });
 });
 
 app.listen(port, async () => {
