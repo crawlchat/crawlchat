@@ -116,19 +116,6 @@
   overflow-y: auto;
 }
 
-#__docusaurus button.nav-ask-ai {
-  border: 1px solid #eee;
-  padding: 8px 18px;
-  border-radius: 40px;
-  font-size: 14px;
-  transition: transform 0.2s ease;
-  cursor: pointer;
-}
-
-#__docusaurus button.nav-ask-ai:hover {
-  transform: scale(1.05);
-}
-
 nav.navbar {
   min-height: var(--crawlchat-navbar-height);
 }
