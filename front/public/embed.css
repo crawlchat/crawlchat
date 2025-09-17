@@ -78,11 +78,7 @@
   --crawlchat-navbar-height: 60px;
 }
 
-@media (max-width: 768px) {
-  :root {
-    --crawlchat-sidepanel-width: 100vw;
-  }
-}
+
 
 #crawlchat-sidepanel {
   position: fixed;
@@ -124,4 +120,14 @@
 
 nav.navbar {
   min-height: var(--crawlchat-navbar-height);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --crawlchat-sidepanel-width: 100vw;
+  }
+
+  #crawlchat-sidepanel {
+    border-left: none;
+  }
 }
