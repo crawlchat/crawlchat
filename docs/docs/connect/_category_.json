@@ -1,0 +1,8 @@
+{
+  "label": "Connect",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Connect the chatbot to different channels where your community hangs out"
+  }
+}
