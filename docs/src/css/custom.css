@@ -28,3 +28,7 @@
   --ifm-color-primary-lightest: #edd5fe;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
+
+.theme-back-to-top-button {
+  display: none;
+}

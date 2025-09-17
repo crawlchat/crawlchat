@@ -53,6 +53,18 @@ const config: Config = {
     ],
   ],
 
+  headTags: [
+    {
+        "tagName": "script",
+        "attributes": {
+          "src": "https://crawlchat.app/embed.js",
+          "id": "crawlchat-script",
+          "data-id": "67dbfc7258ed87c571a04b83"
+        },
+      },
+  ],
+  
+
   themeConfig: {
     // Replace with your project's social card
     image: 'img/og-1.png',
