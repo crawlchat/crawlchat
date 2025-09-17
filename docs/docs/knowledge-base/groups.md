@@ -6,11 +6,11 @@ sidebar_position: 1
 
 The knowledge base (your documentation and other sources) is divided in terms of groups on CrawlChat for a better management. Here are few types of groups that are available
 
-- Web
-- Docusaurus docs
-- Notion
-- Github Issues
-- Upload
+- [Web](web)
+- [Docusaurus docs](docusaurus-docs)
+- [Notion](notion)
+- [Github Issues](github-issues)
+- [Upload](upload)
 
 Let us understand how to create a knowledge group.
 

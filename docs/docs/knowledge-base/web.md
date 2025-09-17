@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# Scrape
+# Web
 
 The most popolar way of adding your documentation to CrawlChat is by providing your docs site URL for **Web** group type and it fetches them automatically. Anyways, you can provide multiple options to get full control over what goes into the knowledge base from the scraping content. 
 
