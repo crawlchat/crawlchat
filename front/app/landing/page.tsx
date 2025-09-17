@@ -1150,6 +1150,11 @@ export function Footer() {
                 <FooterLink href="/changelog">Changelog</FooterLink>
               </li>
               <li>
+                <FooterLink href="https://docs.crawlchat.app" external>
+                  Docs
+                </FooterLink>
+              </li>
+              <li>
                 <FooterLink href="/blog">Blog</FooterLink>
               </li>
               <li>
@@ -1207,6 +1212,7 @@ export function Nav({ changeLogDate }: { changeLogDate?: string }) {
       <div className="flex items-center gap-8">
         <div className="items-center gap-8 hidden md:flex">
           <NavLink href="/#pricing">Pricing</NavLink>
+          <NavLink href="https://docs.crawlchat.app">Docs</NavLink>
           <NavLink href="/changelog" tooltip={changeLogDate}>
             Changelog
           </NavLink>
