@@ -25,6 +25,9 @@ async function updateKnowledgeGroup(groupId: string) {
     where: {
       id: knowledgeGroup.scrapeId,
     },
+    include: {
+      user: true,
+    },
   });
 
   if (!scrape) {
@@ -39,7 +42,7 @@ async function updateKnowledgeGroup(groupId: string) {
 
   const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
     hasCredits: () =>
-      hasEnoughCredits(knowledgeGroup.userId, "scrapes", {
+      hasEnoughCredits(scrape.userId, "scrapes", {
         alert: {
           scrapeId: scrape.id,
           token: createToken(scrape.userId),
