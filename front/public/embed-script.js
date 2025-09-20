@@ -144,11 +144,7 @@ class CrawlChatEmbed {
       }
     }
     if (data.type === "internal-link-click") {
-      const link = document.querySelector("a.menu__link");
-      const existingHref = link.getAttribute("href");
-      link.setAttribute("href", data.url);
-      link.click();
-      link.setAttribute("href", existingHref);
+      window.location.href = data.url;
     }
   }
 
