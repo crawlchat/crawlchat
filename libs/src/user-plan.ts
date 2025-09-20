@@ -231,8 +231,6 @@ export async function hasEnoughCredits(
   const available = user?.plan?.credits?.[type] ?? 0;
   const has = available >= amount;
 
-  console.log({ available, amount, has });
-
   if (!has && options?.alert) {
     try {
       const response = await fetch(`${process.env.FRONT_URL}/email-alert`, {
