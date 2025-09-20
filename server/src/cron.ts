@@ -41,13 +41,15 @@ async function updateKnowledgeGroup(groupId: string) {
   );
 
   const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
-    hasCredits: () =>
-      hasEnoughCredits(scrape.userId, "scrapes", {
+    hasCredits: () => {
+      console.log("Checking credits for", scrape.userId);
+      return hasEnoughCredits(scrape.userId, "scrapes", {
         alert: {
           scrapeId: scrape.id,
           token: createToken(scrape.userId),
         },
-      }),
+      });
+    },
   });
 
   await processer.start();
