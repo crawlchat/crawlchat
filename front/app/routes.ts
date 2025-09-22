@@ -84,6 +84,8 @@ export default [
     route("support-tickets", "landing/support-tickets.tsx"),
 
     route("pricing", "landing/pricing.tsx"),
+
+    ...prefix("tool", [route("draft", "tool/draft-page.tsx")]),
   ]),
 
   ...prefix("admin-fowl", [index("admin/page.tsx")]),

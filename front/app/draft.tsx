@@ -61,7 +61,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 }
 
-function useEditor() {
+export function useEditor() {
   const ref = useRef<HTMLDivElement>(null);
   const [cursorPosition, setCursorPosition] = useState<number>(0);
   const [selectionInfo, setSelectionInfo] = useState<{
@@ -330,37 +330,9 @@ function useEditor() {
   };
 }
 
-export default function Draft({ loaderData }: Route.ComponentProps) {
+export function useDraft(token: string) {
   const editor = useEditor();
   const socket = useRef<WebSocket | null>(null);
-  const [topics, setTopics] = useState<{ topic: string; json: any }[]>([]);
-  const topicFetcher = useFetcher();
-
-  useEffect(() => {
-    if (topicFetcher.data) {
-      setTopics([...topics, topicFetcher.data]);
-
-      socket.current?.send(
-        JSON.stringify({
-          type: "conversation.item.create",
-          item: {
-            type: "message",
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: `
-                <context>
-                ${JSON.stringify(topicFetcher.data.json)}
-                </context>
-                `,
-              },
-            ],
-          },
-        })
-      );
-    }
-  }, [topicFetcher.data]);
 
   useEffect(() => {
     if (editor.suggestionRequestedAt) {
@@ -369,9 +341,9 @@ export default function Draft({ loaderData }: Route.ComponentProps) {
       const lastChar = textBeforeCursor[textBeforeCursor.length - 1];
       const isSpace = lastChar === " " || lastChar === "\u00A0";
 
-      if (!isSpace) {
-        return;
-      }
+      // if (!isSpace) {
+      //   return;
+      // }
 
       socket.current?.send(
         JSON.stringify({
@@ -388,6 +360,9 @@ export default function Draft({ loaderData }: Route.ComponentProps) {
                 Don't responsd, understood, give me text as well.
                 Follow the capitalization of the text, punctuation, etc.
                 Use the provided context to fill the text.
+                Use markdown formatting for the text.
+                Keep the sentenses short and concise.
+                
                 ${textBeforeCursor}
                 `,
               },
@@ -416,7 +391,7 @@ export default function Draft({ loaderData }: Route.ComponentProps) {
         [
           "realtime",
           // Auth
-          "openai-insecure-api-key." + loaderData.token,
+          "openai-insecure-api-key." + token,
         ]
       );
 
@@ -432,12 +407,53 @@ export default function Draft({ loaderData }: Route.ComponentProps) {
         }
       });
     })();
-  }, [loaderData]);
+  }, [token]);
+
+  const addContext = (context: string) => {
+    socket.current?.send(
+      JSON.stringify({
+        type: "conversation.item.create",
+        item: {
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: `
+              <context>
+              ${context}
+              </context>
+              `,
+            },
+          ],
+        },
+      })
+    );
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(editor.ref.current?.innerText || "");
     toast.success("Copied to clipboard");
   };
+
+  return {
+    editor,
+    addContext,
+    handleCopy,
+  };
+}
+
+export default function Draft({ loaderData }: Route.ComponentProps) {
+  const { editor, addContext, handleCopy } = useDraft(loaderData.token);
+  const [topics, setTopics] = useState<{ topic: string; json: any }[]>([]);
+  const topicFetcher = useFetcher();
+
+  useEffect(() => {
+    if (topicFetcher.data) {
+      setTopics([...topics, topicFetcher.data]);
+      addContext(JSON.stringify(topicFetcher.data.json));
+    }
+  }, [topicFetcher.data]);
 
   return (
     <Page

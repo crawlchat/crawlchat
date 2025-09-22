@@ -28,6 +28,7 @@ import { fillMessageAnalysis } from "./llm/analyse-message";
 import { createToken, verifyToken } from "libs/jwt";
 import { MultimodalContent, getQueryString } from "libs/llm-message";
 import { mcpRateLimiter, wsRateLimiter } from "./rate-limiter";
+import { scrape } from "./scrape/crawl";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -827,6 +828,23 @@ app.post("/fix-message", authenticate, async (req, res) => {
   await consumeCredits(userId, "messages", 1);
 
   res.json({ content: correctAnswer, title });
+});
+
+app.post("/scrape-url", authenticate, async (req, res) => {
+  if (req.user?.email !== "pramodkumar.damam73@gmail.com") {
+    res.status(400).json({ message: "Unauthorised" });
+    return;
+  }
+
+  const url = req.body.url as string;
+
+  const result = await scrape(url);
+  if (result.error) {
+    res.status(400).json({ message: result.error });
+    return;
+  }
+
+  res.json({ markdown: result.parseOutput.markdown });
 });
 
 // Error handling middleware - must be last

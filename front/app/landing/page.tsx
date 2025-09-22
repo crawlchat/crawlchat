@@ -322,7 +322,7 @@ export function Heading({ children }: PropsWithChildren) {
   );
 }
 
-function HeadingHighlight({ children }: PropsWithChildren) {
+export function HeadingHighlight({ children }: PropsWithChildren) {
   return (
     <span className="text-primary bg-primary-content px-4 rounded-lg md:leading-[1.4]">
       {children}
@@ -1171,6 +1171,12 @@ export function Footer() {
             </ul>
           </div>
           <div className="flex-[1]">
+            <ul className="flex flex-col gap-4 mb-6">
+              <li>
+                <FooterLink href="/tool/draft">AI Draft tool</FooterLink>
+              </li>
+            </ul>
+
             <ul className="flex flex-col gap-4">
               <li>
                 <FooterLink href="/terms">Terms</FooterLink>
