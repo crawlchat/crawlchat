@@ -222,8 +222,19 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
           value: "notion",
           description: "Scrape a Notion page",
           icon: <TbBrandNotion />,
-          longDescription:
-            "Connect to a Notion page and turns it into the knowledge.",
+          longDescription: (
+            <p>
+              Connect to a Notion page and turns it into the knowledge. Learn
+              more about creating an API Key{" "}
+              <a
+                href="https://docs.crawlchat.app/knowledge-base/notion"
+                target="_blank"
+                className="link link-primary"
+              >
+                here
+              </a>
+            </p>
+          ),
         },
         {
           title: "GitHub Issues",
