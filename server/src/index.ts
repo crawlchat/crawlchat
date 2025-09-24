@@ -286,8 +286,21 @@ expressWs.app.ws("/", (ws: any, req) => {
           where: { id: thread.scrapeId },
         });
 
-        if (scrape.widgetConfig?.private) {
-          throw new Error("Private collection");
+        if (scrape?.private) {
+          const user = await prisma.user.findFirst({
+            where: { id: userId },
+            include: {
+              scrapeUsers: true,
+            },
+          });
+
+          const isMember = user?.scrapeUsers.some(
+            (su) => su.scrapeId === scrape.id
+          );
+
+          if (!isMember) {
+            throw new Error("Private collection");
+          }
         }
 
         if (
@@ -439,7 +452,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     where: { id: req.params.scrapeId },
   });
 
-  if (scrape.widgetConfig?.private) {
+  if (scrape.private) {
     res.status(400).json({ message: "Private collection" });
     return;
   }

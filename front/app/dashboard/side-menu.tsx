@@ -329,9 +329,7 @@ export function SideMenu({
             <Logo />
             <div className="flex gap-1">
               {scrape && (
-                <ScrapePrivacyBadge
-                  private={scrape?.widgetConfig?.private ?? false}
-                />
+                <ScrapePrivacyBadge private={scrape.private ?? false} />
               )}
               <PlanIconBadge planId={planId} />
             </div>

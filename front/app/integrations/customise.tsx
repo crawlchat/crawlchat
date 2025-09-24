@@ -76,7 +76,6 @@ export async function action({ request }: Route.ActionArgs) {
     buttonTextColor: null,
     showLogo: null,
     tooltip: null,
-    private: false,
     logoUrl: null,
     applyColorsToChatbox: null,
   };
@@ -119,9 +118,6 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("tooltip")) {
     update.tooltip = formData.get("tooltip") as string;
-  }
-  if (formData.has("from-private")) {
-    update.private = formData.get("private") === "on";
   }
   if (formData.has("from-widget")) {
     update.applyColorsToChatbox = formData.get("applyColorsToChatbox") === "on";

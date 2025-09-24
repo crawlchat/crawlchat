@@ -12,10 +12,12 @@ import {
   TbBolt,
   TbBrain,
   TbCrown,
+  TbLock,
   TbPhotoX,
   TbSettings,
   TbStar,
   TbTrash,
+  TbWorld,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { useEffect, useState } from "react";
@@ -114,6 +116,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("from-analyse-message")) {
     update.analyseMessage = formData.get("analyseMessage") === "on";
+  }
+  if (formData.has("visibility-type")) {
+    update.private = formData.get("visibility-type") === "private";
   }
 
   const scrape = await prisma.scrape.update({
@@ -353,9 +358,11 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const deleteFetcher = useFetcher();
   const minScoreFetcher = useFetcher();
   const slugFetcher = useFetcher();
+  const privateFetcher = useFetcher();
 
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [minScore, setMinScore] = useState(loaderData.scrape.minScore ?? 0);
+  const [_private, setPrivate] = useState(loaderData.scrape.private ?? false);
 
   useEffect(() => {
     if (deleteConfirm) {
@@ -427,6 +434,39 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
               placeholder="Ex: remotion"
               pattern="^[a-z0-9\-]{4,32}$"
               required
+            />
+          </SettingsSection>
+
+          <SettingsSection
+            id="visibility-type"
+            title="Visibility type"
+            description="Configure if the bot is public or private."
+            fetcher={privateFetcher}
+          >
+            <input
+              type="hidden"
+              name="visibility-type"
+              value={_private ? "private" : "public"}
+            />
+            <RadioCard
+              options={[
+                {
+                  label: "Public",
+                  value: "public",
+                  icon: <TbWorld />,
+                  description:
+                    "It will be public bot and anyone can chat with it.",
+                },
+                {
+                  label: "Private",
+                  value: "private",
+                  icon: <TbLock />,
+                  description:
+                    "It will be private bot and only work with Discrod and Slack bots and team members.",
+                },
+              ]}
+              value={_private ? "private" : "public"}
+              onChange={(value) => setPrivate(value === "private")}
             />
           </SettingsSection>
 

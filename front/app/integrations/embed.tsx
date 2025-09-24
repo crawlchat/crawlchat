@@ -71,9 +71,6 @@ export async function action({ request }: Route.ActionArgs) {
   if (size) {
     update.size = size as WidgetSize;
   }
-  if (formData.has("from-private")) {
-    update.private = formData.get("private") === "on";
-  }
 
   await prisma.scrape.update({
     where: {
@@ -116,7 +113,6 @@ function makeScriptCode(scrapeId: string) {
 
 export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const sizeFetcher = useFetcher();
-  const privateFetcher = useFetcher();
   const [tab, setTab] = useState<"code" | "docusaurus">("code");
   const scriptCode = useMemo(
     () => makeScriptCode(loaderData.scrape?.id ?? ""),
@@ -165,24 +161,6 @@ ${scriptCode.docusaurusConfig}
               </div>
             </div>
           </div>
-        </SettingsSection>
-
-        <SettingsSection
-          id="private"
-          title="Private"
-          description="Make the bot private. The bot will only work with Discrod and Slack bots."
-          fetcher={privateFetcher}
-        >
-          <input type="hidden" name="from-private" value={"true"} />
-          <label className="label">
-            <input
-              type="checkbox"
-              className="toggle"
-              name="private"
-              defaultChecked={loaderData.scrape?.widgetConfig?.private ?? false}
-            />
-            Active
-          </label>
         </SettingsSection>
 
         <SettingsSection

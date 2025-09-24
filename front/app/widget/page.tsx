@@ -1,5 +1,12 @@
 import type { Route } from "./+types/page";
-import type { Message, MessageRating, Scrape, Thread } from "libs/prisma";
+import type {
+  Message,
+  MessageRating,
+  Scrape,
+  ScrapeUser,
+  Thread,
+  User,
+} from "libs/prisma";
 import { prisma } from "~/prisma";
 import { createToken } from "libs/jwt";
 import { commitSession, getSession } from "~/session";
@@ -44,20 +51,15 @@ async function updateSessionThreadId(
   return session;
 }
 
-async function isAllowed(request: Request, scrape: Scrape) {
-  const loggedInUser = await getAuthUser(request, {
-    dontRedirect: true,
-  });
-
-  if (!scrape.widgetConfig?.private) {
+async function isAllowed(
+  scrape: Scrape,
+  loggedInUser: null | (User & { scrapeUsers: ScrapeUser[] })
+) {
+  if (!scrape.private) {
     return true;
   }
 
-  if (!loggedInUser) {
-    return false;
-  }
-
-  if (loggedInUser.scrapeUsers.some((su) => su.scrapeId === scrape.id)) {
+  if (loggedInUser?.scrapeUsers.some((su) => su.scrapeId === scrape.id)) {
     return true;
   }
 
@@ -65,11 +67,15 @@ async function isAllowed(request: Request, scrape: Scrape) {
 }
 
 export async function loader({ params, request }: Route.LoaderArgs) {
+  const loggedInUser = await getAuthUser(request, {
+    dontRedirect: true,
+  });
+
   const scrape = await prisma.scrape.findFirst({
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
 
-  if (!scrape || !(await isAllowed(request, scrape))) {
+  if (!scrape || !(await isAllowed(scrape, loggedInUser))) {
     return redirect("/w/not-found");
   }
 
@@ -90,7 +96,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
         where: { threadId: thread.id },
       });
 
-      userToken = createToken(chatSessionKeys[scrape.id], {
+      userToken = createToken(loggedInUser?.id ?? chatSessionKeys[scrape.id], {
         expiresInSeconds: 60 * 60 * 24,
       });
     }
@@ -123,11 +129,15 @@ export function meta({ data }: Route.MetaArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+  const loggedInUser = await getAuthUser(request, {
+    dontRedirect: true,
+  });
+
   const scrape = await prisma.scrape.findFirst({
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
 
-  if (!scrape || !(await isAllowed(request, scrape))) {
+  if (!scrape || !(await isAllowed(scrape, loggedInUser))) {
     return redirect("/w/not-found");
   }
 

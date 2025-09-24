@@ -68,7 +68,6 @@ type WidgetConfig {
   buttonTextColor       String?
   showLogo              Boolean?
   tooltip               String?
-  private               Boolean?
   logoUrl               String?
   applyColorsToChatbox  Boolean?
 }
@@ -164,6 +163,8 @@ model Scrape {
 
   slackTeamId           String?
   slackConfig           SlackConfig?
+
+  private               Boolean?
 
   analytics             ScrapeAnalytics?
   llmModel              LlmModel?
