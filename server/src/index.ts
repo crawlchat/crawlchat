@@ -286,7 +286,7 @@ expressWs.app.ws("/", (ws: any, req) => {
           where: { id: thread.scrapeId },
         });
 
-        if (scrape?.private) {
+        if (scrape.private) {
           const user = await prisma.user.findFirst({
             where: { id: userId },
             include: {
