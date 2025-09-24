@@ -42,8 +42,6 @@ export class ConfluenceKbProcesser extends BaseKbProcesser {
       });
     });
 
-    console.log({ filteredPages });
-
     for (let i = 0; i < filteredPages.length; i++) {
       const page = filteredPages[i];
       const pageContent = await getConfluencePageContent(
