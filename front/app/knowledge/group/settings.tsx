@@ -22,6 +22,7 @@ import { MultiSelect, type SelectValue } from "~/components/multi-select";
 import { Client } from "@notionhq/client";
 import { DataList } from "~/components/data-list";
 import { Select } from "~/components/select";
+import { getConfluencePages } from "libs/confluence";
 import moment from "moment";
 
 function getNotionPageTitle(page: any): string | undefined {
@@ -77,7 +78,25 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     });
   }
 
-  return { scrape, knowledgeGroup, notionPages };
+  let confluencePages: Array<SelectValue> = [];
+  if (
+    knowledgeGroup.type === "confluence" &&
+    knowledgeGroup.confluenceApiKey &&
+    knowledgeGroup.confluenceEmail &&
+    knowledgeGroup.confluenceHost
+  ) {
+    const pages = await getConfluencePages({
+      apiKey: knowledgeGroup.confluenceApiKey,
+      email: knowledgeGroup.confluenceEmail,
+      host: knowledgeGroup.confluenceHost,
+    });
+    confluencePages = pages.map((page) => ({
+      title: page.title,
+      value: page.id,
+    }));
+  }
+
+  return { scrape, knowledgeGroup, notionPages, confluencePages };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -366,6 +385,26 @@ function NotionSettings({
   );
 }
 
+function ConfluenceSettings({
+  group,
+  confluencePages,
+}: {
+  group: KnowledgeGroup;
+  confluencePages: Array<SelectValue>;
+}) {
+  return (
+    <div className="flex flex-col gap-6">
+      <SkipPagesRegex
+        group={group}
+        pages={confluencePages}
+        placeholder="Select pages to skip"
+      />
+
+      <AutoUpdateSettings group={group} />
+    </div>
+  );
+}
+
 export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
@@ -404,6 +443,12 @@ export default function KnowledgeGroupSettings({
           <NotionSettings
             group={loaderData.knowledgeGroup}
             notionPages={loaderData.notionPages}
+          />
+        )}
+        {loaderData.knowledgeGroup.type === "confluence" && (
+          <ConfluenceSettings
+            group={loaderData.knowledgeGroup}
+            confluencePages={loaderData.confluencePages}
           />
         )}
 

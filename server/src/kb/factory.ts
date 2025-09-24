@@ -3,6 +3,7 @@ import { WebKbProcesser } from "./web-kb-processer";
 import { KbProcesser, KbProcesserListener } from "./kb-processer";
 import { GithubIssuesKbProcesser } from "./gh-issues-kb-processer";
 import { NotionKbProcesser } from "./notion-kb-processer";
+import { ConfluenceKbProcesser } from "./confluence-kb-processer";
 
 export function makeKbProcesser(
   listener: KbProcesserListener,
@@ -51,6 +52,10 @@ export function makeKbProcesser(
 
   if (knowledgeGroup.type === "notion") {
     return new NotionKbProcesser(listener, knowledgeGroup, options);
+  }
+
+  if (knowledgeGroup.type === "confluence") {
+    return new ConfluenceKbProcesser(listener, knowledgeGroup, options);
   }
 
   throw new Error("Unsupported knowledge group type");

@@ -28,7 +28,7 @@ export function ActionButton({
   }, [stopFetcher.data]);
 
   if (
-    !["scrape_web", "scrape_github", "github_issues", "notion"].includes(
+    !["scrape_web", "scrape_github", "github_issues", "notion", "confluence"].includes(
       group.type
     )
   ) {

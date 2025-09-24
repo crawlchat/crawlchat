@@ -7,6 +7,9 @@ import {
   TbBook2,
   TbBrandDiscord,
   TbBrandGithub,
+  TbBrandNotion,
+  TbBrandSlack,
+  TbFile,
   TbSettings,
   TbWorld,
 } from "react-icons/tb";
@@ -16,6 +19,7 @@ import { createToken } from "libs/jwt";
 import { ActionButton } from "./action-button";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
+import { FaConfluence } from "react-icons/fa";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -142,13 +146,23 @@ export default function KnowledgeGroupPage({
     if (loaderData.knowledgeGroup.type === "scrape_github") {
       return <TbBrandGithub />;
     }
-
     if (loaderData.knowledgeGroup.type === "scrape_web") {
       return <TbWorld />;
     }
-
     if (loaderData.knowledgeGroup.type === "learn_discord") {
       return <TbBrandDiscord />;
+    }
+    if (loaderData.knowledgeGroup.type === "confluence") {
+      return <FaConfluence />;
+    }
+    if (loaderData.knowledgeGroup.type === "learn_slack") {
+      return <TbBrandSlack />;
+    }
+    if (loaderData.knowledgeGroup.type === "upload") {
+      return <TbFile />;
+    }
+    if (loaderData.knowledgeGroup.type === "notion") {
+      return <TbBrandNotion />;
     }
 
     return <TbBook2 />;

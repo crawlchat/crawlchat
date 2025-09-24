@@ -53,6 +53,10 @@
     "./rate-limiter": {
       "default": "./dist/rate-limiter.js",
       "types": "./dist/rate-limiter.d.ts"
+    },
+    "./confluence": {
+      "default": "./dist/confluence.js",
+      "types": "./dist/confluence.d.ts"
     }
   },
   "typesVersions": {
@@ -89,6 +93,9 @@
       ],
       "rate-limiter": [
         "./dist/rate-limiter.d.ts"
+      ],
+      "confluence": [
+        "./dist/confluence.d.ts"
       ]
     }
   },
@@ -107,6 +114,7 @@
   "dependencies": {
     "@faker-js/faker": "^9.6.0",
     "@prisma/client": "^6.4.1",
+    "confluence.js": "^2.1.0",
     "jsonwebtoken": "^9.0.2",
     "zod": "^3.25.51"
   }

@@ -9,6 +9,7 @@ import {
   TbUpload,
   TbWorld,
 } from "react-icons/tb";
+import { FaConfluence } from "react-icons/fa";
 import { SiDocusaurus } from "react-icons/si";
 import { redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
@@ -110,7 +111,7 @@ export async function action({ request }: { request: Request }) {
       url = githubRepoUrl as string;
     }
 
-    if (!url && type !== "notion") {
+    if (!url && type !== "notion" && type !== "confluence") {
       return { error: "URL is required" };
     }
 
@@ -156,6 +157,10 @@ export async function action({ request }: { request: Request }) {
         subType,
 
         notionSecret: formData.get("notionSecret") as string,
+
+        confluenceApiKey: formData.get("confluenceApiKey") as string,
+        confluenceEmail: formData.get("confluenceEmail") as string,
+        confluenceHost: formData.get("confluenceHost") as string,
 
         githubBranch: githubBranch as string,
         githubUrl: githubRepoUrl as string,
@@ -235,6 +240,13 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
           icon: <TbUpload />,
           longDescription: "Upload a file as the knowledge base",
         },
+        {
+          title: "Confluence",
+          value: "confluence",
+          description: "Fetch Confluence pages",
+          icon: <FaConfluence />,
+          longDescription: "Fetch Confluence pages as the knowledge base",
+        },
       ];
     },
     [loaderData.scrapes]
@@ -270,6 +282,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                 description: item.description,
                 icon: item.icon,
               }))}
+              cols={3}
             />
           </div>
 
@@ -398,6 +411,48 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                   name="notionSecret"
                   placeholder="Ex: ntn_xxxxx"
                   required
+                />
+              </fieldset>
+            </>
+          )}
+
+          {type === "confluence" && (
+            <>
+              <fieldset className="fieldset">
+                <legend className="fieldset-legend">Email</legend>
+                <input
+                  className="input w-full"
+                  type="text"
+                  name="confluenceEmail"
+                  placeholder="Ex: your@email.com"
+                  required
+                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                  disabled={scrapeFetcher.state !== "idle"}
+                />
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <legend className="fieldset-legend">Host</legend>
+                <input
+                  className="input w-full"
+                  type="text"
+                  name="confluenceHost"
+                  placeholder="Ex: https://yourhost.atlassian.net"
+                  required
+                  pattern="^https://[a-b-_]+\\.atlassian\\.net$"
+                  disabled={scrapeFetcher.state !== "idle"}
+                />
+              </fieldset>
+
+              <fieldset className="fieldset">
+                <legend className="fieldset-legend">Confluence API Key</legend>
+                <input
+                  className="input w-full"
+                  type="text"
+                  name="confluenceApiKey"
+                  placeholder="Ex: ATATTXXXXXX"
+                  required
+                  disabled={scrapeFetcher.state !== "idle"}
                 />
               </fieldset>
             </>

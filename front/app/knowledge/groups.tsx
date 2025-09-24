@@ -23,6 +23,7 @@ import { SiDocusaurus } from "react-icons/si";
 import { EmptyState } from "~/components/empty-state";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
+import { FaConfluence } from "react-icons/fa";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -113,6 +114,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "notion") {
         icon = <TbBrandNotion />;
         typeText = "Notion";
+      } else if (group.type === "confluence") {
+        icon = <FaConfluence />;
+        typeText = "Confluence";
       }
 
       const totalCited = Object.values(loaderData.citationCounts).reduce(
@@ -237,6 +241,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                         "scrape_github",
                         "github_issues",
                         "notion",
+                        "confluence",
                       ].includes(item.group.type) && (
                         <ActionButton group={item.group} small />
                       )}

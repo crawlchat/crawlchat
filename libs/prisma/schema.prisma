@@ -409,6 +409,7 @@ enum KnowledgeGroupType {
   answer_corrections
   upload
   notion
+  confluence
 }
 
 enum KnowledgeGroupStatus {
@@ -453,6 +454,10 @@ model KnowledgeGroup {
   lastUpdatedAt                             DateTime?
   itemContext                               String?
   notionSecret                              String?
+
+  confluenceApiKey                          String?
+  confluenceEmail                           String?
+  confluenceHost                            String?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt
