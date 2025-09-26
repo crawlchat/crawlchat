@@ -14,7 +14,11 @@ import { Message, MessageChannel } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
-import { RAGAgentCustomMessage } from "./llm/flow-jasmine";
+import {
+  makeFlow,
+  makeRagTool,
+  RAGAgentCustomMessage,
+} from "./llm/flow-jasmine";
 import { extractCitations } from "libs/citation";
 import { BaseKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
@@ -27,7 +31,11 @@ import { baseAnswerer, AnswerListener, collectSourceLinks } from "./answer";
 import { fillMessageAnalysis } from "./llm/analyse-message";
 import { createToken, verifyToken } from "libs/jwt";
 import { MultimodalContent, getQueryString } from "libs/llm-message";
-import { mcpRateLimiter, wsRateLimiter } from "./rate-limiter";
+import {
+  draftRateLimiter,
+  mcpRateLimiter,
+  wsRateLimiter,
+} from "./rate-limiter";
 import { scrape } from "./scrape/crawl";
 
 const app: Express = express();
@@ -724,6 +732,84 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   });
 
   res.json({ content: citation.content, message: newAnswerMessage });
+});
+
+app.post("/compose/:scrapeId", authenticate, async (req, res) => {
+  console.log("Draft request for", req.params.scrapeId);
+
+  draftRateLimiter.check();
+
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: req.params.scrapeId },
+  });
+
+  if (
+    !(await hasEnoughCredits(scrape.userId, "messages", {
+      alert: {
+        scrapeId: scrape.id,
+        token: createToken(scrape.userId),
+      },
+    }))
+  ) {
+    res.status(400).json({ message: "Not enough credits" });
+    return;
+  }
+
+  const prompt = req.body.prompt as string;
+  const oldMessages = JSON.parse((req.body.messages as string) || "[]");
+  const format = req.body.format as string;
+  const formatText = req.body.formatText as string;
+
+  const message = {
+    role: "user",
+    content: prompt,
+  };
+
+  const messages = [...oldMessages, message];
+
+  const agent = new SimpleAgent({
+    id: "compose-agent",
+    prompt: `
+    Update the answer given above following the prompt and the question.
+    Use the search_data tool to get the relevant information.
+    Only update the asked items from <answer>.
+    Use the search_data tool only if new information is required.
+
+    <format-type>${format}</format-type>
+    <format-text>${formatText}</format-text>
+    `,
+    schema: z.object({
+      answer: z.string(),
+    }),
+    tools: [makeRagTool(scrape.id, scrape.indexer).make()],
+  });
+
+  const flow = new Flow([agent], {
+    messages: messages.map((m) => ({
+      llmMessage: {
+        role: m.role as any,
+        content: m.content,
+      },
+    })),
+  });
+  flow.addNextAgents(["compose-agent"]);
+
+  while (await flow.stream()) {}
+
+  const content = flow.getLastMessage().llmMessage.content as string;
+
+  await consumeCredits(scrape.userId, "messages", 1);
+
+  res.json({
+    answer: JSON.parse(content).answer,
+    messages: [
+      ...messages,
+      {
+        role: "assistant",
+        content,
+      },
+    ],
+  });
 });
 
 app.get("/discord/:channelId", async (req, res) => {

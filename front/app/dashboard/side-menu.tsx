@@ -14,6 +14,7 @@ import {
   TbHome,
   TbLogout,
   TbMessage,
+  TbPencil,
   TbPlug,
   TbPointer,
   TbSettings,
@@ -250,6 +251,12 @@ export function SideMenu({
         label: "Connect",
         to: "/connect",
         icon: <TbPlug />,
+        forScrape: true,
+      },
+      {
+        label: "Compose",
+        to: "/compose",
+        icon: <TbPencil />,
         forScrape: true,
       },
       {
