@@ -631,6 +631,8 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     where: { id: req.params.scrapeId },
   });
 
+  authoriseScrapeUser(req.user!.scrapeUsers, scrape.id);
+
   if (
     !(await hasEnoughCredits(scrape.userId, "messages", {
       alert: {
@@ -742,6 +744,8 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: req.params.scrapeId },
   });
+
+  authoriseScrapeUser(req.user!.scrapeUsers, scrape.id);
 
   if (
     !(await hasEnoughCredits(scrape.userId, "messages", {
