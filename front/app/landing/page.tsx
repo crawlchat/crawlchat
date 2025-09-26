@@ -29,6 +29,7 @@ import {
   TbDashboard,
   TbDatabase,
   TbFile,
+  TbLock,
   TbMail,
   TbMessage,
   TbPlug,
@@ -62,9 +63,9 @@ import { Logo } from "~/dashboard/logo";
 
 export function meta() {
   return makeMeta({
-    title: "CrawlChat - AI Chatbot for your tech documentation",
+    title: "CrawlChat - Power up your tech documentation with AI",
     description:
-      "Make AI chatbot from your tech documentation that can answer any question from your community. Embed it in your website, Discord, or Slack.",
+      "Make your technical docs answer queries instantly from your community. Embed it in your website, Discord, or Slack.",
   });
 }
 
@@ -383,17 +384,18 @@ function Works() {
           img="/new-landing/knowledge-base.png"
           title="Make knowledge base"
         >
-          Add your existing documents or web pages as knowledge base. You can{" "}
+          Add your existing documents or web pages as knowledge base. You can
+          import your docs from multiple{" "}
           <span
             className={cn(
               stepHighlightClassNames(),
               "text-purple-500 border-purple-500"
             )}
           >
-            <TbSpider />
-            scrape
+            <TbLock />
+            private
           </span>{" "}
-          your online documentation or{" "}
+          and{" "}
           <span
             className={cn(
               stepHighlightClassNames(),
@@ -401,16 +403,13 @@ function Works() {
             )}
           >
             <TbFile />
-            upload files
+            public
           </span>{" "}
-          directly.
+          sources within few minutes.
         </WorksStep>
-        <WorksStep
-          img="/new-landing/integrate-chatbot.png"
-          title="Integrate chatbot"
-        >
-          You can connect the AI chatbot to your website, Discord, Slack. You
-          can customise the bot UI and{" "}
+        <WorksStep img="/new-landing/integrate-chatbot.png" title="Integrate">
+          You can embed the Ask AI widget to your website, Discord server, or
+          Slack workspace. You can customise the bot UI and{" "}
           <span
             className={cn(
               stepHighlightClassNames(),
@@ -559,7 +558,7 @@ function ChannelWidget() {
       <Badge>Use case</Badge>
 
       <Heading>
-        <HeadingHighlight>24x7 assistant</HeadingHighlight> on your website
+        <HeadingHighlight>24x7 assistant</HeadingHighlight> on your docs
       </Heading>
 
       <HeadingDescription>
@@ -575,7 +574,7 @@ function ChannelWidget() {
           {
             title: "Embed on your website",
             description:
-              "You can embed the web chatbot on your website under few minutes. You need to copy the embed code that CrawlChat provides and paste it on your website. You instantly get an AI assistant on your website that can handle most of your support queries.",
+              "You can embed the Ask AI widget on your website under few minutes. You need to copy the embed code that CrawlChat provides and paste it on your website. You instantly get an AI assistant on your website that can handle most of your support queries.",
             img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/4-min.png",
             key: "embed",
             icon: <TbPlug />,
@@ -583,7 +582,7 @@ function ChannelWidget() {
           {
             title: "Customise",
             description:
-              "You can customise the chatbot's look and feel, and also the tone of the responses to match your brand and support style. You can add your own colors, logo of your brand, labels on the chatbot, and you can customise the behaviour of the chatbot using the AI prompts.",
+              "You can customise the widget look and feel, and also the tone of the responses to match your brand and support style. You can add your own colors, logo of your brand, labels on the widget, and you can customise the behaviour of the AI using the prompts.",
             img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/5-min.png",
             key: "customise",
             icon: <TbColorSwatch />,
@@ -591,7 +590,7 @@ function ChannelWidget() {
           {
             title: "Human support",
             description:
-              "CrawlChat respects the user and understands that it might not have answers for all the support queries. Your users can always reach out to you via the support tickets. The chatbot itself prompts the user that it does not have answer and asks to create a support ticket by providing email right from the chat screen.",
+              "CrawlChat respects the user and understands that it might not have answers for all the support queries. Your users can always reach out to you via the support tickets. The widget itself prompts the user that it does not have answer and asks to create a support ticket by providing email right from the chat screen.",
             img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/6-min.png",
             key: "human-support",
             icon: <TbUserHeart />,
@@ -608,14 +607,16 @@ function ChannelDiscord() {
       <Badge>Use case</Badge>
 
       <Heading>
-        Ask AI on <HeadingHighlight>Discord</HeadingHighlight>
+        Deliver your docs to your{" "}
+        <HeadingHighlight>internal teams</HeadingHighlight>
       </Heading>
 
       <HeadingDescription>
-        It is quite common for most of the tech companies to have a Discord
-        server where their community hangs out. It became a necessity to have an
-        AI bot on Discord to answer community questions. CrawlChat does that out
-        of the box.
+        It is quite common for most of the tech companies to have a lot of
+        internal documentation produced by multiple teams. It is very difficult
+        deliver these docs to multiple teams. You can import your docs from
+        Notion, Confluence, or upload files and connect them to your Discord or
+        Slack workspaces.
       </HeadingDescription>
 
       <FeaturesWithImage
@@ -632,7 +633,7 @@ function ChannelDiscord() {
           {
             title: "Sources",
             description:
-              "The bot attaches the sources it uses to answer the question so that the users can find more help from your documentation. This works the same for the Web chatbot and the Slack bot as well. You can also configure it to reply the answers as a thread for clutter free channels.",
+              "The bot attaches the sources it uses to answer the question so that the users can find more help from your documentation. This works the same for the Web widget and the Slack bot as well. You can also configure it to reply the answers as a thread for clutter free channels.",
             img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/channels/2-min.png",
             key: "sources",
             icon: <TbBook />,
@@ -1031,8 +1032,9 @@ export function CTA({ text }: { text?: string }) {
   return (
     <div className="mt-32" id="cta">
       <div className="w-full bg-gradient-to-b from-base-100 to-base-200 shadow-md rounded-2xl py-16 px-10 relative">
-        <h2 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2] font-medium text-center max-w-[800px] mx-auto">
-          {text || "Make your own AI chatbot from your documentation now!"}
+        <h2 className="font-radio-grotesk text-[42px] md:text-[54px] leading-[1.2] font-medium text-center max-w-[800px] mx-auto">
+          {text ||
+            "Deliver your tech doc with AI to your community and internal teams now!"}
         </h2>
 
         <div className="flex justify-center mt-8">
@@ -1070,7 +1072,7 @@ export function Footer() {
           <div className="flex-[2] flex flex-col gap-4">
             <Logo />
             <p className="font-medium opacity-60">
-              AI Chatbot for your documentation and support
+              Power up your tech documentation with AI
             </p>
             <p className="opacity-50 text-xs font-medium">© 2025 CrawlChat</p>
             <div>
@@ -1242,9 +1244,26 @@ export function ctaClassNames(primary: boolean) {
 function Hero() {
   const { focusChangelog } = useLoaderData<typeof loader>();
 
+  const features = [
+    {
+      text: "Web widgets",
+      icon: <TbWorld />,
+    },
+    {
+      text: "Discord & Slack bots with MCP server",
+      icon: <TbRobotFace />,
+    },
+    {
+      text: "Data gaps, analytics, corrections and more!",
+      icon: <TbChartBar />,
+    },
+  ];
+
   return (
-    <div className={cn("flex gap-10 md:gap-14 mb-10 flex-col md:flex-row")}>
-      <div className={cn("py-4 flex flex-col flex-[1.4]")}>
+    <div
+      className={cn("flex gap-10 md:gap-14 mb-10 flex-col md:flex-row py-4")}
+    >
+      <div className={cn("flex flex-col flex-[1.4]")}>
         {focusChangelog && (
           <a
             className="mb-4 cursor-pointer hover:scale-[1.02] transition-all w-fit"
@@ -1263,32 +1282,23 @@ function Hero() {
         )}
 
         <h1 className="font-radio-grotesk text-[42px] md:text-[64px] leading-[1.1]">
-          <span className="text-primary">AI Chatbot</span> for your technical{" "}
-          documentation
+          Make your technical docs answer queries{" "}
+          <span className="text-primary">instantly!</span>
         </h1>
 
         <h2 className="text-xl mt-6">
-          Power up your technical documentation with CrawlChat AI chatbot that
-          you can connect on your{" "}
-          <span className="bg-red-50 text-red-500 border border-red-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
-            <TbWorld />
-            Website
-          </span>
-          <span className="hidden">,</span>{" "}
-          <a
-            className="bg-green-50 text-green-500 border border-green-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1"
-            href="/discord-bot"
-          >
-            <TbBrandDiscord />
-            Discord
-          </a>
-          <span className="hidden">,</span> or{" "}
-          <span className="bg-purple-50 text-purple-500 border border-purple-500 px-3 py-1 inline-flex m-1 rounded-full leading-none items-center gap-1">
-            <TbBrandSlack />
-            Slack
-          </span>
-          <span className="hidden">.</span> so that your community, users &
-          clients get the help they need.
+          Your users don't want to dig through endless pages of docs. They want
+          answers that meet them where they are. With CrawlChat you get
+          <ul className="mt-4 flex flex-col gap-2">
+            {features.map((feature, index) => (
+              <li key={index} className="flex items-center gap-2">
+                <div className="bg-primary text-primary-content rounded-full p-1 text-sm">
+                  {feature.icon}
+                </div>{" "}
+                {feature.text}
+              </li>
+            ))}
+          </ul>
         </h2>
 
         <div
@@ -1330,8 +1340,8 @@ function Hero() {
           <iframe src="/w/crawlchat" className="w-full h-[560px]" />
         </div>
         <div className="text-sm text-base-content/50 text-center mt-4">
-          You can embed above chatbot on your website, Discord server, Slack
-          workspace, or as an MCP server.
+          You can integrate AI trained on your documentation to your website,
+          Discord server, Slack workspace, or as an MCP server.
         </div>
       </div>
     </div>
@@ -1596,7 +1606,7 @@ export function CustomTestimonials() {
 function FAQ() {
   const questions = [
     {
-      question: "How do I train the AI chatbot?",
+      question: "How do I train with my documentation?",
       answer: (
         <p>
           There is technically no special process like training the AI chatbot.
@@ -1666,7 +1676,7 @@ function FAQ() {
       ),
     },
     {
-      question: "How can I integrate the chatbot to my website?",
+      question: "How can I integrate the Ask AI widget to my website?",
       answer: (
         <p>
           It is a very simple process. You can navigate to the integration
@@ -1677,7 +1687,7 @@ function FAQ() {
       ),
     },
     {
-      question: "How can add chatbot to Slack or Discord?",
+      question: "How can integrate it with Slack or Discord?",
       answer: (
         <p>
           Yes! CrawlChat provides a Discord bot and a Slack app that can be
@@ -1830,7 +1840,7 @@ function Gallery() {
       icon: <TbBook2 />,
     },
     {
-      title: "Embed chatbot",
+      title: "Embed AI",
       img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/gallery/customise-chatbot.png",
       icon: <TbCode />,
     },
@@ -2054,7 +2064,7 @@ function SourcesChannels() {
 
       <HeadingDescription>
         CrawlChat supports a wide range of sources for tech documentations and
-        useful channels where you can integrate your chatbot.
+        useful channels where you can deliver your documentation with AI.
       </HeadingDescription>
 
       <div className="flex flex-col items-center gap-2">
