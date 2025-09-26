@@ -242,14 +242,14 @@ export function UsedBy() {
         <img
           src="/used-by/remotion.png"
           alt="Remotion"
-          className="max-h-[38px] dark:hidden"
+          className="max-h-[38px]"
         />
 
-        <img
+        {/* <img
           src="/used-by/remotion-white.png"
           alt="Remotion"
           className="max-h-[38px] hidden dark:block"
-        />
+        /> */}
 
         <div className="flex items-center gap-2">
           <img
@@ -281,7 +281,7 @@ export function UsedBy() {
           className="max-h-[38px] hidden dark:block"
         /> */}
 
-        <div className="flex items-center gap-2 dark:hidden">
+        <div className="flex items-center gap-2">
           <img
             src="/used-by/polotno.png"
             alt="Polotno"
@@ -290,14 +290,14 @@ export function UsedBy() {
           <div className="font-medium text-xl">Polotno</div>
         </div>
 
-        <div className="items-center gap-2 hidden dark:flex">
+        {/* <div className="items-center gap-2 hidden dark:flex">
           <img
             src="/used-by/polotno-white.png"
             alt="Polotno"
             className="max-h-[38px]"
           />
           <div className="font-medium text-xl">Polotno</div>
-        </div>
+        </div> */}
 
         <div className="bg-gray-900 rounded-full p-4 px-6 pb-3">
           <img
