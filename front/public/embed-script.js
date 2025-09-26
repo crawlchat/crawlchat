@@ -29,7 +29,12 @@ class CrawlChatEmbed {
     const style = document.createElement("link");
     style.rel = "stylesheet";
     style.href = `${this.host}/embed.css`;
-    document.head.appendChild(style);
+    
+    await new Promise((resolve, reject) => {
+      style.onload = resolve;
+      style.onerror = reject;
+      document.head.appendChild(style);
+    });
 
     window.addEventListener("message", (e) => this.handleOnMessage(e));
 
