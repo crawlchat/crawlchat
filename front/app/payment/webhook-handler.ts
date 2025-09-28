@@ -23,10 +23,6 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
       webhook.paymentAmount &&
       webhook.paymentCurrency
     ) {
-      console.log(
-        "Sending payment to Datafast",
-        webhook.metadata.datafastVisitorId
-      );
       const res = await fetch("https://datafa.st/api/v1/payments", {
         method: "POST",
         headers: {
