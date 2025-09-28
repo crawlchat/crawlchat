@@ -53,7 +53,7 @@ export const lemonsqueezyGateway: PaymentGateway = {
       throw new Error(JSON.stringify({ error: "Plan not found", status: 401 }));
     }
 
-    return { email, type, productId, plan, subscriptionId };
+    return { email, type, productId, plan, subscriptionId, paymentId: "NA" };
   },
 
   getSubscription: async (subscriptionId) => {
