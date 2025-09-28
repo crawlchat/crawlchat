@@ -285,7 +285,13 @@ export async function fillMessageAnalysis(
       partialAnalysis &&
       partialAnalysis.followUpQuestions.length > 0
     ) {
-      options.onFollowUpQuestion(partialAnalysis.followUpQuestions);
+      const hardcodedFollowUpQuestions = message.scrape.ticketingEnabled
+        ? ["I want to create a support ticket"]
+        : [];
+      options.onFollowUpQuestion([
+        ...hardcodedFollowUpQuestions,
+        ...partialAnalysis.followUpQuestions,
+      ]);
     }
 
     const analysis: MessageAnalysis = {

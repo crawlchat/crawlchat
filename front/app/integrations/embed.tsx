@@ -112,7 +112,6 @@ function makeScriptCode(scrapeId: string) {
 
 export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   const sizeFetcher = useFetcher();
-  const [tab, setTab] = useState<"code" | "docusaurus">("code");
   const scriptCode = useMemo(
     () => makeScriptCode(loaderData.scrape?.id ?? ""),
     [loaderData.scrape?.id]
@@ -133,6 +132,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
                 name="embed-code"
                 className="tab"
                 aria-label="Code"
+                defaultChecked
               />
               <div className="tab-content bg-base-100 border-base-300 p-6">
                 <MarkdownProse>
@@ -148,7 +148,6 @@ ${scriptCode.script}
                 name="embed-code"
                 className="tab"
                 aria-label="Docusaurus"
-                defaultChecked
               />
               <div className="tab-content bg-base-100 border-base-300 p-6">
                 <MarkdownProse>
