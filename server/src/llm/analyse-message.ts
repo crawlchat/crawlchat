@@ -196,6 +196,7 @@ export async function analyseMessage(
           Don't use the recent questions as it is.
           Use the thread questions to generate follow up questions related to the thread.
           Max it should be 3 questions.
+          It should not be part of thread questions.
         `
       ),
     }),
@@ -240,7 +241,11 @@ export async function fillMessageAnalysis(
     const message = await prisma.message.findFirstOrThrow({
       where: { id: messageId },
       include: {
-        scrape: true,
+        scrape: {
+          include: {
+            user: true,
+          },
+        },
       },
     });
 
@@ -283,7 +288,8 @@ export async function fillMessageAnalysis(
     if (
       options?.onFollowUpQuestion &&
       partialAnalysis &&
-      partialAnalysis.followUpQuestions.length > 0
+      partialAnalysis.followUpQuestions.length > 0 &&
+      message.scrape.user.plan?.planId !== "free"
     ) {
       const hardcodedFollowUpQuestions = message.scrape.ticketingEnabled
         ? ["I want to create a support ticket"]

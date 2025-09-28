@@ -205,6 +205,7 @@ export function useScrapeChat({
       },
     ]);
     setAskStage("asked");
+    setFollowUpQuestions([]);
     return messagesCount + 1;
   }
 

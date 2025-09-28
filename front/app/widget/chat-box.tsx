@@ -794,7 +794,6 @@ export default function ScrapeWidget() {
 
   function handleAsk(question: string) {
     ask(question);
-    chat.setFollowUpQuestions([]);
   }
 
   return (
