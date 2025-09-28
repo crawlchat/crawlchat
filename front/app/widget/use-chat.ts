@@ -30,6 +30,7 @@ export function useScrapeChat({
   const [searchQuery, setSearchQuery] = useState<string>();
   const [actionCall, setActionCall] = useState<string>();
   const [connected, setConnected] = useState(false);
+  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
 
   const allMessages = useMemo(() => {
     const allMessages = [
@@ -75,6 +76,8 @@ export function useScrapeChat({
         handleStage(message.data);
       } else if (message.type === "connected") {
         setConnected(true);
+      } else if (message.type === "follow-up-questions") {
+        setFollowUpQuestions(message.data.questions);
       }
     };
   }
@@ -236,5 +239,7 @@ export function useScrapeChat({
     connected,
     setMakingThreadId,
     actionCall,
+    followUpQuestions,
+    setFollowUpQuestions,
   };
 }

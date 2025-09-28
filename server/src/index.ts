@@ -398,7 +398,12 @@ expressWs.app.ws("/", (ws: any, req) => {
                 message.data.query,
                 event.content,
                 event.sources,
-                event.context
+                event.context,
+                {
+                  onFollowUpQuestion: (questions) => {
+                    ws?.send(makeMessage("follow-up-questions", { questions }));
+                  },
+                }
               );
           }
         };

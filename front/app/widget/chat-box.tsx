@@ -790,7 +790,12 @@ export function ChatboxContainer({
 }
 
 export default function ScrapeWidget() {
-  const { screen, chat } = useChatBoxContext();
+  const { screen, chat, ask } = useChatBoxContext();
+
+  function handleAsk(question: string) {
+    ask(question);
+    chat.setFollowUpQuestions([]);
+  }
 
   return (
     <>
@@ -831,6 +836,22 @@ export default function ScrapeWidget() {
                   )}
               </div>
             ))}
+            {chat.followUpQuestions.length > 0 && (
+              <div className="p-4 pt-0 flex flex-col gap-2">
+                {chat.followUpQuestions.map((question, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "border border-base-300 rounded-box p-1",
+                      "w-fit px-2 hover:shadow-sm transition-all cursor-pointer",
+                    )}
+                    onClick={() => handleAsk(question)}
+                  >
+                    {question}
+                  </div>
+                ))}
+              </div>
+            )}
           </>
         )}
         {screen === "mcp" && <MCPSetup />}
