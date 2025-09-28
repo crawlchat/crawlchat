@@ -239,7 +239,7 @@ type MessageAnalysis {
   dataGapDescription String?
   dataGapDone Boolean?
   
-  shortMessage String?
+  shortQuestion String?
   followUpQuestions String[]
 }
 

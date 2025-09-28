@@ -182,10 +182,9 @@ export async function analyseMessage(
           ).join(", ")}
         `
       ),
-      shortMessage: z.string().describe(
+      shortQuestion: z.string().describe(
         `
-          The short message for the question.
-          It should be a short message for the question.
+          The short verstion for the question.
           It should be under 10 words.
           It should be in question format.
         `
@@ -218,7 +217,7 @@ export async function analyseMessage(
 
   return JSON.parse(content as string) as {
     questionSentiment: QuestionSentiment;
-    shortMessage: string;
+    shortQuestion: string;
     followUpQuestions: string[];
   };
 }
@@ -271,12 +270,12 @@ export async function fillMessageAnalysis(
     });
 
     const recentQuestions: string[] = recentMessages
-      .filter((m) => m.analysis?.shortMessage)
-      .map((m) => m.analysis!.shortMessage!);
+      .filter((m) => m.analysis?.shortQuestion)
+      .map((m) => m.analysis!.shortQuestion!);
 
     const threadQuestions: string[] = threadMessages
-      .filter((m) => m.analysis?.shortMessage)
-      .map((m) => m.analysis!.shortMessage!);
+      .filter((m) => m.analysis?.shortQuestion)
+      .map((m) => m.analysis!.shortQuestion!);
 
     const partialAnalysis = await analyseMessage(
       question,
@@ -303,7 +302,7 @@ export async function fillMessageAnalysis(
     const analysis: MessageAnalysis = {
       questionRelevanceScore: null,
       questionSentiment: partialAnalysis?.questionSentiment ?? null,
-      shortMessage: partialAnalysis?.shortMessage ?? null,
+      shortQuestion: partialAnalysis?.shortQuestion ?? null,
       followUpQuestions: partialAnalysis?.followUpQuestions ?? [],
       dataGapTitle: null,
       dataGapDescription: null,
