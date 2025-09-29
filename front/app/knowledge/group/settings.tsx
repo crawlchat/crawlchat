@@ -23,6 +23,7 @@ import { Client } from "@notionhq/client";
 import { DataList } from "~/components/data-list";
 import { Select } from "~/components/select";
 import { getConfluencePages } from "libs/confluence";
+import { getLinearPages, LinearClient } from "libs/linear";
 import moment from "moment";
 
 function getNotionPageTitle(page: any): string | undefined {
@@ -96,7 +97,20 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     }));
   }
 
-  return { scrape, knowledgeGroup, notionPages, confluencePages };
+  let linearPages: Array<SelectValue> = [];
+  if (knowledgeGroup.type === "linear" && knowledgeGroup.linearApiKey) {
+    const client = new LinearClient({
+      apiKey: knowledgeGroup.linearApiKey,
+    });
+
+    const issues = await getLinearPages(client);
+    linearPages = issues.map((issue) => ({
+      title: issue.title,
+      value: issue.id,
+    }));
+  }
+
+  return { scrape, knowledgeGroup, notionPages, confluencePages, linearPages };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -405,6 +419,26 @@ function ConfluenceSettings({
   );
 }
 
+function LinearSettings({
+  group,
+  linearPages,
+}: {
+  group: KnowledgeGroup;
+  linearPages: Array<SelectValue>;
+}) {
+  return (
+    <div className="flex flex-col gap-6">
+      <SkipPagesRegex
+        group={group}
+        pages={linearPages}
+        placeholder="Select pages to skip"
+      />
+
+      <AutoUpdateSettings group={group} />
+    </div>
+  );
+}
+
 export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
@@ -449,6 +483,12 @@ export default function KnowledgeGroupSettings({
           <ConfluenceSettings
             group={loaderData.knowledgeGroup}
             confluencePages={loaderData.confluencePages}
+          />
+        )}
+        {loaderData.knowledgeGroup.type === "linear" && (
+          <LinearSettings
+            group={loaderData.knowledgeGroup}
+            linearPages={loaderData.linearPages}
           />
         )}
 

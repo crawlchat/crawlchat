@@ -19,7 +19,7 @@ import { Page } from "~/components/page";
 import { useMemo } from "react";
 import { GroupStatus } from "./group/status";
 import { ActionButton } from "./group/action-button";
-import { SiDocusaurus } from "react-icons/si";
+import { SiDocusaurus, SiLinear } from "react-icons/si";
 import { EmptyState } from "~/components/empty-state";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
@@ -117,6 +117,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "confluence") {
         icon = <FaConfluence />;
         typeText = "Confluence";
+      } else if (group.type === "linear") {
+        icon = <SiLinear />;
+        typeText = "Linear";
       }
 
       const totalCited = Object.values(loaderData.citationCounts).reduce(
@@ -242,6 +245,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                         "github_issues",
                         "notion",
                         "confluence",
+                        "linear",
                       ].includes(item.group.type) && (
                         <ActionButton group={item.group} small />
                       )}

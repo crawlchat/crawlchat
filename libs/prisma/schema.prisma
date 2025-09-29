@@ -414,6 +414,7 @@ enum KnowledgeGroupType {
   upload
   notion
   confluence
+  linear
 }
 
 enum KnowledgeGroupStatus {
@@ -462,6 +463,8 @@ model KnowledgeGroup {
   confluenceApiKey                          String?
   confluenceEmail                           String?
   confluenceHost                            String?
+
+  linearApiKey                              String?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt

@@ -4,6 +4,7 @@ import { KbProcesser, KbProcesserListener } from "./kb-processer";
 import { GithubIssuesKbProcesser } from "./gh-issues-kb-processer";
 import { NotionKbProcesser } from "./notion-kb-processer";
 import { ConfluenceKbProcesser } from "./confluence-kb-processer";
+import { LinearKbProcesser } from "./linear-kb-processer";
 
 export function makeKbProcesser(
   listener: KbProcesserListener,
@@ -56,6 +57,10 @@ export function makeKbProcesser(
 
   if (knowledgeGroup.type === "confluence") {
     return new ConfluenceKbProcesser(listener, knowledgeGroup, options);
+  }
+
+  if (knowledgeGroup.type === "linear") {
+    return new LinearKbProcesser(listener, knowledgeGroup, options);
   }
 
   throw new Error("Unsupported knowledge group type");
