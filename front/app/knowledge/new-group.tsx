@@ -10,7 +10,7 @@ import {
   TbWorld,
 } from "react-icons/tb";
 import { FaConfluence } from "react-icons/fa";
-import { SiDocusaurus } from "react-icons/si";
+import { SiDocusaurus, SiLinear } from "react-icons/si";
 import { redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
@@ -111,7 +111,12 @@ export async function action({ request }: { request: Request }) {
       url = githubRepoUrl as string;
     }
 
-    if (!url && type !== "notion" && type !== "confluence") {
+    if (
+      !url &&
+      type !== "notion" &&
+      type !== "confluence" &&
+      type !== "linear"
+    ) {
       return { error: "URL is required" };
     }
 
@@ -161,6 +166,8 @@ export async function action({ request }: { request: Request }) {
         confluenceApiKey: formData.get("confluenceApiKey") as string,
         confluenceEmail: formData.get("confluenceEmail") as string,
         confluenceHost: formData.get("confluenceHost") as string,
+
+        linearApiKey: formData.get("linearApiKey") as string,
 
         githubBranch: githubBranch as string,
         githubUrl: githubRepoUrl as string,
@@ -262,6 +269,25 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
               creating an API Key{" "}
               <a
                 href="https://docs.crawlchat.app/knowledge-base/confluence-pages"
+                target="_blank"
+                className="link link-primary"
+              >
+                here
+              </a>
+            </p>
+          ),
+        },
+        {
+          title: "Linear",
+          value: "linear",
+          description: "Fetch Linear issues",
+          icon: <SiLinear />,
+          longDescription: (
+            <p>
+              Fetch Linear issues as the knowledge base. Learn more about
+              creating an API Key{" "}
+              <a
+                href="https://docs.crawlchat.app/knowledge-base/linear-issues"
                 target="_blank"
                 className="link link-primary"
               >
@@ -476,6 +502,21 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
                   placeholder="Ex: ATATTXXXXXX"
                   required
                   disabled={scrapeFetcher.state !== "idle"}
+                />
+              </fieldset>
+            </>
+          )}
+
+          {type === "linear" && (
+            <>
+              <fieldset className="fieldset">
+                <legend className="fieldset-legend">Linear API Key</legend>
+                <input
+                  className="input w-full"
+                  type="text"
+                  name="linearApiKey"
+                  placeholder="Ex: lin_api_xxxx"
+                  required
                 />
               </fieldset>
             </>

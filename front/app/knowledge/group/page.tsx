@@ -20,6 +20,7 @@ import { ActionButton } from "./action-button";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { FaConfluence } from "react-icons/fa";
+import { SiLinear } from "react-icons/si";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -163,6 +164,9 @@ export default function KnowledgeGroupPage({
     }
     if (loaderData.knowledgeGroup.type === "notion") {
       return <TbBrandNotion />;
+    }
+    if (loaderData.knowledgeGroup.type === "linear") {
+      return <SiLinear />;
     }
 
     return <TbBook2 />;
