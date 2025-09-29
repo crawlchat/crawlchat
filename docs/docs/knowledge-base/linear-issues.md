@@ -6,7 +6,7 @@ sidebar_position: 6
 
 You can quickly import the issues from **Linear** application directly to CrawlChat as a source. You need to create an API Key on Linear application for it to work. Following is how you can do it.
 
-![Confluence Page Group](./images/linear-group.png)
+![Linear Page Group](./images/linear-group.png)
 
 ## API Key
 
