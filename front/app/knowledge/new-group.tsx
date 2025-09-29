@@ -287,7 +287,7 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
               Fetch Linear issues as the knowledge base. Learn more about
               creating an API Key{" "}
               <a
-                href="https://docs.crawlchat.app/knowledge-base/confluence-pages"
+                href="https://docs.crawlchat.app/knowledge-base/linear-issues"
                 target="_blank"
                 className="link link-primary"
               >
