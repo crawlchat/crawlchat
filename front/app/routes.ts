@@ -71,6 +71,8 @@ export default [
     route("assistance", "assistance.tsx"),
     route("draft", "draft.tsx"),
     route("compose", "compose.tsx"),
+
+    route("welcome", "welcome/page.tsx"),
   ]),
 
   layout("landing/layout.tsx", [

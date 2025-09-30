@@ -107,7 +107,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     <AppContext.Provider value={app}>
       <div
         data-theme="brand"
-        className="min-h-screen drawer md:drawer-open bg-base-100"
+        className="min-h-screen drawer bg-base-100"
       >
         <input
           type="checkbox"
