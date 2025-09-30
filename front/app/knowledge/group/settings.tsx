@@ -23,7 +23,11 @@ import { Client } from "@notionhq/client";
 import { DataList } from "~/components/data-list";
 import { Select } from "~/components/select";
 import { getConfluencePages } from "libs/confluence";
-import { getLinearPages, LinearClient } from "libs/linear";
+import {
+  getLinearIssueStatuses,
+  getLinearProjectStatuses,
+  LinearClient,
+} from "libs/linear";
 import moment from "moment";
 
 function getNotionPageTitle(page: any): string | undefined {
@@ -97,20 +101,34 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     }));
   }
 
-  let linearPages: Array<SelectValue> = [];
+  let linearIssueStatuses: Array<SelectValue> = [];
+  let linearProjectStatuses: Array<SelectValue> = [];
   if (knowledgeGroup.type === "linear" && knowledgeGroup.linearApiKey) {
     const client = new LinearClient({
       apiKey: knowledgeGroup.linearApiKey,
     });
 
-    const issues = await getLinearPages(client);
-    linearPages = issues.map((issue) => ({
-      title: issue.title,
-      value: issue.id,
+    const issueStatuses = await getLinearIssueStatuses(client);
+    linearIssueStatuses = issueStatuses.map((status) => ({
+      title: status.name,
+      value: status.id,
+    }));
+
+    const projectStatuses = await getLinearProjectStatuses(client);
+    linearProjectStatuses = projectStatuses.map((status) => ({
+      title: status.name,
+      value: status.id,
     }));
   }
 
-  return { scrape, knowledgeGroup, notionPages, confluencePages, linearPages };
+  return {
+    scrape,
+    knowledgeGroup,
+    notionPages,
+    confluencePages,
+    linearIssueStatuses,
+    linearProjectStatuses,
+  };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -163,6 +181,16 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
   if (formData.has("itemContext")) {
     update.itemContext = formData.get("itemContext") as string;
+  }
+  if (formData.has("linearSkipIssueStatuses")) {
+    update.linearSkipIssueStatuses = formData.get(
+      "linearSkipIssueStatuses"
+    ) as string;
+  }
+  if (formData.has("linearSkipProjectStatuses")) {
+    update.linearSkipProjectStatuses = formData.get(
+      "linearSkipProjectStatuses"
+    ) as string;
   }
 
   const group = await prisma.knowledgeGroup.update({
@@ -421,18 +449,68 @@ function ConfluenceSettings({
 
 function LinearSettings({
   group,
-  linearPages,
+  linearIssueStatuses,
+  linearProjectStatuses,
 }: {
   group: KnowledgeGroup;
-  linearPages: Array<SelectValue>;
+  linearIssueStatuses: Array<SelectValue>;
+  linearProjectStatuses: Array<SelectValue>;
 }) {
+  const skipIssueStatusesFetcher = useFetcher();
+  const skipProjectStatusesFetcher = useFetcher();
+
+  const [skipIssueStatuses, setSkipIssueStatuses] = useState<string[]>(
+    group.linearSkipIssueStatuses?.split(",").filter(Boolean) ?? []
+  );
+  const [skipProjectStatuses, setSkipProjectStatuses] = useState<string[]>(
+    group.linearSkipProjectStatuses?.split(",").filter(Boolean) ?? []
+  );
+  const skipIssueStatusesString = useMemo(() => {
+    return skipIssueStatuses.join(",");
+  }, [skipIssueStatuses]);
+  const skipProjectStatusesString = useMemo(() => {
+    return skipProjectStatuses.join(",");
+  }, [skipProjectStatuses]);
+
   return (
     <div className="flex flex-col gap-6">
-      <SkipPagesRegex
-        group={group}
-        pages={linearPages}
-        placeholder="Select pages to skip"
-      />
+      <SettingsSection
+        id="linear-skip-issue-statuses"
+        fetcher={skipIssueStatusesFetcher}
+        title="Skip issue statuses"
+        description="Specify the statuses of the issues that you don't want it to scrape. You can give multiple statuses."
+      >
+        <input
+          value={skipIssueStatusesString}
+          name="linearSkipIssueStatuses"
+          type="hidden"
+        />
+        <MultiSelect
+          value={skipIssueStatuses}
+          onChange={setSkipIssueStatuses}
+          placeholder="Select statuses to skip"
+          selectValues={linearIssueStatuses}
+        />
+      </SettingsSection>
+
+      <SettingsSection
+        id="linear-skip-project-statuses"
+        fetcher={skipProjectStatusesFetcher}
+        title="Skip project statuses"
+        description="Specify the statuses of the projects that you don't want it to scrape. You can give multiple statuses."
+      >
+        <input
+          value={skipProjectStatusesString}
+          name="linearSkipProjectStatuses"
+          type="hidden"
+        />
+        <MultiSelect
+          value={skipProjectStatuses}
+          onChange={setSkipProjectStatuses}
+          placeholder="Select statuses to skip"
+          selectValues={linearProjectStatuses}
+        />
+      </SettingsSection>
 
       <AutoUpdateSettings group={group} />
     </div>
@@ -488,7 +566,8 @@ export default function KnowledgeGroupSettings({
         {loaderData.knowledgeGroup.type === "linear" && (
           <LinearSettings
             group={loaderData.knowledgeGroup}
-            linearPages={loaderData.linearPages}
+            linearIssueStatuses={loaderData.linearIssueStatuses}
+            linearProjectStatuses={loaderData.linearProjectStatuses}
           />
         )}
 

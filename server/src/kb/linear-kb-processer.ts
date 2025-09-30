@@ -1,6 +1,6 @@
 import { KnowledgeGroup } from "libs/prisma";
 import { BaseKbProcesser, KbProcesserListener } from "./kb-processer";
-import { getLinearPages, LinearClient } from "libs/linear";
+import { getLinearIssues, LinearClient } from "libs/linear";
 
 export class LinearKbProcesser extends BaseKbProcesser {
   private readonly client: LinearClient;
@@ -25,31 +25,53 @@ export class LinearKbProcesser extends BaseKbProcesser {
   }
 
   async process() {
-    let pages = await getLinearPages(this.client);
+    let issues = await getLinearIssues(this.client);
 
     const skipRegexes = (
       this.knowledgeGroup.skipPageRegex?.split(",") ?? []
     ).filter(Boolean);
 
-    const filteredPages = pages.filter((page) => {
+    let filteredIssues = issues.filter((issue) => {
       return !skipRegexes.some((regex) => {
         const r = new RegExp(regex.trim());
-        return r.test(page.id);
+        return r.test(issue.id);
       });
     });
+
+    if (this.knowledgeGroup.linearSkipIssueStatuses) {
+      const skipIssueStatuses = this.knowledgeGroup.linearSkipIssueStatuses
+        .split(",")
+        .filter(Boolean);
+      filteredIssues = filteredIssues
+        .filter((issue) => issue.stateId)
+        .filter((issue) => {
+          return !skipIssueStatuses.includes(issue.stateId!);
+        });
+    }
 
     const projects = await this.client.projects();
     do {
       await projects.fetchNext();
     } while (projects.pageInfo.hasNextPage);
 
-    const totalPages = filteredPages.length + projects.nodes.length;
+    let filteredProjects = projects.nodes;
+    if (this.knowledgeGroup.linearSkipProjectStatuses) {
+      const skipProjectStatuses = this.knowledgeGroup.linearSkipProjectStatuses
+        .split(",")
+        .filter(Boolean);
 
-    for (let i = 0; i < filteredPages.length; i++) {
-      const page = filteredPages[i];
+      filteredProjects = filteredProjects.filter((project) => {
+        return !skipProjectStatuses.includes(project.statusId!);
+      });
+    }
+
+    const totalPages = filteredIssues.length + filteredProjects.length;
+
+    for (let i = 0; i < filteredIssues.length; i++) {
+      const issue = filteredIssues[i];
       const parts: string[] = [];
 
-      const linearPage = await this.client.issue(page.id);
+      const linearPage = await this.client.issue(issue.id);
       parts.push(`# ${linearPage.title}\n\n${linearPage.description}`);
 
       const comments = await linearPage.comments();
@@ -71,13 +93,18 @@ export class LinearKbProcesser extends BaseKbProcesser {
         );
       }
 
+      const status = await issue.state;
+      if (status?.name) {
+        parts.push(`Status: ${status.name}`);
+      }
+
       const text = parts.join("\n\n");
 
       this.onContentAvailable(
-        page.url,
+        issue.url,
         {
           text,
-          title: page.title || "Untitled",
+          title: issue.title || "Untitled",
         },
         {
           remaining: totalPages - i,
@@ -86,8 +113,8 @@ export class LinearKbProcesser extends BaseKbProcesser {
       );
     }
 
-    for (let i = 0; i < projects.nodes.length; i++) {
-      const project = projects.nodes[i];
+    for (let i = 0; i < filteredProjects.length; i++) {
+      const project = filteredProjects[i];
       const updates = await project.projectUpdates();
       do {
         await updates.fetchNext();
@@ -98,6 +125,12 @@ export class LinearKbProcesser extends BaseKbProcesser {
       if (project.content) {
         parts.push(project.content);
       }
+
+      const status = await project.status;
+      if (status?.name) {
+        parts.push(`Status: ${status.name}`);
+      }
+
       if (updates.nodes.length > 0) {
         parts.push(
           `### Updates\n${updates.nodes
@@ -115,8 +148,8 @@ export class LinearKbProcesser extends BaseKbProcesser {
           title: project.name || "Untitled",
         },
         {
-          remaining: totalPages - (i + filteredPages.length),
-          completed: i + filteredPages.length,
+          remaining: totalPages - (i + filteredIssues.length),
+          completed: i + filteredIssues.length,
         }
       );
     }

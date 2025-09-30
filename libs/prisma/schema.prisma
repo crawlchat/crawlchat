@@ -465,6 +465,8 @@ model KnowledgeGroup {
   confluenceHost                            String?
 
   linearApiKey                              String?
+  linearSkipIssueStatuses                   String?
+  linearSkipProjectStatuses                 String?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt
