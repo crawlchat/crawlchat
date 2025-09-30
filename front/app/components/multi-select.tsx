@@ -65,15 +65,19 @@ export function MultiSelect({
         {selectValues ? (
           <select
             className="select select-bordered"
-            value={selectedValue ?? undefined}
+            value={selectedValue ?? ""}
             onChange={(e) => setSelectedValue(e.target.value)}
           >
             <option value="" disabled selected>
               {placeholder ?? "Select"}
             </option>
-            {selectValues?.map((value) => (
-              <option key={value.value} value={value.value}>
-                {value.title}
+            {selectValues?.map((selectValue) => (
+              <option
+                key={selectValue.value}
+                value={selectValue.value}
+                disabled={value.includes(selectValue.value)}
+              >
+                {selectValue.title}
               </option>
             ))}
           </select>
@@ -86,7 +90,7 @@ export function MultiSelect({
           />
         )}
         <button
-          className="btn"
+          className="btn btn-neutral"
           disabled={!inputValue && !selectedValue}
           onClick={handleAdd}
         >
