@@ -91,11 +91,6 @@ export async function action({ request, params }: Route.ActionArgs) {
       },
     });
 
-    await prisma.knowledgeGroup.update({
-      where: { id: knowledgeGroupId },
-      data: { status: "processing" },
-    });
-
     return { success: true };
   }
 

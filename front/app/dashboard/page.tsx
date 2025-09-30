@@ -197,10 +197,9 @@ export function meta() {
 function parseCookies(cookieHeader: string) {
   var cookies: Record<string, string> = {};
   cookieHeader
-      .split(";")
-      .map(str => str.replace("=", "\u0000")
-      .split("\u0000"))
-      .forEach(x => cookies[x[0].trim()] = x[1]); 
+    .split(";")
+    .map((str) => str.replace("=", "\u0000").split("\u0000"))
+    .forEach((x) => (cookies[x[0].trim()] = x[1]));
 
   return cookies;
 }
@@ -263,7 +262,8 @@ export async function action({ request }: Route.ActionArgs) {
     const session = await getSession(request.headers.get("cookie"));
     session.set("scrapeId", scrape.id);
 
-    throw redirect("/app?created=true", {
+    const redirectUrl = formData.get("redirectUrl") as string;
+    throw redirect(redirectUrl ?? "/app?created=true", {
       headers: {
         "Set-Cookie": await commitSession(session),
       },

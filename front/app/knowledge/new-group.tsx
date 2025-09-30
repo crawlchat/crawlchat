@@ -198,109 +198,353 @@ export async function action({ request }: { request: Request }) {
       }
     }
 
-    throw redirect(`/knowledge/group/${group.id}`);
+    const shouldRefresh = formData.get("shouldRefresh") === "on";
+    if (shouldRefresh) {
+      await prisma.knowledgeGroup.update({
+        where: { id: group.id },
+        data: { status: "processing" },
+      });
+
+      const token = createToken(user!.id);
+      await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+        method: "POST",
+        body: JSON.stringify({
+          scrapeId,
+          knowledgeGroupId: group.id,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    }
+
+    const redirectUrl = formData.get("redirectUrl") as string;
+    throw redirect(redirectUrl ?? `/knowledge/group/${group.id}`);
   }
+}
+
+export function NewKnowledgeGroupForm({
+  disabled,
+  skip,
+}: {
+  disabled?: boolean;
+  skip?: string[];
+}) {
+  const types = useMemo(function () {
+    const types = [
+      {
+        title: "Web",
+        value: "scrape_web",
+        description: "Scrape a website",
+        icon: <TbWorld />,
+        longDescription:
+          "Scrapes the provided URL and children links it finds and turns them into the knowledge. It can also fetch dynamic content (Javascript based).",
+      },
+      {
+        title: "Docusaurus based",
+        value: "docusaurus",
+        description: "Fetch Docusaurus based docs",
+        icon: <SiDocusaurus />,
+        longDescription:
+          "Scrapes the Docusaurus based docs from the provided URL and turns them into the knowledge. It sets all required settings tailored for Docusaurus.",
+      },
+      {
+        title: "Notion",
+        value: "notion",
+        description: "Scrape a Notion page",
+        icon: <TbBrandNotion />,
+        longDescription: (
+          <p>
+            Connect to a Notion page and turns it into the knowledge. Learn more
+            about creating an API Key{" "}
+            <a
+              href="https://docs.crawlchat.app/knowledge-base/notion"
+              target="_blank"
+              className="link link-primary"
+            >
+              here
+            </a>
+          </p>
+        ),
+      },
+      {
+        title: "GitHub Issues",
+        value: "github_issues",
+        description: "Fetch GitHub issues",
+        icon: <TbBrandGithub />,
+        longDescription:
+          "Fetch GitHub issues from the provided repository and turns them into the knowledge. The repository must be public (for now).",
+      },
+      {
+        title: "Upload",
+        value: "upload",
+        description: "Upload a file",
+        icon: <TbUpload />,
+        longDescription: "Upload a file as the knowledge base",
+      },
+      {
+        title: "Confluence",
+        value: "confluence",
+        description: "Fetch Confluence pages",
+        icon: <FaConfluence />,
+        longDescription: (
+          <p>
+            Fetch Confluence pages as the knowledge base. Learn more about
+            creating an API Key{" "}
+            <a
+              href="https://docs.crawlchat.app/knowledge-base/confluence-pages"
+              target="_blank"
+              className="link link-primary"
+            >
+              here
+            </a>
+          </p>
+        ),
+      },
+      {
+        title: "Linear",
+        value: "linear",
+        description: "Fetch Linear issues",
+        icon: <SiLinear />,
+        longDescription: (
+          <p>
+            Fetch Linear issues as the knowledge base. Learn more about creating
+            an API Key{" "}
+            <a
+              href="https://docs.crawlchat.app/knowledge-base/linear-issues"
+              target="_blank"
+              className="link link-primary"
+            >
+              here
+            </a>
+          </p>
+        ),
+      },
+    ];
+
+    if (skip) {
+      return types.filter((t) => !skip.includes(t.value));
+    }
+
+    return types;
+  }, []);
+  const [type, setType] = useState<string>("scrape_web");
+
+  function getDescription(type: string) {
+    return types.find((t) => t.value === type)?.longDescription;
+  }
+
+  return (
+    <>
+      <div className="p-4 bg-base-200/50 rounded-box border border-base-300">
+        <RadioCard
+          name="type"
+          value={type}
+          onChange={(value) => setType(value)}
+          options={types.map((item) => ({
+            label: item.title,
+            value: item.value,
+            description: item.description,
+            icon: item.icon,
+          }))}
+          cols={3}
+        />
+      </div>
+
+      <p className="text-base-content/50 mt-2">{getDescription(type)}</p>
+
+      <fieldset className="fieldset">
+        <legend className="fieldset-legend">Name</legend>
+        <input
+          type="text"
+          className="input w-full"
+          required
+          placeholder="Ex: Documentation"
+          name="title"
+          disabled={disabled}
+        />
+      </fieldset>
+
+      {type === "scrape_web" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">URL</legend>
+            <input
+              className="input w-full"
+              type="url"
+              required
+              pattern="^https?://.+"
+              placeholder="https://example.com"
+              name="url"
+              disabled={disabled}
+            />
+          </fieldset>
+
+          <label className="label">
+            <input
+              type="checkbox"
+              name="prefix"
+              defaultChecked
+              className="toggle"
+              disabled={disabled}
+            />
+            Match exact prefix
+          </label>
+        </>
+      )}
+
+      {type === "upload" && (
+        <>
+          <input type="hidden" name="url" value="file" />
+          <input
+            type="file"
+            name="file"
+            required
+            className="file-input w-full"
+            accept={
+              "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown"
+            }
+            multiple
+            disabled={disabled}
+          />
+        </>
+      )}
+
+      {type === "docusaurus" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Docs URL</legend>
+            <input
+              className="input w-full"
+              type="url"
+              required
+              pattern="^https?://.+"
+              placeholder="https://example.com/docs"
+              name="url"
+              disabled={disabled}
+            />
+          </fieldset>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Versions to skip</legend>
+            <input
+              className="input w-full"
+              type="text"
+              placeholder="Ex: 1.0.0, 1.1.0, 2.x"
+              name="versionsToSkip"
+              disabled={disabled}
+            />
+          </fieldset>
+          <input
+            type="hidden"
+            name="removeHtmlTags"
+            value="nav,aside,footer,header,.theme-announcement-bar"
+          />
+          <input type="hidden" name="prefix" value="on" />
+          <input
+            type="hidden"
+            name="skipPageRegex"
+            value="/docs/[0-9x]+\.[0-9x]+\.[0-9x]+,/docs/next"
+          />
+          <input type="hidden" name="subType" value="docusaurus" />
+        </>
+      )}
+
+      {type === "github_issues" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">GitHub Repo URL</legend>
+            <input
+              type="url"
+              className="input w-full"
+              name="githubRepoUrl"
+              placeholder="https://github.com/user/repo"
+              pattern="^https://github.com/.+$"
+              required
+            />
+          </fieldset>
+        </>
+      )}
+
+      {type === "notion" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">
+              Internal Integration Secret
+            </legend>
+            <input
+              className="input w-full"
+              type="text"
+              name="notionSecret"
+              placeholder="Ex: ntn_xxxxx"
+              required
+            />
+          </fieldset>
+        </>
+      )}
+
+      {type === "confluence" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Email</legend>
+            <input
+              className="input w-full"
+              type="text"
+              name="confluenceEmail"
+              placeholder="Ex: your@email.com"
+              required
+              pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+              disabled={disabled}
+            />
+          </fieldset>
+
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Host</legend>
+            <input
+              className="input w-full"
+              type="text"
+              name="confluenceHost"
+              placeholder="Ex: https://yourhost.atlassian.net"
+              required
+              pattern="^https://[a-b-_]+\\.atlassian\\.net$"
+              disabled={disabled}
+            />
+          </fieldset>
+
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Confluence API Key</legend>
+            <input
+              className="input w-full"
+              type="text"
+              name="confluenceApiKey"
+              placeholder="Ex: ATATTXXXXXX"
+              required
+              disabled={disabled}
+            />
+          </fieldset>
+        </>
+      )}
+
+      {type === "linear" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Linear API Key</legend>
+            <input
+              className="input w-full"
+              type="text"
+              name="linearApiKey"
+              placeholder="Ex: lin_api_xxxx"
+              required
+            />
+          </fieldset>
+        </>
+      )}
+    </>
+  );
 }
 
 export default function NewScrape({ loaderData }: Route.ComponentProps) {
   const scrapeFetcher = useFetcher();
-
-  const types = useMemo(
-    function () {
-      return [
-        {
-          title: "Web",
-          value: "scrape_web",
-          description: "Scrape a website",
-          icon: <TbWorld />,
-          longDescription:
-            "Scrapes the provided URL and children links it finds and turns them into the knowledge. It can also fetch dynamic content (Javascript based).",
-        },
-        {
-          title: "Docusaurus based",
-          value: "docusaurus",
-          description: "Fetch Docusaurus based docs",
-          icon: <SiDocusaurus />,
-          longDescription:
-            "Scrapes the Docusaurus based docs from the provided URL and turns them into the knowledge. It sets all required settings tailored for Docusaurus.",
-        },
-        {
-          title: "Notion",
-          value: "notion",
-          description: "Scrape a Notion page",
-          icon: <TbBrandNotion />,
-          longDescription: (
-            <p>
-              Connect to a Notion page and turns it into the knowledge. Learn
-              more about creating an API Key{" "}
-              <a
-                href="https://docs.crawlchat.app/knowledge-base/notion"
-                target="_blank"
-                className="link link-primary"
-              >
-                here
-              </a>
-            </p>
-          ),
-        },
-        {
-          title: "GitHub Issues",
-          value: "github_issues",
-          description: "Fetch GitHub issues",
-          icon: <TbBrandGithub />,
-          longDescription:
-            "Fetch GitHub issues from the provided repository and turns them into the knowledge. The repository must be public (for now).",
-        },
-        {
-          title: "Upload",
-          value: "upload",
-          description: "Upload a file. Supports pdf, docx, pptx",
-          icon: <TbUpload />,
-          longDescription: "Upload a file as the knowledge base",
-        },
-        {
-          title: "Confluence",
-          value: "confluence",
-          description: "Fetch Confluence pages",
-          icon: <FaConfluence />,
-          longDescription: (
-            <p>
-              Fetch Confluence pages as the knowledge base. Learn more about
-              creating an API Key{" "}
-              <a
-                href="https://docs.crawlchat.app/knowledge-base/confluence-pages"
-                target="_blank"
-                className="link link-primary"
-              >
-                here
-              </a>
-            </p>
-          ),
-        },
-        {
-          title: "Linear",
-          value: "linear",
-          description: "Fetch Linear issues",
-          icon: <SiLinear />,
-          longDescription: (
-            <p>
-              Fetch Linear issues as the knowledge base. Learn more about
-              creating an API Key{" "}
-              <a
-                href="https://docs.crawlchat.app/knowledge-base/linear-issues"
-                target="_blank"
-                className="link link-primary"
-              >
-                here
-              </a>
-            </p>
-          ),
-        },
-      ];
-    },
-    [loaderData.scrapes]
-  );
-  const [type, setType] = useState<string>("scrape_web");
 
   useEffect(() => {
     if (scrapeFetcher.data?.error) {
@@ -312,215 +556,11 @@ export default function NewScrape({ loaderData }: Route.ComponentProps) {
     }
   }, [scrapeFetcher.data]);
 
-  function getDescription(type: string) {
-    return types.find((t) => t.value === type)?.longDescription;
-  }
-
   return (
     <Page title="New knowledge group" icon={<TbBook2 />}>
       <scrapeFetcher.Form method="post" encType="multipart/form-data">
         <div className="flex flex-col gap-2">
-          <div className="p-4 bg-base-200/50 rounded-box border border-base-300">
-            <RadioCard
-              name="type"
-              value={type}
-              onChange={(value) => setType(value)}
-              options={types.map((item) => ({
-                label: item.title,
-                value: item.value,
-                description: item.description,
-                icon: item.icon,
-              }))}
-              cols={3}
-            />
-          </div>
-
-          <p className="text-base-content/50 mt-2">{getDescription(type)}</p>
-
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Name</legend>
-            <input
-              type="text"
-              className="input w-full"
-              required
-              placeholder="Ex: Documentation"
-              name="title"
-              disabled={scrapeFetcher.state !== "idle"}
-            />
-          </fieldset>
-
-          {type === "scrape_web" && (
-            <>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">URL</legend>
-                <input
-                  className="input w-full"
-                  type="url"
-                  required
-                  pattern="^https?://.+"
-                  placeholder="https://example.com"
-                  name="url"
-                  disabled={scrapeFetcher.state !== "idle"}
-                />
-              </fieldset>
-
-              <label className="label">
-                <input
-                  type="checkbox"
-                  name="prefix"
-                  defaultChecked
-                  className="toggle"
-                />
-                Match exact prefix
-              </label>
-            </>
-          )}
-
-          {type === "upload" && (
-            <>
-              <input type="hidden" name="url" value="file" />
-              <input
-                type="file"
-                name="file"
-                required
-                className="file-input w-full"
-                accept={
-                  "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown"
-                }
-                multiple
-                disabled={scrapeFetcher.state !== "idle"}
-              />
-            </>
-          )}
-
-          {type === "docusaurus" && (
-            <>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Docs URL</legend>
-                <input
-                  className="input w-full"
-                  type="url"
-                  required
-                  pattern="^https?://.+"
-                  placeholder="https://example.com/docs"
-                  name="url"
-                  disabled={scrapeFetcher.state !== "idle"}
-                />
-              </fieldset>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Versions to skip</legend>
-                <input
-                  className="input w-full"
-                  type="text"
-                  placeholder="Ex: 1.0.0, 1.1.0, 2.x"
-                  name="versionsToSkip"
-                  disabled={scrapeFetcher.state !== "idle"}
-                />
-              </fieldset>
-              <input
-                type="hidden"
-                name="removeHtmlTags"
-                value="nav,aside,footer,header,.theme-announcement-bar"
-              />
-              <input type="hidden" name="prefix" value="on" />
-              <input
-                type="hidden"
-                name="skipPageRegex"
-                value="/docs/[0-9x]+\.[0-9x]+\.[0-9x]+,/docs/next"
-              />
-              <input type="hidden" name="subType" value="docusaurus" />
-            </>
-          )}
-
-          {type === "github_issues" && (
-            <>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">GitHub Repo URL</legend>
-                <input
-                  type="url"
-                  className="input w-full"
-                  name="githubRepoUrl"
-                  placeholder="https://github.com/user/repo"
-                  pattern="^https://github.com/.+$"
-                  required
-                />
-              </fieldset>
-            </>
-          )}
-
-          {type === "notion" && (
-            <>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">
-                  Internal Integration Secret
-                </legend>
-                <input
-                  className="input w-full"
-                  type="text"
-                  name="notionSecret"
-                  placeholder="Ex: ntn_xxxxx"
-                  required
-                />
-              </fieldset>
-            </>
-          )}
-
-          {type === "confluence" && (
-            <>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Email</legend>
-                <input
-                  className="input w-full"
-                  type="text"
-                  name="confluenceEmail"
-                  placeholder="Ex: your@email.com"
-                  required
-                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                  disabled={scrapeFetcher.state !== "idle"}
-                />
-              </fieldset>
-
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Host</legend>
-                <input
-                  className="input w-full"
-                  type="text"
-                  name="confluenceHost"
-                  placeholder="Ex: https://yourhost.atlassian.net"
-                  required
-                  pattern="^https://[a-b-_]+\\.atlassian\\.net$"
-                  disabled={scrapeFetcher.state !== "idle"}
-                />
-              </fieldset>
-
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Confluence API Key</legend>
-                <input
-                  className="input w-full"
-                  type="text"
-                  name="confluenceApiKey"
-                  placeholder="Ex: ATATTXXXXXX"
-                  required
-                  disabled={scrapeFetcher.state !== "idle"}
-                />
-              </fieldset>
-            </>
-          )}
-
-          {type === "linear" && (
-            <>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Linear API Key</legend>
-                <input
-                  className="input w-full"
-                  type="text"
-                  name="linearApiKey"
-                  placeholder="Ex: lin_api_xxxx"
-                  required
-                />
-              </fieldset>
-            </>
-          )}
+          <NewKnowledgeGroupForm disabled={scrapeFetcher.state !== "idle"} />
 
           <div className="flex justify-end">
             <button

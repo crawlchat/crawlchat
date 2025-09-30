@@ -27,6 +27,7 @@ export async function signUpNewUser(
           limits: PLAN_FREE.limits,
           activatedAt: new Date(),
         },
+        showOnboarding: true,
       },
     });
 
@@ -56,6 +57,15 @@ export async function signUpNewUser(
         user.email,
         scrapeUser.scrape.title ?? "CrawlChat"
       );
+    }
+
+    if (pendingScrapeUsers.length > 0) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          showOnboarding: false,
+        },
+      });
     }
 
     await sendWelcomeEmail(email);
