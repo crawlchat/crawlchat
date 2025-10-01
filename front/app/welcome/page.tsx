@@ -127,6 +127,7 @@ function Steps({
     <ul className="steps steps-vertical lg:steps-horizontal w-full">
       {steps.map((step, i) => (
         <li
+          key={step.key}
           className={cn(
             "step",
             completedSteps.includes(step.key) && "step-primary",
@@ -200,10 +201,10 @@ function useWelcome() {
   }, [loaderData, skippedSteps]);
 
   const currentStep = useMemo<Step>(() => {
-    const nonCompletedSteps = steps.filter(
+    const pendingSteps = steps.filter(
       (step) => !completedSteps.includes(step.key)
     );
-    return nonCompletedSteps[0];
+    return pendingSteps[0];
   }, [completedSteps]);
 
   const skipStep = (step: Step) => {
