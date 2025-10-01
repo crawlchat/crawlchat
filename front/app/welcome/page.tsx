@@ -451,9 +451,19 @@ export default function WelcomePage() {
     <WelcomeContext.Provider value={welcome}>
       <div className="md:p-10 p-4 flex justify-center w-full">
         <div className="w-full max-w-[900px]">
-          <div className="flex justify-center mb-10 mt-6 md:mt-0">
+          <div className="flex justify-center mb-2 mt-6 md:mt-0">
             <Logo />
           </div>
+
+          <p className="text-base-content/50 text-center mb-10">
+            Welcome! Let's get you set up. Or go to{" "}
+            <a
+              href="/app?skip-onboarding=true"
+              className="link link-primary link-hover"
+            >
+              dashboard
+            </a>
+          </p>
 
           <Steps
             completedSteps={welcome.completedSteps}

@@ -29,6 +29,17 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("cookie"));
   const scrapeId = session.get("scrapeId");
 
+  const url = new URL(request.url);
+  const skipOnboarding = url.searchParams.get("skip-onboarding");
+
+  if (skipOnboarding) {
+    await prisma.user.update({
+      where: { id: user!.id },
+      data: { showOnboarding: false },
+    });
+    throw redirect("/app");
+  }
+
   const isWelcome = request.url.endsWith("/welcome");
 
   if (user!.showOnboarding && !isWelcome) {
