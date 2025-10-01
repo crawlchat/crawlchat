@@ -356,7 +356,7 @@ export function SideMenu({
               </button>
               <ul
                 tabIndex={0}
-                className="menu dropdown-content bg-base-100 rounded-box z-1 w-full shadow"
+                className="menu dropdown-content bg-base-200 rounded-box z-1 w-full shadow"
               >
                 {scrapes.map((scrape) => (
                   <li key={scrape.id}>
