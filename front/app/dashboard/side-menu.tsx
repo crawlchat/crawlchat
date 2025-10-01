@@ -408,7 +408,7 @@ export function SideMenu({
             </Link>
           </div>
         </div>
-        {scrapeId && <SetupProgress scrapeId={scrapeId} />}
+        {/* {scrapeId && <SetupProgress scrapeId={scrapeId} />} */}
         <div
           className={cn(
             "flex flex-col gap-2 bg-base-200 rounded-box",
