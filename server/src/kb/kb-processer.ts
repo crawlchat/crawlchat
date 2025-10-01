@@ -71,7 +71,6 @@ export abstract class BaseKbProcesser implements KbProcesser {
   abstract process(): Promise<void>;
 
   async start() {
-    await this.assertCreditsAvailable();
     await this.onBeforeStart();
     await this.process();
     await this.onComplete();

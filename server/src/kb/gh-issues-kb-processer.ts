@@ -44,7 +44,6 @@ export class GithubIssuesKbProcesser extends BaseKbProcesser {
         continue;
       }
 
-      this.assertCreditsAvailable();
       const timeline = await getIssueTimeline({
         repo,
         username,
