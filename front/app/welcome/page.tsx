@@ -101,12 +101,12 @@ const steps: Step[] = [
   },
   {
     key: "refresh-knowledge",
-    title: "Fetch",
+    title: "Sync knowledge",
     description: "Refresh the knowledge",
   },
   {
     key: "try-chat",
-    title: "Try chat",
+    title: "Ask AI",
     description: "Try the chatbot",
   },
   {
