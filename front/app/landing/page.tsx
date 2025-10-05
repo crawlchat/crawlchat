@@ -1231,7 +1231,7 @@ export function Nav() {
             <ul
               tabIndex={0}
               className={cn(
-                "dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2",
+                "dropdown-content menu bg-base-100 rounded-box z-1 w-72 p-2",
                 "shadow-sm mt-2"
               )}
             >
@@ -1242,7 +1242,7 @@ export function Nav() {
                     Community support
                   </span>
                   <span className="text-sm text-base-content/50">
-                    A short description
+                    Let your community get the answers from your docs instantly
                   </span>
                 </a>
               </li>
@@ -1253,7 +1253,7 @@ export function Nav() {
                     Internal assistant
                   </span>
                   <span className="text-sm text-base-content/50">
-                    A short description
+                    Let your internal teams have a unified knowledge base
                   </span>
                 </a>
               </li>
@@ -1264,7 +1264,8 @@ export function Nav() {
                     Empower GTM teams
                   </span>
                   <span className="text-sm text-base-content/50">
-                    A short description
+                    Maket your GTM teams to be product experts to make better
+                    decisions
                   </span>
                 </a>
               </li>
