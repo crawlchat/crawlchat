@@ -277,6 +277,7 @@ client.once(Events.ClientReady, (readyClient) => {
 });
 
 client.on(Events.MessageCreate, async (message) => {
+  console.log("Message created", message.content);
   if (
     message.mentions.users.has(process.env.BOT_USER_ID!) &&
     message.author.id !== process.env.BOT_USER_ID!
