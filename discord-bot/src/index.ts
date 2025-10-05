@@ -288,11 +288,6 @@ client.once(Events.ClientReady, (readyClient) => {
 });
 
 client.on(Events.MessageCreate, async (message) => {
-  console.log(
-    "Message created",
-    message.content,
-    message.embeds.map((e) => [e.title, e.description])
-  );
   if (
     (message.mentions.users.has(process.env.BOT_USER_ID!) ||
       message.content.includes("<@&1409463850805231740>")) && // for Postiz
