@@ -16,6 +16,7 @@ import { useFetcher, useLoaderData } from "react-router";
 import { NewKnowledgeGroupForm } from "~/knowledge/new-group";
 import { Logo } from "~/dashboard/logo";
 import Confetti from "react-confetti-boom";
+import { track } from "~/pirsch";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -448,6 +449,10 @@ function DashboardStep() {
 
 export default function WelcomePage() {
   const welcome = useWelcome();
+
+  useEffect(() => {
+    track("welcome", {});
+  }, []);
 
   return (
     <WelcomeContext.Provider value={welcome}>

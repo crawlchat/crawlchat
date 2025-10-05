@@ -30,6 +30,7 @@ import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import { getQueryString } from "libs/llm-message";
 import { dodoGateway } from "~/payment/gateway-dodo";
+import { track } from "~/pirsch";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -344,6 +345,10 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     }
     return data;
   }, [loaderData.scoreDestribution]);
+
+  useEffect(() => {
+    track("dashboard", {});
+  }, []);
 
   useEffect(() => {
     if (containerRef.current) {
