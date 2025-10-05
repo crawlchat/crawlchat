@@ -55,7 +55,7 @@ import {
   PLAN_HOBBY,
   type Plan,
 } from "libs/user-plan";
-import { useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
 import { makeMeta } from "~/meta";
 import cn from "@meltdownjs/cn";
@@ -1215,7 +1215,9 @@ export function Footer() {
 export function Nav() {
   return (
     <nav className="flex items-center justify-between gap-2 lg:py-6">
-      <Logo />
+      <Link to="/">
+        <Logo />
+      </Link>
 
       <div className="flex items-center gap-8">
         <div className="items-center gap-8 hidden md:flex">
@@ -1236,7 +1238,10 @@ export function Nav() {
               )}
             >
               <li>
-                <a className="flex flex-col gap-0 items-start">
+                <Link
+                  className="flex flex-col gap-0 items-start"
+                  to="/use-case/community-support"
+                >
                   <span className="flex items-center gap-2">
                     <TbUsers />
                     Community support
@@ -1244,31 +1249,24 @@ export function Nav() {
                   <span className="text-sm text-base-content/50">
                     Let your community get the answers from your docs instantly
                   </span>
-                </a>
+                </Link>
               </li>
+
               <li>
-                <a className="flex flex-col gap-0 items-start">
+                <Link
+                  className="flex flex-col gap-0 items-start"
+                  to="/use-case/empower-gtm-teams"
+                >
                   <span className="flex items-center gap-2">
                     <TbRobotFace />
                     Internal assistant
                   </span>
                   <span className="text-sm text-base-content/50">
-                    Let your internal teams have a unified knowledge base
+                    Let your internal teams have a unified knowledge base. Best for GTM teams
                   </span>
-                </a>
+                </Link>
               </li>
-              <li>
-                <a className="flex flex-col gap-0 items-start">
-                  <span className="flex items-center gap-2">
-                    <TbUserStar />
-                    Empower GTM teams
-                  </span>
-                  <span className="text-sm text-base-content/50">
-                    Maket your GTM teams to be product experts to make better
-                    decisions
-                  </span>
-                </a>
-              </li>
+              
             </ul>
           </div>
           <NavLink href="/#pricing">Pricing</NavLink>

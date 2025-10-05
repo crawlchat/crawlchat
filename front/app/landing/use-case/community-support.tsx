@@ -2,7 +2,6 @@ import { Container, HeadingHighlight } from "../page";
 import {
   TbBrandDiscord,
   TbBrandGithub,
-  TbBrandNotion,
   TbBrandSlack,
   TbChartBar,
   TbCheck,
@@ -15,7 +14,6 @@ import {
   TbUpload,
   TbWorld,
 } from "react-icons/tb";
-import { FaConfluence } from "react-icons/fa";
 import { makeMeta } from "~/meta";
 import { Channels, Connectors, UseCaseHero, UseCaseIssues } from "./component";
 import { SiDocusaurus, SiLinear } from "react-icons/si";
@@ -52,7 +50,7 @@ export default function CommunitySupport() {
               shortAnswer: "Embed the answering agent on your website",
               answer:
                 "The way people read the docs is changing. It is required to provide an easy way to get the answers from the docs. Text based search is not enough anymore. So, CrawlChat provides you a chat widget that you can embed on your website so that your community can get the answers from the docs website. It also provides the links to the docs that it uses to answer the questions.",
-              image: "/use-case/discord.png",
+              image: "/use-case/chat-widget.png",
               features: [
                 {
                   icon: <TbWorld />,
@@ -74,7 +72,7 @@ export default function CommunitySupport() {
               shortAnswer: "Answers queries from your docs",
               answer:
                 "CrawlChat makes the knowledge base from your docs and uses it to answer the questions. So, your community members can get the answers they need without waiting for you to respond. This makes sure that your support team is not overwhelmed with queries.",
-              image: "/use-case/discord.png",
+              image: "/use-case/group-types.png",
               features: [
                 {
                   icon: <TbClock />,
@@ -116,7 +114,7 @@ export default function CommunitySupport() {
               shortAnswer: "Be on top of the answers and analytics",
               answer:
                 "Once integrated, you can view all the conversations and answers from the dashboard. You can view the confidence score of each message and correct the answers if needed. You can also view the analytics to see how the chatbot is performing and improve your docs.",
-              image: "/use-case/discord.png",
+              image: "/use-case/messages.png",
               features: [
                 {
                   icon: <TbMessages />,

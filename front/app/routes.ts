@@ -93,6 +93,7 @@ export default [
 
     ...prefix("use-case", [
       route("community-support", "landing/use-case/community-support.tsx"),
+      route("empower-gtm-teams", "landing/use-case/empower-gtm-teams.tsx"),
     ]),
   ]),
 
