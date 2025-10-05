@@ -41,6 +41,8 @@ import {
   TbThumbUp,
   TbUpload,
   TbUserHeart,
+  TbUsers,
+  TbUserStar,
   TbVideo,
   TbWorld,
 } from "react-icons/tb";
@@ -60,6 +62,7 @@ import cn from "@meltdownjs/cn";
 import { SiDocusaurus } from "react-icons/si";
 import { FaConfluence } from "react-icons/fa";
 import { Logo } from "~/dashboard/logo";
+import { MCPIcon } from "~/mcp-icon";
 
 export function meta() {
   return makeMeta({
@@ -328,7 +331,7 @@ export function HeadingHighlight({ children }: PropsWithChildren) {
   );
 }
 
-function HeadingDescription({ children }: PropsWithChildren) {
+export function HeadingDescription({ children }: PropsWithChildren) {
   return (
     <p className="text-center text-xl font-medium max-w-[760px] mx-auto py-8 opacity-60">
       {children}
@@ -453,7 +456,7 @@ function Works() {
   );
 }
 
-function Badge({ children }: PropsWithChildren) {
+export function Badge({ children }: PropsWithChildren) {
   return (
     <div className="flex items-center gap-2 justify-center mb-4">
       <div className="badge badge-secondary badge-soft badge-lg">
@@ -555,8 +558,6 @@ function FeaturesWithImage({
 function ChannelWidget() {
   return (
     <div className="mt-32">
-      <Badge>Use case</Badge>
-
       <Heading>
         <HeadingHighlight>24x7 assistant</HeadingHighlight> on your docs
       </Heading>
@@ -604,8 +605,6 @@ function ChannelWidget() {
 function ChannelDiscord() {
   return (
     <div className="mt-32">
-      <Badge>Use case</Badge>
-
       <Heading>
         Deliver your docs to your{" "}
         <HeadingHighlight>internal teams</HeadingHighlight>
@@ -663,8 +662,6 @@ function ChannelDiscord() {
 function ChannelMCP() {
   return (
     <div className="mt-32">
-      <Badge>Use case</Badge>
-
       <Heading>
         You docs on AI apps as an <HeadingHighlight>MCP</HeadingHighlight>{" "}
         server
@@ -1035,7 +1032,7 @@ export function CTA({ text }: { text?: string }) {
   return (
     <div className="mt-32" id="cta">
       <div className="w-full bg-gradient-to-b from-base-100 to-base-200 shadow-md rounded-2xl py-16 px-10 relative">
-        <h2 className="font-radio-grotesk text-[42px] md:text-[54px] leading-[1.2] font-medium text-center max-w-[800px] mx-auto">
+        <h2 className="font-radio-grotesk text-[42px] md:text-[54px] leading-[1.2] font-medium text-center max-w-[900px] mx-auto">
           {text ||
             "Deliver your tech doc with AI to your community and internal teams now!"}
         </h2>
@@ -1222,8 +1219,58 @@ export function Nav() {
 
       <div className="flex items-center gap-8">
         <div className="items-center gap-8 hidden md:flex">
+          <div className="dropdown">
+            <div
+              tabIndex={0}
+              role="button"
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              Use cases
+              <TbChevronDown />
+            </div>
+            <ul
+              tabIndex={0}
+              className={cn(
+                "dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2",
+                "shadow-sm mt-2"
+              )}
+            >
+              <li>
+                <a className="flex flex-col gap-0 items-start">
+                  <span className="flex items-center gap-2">
+                    <TbUsers />
+                    Community support
+                  </span>
+                  <span className="text-sm text-base-content/50">
+                    A short description
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a className="flex flex-col gap-0 items-start">
+                  <span className="flex items-center gap-2">
+                    <TbRobotFace />
+                    Internal assistant
+                  </span>
+                  <span className="text-sm text-base-content/50">
+                    A short description
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a className="flex flex-col gap-0 items-start">
+                  <span className="flex items-center gap-2">
+                    <TbUserStar />
+                    Empower GTM teams
+                  </span>
+                  <span className="text-sm text-base-content/50">
+                    A short description
+                  </span>
+                </a>
+              </li>
+            </ul>
+          </div>
           <NavLink href="/#pricing">Pricing</NavLink>
-          <NavLink href="https://docs.crawlchat.app">Docs</NavLink>
           <NavLink href="/changelog">Changelog</NavLink>
           <NavLink href="/blog">Blog</NavLink>
           <NavLink href="/public-bots">Public bots</NavLink>
@@ -1290,7 +1337,7 @@ function Hero() {
           <span className="text-primary">instantly!</span>
         </h1>
 
-        <h2 className="text-xl mt-6">
+        <p className="text-xl mt-6">
           Your users don't want to dig through endless pages of docs. They want
           answers that meet them where they are. With CrawlChat you get
           <ul className="mt-4 flex flex-col gap-2">
@@ -1303,7 +1350,7 @@ function Hero() {
               </li>
             ))}
           </ul>
-        </h2>
+        </p>
 
         <div
           className={cn(
@@ -1975,6 +2022,65 @@ function Gallery() {
   );
 }
 
+export function SourceCard({
+  icon,
+  title,
+  tooltip,
+}: {
+  icon: ReactNode;
+  title: string;
+  tooltip: string;
+}) {
+  return (
+    <div
+      className="tooltip tooltip-bottom before:max-w-36 md:before:max-w-64"
+      data-tip={tooltip}
+    >
+      <div
+        className={cn(
+          "flex flex-col items-center gap-2 bg-primary/5 p-4 rounded-box w-fit",
+          "border border-primary/20 w-36"
+        )}
+      >
+        <div className="text-4xl text-primary">{icon}</div>
+        <div className="font-radio-grotesk text-lg text-primary/80 text-center">
+          {title}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ChannelCard({
+  icon,
+  title,
+  tooltip,
+}: {
+  icon: ReactNode;
+  title: string;
+  tooltip: string;
+}) {
+  return (
+    <div
+      key={title}
+      className="tooltip before:max-w-36 md:before:max-w-64"
+      data-tip={tooltip}
+    >
+      <div
+        className={cn(
+          "flex flex-col items-center gap-2 bg-secondary/5 p-4 rounded-box w-fit",
+          "border border-secondary/20 w-36"
+        )}
+      >
+        <div className="text-4xl text-secondary">{icon}</div>
+        <div className="font-radio-grotesk text-lg text-secondary/80 text-center">
+          {title}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SourcesChannels() {
   const sources = [
     {
@@ -2026,21 +2132,7 @@ function SourcesChannels() {
       tooltip: "Add the Discord bot and ask questions by tagging @crawlchat",
     },
     {
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          width="1em"
-          height="1em"
-          fill="currentColor"
-          fillRule="evenodd"
-          style={{ flex: "none", lineHeight: 1 }}
-          aria-label="ModelContextProtocol"
-        >
-          <path d="M15.688 2.343a2.588 2.588 0 00-3.61 0l-9.626 9.44a.863.863 0 01-1.203 0 .823.823 0 010-1.18l9.626-9.44a4.313 4.313 0 016.016 0 4.116 4.116 0 011.204 3.54 4.3 4.3 0 013.609 1.18l.05.05a4.115 4.115 0 010 5.9l-8.706 8.537a.274.274 0 000 .393l1.788 1.754a.823.823 0 010 1.18.863.863 0 01-1.203 0l-1.788-1.753a1.92 1.92 0 010-2.754l8.706-8.538a2.47 2.47 0 000-3.54l-.05-.049a2.588 2.588 0 00-3.607-.003l-7.172 7.034-.002.002-.098.097a.863.863 0 01-1.204 0 .823.823 0 010-1.18l7.273-7.133a2.47 2.47 0 00-.003-3.537z" />
-          <path d="M14.485 4.703a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a4.115 4.115 0 000 5.9 4.314 4.314 0 006.016 0l7.12-6.982a.823.823 0 000-1.18.863.863 0 00-1.204 0l-7.119 6.982a2.588 2.588 0 01-3.61 0 2.47 2.47 0 010-3.54l7.12-6.982z" />
-        </svg>
-      ),
+      icon: <MCPIcon />,
       title: "MCP",
       tooltip: "Distribute your docs as an MCP server",
     },
@@ -2075,23 +2167,12 @@ function SourcesChannels() {
         <p className="text-base-content/20">Sources</p>
         <div className="flex gap-4 justify-center flex-wrap">
           {sources.map((source, index) => (
-            <div
+            <SourceCard
               key={index}
-              className="tooltip tooltip-bottom before:max-w-36 md:before:max-w-64"
-              data-tip={source.tooltip}
-            >
-              <div
-                className={cn(
-                  "flex flex-col items-center gap-2 bg-primary/5 p-4 rounded-box w-fit",
-                  "border border-primary/20 w-36"
-                )}
-              >
-                <div className="text-4xl text-primary">{source.icon}</div>
-                <div className="font-radio-grotesk text-lg text-primary/80 text-center">
-                  {source.title}
-                </div>
-              </div>
-            </div>
+              icon={source.icon}
+              title={source.title}
+              tooltip={source.tooltip}
+            />
           ))}
         </div>
       </div>
@@ -2131,23 +2212,12 @@ function SourcesChannels() {
       <div className="flex flex-col items-center gap-2">
         <div className="flex gap-4 justify-center flex-wrap">
           {channels.map((channel) => (
-            <div
+            <ChannelCard
               key={channel.title}
-              className="tooltip before:max-w-36 md:before:max-w-64"
-              data-tip={channel.tooltip}
-            >
-              <div
-                className={cn(
-                  "flex flex-col items-center gap-2 bg-secondary/5 p-4 rounded-box w-fit",
-                  "border border-secondary/20 w-36"
-                )}
-              >
-                <div className="text-4xl text-secondary">{channel.icon}</div>
-                <div className="font-radio-grotesk text-lg text-secondary/80 text-center">
-                  {channel.title}
-                </div>
-              </div>
-            </div>
+              icon={channel.icon}
+              title={channel.title}
+              tooltip={channel.tooltip}
+            />
           ))}
         </div>
 
