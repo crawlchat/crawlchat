@@ -4,6 +4,7 @@ import {
   prisma,
   QuestionSentiment,
   Scrape,
+  ScrapeMessageCategory,
 } from "libs/prisma";
 import { SimpleAgent } from "./agentic";
 import { z } from "zod";
@@ -49,8 +50,6 @@ export async function decomposeQuestion(question: string) {
   if (!content) {
     return null;
   }
-
-  console.log("decomposed questions", content);
 
   return JSON.parse(content).questions;
 }
@@ -149,11 +148,10 @@ export async function analyseMessage(
   question: string,
   answer: string,
   recentQuestions: string[],
-  threadQuestions: string[]
+  threadQuestions: string[],
+  categories: ScrapeMessageCategory[]
 ) {
-  const agent = new SimpleAgent({
-    id: "analyser",
-    prompt: `
+  let prompt = `
     You are a helpful assistant that analyses a message and returns a message analysis.
     You need to analyse the question, answer and the sources provided and give back the details provided.
 
@@ -172,33 +170,63 @@ export async function analyseMessage(
     <thread-questions>
     ${threadQuestions.join("\n\n")}
     </thread-questions>
-    `,
-    schema: z.object({
-      questionSentiment: z.nativeEnum(QuestionSentiment).describe(
-        `
-          The sentiment of the question.
-          It should be one of the following: ${Object.values(
-            QuestionSentiment
-          ).join(", ")}
-        `
-      ),
-      shortQuestion: z.string().describe(
-        `
-          The short verstion for the question.
-          It should be under 10 words.
-          It should be in question format.
-        `
-      ),
-      followUpQuestions: z.array(z.string()).describe(
-        `
-          Use the recent questions to generate follow up questions.
-          Don't use the recent questions as it is.
-          Use the thread questions to generate follow up questions related to the thread.
-          Max it should be 3 questions.
-          It should not be part of thread questions.
-        `
-      ),
-    }),
+    `;
+
+  const schema: Record<string, z.ZodSchema> = {
+    questionSentiment: z.nativeEnum(QuestionSentiment).describe(
+      `
+        The sentiment of the question.
+        It should be one of the following: ${Object.values(
+          QuestionSentiment
+        ).join(", ")}
+      `
+    ),
+    shortQuestion: z.string().describe(
+      `
+        The short verstion for the question.
+        It should be under 10 words.
+        It should be in question format.
+      `
+    ),
+    followUpQuestions: z.array(z.string()).describe(
+      `
+        Use the recent questions to generate follow up questions.
+        Don't use the recent questions as it is.
+        Use the thread questions to generate follow up questions related to the thread.
+        Max it should be 3 questions.
+        It should not be part of thread questions.
+      `
+    ),
+    categorySuggestions: z.array(z.string()).describe(
+      `
+        Suggest categories for the question.
+        It should be under 3 categories.
+        It should not be one of the following: ${categories.join(", ")}
+      `
+    ),
+  };
+
+  if (categories.length > 0) {
+    const categoryNames = categories.map((c) => c.title);
+    prompt += `
+
+      <categories>
+      ${categories.map((c) => `${c.title}: ${c.description}`).join("\n\n")}
+      </categories>
+    `;
+    schema.category = z.enum(categoryNames as [string, ...string[]]).describe(
+      `
+        The category of the question.
+        It should be one of the following: ${categoryNames.join(", ")}
+        You can leave it null or empty if you don't find any matching category.
+      `
+    );
+  }
+
+  const agent = new SimpleAgent({
+    id: "analyser",
+    prompt,
+    schema: z.object(schema),
   });
 
   const flow = new Flow([agent], {
@@ -219,6 +247,8 @@ export async function analyseMessage(
     questionSentiment: QuestionSentiment;
     shortQuestion: string;
     followUpQuestions: string[];
+    category: string | null;
+    categorySuggestions: string[];
   };
 }
 
@@ -230,6 +260,7 @@ function shouldCheckForDataGap(sources: MessageSourceLink[]) {
 
 export async function fillMessageAnalysis(
   messageId: string,
+  questionMessageId: string,
   question: string,
   answer: string,
   sources: MessageSourceLink[],
@@ -281,7 +312,26 @@ export async function fillMessageAnalysis(
       question,
       answer,
       recentQuestions,
-      threadQuestions
+      threadQuestions,
+      [
+        {
+          title: "Pricing",
+          description: "Pricing related questions",
+          createdAt: new Date(),
+        },
+        {
+          title: "Integrations",
+          description:
+            "Integration related questions about Slack, Discord, MCP, Widget, etc.",
+          createdAt: new Date(),
+        },
+        {
+          title: "Knowledge Base",
+          description:
+            "Anything about setting up the knowledge base, Notion, Confluence, GitHub, Linear connector, etc.",
+          createdAt: new Date(),
+        },
+      ]
     );
 
     if (
@@ -308,6 +358,7 @@ export async function fillMessageAnalysis(
       dataGapDescription: null,
       category: null,
       dataGapDone: false,
+      categorySuggestions: [],
     };
 
     const checkForDataGap = shouldCheckForDataGap(sources);
@@ -334,6 +385,27 @@ export async function fillMessageAnalysis(
         analysis,
       },
     });
+
+    const maxScore = Math.max(...sources.map((s) => s.score ?? 0));
+    if (maxScore > 0.15 && partialAnalysis?.category) {
+      await prisma.message.update({
+        where: { id: questionMessageId },
+        data: {
+          analysis: {
+            upsert: {
+              set: {
+                category: partialAnalysis.category ?? null,
+                categorySuggestions: partialAnalysis.categorySuggestions ?? [],
+              },
+              update: {
+                category: partialAnalysis.category ?? null,
+                categorySuggestions: partialAnalysis.categorySuggestions ?? [],
+              },
+            },
+          },
+        },
+      });
+    }
 
     if (analysis.dataGapTitle && analysis.dataGapDescription) {
       await fetch(`${process.env.FRONT_URL}/email-alert`, {

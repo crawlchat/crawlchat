@@ -1,5 +1,6 @@
 import cn from "@meltdownjs/cn";
 import type { MessageChannel } from "libs/prisma";
+import { useMemo } from "react";
 import {
   TbBrandDiscord,
   TbBrandSlack,
@@ -7,26 +8,39 @@ import {
   TbRobotFace,
 } from "react-icons/tb";
 
-export function ChannelBadge({ channel }: { channel?: MessageChannel | null }) {
-  return (
-    <span
-      className={cn(
-        "badge badge-soft",
-        !channel && "badge-primary",
-        channel === "discord" && "badge-info",
-        channel === "slack" && "badge-error",
-        channel === "mcp" && "badge-success"
-      )}
-    >
-      {!channel && <TbMessage />}
-      {channel === "discord" && <TbBrandDiscord />}
-      {channel === "slack" && <TbBrandSlack />}
-      {channel === "mcp" && <TbRobotFace />}
+export function ChannelBadge({
+  channel,
+  onlyIcon,
+}: {
+  channel?: MessageChannel | null;
+  onlyIcon?: boolean;
+}) {
+  const channelName = useMemo(() => {
+    if (!channel) return "Chatbot";
+    if (channel === "discord") return "Discord";
+    if (channel === "slack") return "Slack";
+    if (channel === "mcp") return "MCP";
+    return channel;
+  }, [channel]);
 
-      {!channel && "Chatbot"}
-      {channel === "discord" && "Discord"}
-      {channel === "slack" && "Slack"}
-      {channel === "mcp" && "MCP"}
-    </span>
+  return (
+    <div className="tooltip" data-tip={onlyIcon ? channelName : null}>
+      <span
+        className={cn(
+          "badge badge-soft",
+          !channel && "badge-primary",
+          channel === "discord" && "badge-info",
+          channel === "slack" && "badge-error",
+          channel === "mcp" && "badge-success"
+        )}
+      >
+        {!channel && <TbMessage />}
+        {channel === "discord" && <TbBrandDiscord />}
+        {channel === "slack" && <TbBrandSlack />}
+        {channel === "mcp" && <TbRobotFace />}
+
+        {!onlyIcon && channelName}
+      </span>
+    </div>
   );
 }

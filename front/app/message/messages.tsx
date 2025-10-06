@@ -86,6 +86,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                       <th>Question</th>
                       <th>Details</th>
                       <th>Channel</th>
+                      <th>Category</th>
                       <th className="text-end">Time</th>
                     </tr>
                   </thead>
@@ -137,7 +138,17 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                           </div>
                         </td>
                         <td className="w-10">
-                          <ChannelBadge channel={pair.queryMessage?.channel} />
+                          <ChannelBadge
+                            channel={pair.queryMessage?.channel}
+                            onlyIcon
+                          />
+                        </td>
+                        <td className="min-w-12">
+                          {pair.queryMessage?.analysis?.category && (
+                            <span className="badge badge-soft badge-accent whitespace-nowrap">
+                              {pair.queryMessage?.analysis?.category}
+                            </span>
+                          )}
                         </td>
                         <td className="text-end min-w-34">
                           {moment(pair.queryMessage?.createdAt).fromNow()}
