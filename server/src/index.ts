@@ -718,6 +718,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       links: answer!.sources,
       ownerUserId: scrape.userId,
       channel: req.body.channel as MessageChannel,
+      apiActionCalls: answer!.actionCalls as any,
     },
   });
   await updateLastMessageAt(thread.id);
