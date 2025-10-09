@@ -79,9 +79,10 @@ export function useChatBoxDimensions(
 }
 
 function ChatInput() {
-  const { ask, chat, screen, readOnly, scrape, inputRef, embed } =
+  const { ask, chat, screen, readOnly, scrape, inputRef, embed, sidePanel } =
     useChatBoxContext();
 
+  const [focused, setFocused] = useState(false);
   const [query, setQuery] = useState("");
   const cleanedQuery = useMemo(() => {
     return query.trim();
@@ -176,7 +177,14 @@ function ChatInput() {
     : undefined;
 
   return (
-    <div className="flex gap-2 border-t border-base-300 justify-between p-4">
+    <div
+      className={cn(
+        "flex gap-2 border-t border-base-300 justify-between p-4",
+        "transition-all",
+        sidePanel && "m-2 border rounded-full p-2 pl-5",
+        sidePanel && focused && "shadow"
+      )}
+    >
       <div className="flex-1 flex items-center">
         <textarea
           ref={inputRef}
@@ -191,6 +199,8 @@ function ChatInput() {
           rows={1}
           onKeyDown={handleKeyDown}
           disabled={isDisabled}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
         />
       </div>
 
@@ -660,7 +670,9 @@ function Toolbar() {
           />
         )}
 
-        <div className="text-xl font-bold">{scrape.title ?? "Ask AI"}</div>
+        <div className="text-xl font-bold">
+          {scrape.widgetConfig?.title ?? scrape.title ?? "Ask AI"}
+        </div>
 
         {admin &&
           overallScore !== undefined &&
@@ -726,10 +738,10 @@ function Toolbar() {
 }
 
 function PoweredBy() {
-  const { titleSlug } = useChatBoxContext();
+  const { titleSlug, sidePanel } = useChatBoxContext();
 
   return (
-    <div className="text-xs">
+    <div className={cn("text-xs", sidePanel && "flex justify-center gap-1")}>
       <span className="opacity-40">Powered by </span>
       <a
         className="link link-primary link-hover"
@@ -842,7 +854,7 @@ export default function ScrapeWidget() {
                     key={index}
                     className={cn(
                       "border border-base-300 rounded-box p-1",
-                      "w-fit px-2 hover:shadow-sm transition-all cursor-pointer",
+                      "w-fit px-2 hover:shadow-sm transition-all cursor-pointer"
                     )}
                     onClick={() => handleAsk(question)}
                   >

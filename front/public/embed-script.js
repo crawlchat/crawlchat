@@ -166,12 +166,12 @@ class CrawlChatEmbed {
       script.getAttribute("data-ask-ai-text") ??
       "💬 Ask AI";
     const backgroundColor =
-      this.widgetConfig.primaryColor ??
-      script.getAttribute("data-ask-ai-background-color") ??
+      this.widgetConfig.primaryColor ||
+      script.getAttribute("data-ask-ai-background-color") ||
       "#7b2cbf";
     const color =
-      this.widgetConfig.buttonTextColor ??
-      script.getAttribute("data-ask-ai-color") ??
+      this.widgetConfig.buttonTextColor ||
+      script.getAttribute("data-ask-ai-color") ||
       "white";
     const position = script.getAttribute("data-ask-ai-position") ?? "br";
     const marginX = script.getAttribute("data-ask-ai-margin-x") ?? "20px";

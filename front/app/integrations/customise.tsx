@@ -78,6 +78,7 @@ export async function action({ request }: Route.ActionArgs) {
     tooltip: null,
     logoUrl: null,
     applyColorsToChatbox: null,
+    title: null,
   };
 
   if (size) {
@@ -99,16 +100,18 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("primaryColor")) {
     update.primaryColor = formData.get("primaryColor") as string;
-    update.primaryColor =
-      update.primaryColor === "null" ? null : update.primaryColor;
+    update.primaryColor = ["null", "#"].includes(update.primaryColor)
+      ? null
+      : update.primaryColor;
   }
   if (formData.has("buttonText")) {
     update.buttonText = formData.get("buttonText") as string;
   }
   if (formData.has("buttonTextColor")) {
     update.buttonTextColor = formData.get("buttonTextColor") as string;
-    update.buttonTextColor =
-      update.buttonTextColor === "null" ? null : update.buttonTextColor;
+    update.buttonTextColor = ["null", "#"].includes(update.buttonTextColor)
+      ? null
+      : update.buttonTextColor;
   }
   if (formData.has("from-widget")) {
     update.showLogo = formData.get("showLogo") === "on";
@@ -121,6 +124,9 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("from-widget")) {
     update.applyColorsToChatbox = formData.get("applyColorsToChatbox") === "on";
+  }
+  if (formData.has("title")) {
+    update.title = formData.get("title") as string;
   }
 
   await prisma.scrape.update({
@@ -226,7 +232,7 @@ function ColorPicker({
         </div>
       </div>
       <fieldset className="fieldset">
-        <button className="btn btn-square" onClick={onClear}>
+        <button className="btn btn-square" onClick={onClear} type="button">
           <TbX />
         </button>
       </fieldset>
@@ -274,6 +280,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const [applyColorsToChatbox, setApplyColorsToChatbox] = useState(
     loaderData.scrape?.widgetConfig?.applyColorsToChatbox ?? false
   );
+  const [title, setTitle] = useState(loaderData.scrape?.widgetConfig?.title);
   const [previewType, setPreviewType] = useState<"home" | "chat">("home");
 
   useEffect(() => {
@@ -296,6 +303,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         textInputPlaceholder,
         logoUrl,
         applyColorsToChatbox,
+        title,
       },
     };
   }, [
@@ -311,6 +319,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     textInputPlaceholder,
     logoUrl,
     applyColorsToChatbox,
+    title,
   ]);
 
   function addQuestion() {
@@ -384,6 +393,18 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                 />
               </fieldset>
             </div>
+
+            <fieldset className="fieldset flex-1">
+              <legend className="fieldset-legend">Title</legend>
+              <input
+                className="input w-full"
+                type="text"
+                placeholder="Ex: Assistant"
+                name="title"
+                value={title ?? ""}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </fieldset>
 
             <label className="label">
               <input

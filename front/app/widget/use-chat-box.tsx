@@ -21,6 +21,7 @@ export function useChatBox({
   token: initialToken,
   fullscreen,
   readonly: initReadOnly,
+  sidePanel,
 }: {
   scrape: Scrape;
   thread: Thread | null;
@@ -30,6 +31,7 @@ export function useChatBox({
   token: string | null;
   fullscreen?: boolean;
   readonly?: boolean;
+  sidePanel?: boolean;
 }) {
   const pinFetcher = useFetcher();
   const unpinFetcher = useFetcher();
@@ -323,6 +325,7 @@ export function useChatBox({
     fullscreen,
     theme,
     internalLinkHosts,
+    sidePanel,
     close,
     erase,
     deleteMessages,
@@ -359,6 +362,7 @@ export function ChatBoxProvider({
   token,
   fullscreen,
   readonly,
+  sidePanel,
 }: {
   children: React.ReactNode;
   scrape: Scrape;
@@ -369,6 +373,7 @@ export function ChatBoxProvider({
   token: string | null;
   fullscreen?: boolean;
   readonly?: boolean;
+  sidePanel?: boolean;
 }) {
   const chatBox = useChatBox({
     scrape,
@@ -379,6 +384,7 @@ export function ChatBoxProvider({
     token,
     fullscreen,
     readonly,
+    sidePanel,
   });
   return (
     <ChatBoxContext.Provider value={chatBox}>

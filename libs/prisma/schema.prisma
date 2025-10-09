@@ -72,6 +72,7 @@ type WidgetConfig {
   tooltip               String?
   logoUrl               String?
   applyColorsToChatbox  Boolean?
+  title                 String?
 }
 
 type ScrapeAnalyticsCategoryMessageId {
