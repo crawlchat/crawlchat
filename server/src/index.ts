@@ -634,9 +634,13 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
 
   wsRateLimiter.check();
 
-  const scrape = await prisma.scrape.findFirstOrThrow({
-    where: { id: req.params.scrapeId },
+  const scrape = await prisma.scrape.findFirst({
+    where: { id: req.params.scrapeId, private: false },
   });
+  if (!scrape) {
+    res.status(404).json({ message: "Collection not found" });
+    return;
+  }
 
   authoriseScrapeUser(req.user!.scrapeUsers, scrape.id);
 
