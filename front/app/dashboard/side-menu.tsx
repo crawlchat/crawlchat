@@ -12,6 +12,7 @@ import {
   TbCreditCard,
   TbHelp,
   TbHome,
+  TbKey,
   TbLogout,
   TbMessage,
   TbPencil,
@@ -263,6 +264,12 @@ export function SideMenu({
         label: "Settings",
         to: "/settings",
         icon: <TbSettings />,
+        forScrape: true,
+      },
+      {
+        label: "API Keys",
+        to: "/api-key",
+        icon: <TbKey />,
         forScrape: true,
       },
       {

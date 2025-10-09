@@ -7,7 +7,7 @@ import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
 import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
-import { authenticate, authoriseScrapeUser } from "./auth";
+import { authenticate, AuthMode, authoriseScrapeUser } from "./auth";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { v4 as uuidv4 } from "uuid";
 import { Message, MessageChannel } from "libs/prisma";
@@ -665,7 +665,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   }
   let query = req.body.query as string | MultimodalContent[];
 
-  const messages = req.body.messages as {
+  const messages = (req.body.messages ?? []) as {
     role: string;
     content: string | MultimodalContent[];
   }[];
@@ -678,13 +678,18 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     .filter(Boolean)
     .join("\n\n");
 
+  const channel =
+    req.authMode === AuthMode.apiKey
+      ? "api"
+      : (req.body.channel as MessageChannel);
+
   await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
       llmMessage: { role: "user", content: query },
       ownerUserId: scrape.userId,
-      channel: req.body.channel as MessageChannel,
+      channel,
     },
   });
   await updateLastMessageAt(thread.id);
@@ -718,7 +723,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       llmMessage: { role: "assistant", content: answer!.content },
       links: answer!.sources,
       ownerUserId: scrape.userId,
-      channel: req.body.channel as MessageChannel,
+      channel,
       apiActionCalls: answer!.actionCalls as any,
     },
   });
@@ -738,7 +743,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
 
   const citation = extractCitations(answer.content, answer.sources, {
     cleanCitations: true,
-    addSourcesToMessage: true,
+    addSourcesToMessage: channel === "api" ? false : true,
   });
 
   res.json({ content: citation.content, message: newAnswerMessage });

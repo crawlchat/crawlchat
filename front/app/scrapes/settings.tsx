@@ -219,14 +219,14 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
 
             description: "Better than 4o-mini, fast, can take more context.",
             summary: "1 credit / message",
-            disabled: !isAllowed(["starter", "pro"]),
+            disabled: !isAllowed(["hobby", "starter", "pro"]),
             content: (
               <div className="flex gap-2">
                 <div className="badge badge-accent badge-soft">
                   <TbBrain /> Smart + Fast
                 </div>
                 <div className="badge badge-soft badge-primary">
-                  <TbCrown /> Starter
+                  <TbCrown /> Hobby
                 </div>
               </div>
             ),
@@ -238,14 +238,14 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             description:
               "Best for complex use cases, programming docs, better searches.",
             summary: "2 credits / message",
-            disabled: !isAllowed(["pro"]),
+            disabled: !isAllowed(["hobby", "starter", "pro"]),
             content: (
               <div className="flex gap-2">
                 <div className="badge badge-accent badge-soft">
                   <TbBrain /> Reason
                 </div>
                 <div className="badge badge-soft badge-primary">
-                  <TbCrown /> Pro
+                  <TbCrown /> Hobby
                 </div>
               </div>
             ),

@@ -34,7 +34,8 @@ model User {
   ownedMessages       Message[]
   knowoledgeGroups    KnowledgeGroup[]
   scrapeUsers         ScrapeUser[]
-  ApiActions          ApiAction[]
+  apiActions          ApiAction[]
+  apiKeys             ApiKey[]
 }
 
 enum ScrapeStatus {
@@ -186,6 +187,7 @@ model Scrape {
   knowoledgeGroups      KnowledgeGroup[]
   scrapeUsers           ScrapeUser[]
   apiActions            ApiAction[]
+  apiKeys               ApiKey[]
 
   @@index([slug])
 }
@@ -205,6 +207,7 @@ enum MessageChannel {
   discord
   slack
   widget
+  api
 }
 
 enum MessageRating {
@@ -574,4 +577,15 @@ type ApiActionCall {
   response        String
   statusCode      Int
   createdAt       DateTime
+}
+
+model ApiKey {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  scrapeId        String  @db.ObjectId
+  userId          String  @db.ObjectId
+  key             String
+  title           String
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
 }
