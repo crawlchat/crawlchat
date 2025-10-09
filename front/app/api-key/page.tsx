@@ -340,6 +340,7 @@ export default function ApiKeyPage({ loaderData }: Route.ComponentProps) {
               href="https://docs.crawlchat.app/api"
               target="_blank"
               rel="noopener noreferrer"
+              className="link link-primary link-hover"
             >
               here
             </a>
