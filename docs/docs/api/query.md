@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Ask API
 
-You can use this REST API to send a query and get the answer just like you do on the chat widget. Use this to integrate it with your own application or workflows to build complex solutions.
+You can use this REST API to send a query and get the answer just like you do on the chat widget. Use this to integrate it with your own application or workflows to build complex solutions. You can see the queries asked on the [Messages](https://crawlchat.app/messages) page with channel as `API`.
 
 ### API Key
 

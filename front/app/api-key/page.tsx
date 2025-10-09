@@ -1,5 +1,12 @@
 import type { Route } from "./+types/page";
-import { TbKey, TbPlus, TbCopy, TbTrash, TbEye, TbEyeOff } from "react-icons/tb";
+import {
+  TbKey,
+  TbPlus,
+  TbCopy,
+  TbTrash,
+  TbEye,
+  TbEyeOff,
+} from "react-icons/tb";
 import { Page } from "~/components/page";
 import { EmptyState } from "~/components/empty-state";
 import { getAuthUser } from "~/auth/middleware";
@@ -11,6 +18,7 @@ import { hideModal, showModal } from "~/components/daisy-utils";
 import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
+import { makeMeta } from "~/meta";
 
 function maskApiKey(apiKey: string) {
   if (apiKey.length <= 4) {
@@ -33,6 +41,14 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { user, apiKeys };
 }
 
+export function meta() {
+  return makeMeta({
+    title: "API Keys",
+    description:
+      "Manage your API keys to access your collection programmatically.",
+  });
+}
+
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
@@ -48,9 +64,12 @@ export async function action({ request }: Route.ActionArgs) {
     });
 
     if (currentCount >= 10) {
-      return Response.json({ 
-        error: "Maximum of 10 API keys allowed per scrape" 
-      }, { status: 400 });
+      return Response.json(
+        {
+          error: "Maximum of 10 API keys allowed per scrape",
+        },
+        { status: 400 }
+      );
     }
 
     const title = formData.get("title") as string;
@@ -63,7 +82,10 @@ export async function action({ request }: Route.ActionArgs) {
         title,
       },
     });
-    return Response.json({ success: true, message: "API key created successfully" });
+    return Response.json({
+      success: true,
+      message: "API key created successfully",
+    });
   }
 
   if (intent === "delete") {
@@ -71,7 +93,10 @@ export async function action({ request }: Route.ActionArgs) {
     await prisma.apiKey.delete({
       where: { id: id as string },
     });
-    return Response.json({ success: true, message: "API key deleted successfully" });
+    return Response.json({
+      success: true,
+      message: "API key deleted successfully",
+    });
   }
 
   return Response.json({ error: "Invalid action" }, { status: 400 });
@@ -199,7 +224,13 @@ function DeleteApiKey({
   );
 }
 
-function ApiKeyRow({ apiKey, onDelete }: { apiKey: any; onDelete: (apiKey: any) => void }) {
+function ApiKeyRow({
+  apiKey,
+  onDelete,
+}: {
+  apiKey: any;
+  onDelete: (apiKey: any) => void;
+}) {
   const [showKey, setShowKey] = useState(false);
 
   const handleCopy = () => {
@@ -238,22 +269,15 @@ function ApiKeyRow({ apiKey, onDelete }: { apiKey: any; onDelete: (apiKey: any) 
           >
             {showKey ? <TbEyeOff /> : <TbEye />}
           </button>
-          <button
-            className="btn btn-sm btn-square"
-            onClick={handleCopy}
-          >
+          <button className="btn btn-sm btn-square" onClick={handleCopy}>
             <TbCopy />
           </button>
         </div>
       </td>
       <td>
-        <span className="badge badge-soft badge-primary">
-          Active
-        </span>
+        <span className="badge badge-soft badge-primary">Active</span>
       </td>
-      <td className="text-right">
-        {moment(apiKey.createdAt).fromNow()}
-      </td>
+      <td className="text-right">{moment(apiKey.createdAt).fromNow()}</td>
       <td className="text-right">
         <button
           className="btn btn-square btn-error btn-sm btn-soft"
@@ -330,9 +354,9 @@ export default function ApiKeyPage({ loaderData }: Route.ComponentProps) {
               </thead>
               <tbody>
                 {loaderData.apiKeys.map((apiKey) => (
-                  <ApiKeyRow 
-                    key={apiKey.id} 
-                    apiKey={apiKey} 
+                  <ApiKeyRow
+                    key={apiKey.id}
+                    apiKey={apiKey}
                     onDelete={setDeleteApiKey}
                   />
                 ))}
