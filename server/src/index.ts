@@ -832,7 +832,9 @@ app.post("/ticket/:scrapeId", authenticate, async (req, res) => {
     },
   });
 
-  res.json({ thread, ticketNumber });
+  const privateUrl = `${process.env.FRONT_URL}/ticket/${thread.ticketNumber}?key=${thread.ticketKey}`;
+
+  res.json({ thread, ticketNumber, privateUrl });
 });
 
 app.post("/compose/:scrapeId", authenticate, async (req, res) => {
