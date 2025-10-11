@@ -5,6 +5,8 @@ import TeamJoinEmail from "emails/team-join";
 import LowCreditsEmail from "emails/low-credits";
 import LoginEmail from "emails/login";
 import DataGapAlertEmail from "emails/data-gap-alert";
+import TicketUserCreateEmail from "emails/ticket-user-create";
+import TicketAdminCreateEmail from "emails/ticket-admin-create";
 
 export const sendEmail = async (to: string, subject: string, text: string) => {
   try {
@@ -101,6 +103,46 @@ export const sendDataGapAlertEmail = async (
       scrapeTitle={scrapeTitle}
       title={title}
       description={description}
+    />
+  );
+};
+
+export const sendNewTicketUserEmail = async (
+  to: string,
+  scrapeTitle: string,
+  ticketNumber: number,
+  ticketKey: string,
+  title: string
+) => {
+  await sendReactEmail(
+    to,
+    `Ticket created (#${ticketNumber})`,
+    <TicketUserCreateEmail
+      scrapeTitle={scrapeTitle ?? "CrawlChat"}
+      ticketNumber={ticketNumber}
+      ticketKey={ticketKey}
+      title={title}
+    />
+  );
+};
+
+export const sendNewTicketAdminEmail = async (
+  to: string,
+  scrapeTitle: string,
+  ticketNumber: number,
+  title: string,
+  message: string,
+  email: string
+) => {
+  await sendReactEmail(
+    to,
+    `New ticket (#${ticketNumber})`,
+    <TicketAdminCreateEmail
+      scrapeTitle={scrapeTitle ?? "CrawlChat"}
+      ticketNumber={ticketNumber}
+      title={title}
+      message={message}
+      email={email}
     />
   );
 };

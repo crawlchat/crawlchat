@@ -10,7 +10,7 @@ import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
 import { authenticate, AuthMode, authoriseScrapeUser } from "./auth";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { v4 as uuidv4 } from "uuid";
-import { Message, MessageChannel } from "libs/prisma";
+import { Message, MessageChannel, Thread } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
@@ -39,6 +39,8 @@ import {
 } from "./rate-limiter";
 import { scrape } from "./scrape/crawl";
 import { getConfig } from "./llm/config";
+import { getNextNumber } from "libs/mongo-counter";
+import { randomUUID } from "crypto";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -751,6 +753,90 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   });
 
   res.json({ content: citation.content, message: newAnswerMessage });
+});
+
+app.post("/ticket/:scrapeId", authenticate, async (req, res) => {
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: req.params.scrapeId },
+    include: {
+      user: true,
+      scrapeUsers: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  });
+  if (!scrape) {
+    res.status(404).json({ message: "Collection not found" });
+    return;
+  }
+
+  authoriseScrapeUser(req.user!.scrapeUsers, scrape.id);
+
+  const userEmail = req.body.userEmail as string;
+  const title = req.body.title as string;
+  const message = req.body.message as string;
+  const threadId = req.body.threadId as string;
+
+  const ticketKey = randomUUID().slice(0, 8);
+  const ticketNumber = await getNextNumber("ticket-number");
+
+  let thread: Thread | null = null;
+  if (threadId) {
+    thread = await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        title,
+        ticketKey,
+        ticketNumber,
+        ticketStatus: "open",
+        ticketUserEmail: userEmail,
+      },
+    });
+  } else {
+    thread = await prisma.thread.create({
+      data: {
+        scrapeId: scrape.id,
+
+        title,
+        ticketKey,
+        ticketNumber,
+        ticketStatus: "open",
+        ticketUserEmail: userEmail,
+      },
+    });
+  }
+
+  await prisma.message.create({
+    data: {
+      threadId: thread.id,
+      scrapeId: scrape.id,
+      ownerUserId: scrape.userId,
+      llmMessage: {
+        role: "user",
+        content: message,
+      },
+      ticketMessage: {
+        role: "user",
+        event: "message",
+      },
+    },
+  });
+
+  await fetch(`${process.env.FRONT_URL}/email-alert`, {
+    method: "POST",
+    body: JSON.stringify({
+      intent: "new-ticket",
+      threadId: thread.id,
+      message,
+    }),
+    headers: {
+      Authorization: `Bearer ${createToken(scrape.userId)}`,
+    },
+  });
+
+  res.json({ thread, ticketNumber });
 });
 
 app.post("/compose/:scrapeId", authenticate, async (req, res) => {

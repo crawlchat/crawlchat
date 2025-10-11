@@ -2,7 +2,13 @@ import { prisma } from "libs/prisma";
 import type { Route } from "./+types/email-alert";
 import { getJwtAuthUser } from "./jwt";
 import { authoriseScrapeUser } from "./scrapes/util";
-import { sendDataGapAlertEmail, sendLowCreditsEmail } from "./email";
+import {
+  sendDataGapAlertEmail,
+  sendLowCreditsEmail,
+  sendNewTicketAdminEmail,
+  sendNewTicketUserEmail,
+  sendReactEmail,
+} from "./email";
 
 export async function action({ request }: Route.LoaderArgs) {
   const user = await getJwtAuthUser(request);
@@ -83,6 +89,58 @@ export async function action({ request }: Route.LoaderArgs) {
           message.scrape.title ?? "",
           message.analysis.dataGapTitle,
           message.analysis.dataGapDescription
+        );
+      }
+    }
+  }
+
+  if (intent === "new-ticket") {
+    const threadId = body.threadId;
+    const message = body.message;
+
+    const thread = await prisma.thread.findFirstOrThrow({
+      where: { id: threadId },
+      include: {
+        scrape: {
+          include: {
+            scrapeUsers: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (
+      !thread.ticketUserEmail ||
+      !thread.ticketNumber ||
+      !thread.ticketKey ||
+      !thread.title
+    )
+      return { error: "Thread is not valid" };
+
+    await sendNewTicketUserEmail(
+      thread.ticketUserEmail,
+      thread.scrape.title ?? "CrawlChat",
+      thread.ticketNumber,
+      thread.ticketKey,
+      thread.title
+    );
+
+    for (const scrapeUser of thread.scrape.scrapeUsers) {
+      if (
+        scrapeUser.user &&
+        (scrapeUser.user.settings?.ticketEmailUpdates ?? true)
+      ) {
+        await sendNewTicketAdminEmail(
+          scrapeUser.user.email,
+          thread.scrape.title ?? "CrawlChat",
+          thread.ticketNumber,
+          thread.title,
+          message,
+          thread.ticketUserEmail
         );
       }
     }
