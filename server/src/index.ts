@@ -767,10 +767,6 @@ app.post("/ticket/:scrapeId", authenticate, async (req, res) => {
       },
     },
   });
-  if (!scrape) {
-    res.status(404).json({ message: "Collection not found" });
-    return;
-  }
 
   authoriseScrapeUser(req.user!.scrapeUsers, scrape.id);
 
