@@ -29,8 +29,15 @@ class CrawlChatEmbed {
     return window.innerWidth < 700;
   }
 
+  getScriptElem() {
+    return document.getElementById(this.scriptId);
+  }
+
   isSidePanel() {
-    return this.getCustomTags().sidepanel === "true";
+    return (
+      this.getCustomTags().sidepanel === "true" ||
+      this.getScriptElem()?.dataset.sidepanel === "true"
+    );
   }
 
   async mount() {
@@ -46,10 +53,13 @@ class CrawlChatEmbed {
 
     window.addEventListener("message", (e) => this.handleOnMessage(e));
 
-    const customTags = this.getCustomTags();
-
     if (!this.isMobile() && this.isSidePanel()) {
       this.mountSidePanel();
+      if (this.getScriptElem()?.dataset.sidepanelOpen === "true") {
+        setTimeout(() => {
+          this.showSidePanel();
+        }, 500);
+      }
       return;
     }
 
@@ -59,6 +69,7 @@ class CrawlChatEmbed {
     const params = new URLSearchParams({
       embed: "true",
     });
+    const customTags = this.getCustomTags();
     if (Object.keys(customTags).length > 0) {
       params.set("tags", btoa(JSON.stringify(customTags)));
     }

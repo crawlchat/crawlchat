@@ -1,6 +1,7 @@
-import React, { useEffect, type ReactNode } from "react";
+import React from "react";
 import Layout from "@theme-original/Layout";
 import type LayoutType from "@theme/Layout";
+import type { ReactNode } from "react";
 import type { WrapperProps } from "@docusaurus/types";
 import { useHistory } from "@docusaurus/router";
 import { useCrawlChatSidePanel, CrawlChatScript } from "crawlchat-client";
@@ -13,7 +14,7 @@ export default function LayoutWrapper(props: Props): ReactNode {
   return (
     <>
       <Layout {...props} />
-      <CrawlChatScript id="67dbfc7258ed87c571a04b83" sidePanel />
+      <CrawlChatScript id="67dbfc7258ed87c571a04b83" sidePanel sidePanelOpen />
     </>
   );
 }

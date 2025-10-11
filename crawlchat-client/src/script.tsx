@@ -3,11 +3,13 @@ export function CrawlChatScript({
   sidePanel,
   src,
   hideAskAI,
+  sidePanelOpen,
 }: {
   id: string;
   sidePanel?: boolean;
   src?: string;
   hideAskAI?: boolean;
+  sidePanelOpen?: boolean;
 }) {
   return (
     <script
@@ -15,8 +17,9 @@ export function CrawlChatScript({
       async
       id="crawlchat-script"
       data-id={id}
-      data-tag-sidepanel={sidePanel}
+      data-sidepanel={sidePanel}
       data-hide-ask-ai={hideAskAI}
+      data-sidepanel-open={sidePanelOpen}
     />
   );
 }
