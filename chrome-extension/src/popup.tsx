@@ -59,17 +59,24 @@ function Home() {
   }
 
   return (
-    <div className="space-y-3 min-h-[340px]">
-      <div className="bg-base-200 shadow-sm p-2 rounded-box">
+    <div
+      className="space-y-3"
+      style={{ minHeight: scrapes ? scrapes.length * 44 : undefined }}
+    >
+      <div className="bg-base-200 shadow-sm p-4 rounded-box">
         <fieldset className="fieldset">
           <legend className="fieldset-legend pt-0">Collection</legend>
           <select
-            value={config?.scrapeId ?? ""}
+            value={
+              scrapes === undefined ? "loading" : config?.scrapeId ?? undefined
+            }
             className="select"
             onChange={(e) => handleChangeScrape(e.target.value)}
           >
-            <option disabled={true}>Select a collection</option>
-            {scrapes.map((scrape) => (
+            {scrapes === undefined && (
+              <option value={"loading"}>Loading</option>
+            )}
+            {scrapes?.map((scrape) => (
               <option key={scrape.collectionId} value={scrape.collectionId}>
                 {scrape.collectionName}
               </option>
@@ -78,7 +85,7 @@ function Home() {
         </fieldset>
       </div>
 
-      <div className="bg-base-200 shadow-sm p-2 rounded-box">
+      <div className="bg-base-200 shadow-sm p-4 rounded-box">
         <fieldset className="fieldset">
           <legend className="fieldset-legend pt-0">Compose prompt</legend>
           <textarea

@@ -9,7 +9,7 @@ export function usePopup() {
       collectionName: string;
       createdAt: Date;
     }[]
-  >([]);
+  >();
 
   useEffect(() => {
     chrome.storage.sync.get(["crawlchatConfig"], (result) => {

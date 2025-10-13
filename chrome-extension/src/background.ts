@@ -11,10 +11,17 @@ chrome.runtime.onInstalled.addListener((details) => {
 // Listen for keyboard shortcuts
 chrome.commands.onCommand.addListener((command) => {
   if (command === "open-modal") {
-    // Send message to all content scripts to open modal
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
         chrome.tabs.sendMessage(tabs[0].id, { type: "OPEN_MODAL_FROM_SHORTCUT" });
+      }
+    });
+  }
+  
+  if (command === "open-modal-auto-use") {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: "OPEN_MODAL_AUTO_USE_FROM_SHORTCUT" });
       }
     });
   }

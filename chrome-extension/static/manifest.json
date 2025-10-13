@@ -45,6 +45,13 @@
         "mac": "Command+Shift+I"
       },
       "description": "Open CrawlChat modal"
+    },
+    "open-modal-auto-use": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "Command+Shift+P"
+      },
+      "description": "Open CrawlChat modal and auto-use content"
     }
   }
 }

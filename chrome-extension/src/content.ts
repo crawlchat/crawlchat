@@ -38,6 +38,7 @@ let latestFocusedElement:
   | HTMLTextAreaElement
   | HTMLElement
   | null = null;
+let blurTimeoutId: number | null = null;
 
 function createGlobalButton(): void {
   if (globalButton) return;
@@ -88,13 +89,21 @@ function listenInput(
     if (globalButton) {
       globalButton.classList.add("active");
     }
+    if (blurTimeoutId !== null) {
+      clearTimeout(blurTimeoutId);
+      blurTimeoutId = null;
+    }
   });
 
   inputElement.addEventListener("blur", () => {
-    setTimeout(() => {
+    if (blurTimeoutId !== null) {
+      clearTimeout(blurTimeoutId);
+    }
+    blurTimeoutId = window.setTimeout(() => {
       if (globalButton) {
         globalButton.classList.remove("active");
       }
+      blurTimeoutId = null;
     }, 150);
   });
 }
@@ -150,6 +159,7 @@ async function openModal(
   inputElement: HTMLInputElement | HTMLTextAreaElement | HTMLElement,
   options?: {
     submit?: boolean;
+    autoUse?: boolean;
   }
 ) {
   const existingModal = document.getElementById("crawlchat-modal");
@@ -216,6 +226,7 @@ async function openModal(
       onClose: handleClose,
       onUse: handleUse,
       submit: options?.submit,
+      autoUse: options?.autoUse,
     })
   );
 
@@ -304,6 +315,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "OPEN_MODAL_FROM_SHORTCUT") {
     handleShortcutOpenModal();
   }
+
+  if (message.type === "OPEN_MODAL_AUTO_USE_FROM_SHORTCUT") {
+    handleShortcutOpenModalAutoUse();
+  }
 });
 
 async function handleShortcutOpenModal() {
@@ -318,5 +333,20 @@ async function handleShortcutOpenModal() {
         | HTMLElement);
 
     openModal(config, targetElement, { submit: true });
+  }
+}
+
+async function handleShortcutOpenModalAutoUse() {
+  const config = await getConfig();
+
+  if (config && config.apiKey && config.scrapeId) {
+    const targetElement =
+      latestFocusedElement ||
+      (document.activeElement as
+        | HTMLInputElement
+        | HTMLTextAreaElement
+        | HTMLElement);
+
+    openModal(config, targetElement, { submit: true, autoUse: true });
   }
 }

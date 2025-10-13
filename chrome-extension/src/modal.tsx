@@ -9,12 +9,14 @@ const Modal = ({
   onClose,
   onUse,
   submit,
+  autoUse,
 }: {
   config: Config;
   currentValue: string;
   onClose: () => void;
   onUse: (content: string) => void;
   submit?: boolean;
+  autoUse?: boolean;
 }) => {
   const [compose, setCompose] = useState<{ content: string; messages: any }>();
   const [composeLoading, setComposeLoading] = useState(false);
@@ -37,6 +39,12 @@ const Modal = ({
       handleUpdate();
     }
   }, [config, submit, prompt, compose]);
+
+  useEffect(() => {
+    if (autoUse && compose && compose.content) {
+      onUse(compose.content);
+    }
+  }, [autoUse, compose, onUse]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -169,6 +177,9 @@ const Modal = ({
             rows={2}
             placeholder={compose ? "What to update?" : "What to write about?"}
             onChange={(e) => setCurrentPrompt(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+            onKeyUp={(e) => e.stopPropagation()}
+            onKeyPress={(e) => e.stopPropagation()}
             disabled={composeLoading}
           />
 
