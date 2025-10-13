@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@plugin "daisyui";
+@source "../src/modal.tsx";
+
+@plugin "daisyui/theme" {
+  name: "brand";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(97% 0.001 106.424);
+  --color-base-200: oklch(100% 0 0);
+  --color-base-300: oklch(92% 0.003 48.717);
+  --color-base-content: oklch(20% 0 0);
+  --color-primary: oklch(55% 0.288 302.321);
+  --color-primary-content: oklch(97% 0.014 308.299);
+  --color-secondary: oklch(64% 0.222 41.116);
+  --color-secondary-content: oklch(98% 0.016 73.684);
+  --color-accent: oklch(60% 0.118 184.704);
+  --color-accent-content: oklch(98% 0.014 180.72);
+  --color-neutral: oklch(43% 0 0);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(62% 0.214 259.815);
+  --color-info-content: oklch(97% 0.014 254.604);
+  --color-success: oklch(70% 0.14 182.503);
+  --color-success-content: oklch(98% 0.014 180.72);
+  --color-warning: oklch(79% 0.184 86.047);
+  --color-warning-content: oklch(98% 0.026 102.212);
+  --color-error: oklch(64% 0.246 16.439);
+  --color-error-content: oklch(96% 0.015 12.422);
+  --radius-selector: 1rem;
+  --radius-field: 1rem;
+  --radius-box: 1rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 1;
+  --noise: 1;
+}
+
+@plugin "daisyui/theme" {
+  name: "light";
+  default: false;
+  --color-primary: oklch(55% 0.288 302.321);
+  --color-primary-content: oklch(97% 0.014 308.299);
+  --color-secondary: oklch(64% 0.222 41.116);
+  --color-secondary-content: oklch(98% 0.016 73.684);
+}
+
+@plugin "daisyui/theme" {
+  name: "dark";
+  default: false;
+  --color-base-200: oklch(37% 0.013 285.805);
+  --color-base-300: oklch(44% 0.017 285.786);
+}

@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "CrawlChat",
+  "version": "1.0.0",
+  "description": "A minimal Chrome extension built with TypeScript",
+  "icons": {
+    "16": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
+  },
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://wings.crawlchat.app/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["inject.css", "sticky-button.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "CrawlChat",
+    "default_icon": "logo.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
+  "commands": {
+    "open-modal": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+I",
+        "mac": "Command+Shift+I"
+      },
+      "description": "Open CrawlChat modal"
+    }
+  }
+}

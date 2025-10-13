@@ -1,0 +1,37 @@
+{
+  "name": "chrome-extension",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "CrawlChat Chrome extension built with TypeScript and React",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npm run clean && node build.js",
+    "dev": "npm run clean && node build.js && echo 'Watching for changes...' && npm run build",
+    "clean": "rm -rf build",
+    "package": "npm run build && cd build && zip -r ../crawlchat-extension.zip dist/"
+  },
+  "keywords": [
+    "chrome-extension",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.14",
+    "@types/chrome": "^0.0.254",
+    "autoprefixer": "^10.4.21",
+    "daisyui": "^5.2.3",
+    "esbuild": "^0.25.10",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.14",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@meltdownjs/cn": "^1.2.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-icons": "^5.5.0"
+  }
+}
