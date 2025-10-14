@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "CrawlChat",
   "version": "1.0.0",
-  "description": "A minimal Chrome extension built with TypeScript",
+  "description": "A set of client side tools for CrawlChat",
   "icons": {
     "16": "logo.png",
     "48": "logo.png",
@@ -44,14 +44,14 @@
         "default": "Ctrl+Shift+I",
         "mac": "Command+Shift+I"
       },
-      "description": "Open CrawlChat modal"
+      "description": "Open CrawlChat popup"
     },
     "open-modal-auto-use": {
       "suggested_key": {
         "default": "Ctrl+Shift+P",
         "mac": "Command+Shift+P"
       },
-      "description": "Open CrawlChat modal and auto-use content"
+      "description": "Open CrawlChat popup and auto-use content"
     }
   }
 }
