@@ -1,156 +1,151 @@
-import { KnowledgeGroup, prisma, Scrape } from "libs/prisma";
+import { KnowledgeGroup, prisma, Scrape, User, UserPlan } from "libs/prisma";
 import { getNextUpdateTime } from "libs/knowledge-group";
-import {
-  KbContent,
-  KbProcesserListener,
-  KbProcessProgress,
-} from "./kb-processer";
+import { KbContent, KbProcesserListener } from "./kb-processer";
 import { makeIndexer } from "../indexer/factory";
 import { splitMarkdown } from "../scrape/markdown-splitter";
 import { deleteByIds, makeRecordId } from "../scrape/pinecone";
 import { v4 as uuidv4 } from "uuid";
-import { consumeCredits } from "libs/user-plan";
+import { getPagesCount, PLAN_FREE } from "libs/user-plan";
 
-export class BaseKbProcesserListener implements KbProcesserListener {
-  constructor(
-    private readonly scrape: Scrape,
-    private readonly knowledgeGroup: KnowledgeGroup,
-    private readonly broadcast: (type: string, data: any) => void,
-    private readonly options?: {
-      includeMarkdown?: boolean;
-      hasCredits: (n?: number) => Promise<boolean>;
-    }
-  ) {}
-
-  async onBeforeStart() {
-    this.broadcast("scrape-start", {
-      scrapeId: this.scrape.id,
-      knowledgeGroupId: this.knowledgeGroup.id,
-    });
-    await prisma.knowledgeGroup.update({
-      where: { id: this.knowledgeGroup.id },
-      data: { status: "processing" },
-    });
+const assertLimit = async (
+  url: string,
+  n: number,
+  scrapeId: string,
+  userId: string,
+  userPlan: UserPlan | null
+) => {
+  const existingItem = await prisma.scrapeItem.findFirst({
+    where: { scrapeId: scrapeId, url },
+  });
+  if (existingItem) {
+    console.log("Existing item", url);
+    return;
   }
 
-  async onComplete() {
-    this.broadcast("scrape-complete", {
-      scrapeId: this.scrape.id,
-      knowledgeGroupId: this.knowledgeGroup.id,
-    });
-
-    await prisma.knowledgeGroup.update({
-      where: { id: this.knowledgeGroup.id },
-      data: {
-        status: "done",
-        lastUpdatedAt: new Date(),
-        nextUpdateAt: getNextUpdateTime(
-          this.knowledgeGroup.updateFrequency,
-          new Date()
-        ),
-      },
-    });
-    this.broadcast("saved", { scrapeId: this.scrape.id });
+  const limit = userPlan?.limits?.pages ?? PLAN_FREE.limits.pages;
+  const pagesCount = await getPagesCount(userId);
+  console.log("Pages count", pagesCount, n, limit);
+  if (pagesCount + n <= limit) {
+    return;
   }
+  throw new Error("Pages limit reached for the plan");
+};
 
-  async onError(path: string, error: any) {
-    await prisma.scrapeItem.upsert({
-      where: {
-        knowledgeGroupId_url: {
-          knowledgeGroupId: this.knowledgeGroup.id,
-          url: path,
+export function makeKbProcesserListener(
+  scrape: Scrape & { user: User },
+  knowledgeGroup: KnowledgeGroup
+): KbProcesserListener {
+  return {
+    async onBeforeStart() {
+      await prisma.knowledgeGroup.update({
+        where: { id: knowledgeGroup.id },
+        data: { status: "processing" },
+      });
+    },
+
+    async onComplete(error?: string) {
+      await prisma.knowledgeGroup.update({
+        where: { id: knowledgeGroup.id },
+        data: {
+          status: "done",
+          fetchError: error,
+          lastUpdatedAt: new Date(),
+          nextUpdateAt: getNextUpdateTime(
+            knowledgeGroup.updateFrequency,
+            new Date()
+          ),
         },
-      },
-      update: {
-        status: "failed",
-        error: `${error.message.toString()}\n\n${error.stack}`,
-      },
-      create: {
-        userId: this.scrape.userId,
-        scrapeId: this.scrape.id,
-        knowledgeGroupId: this.knowledgeGroup.id,
-        url: path,
-        status: "failed",
-        error: error.message.toString(),
-      },
-    });
-  }
+      });
+    },
 
-  async onContentAvailable(
-    path: string,
-    content: KbContent,
-    progress: KbProcessProgress
-  ) {
-    if (content.error) {
-      throw new Error(content.error);
-    }
+    async onError(path: string, error: any) {
+      await prisma.scrapeItem.upsert({
+        where: {
+          knowledgeGroupId_url: {
+            knowledgeGroupId: knowledgeGroup.id,
+            url: path,
+          },
+        },
+        update: {
+          status: "failed",
+          error: `${error.message.toString()}\n\n${error.stack}`,
+        },
+        create: {
+          userId: scrape.userId,
+          scrapeId: scrape.id,
+          knowledgeGroupId: knowledgeGroup.id,
+          url: path,
+          status: "failed",
+          error: error.message.toString(),
+        },
+      });
+    },
 
-    const indexer = makeIndexer({ key: this.scrape.indexer });
-    const chunks = await splitMarkdown(content.text, {
-      context: this.knowledgeGroup.itemContext ?? undefined,
-    });
+    async onContentAvailable(path: string, content: KbContent) {
+      if (content.error) {
+        throw new Error(content.error);
+      }
 
-    const hasCredits = await this.options?.hasCredits(chunks.length)
-    if (!hasCredits) {
-      throw new Error("Not enough credits");
-    }
+      const indexer = makeIndexer({ key: scrape.indexer });
+      const chunks = await splitMarkdown(content.text, {
+        context: knowledgeGroup.itemContext ?? undefined,
+      });
 
-    const documents = chunks.map((chunk) => ({
-      id: makeRecordId(this.scrape.id, uuidv4()),
-      text: chunk,
-      metadata: { content: chunk, url: path },
-    }));
-    await indexer.upsert(this.scrape.id, documents);
-
-    const existingItem = await prisma.scrapeItem.findFirst({
-      where: { scrapeId: this.scrape.id, url: path },
-    });
-    if (existingItem) {
-      await deleteByIds(
-        indexer.getKey(),
-        existingItem.embeddings.map((embedding) => embedding.id)
+      await assertLimit(
+        path,
+        chunks.length,
+        scrape.id,
+        scrape.userId,
+        scrape.user.plan
       );
-    }
 
-    await prisma.scrapeItem.upsert({
-      where: {
-        knowledgeGroupId_url: {
-          knowledgeGroupId: this.knowledgeGroup.id,
-          url: path,
+      const documents = chunks.map((chunk) => ({
+        id: makeRecordId(scrape.id, uuidv4()),
+        text: chunk,
+        metadata: { content: chunk, url: path },
+      }));
+      await indexer.upsert(scrape.id, documents);
+
+      const existingItem = await prisma.scrapeItem.findFirst({
+        where: { scrapeId: scrape.id, url: path },
+      });
+      if (existingItem) {
+        await deleteByIds(
+          indexer.getKey(),
+          existingItem.embeddings.map((embedding) => embedding.id)
+        );
+      }
+
+      await prisma.scrapeItem.upsert({
+        where: {
+          knowledgeGroupId_url: {
+            knowledgeGroupId: knowledgeGroup.id,
+            url: path,
+          },
         },
-      },
-      update: {
-        markdown: content.text,
-        title: content.title,
-        metaTags: content.metaTags,
-        embeddings: documents.map((doc) => ({
-          id: doc.id,
-        })),
-        status: "completed",
-      },
-      create: {
-        userId: this.scrape.userId,
-        scrapeId: this.scrape.id,
-        knowledgeGroupId: this.knowledgeGroup.id,
-        url: path,
-        markdown: content.text,
-        title: content.title,
-        metaTags: content.metaTags,
-        embeddings: documents.map((doc) => ({
-          id: doc.id,
-        })),
-        status: "completed",
-      },
-    });
-
-    await consumeCredits(this.scrape.userId, "scrapes", documents.length);
-
-    this.broadcast("scrape-pre", {
-      url: path,
-      markdown: this.options?.includeMarkdown ? content.text : undefined,
-      scrapedUrlCount: progress.completed,
-      remainingUrlCount: progress.remaining,
-      knowledgeGroupId: this.knowledgeGroup.id,
-    });
-  }
+        update: {
+          markdown: content.text,
+          title: content.title,
+          metaTags: content.metaTags,
+          embeddings: documents.map((doc) => ({
+            id: doc.id,
+          })),
+          status: "completed",
+        },
+        create: {
+          userId: scrape.userId,
+          scrapeId: scrape.id,
+          knowledgeGroupId: knowledgeGroup.id,
+          url: path,
+          markdown: content.text,
+          title: content.title,
+          metaTags: content.metaTags,
+          embeddings: documents.map((doc) => ({
+            id: doc.id,
+          })),
+          status: "completed",
+        },
+      });
+    },
+  };
 }

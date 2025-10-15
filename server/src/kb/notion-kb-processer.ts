@@ -70,11 +70,10 @@ export class NotionKbProcesser extends BaseKbProcesser {
     protected listener: KbProcesserListener,
     private readonly knowledgeGroup: KnowledgeGroup,
     protected readonly options: {
-      hasCredits: () => Promise<boolean>;
       url?: string;
     }
   ) {
-    super(listener, options);
+    super(listener);
 
     if (!this.knowledgeGroup.notionSecret) {
       throw new Error("Notion key is required");
@@ -143,17 +142,10 @@ export class NotionKbProcesser extends BaseKbProcesser {
       contentParts.push(mdString.parent);
       const text = contentParts.filter(Boolean).join("\n\n");
 
-      this.onContentAvailable(
-        url,
-        {
-          text,
-          title: title || "Untitled",
-        },
-        {
-          remaining: pages.results.length - i,
-          completed: i,
-        }
-      );
+      this.onContentAvailable(url, {
+        text,
+        title: title || "Untitled",
+      });
     }
   }
 }

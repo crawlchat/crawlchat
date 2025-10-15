@@ -1,25 +1,15 @@
 import { KnowledgeGroup, prisma, Scrape } from "libs/prisma";
+import { BaseKbProcesser, KbProcesserListener } from "./kb-processer";
 import {
-  BaseKbProcesser,
-  KbProcesserListener,
-  KbProcessProgress,
-} from "./kb-processer";
-import { scrapeLoop, ScrapeStore } from "../scrape/crawl";
+  ScrapeStore,
+  scrapeWithLinks,
+  ScrapeWithLinksOptions,
+} from "../scrape/crawl";
 import { OrderedSet } from "../scrape/ordered-set";
 import { getMetaTitle } from "../scrape/parse";
 
-function calculateProgress(
-  store: ScrapeStore,
-  allowedMaxLinks?: number
-): KbProcessProgress {
-  const scrapedUrlCount = Object.values(store.urls).length;
-  const maxLinks = allowedMaxLinks ? allowedMaxLinks : undefined;
-  const actualRemainingUrlCount = store.urlSet.size() - scrapedUrlCount;
-  const remainingUrlCount = maxLinks
-    ? Math.min(maxLinks, actualRemainingUrlCount)
-    : actualRemainingUrlCount;
-
-  return { remaining: remainingUrlCount, completed: scrapedUrlCount };
+export function urlsNotFetched(store: ScrapeStore) {
+  return store.urlSet.values().filter((url) => store.urls[url] === undefined);
 }
 
 export class WebKbProcesser extends BaseKbProcesser {
@@ -31,7 +21,6 @@ export class WebKbProcesser extends BaseKbProcesser {
     private readonly knowledgeGroup: KnowledgeGroup,
     private readonly url: string,
     protected readonly options: {
-      hasCredits: (n?: number) => Promise<boolean>;
       removeHtmlTags?: string;
       dynamicFallbackContentLength?: number;
       limit?: number;
@@ -41,7 +30,7 @@ export class WebKbProcesser extends BaseKbProcesser {
       maxWait?: number;
     }
   ) {
-    super(listener, options);
+    super(listener);
     this.store = {
       urls: {},
       urlSet: new OrderedSet(),
@@ -72,41 +61,54 @@ export class WebKbProcesser extends BaseKbProcesser {
     const urlToScrape = this.cleanUrl(url);
     this.store.urlSet.add(urlToScrape);
 
-    await scrapeLoop(this.store, urlToScrape, {
-      removeHtmlTags: this.options.removeHtmlTags,
+    const limit = this.options.limit ?? 5000;
+
+    const options: ScrapeWithLinksOptions = {
       dynamicFallbackContentLength: this.options.dynamicFallbackContentLength,
-      limit: this.options.limit,
       skipRegex: this.options.skipRegex,
       allowOnlyRegex: this.options.allowOnlyRegex,
       scrollSelector: this.options.scrollSelector,
       maxWait: this.options.maxWait,
-      onComplete: () => this.onComplete(),
-      shouldScrape: async () => {
-        if (!(await this.options.hasCredits())) {
-          return false;
-        }
-        const group = await prisma.knowledgeGroup.findFirstOrThrow({
-          where: { id: this.knowledgeGroup.id },
-        });
-        if (group.status !== "processing") {
-          return false;
-        }
-        return true;
-      },
-      afterScrape: async (url, { markdown, error }) => {
-        const progress = calculateProgress(this.store, this.options.limit);
-        const metaTags = this.store.urls[url]?.metaTags ?? [];
-        await this.onContentAvailable(
+    };
+
+    while (urlsNotFetched(this.store).length > 0) {
+      const url = urlsNotFetched(this.store)[0];
+
+      let error = null;
+      let markdown = "";
+      try {
+        const result = await scrapeWithLinks(
           url,
-          {
-            text: markdown,
-            error,
-            metaTags: [],
-            title: getMetaTitle(metaTags),
-          },
-          progress
+          this.store,
+          urlToScrape,
+          options
         );
-      },
-    });
+        markdown = result.markdown;
+      } catch (e: any) {
+        error = e.message;
+      }
+
+      const metaTags = this.store.urls[url]?.metaTags ?? [];
+      await this.onContentAvailable(url, {
+        text: markdown,
+        error,
+        metaTags: [],
+        title: getMetaTitle(metaTags),
+      });
+
+      if (Object.keys(this.store.urls).length >= limit) {
+        console.log("Reached limit", limit);
+        break;
+      }
+
+      const group = await prisma.knowledgeGroup.findFirstOrThrow({
+        where: { id: this.knowledgeGroup.id },
+      });
+      if (group.status !== "processing") {
+        break;
+      }
+    }
+
+    this.onComplete();
   }
 }

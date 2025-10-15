@@ -10,8 +10,7 @@ import {
   SettingsSection,
   SettingsSectionProvider,
 } from "~/settings-section";
-import { getSubscription } from "~/lemonsqueezy";
-import { planMap } from "libs/user-plan";
+import { getPagesCount, planMap } from "libs/user-plan";
 import { makeMeta } from "~/meta";
 import { getPaymentGateway } from "~/payment/factory";
 import { showModal } from "~/components/daisy-utils";
@@ -46,12 +45,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     });
   }
 
+  const usedPages = await getPagesCount(user!.id);
+
   return {
     user: user!,
     subscription,
     plan,
     scrapes: scrapes.length,
     teamMembers,
+    usedPages,
   };
 }
 
@@ -226,8 +228,10 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                 <tbody>
                   <tr>
                     <td>Pages</td>
-                    <td className="text-right">{plan.credits.scrapes}</td>
-                    <td className="text-right">{credits.scrapes}</td>
+                    <td className="text-right">{limits!.pages}</td>
+                    <td className="text-right">
+                      {limits!.pages - loaderData.usedPages}
+                    </td>
                   </tr>
                   <tr>
                     <td>Messages</td>

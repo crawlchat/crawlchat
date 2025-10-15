@@ -201,6 +201,7 @@ export function SideMenu({
   openTickets,
   scrape,
   dataGapMessages,
+  usedPages,
 }: {
   scrapeOwner: User;
   loggedInUser: User;
@@ -213,6 +214,7 @@ export function SideMenu({
   openTickets: number;
   scrape?: Scrape;
   dataGapMessages: number;
+  usedPages: number;
 }) {
   const links = useMemo(() => {
     const links = [
@@ -286,14 +288,13 @@ export function SideMenu({
   }, []);
 
   const totalMessages = plan.credits.messages;
-  const totalScrapes = plan.credits.scrapes;
+  const totalScrapes = scrapeOwner?.plan?.limits?.pages ?? plan.limits.pages;
 
   const availableMessages =
     scrapeOwner?.plan?.credits?.messages ?? plan.credits.messages;
   const usedMessages = totalMessages - availableMessages;
 
-  const availableScrapes =
-    scrapeOwner?.plan?.credits?.scrapes ?? plan.credits.scrapes;
+  const availableScrapes = totalScrapes - usedPages;
   const usedScrapes = totalScrapes - availableScrapes;
 
   function getMenuBadge(label: string) {
