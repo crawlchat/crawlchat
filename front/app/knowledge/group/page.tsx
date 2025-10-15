@@ -9,6 +9,7 @@ import {
   TbBrandGithub,
   TbBrandNotion,
   TbBrandSlack,
+  TbCircleX,
   TbFile,
   TbSettings,
   TbWorld,
@@ -75,7 +76,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     await prisma.knowledgeGroup.update({
       where: { id: knowledgeGroupId },
-      data: { status: "processing" },
+      data: { status: "processing", fetchError: null },
     });
 
     const token = createToken(user!.id);
@@ -174,6 +175,15 @@ export default function KnowledgeGroupPage({
       right={<ActionButton group={loaderData.knowledgeGroup} />}
     >
       <div className="flex flex-col gap-6 flex-1">
+        {loaderData.knowledgeGroup.fetchError && (
+          <div role="alert" className="alert alert-error">
+            <TbCircleX size={20} />
+            <span>
+              Last update failed: {loaderData.knowledgeGroup.fetchError}
+            </span>
+          </div>
+        )}
+
         <div role="tablist" className="tabs tabs-lift w-fit shadow-none p-0">
           {tabs.map((tab) => (
             <Link

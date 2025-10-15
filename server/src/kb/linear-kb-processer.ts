@@ -9,11 +9,10 @@ export class LinearKbProcesser extends BaseKbProcesser {
     protected listener: KbProcesserListener,
     private readonly knowledgeGroup: KnowledgeGroup,
     protected readonly options: {
-      hasCredits: () => Promise<boolean>;
       url?: string;
     }
   ) {
-    super(listener, options);
+    super(listener);
 
     if (!this.knowledgeGroup.linearApiKey) {
       throw new Error("Linear API key is required");
@@ -34,8 +33,6 @@ export class LinearKbProcesser extends BaseKbProcesser {
       this.client,
       this.knowledgeGroup.linearSkipProjectStatuses?.split(",") ?? []
     );
-
-    const totalPages = issues.length + projects.length;
 
     for (let i = 0; i < issues.length; i++) {
       const issue = issues[i];
@@ -69,17 +66,10 @@ export class LinearKbProcesser extends BaseKbProcesser {
 
       const text = parts.join("\n\n");
 
-      this.onContentAvailable(
-        issue.url,
-        {
-          text,
-          title: issue.title || "Untitled",
-        },
-        {
-          remaining: totalPages - i,
-          completed: i,
-        }
-      );
+      this.onContentAvailable(issue.url, {
+        text,
+        title: issue.title || "Untitled",
+      });
     }
 
     for (let i = 0; i < projects.length; i++) {
@@ -110,17 +100,10 @@ export class LinearKbProcesser extends BaseKbProcesser {
 
       const text = parts.join("\n\n");
 
-      this.onContentAvailable(
-        project.url,
-        {
-          text,
-          title: project.name || "Untitled",
-        },
-        {
-          remaining: totalPages - (i + issues.length),
-          completed: i + issues.length,
-        }
-      );
+      this.onContentAvailable(project.url, {
+        text,
+        title: project.name || "Untitled",
+      });
     }
   }
 }

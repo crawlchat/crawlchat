@@ -4,7 +4,13 @@ import { AppContext, useApp } from "./context";
 import { getAuthUser } from "~/auth/middleware";
 import { SideMenu } from "./side-menu";
 import { useEffect } from "react";
-import { PLAN_FREE, PLAN_HOBBY, PLAN_PRO, PLAN_STARTER } from "libs/user-plan";
+import {
+  getPagesCount,
+  PLAN_FREE,
+  PLAN_HOBBY,
+  PLAN_PRO,
+  PLAN_STARTER,
+} from "libs/user-plan";
 import { planMap } from "libs/user-plan";
 import { prisma } from "libs/prisma";
 import { getSession } from "~/session";
@@ -86,6 +92,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const dataGapMessages = scrapeId ? await fetchDataGaps(scrapeId) : [];
 
+  const usedPages = await getPagesCount(user!.id);
+
   return {
     user: user!,
     plan,
@@ -99,6 +107,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     proPlan: PLAN_PRO,
     hobbyPlan: PLAN_HOBBY,
     isWelcome,
+    usedPages,
   };
 }
 
@@ -166,6 +175,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 openTickets={loaderData.openTickets}
                 dataGapMessages={loaderData.dataGapMessages.length}
                 scrape={loaderData.scrape}
+                usedPages={loaderData.usedPages}
               />
             </div>
           </div>

@@ -84,18 +84,20 @@ export async function scrape(
   return { parseOutput: parseHtml(text, options), error };
 }
 
+export type ScrapeWithLinksOptions = {
+  skipRegex?: RegExp[];
+  onPreScrape?: (url: string, store: ScrapeStore) => Promise<void>;
+  dynamicFallbackContentLength?: number;
+  allowOnlyRegex?: RegExp;
+  scrollSelector?: string;
+  maxWait?: number;
+};
+
 export async function scrapeWithLinks(
   url: string,
   store: ScrapeStore,
   baseUrl: string,
-  options?: {
-    skipRegex?: RegExp[];
-    onPreScrape?: (url: string, store: ScrapeStore) => Promise<void>;
-    dynamicFallbackContentLength?: number;
-    allowOnlyRegex?: RegExp;
-    scrollSelector?: string;
-    maxWait?: number;
-  }
+  options?: ScrapeWithLinksOptions
 ) {
   if (options?.onPreScrape) {
     options.onPreScrape(url, store);

@@ -10,12 +10,9 @@ import { githubApiRateLimiter } from "../rate-limiter";
 export class GithubIssuesKbProcesser extends BaseKbProcesser {
   constructor(
     protected listener: KbProcesserListener,
-    private readonly knowledgeGroup: KnowledgeGroup,
-    protected readonly options: {
-      hasCredits: () => Promise<boolean>;
-    }
+    private readonly knowledgeGroup: KnowledgeGroup
   ) {
-    super(listener, options);
+    super(listener);
   }
 
   async process() {
@@ -50,11 +47,10 @@ export class GithubIssuesKbProcesser extends BaseKbProcesser {
         issueNumber: issue.number,
       });
 
-      await this.onContentAvailable(
-        issue.html_url,
-        { text: getIssueMarkdown(issue, timeline), title: issue.title },
-        { remaining: issues.length - i, completed: i }
-      );
+      await this.onContentAvailable(issue.html_url, {
+        text: getIssueMarkdown(issue, timeline),
+        title: issue.title,
+      });
 
       await githubApiRateLimiter.wait();
     }

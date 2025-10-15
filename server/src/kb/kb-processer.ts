@@ -10,28 +10,19 @@ export type KbProcessProgress = {
   completed: number;
 };
 
-export interface KbProcesserListener {
+export type KbProcesserListener = {
   onBeforeStart: () => Promise<void>;
-  onComplete: () => Promise<void>;
+  onComplete: (error?: string) => Promise<void>;
   onError: (path: string, error: unknown) => Promise<void>;
-  onContentAvailable: (
-    path: string,
-    content: KbContent,
-    progress: KbProcessProgress
-  ) => Promise<void>;
-}
+  onContentAvailable: (path: string, content: KbContent) => Promise<void>;
+};
 
 export interface KbProcesser {
   start: () => Promise<void>;
 }
 
 export abstract class BaseKbProcesser implements KbProcesser {
-  constructor(
-    protected readonly listener: KbProcesserListener,
-    protected readonly options: {
-      hasCredits: () => Promise<boolean>;
-    }
-  ) {}
+  constructor(protected readonly listener: KbProcesserListener) {}
 
   async onComplete() {
     await this.listener.onComplete();
@@ -45,27 +36,8 @@ export abstract class BaseKbProcesser implements KbProcesser {
     await this.listener.onError(path, error);
   }
 
-  async assertCreditsAvailable() {
-    if (await this.options.hasCredits()) {
-      return true;
-    }
-
-    throw new Error("No credits");
-  }
-
-  async onContentAvailable(
-    path: string,
-    content: KbContent,
-    progress: KbProcessProgress
-  ) {
-    try {
-      await this.listener.onContentAvailable(path, content, progress);
-    } catch (error) {
-      await this.onError(path, error);
-      if (error instanceof Error && error.message === "Not enough credits") {
-        await this.onComplete();
-      }
-    }
+  async onContentAvailable(path: string, content: KbContent) {
+    await this.listener.onContentAvailable(path, content);
   }
 
   abstract process(): Promise<void>;

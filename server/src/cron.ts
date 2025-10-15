@@ -3,10 +3,8 @@ dotenv.config();
 
 import { prisma } from "libs/prisma";
 import { makeKbProcesser } from "./kb/factory";
-import { BaseKbProcesserListener } from "./kb/listener";
-import { hasEnoughCredits } from "libs/user-plan";
+import { makeKbProcesserListener } from "./kb/listener";
 import { exit } from "process";
-import { createToken } from "libs/jwt";
 
 async function updateKnowledgeGroup(groupId: string) {
   console.log(`Updating knowledge group ${groupId}`);
@@ -34,33 +32,15 @@ async function updateKnowledgeGroup(groupId: string) {
     throw new Error(`Scrape ${knowledgeGroup.scrapeId} not found`);
   }
 
-  const listener = new BaseKbProcesserListener(
-    scrape,
-    knowledgeGroup,
-    () => {},
-    {
-      hasCredits: (n) =>
-        hasEnoughCredits(scrape.userId, "scrapes", {
-          amount: n,
-          alert: {
-            scrapeId: scrape.id,
-            token: createToken(scrape.userId),
-          },
-        }),
-    }
-  );
+  const listener = makeKbProcesserListener(scrape, knowledgeGroup);
 
-  const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
-    hasCredits: () =>
-      hasEnoughCredits(scrape.userId, "scrapes", {
-        alert: {
-          scrapeId: scrape.id,
-          token: createToken(scrape.userId),
-        },
-      }),
-  });
+  const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {});
 
-  await processer.start();
+  try {
+    await processer.start();
+  } catch (error: any) {
+    await listener.onComplete(error.message);
+  }
 }
 
 async function updateKnowledgeBase() {

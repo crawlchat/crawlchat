@@ -385,7 +385,7 @@ type PlanCredits {
 type PlanLimits {
   scrapes     Float
   teamMembers Float
-  pages       Float?
+  pages       Float
 }
 
 type UserPlan {
@@ -476,6 +476,8 @@ model KnowledgeGroup {
   linearApiKey                              String?
   linearSkipIssueStatuses                   String?
   linearSkipProjectStatuses                 String?
+
+  fetchError                                String?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt

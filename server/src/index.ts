@@ -13,7 +13,11 @@ import { v4 as uuidv4 } from "uuid";
 import { LlmModel, Message, MessageChannel, Thread } from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
-import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
+import {
+  consumeCredits,
+  getPagesCount,
+  hasEnoughCredits,
+} from "libs/user-plan";
 import {
   makeFlow,
   makeRagTool,
@@ -21,7 +25,7 @@ import {
   RAGAgentCustomMessage,
 } from "./llm/flow-jasmine";
 import { extractCitations } from "libs/citation";
-import { BaseKbProcesserListener } from "./kb/listener";
+import { makeKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
 import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
 import { chunk } from "libs/chunk";
@@ -91,6 +95,9 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
 
   const scrape = await prisma.scrape.findFirstOrThrow({
     where: { id: scrapeId },
+    include: {
+      user: true,
+    },
   });
 
   const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
@@ -100,7 +107,6 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   console.log("Scraping for", scrape.id);
 
   const url = req.body.url ? cleanUrl(req.body.url) : req.body.url;
-  const includeMarkdown = req.body.includeMarkdown;
 
   (async function () {
     function getLimit() {
@@ -116,37 +122,18 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
       return undefined;
     }
 
-    const listener = new BaseKbProcesserListener(
-      scrape,
-      knowledgeGroup,
-      () => {},
-      {
-        hasCredits: (n: number = 1) =>
-          hasEnoughCredits(scrape.userId, "scrapes", {
-            amount: n,
-            alert: {
-              scrapeId: scrape.id,
-              token: createToken(scrape.userId),
-            },
-          }),
-        includeMarkdown,
-      }
-    );
+    const listener = makeKbProcesserListener(scrape, knowledgeGroup);
 
     const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
-      hasCredits: (n: number = 1) =>
-        hasEnoughCredits(scrape.userId, "scrapes", {
-          amount: n,
-          alert: {
-            scrapeId: scrape.id,
-            token: createToken(scrape.userId),
-          },
-        }),
       limit: getLimit(),
       url,
     });
 
-    await processer.start();
+    try {
+      await processer.start();
+    } catch (error: any) {
+      await listener.onComplete(error.message);
+    }
   })();
 
   res.json({ message: "ok" });

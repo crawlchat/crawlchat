@@ -8,11 +8,10 @@ export class ConfluenceKbProcesser extends BaseKbProcesser {
     protected listener: KbProcesserListener,
     private readonly knowledgeGroup: KnowledgeGroup,
     protected readonly options: {
-      hasCredits: () => Promise<boolean>;
       url?: string;
     }
   ) {
-    super(listener, options);
+    super(listener);
 
     if (!this.knowledgeGroup.confluenceApiKey) {
       throw new Error("Confluence API key is required");
@@ -57,17 +56,10 @@ export class ConfluenceKbProcesser extends BaseKbProcesser {
 
       const text = pageContent.markdown;
 
-      this.onContentAvailable(
-        url,
-        {
-          text,
-          title: title || "Untitled",
-        },
-        {
-          remaining: pages.length - i,
-          completed: i,
-        }
-      );
+      this.onContentAvailable(url, {
+        text,
+        title: title || "Untitled",
+      });
     }
   }
 }
