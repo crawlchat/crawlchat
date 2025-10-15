@@ -29,7 +29,6 @@ import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
 import { makeMeta } from "~/meta";
-import { getPagesCount } from "libs/user-plan";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
