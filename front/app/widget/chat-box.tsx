@@ -673,6 +673,7 @@ function Toolbar() {
 
   return (
     <div
+      id="chat-box-toolbar"
       className={cn(
         "flex h-[60px] gap-2 border-b border-base-300",
         "p-4 w-full justify-between bg-base-200 items-center",

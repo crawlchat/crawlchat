@@ -80,7 +80,7 @@ export function useChatBox({
   }, [token]);
 
   useEffect(function () {
-    scroll();
+    scroll(true);
   }, []);
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export function useChatBox({
 
   useEffect(() => {
     if (sidePanel) return;
-    
+
     const isDarkMode = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
@@ -240,11 +240,31 @@ export function useChatBox({
     await scroll();
   }
 
-  async function scroll(selector = ".message") {
+  async function scroll(offsetTopbar?: boolean) {
     await new Promise((resolve) => setTimeout(resolve, 100));
-    const message = document.querySelectorAll(selector);
+    const message = document.querySelectorAll(".message");
     if (message) {
-      message[message.length - 1]?.scrollIntoView({ behavior: "smooth" });
+      const element = message[message.length - 1] as HTMLElement;
+      const rect = element.getBoundingClientRect();
+
+      const toolbar = document.getElementById(
+        "chat-box-toolbar"
+      ) as HTMLElement;
+      const toolbarRect = toolbar.getBoundingClientRect();
+
+      const scrollContainer = document.getElementById(
+        "chat-box-scroll"
+      ) as HTMLElement;
+
+      if (scrollContainer) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const elementTop =
+          rect.top - containerRect.top + scrollContainer.scrollTop;
+        scrollContainer.scrollTo({
+          top: elementTop - (offsetTopbar ? toolbarRect.height : 0),
+          behavior: "smooth",
+        });
+      }
     }
   }
 
@@ -258,10 +278,6 @@ export function useChatBox({
   function erase() {
     eraseFetcher.submit({ intent: "erase" }, { method: "post" });
     chat.erase();
-  }
-
-  function scrollToMessage(id: string) {
-    scroll(`#message-${id}`);
   }
 
   function deleteMessages(ids: string[]) {
@@ -336,8 +352,6 @@ export function useChatBox({
     createTicket,
     cancelTicketCreate,
     refresh,
-    scrollToMessage,
-    scroll,
     setScreen,
     setTheme,
     handleInternalLinkClick,
