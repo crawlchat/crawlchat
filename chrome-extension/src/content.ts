@@ -250,15 +250,6 @@ function closePanel(shadowHost: HTMLElement): void {
   }
 }
 
-function handlePanelAction(action: string | undefined): void {
-  if (!action) return;
-
-  const shadowHost = document.getElementById("crawlchat-panel");
-  if (shadowHost) {
-    closePanel(shadowHost);
-  }
-}
-
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
     initializeExtension();
