@@ -88,6 +88,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       ragTopN: 10,
       creditsPerMessage: 4,
       baseURL: "https://openrouter.ai/api/v1",
+      supportsImages: true,
     };
   }
   if (model === LlmModel.haiku_4_5) {
@@ -97,6 +98,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       ragTopN: 6,
       creditsPerMessage: 1,
       baseURL: "https://openrouter.ai/api/v1",
+      supportsImages: true
     };
   }
   return {

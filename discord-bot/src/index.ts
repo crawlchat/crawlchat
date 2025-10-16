@@ -83,7 +83,15 @@ const removeBotMentions = (content: string) => {
     .trim();
 };
 
-const makeMessage = (message: DiscordMessage, scrape: Scrape) => {
+const getImageBase64 = async (url: string) => {
+  const response = await fetch(url);
+  const buffer = await response.arrayBuffer();
+  const base64 = Buffer.from(buffer).toString("base64");
+  const contentType = response.headers.get("content-type") || "image/png";
+  return `data:${contentType};base64,${base64}`;
+};
+
+const makeMessage = async (message: DiscordMessage, scrape: Scrape) => {
   let content: any = cleanContent(removeBotMentions(message.content));
 
   if (message.embeds.length > 0) {
@@ -109,7 +117,7 @@ const makeMessage = (message: DiscordMessage, scrape: Scrape) => {
     if (imageUrls.length > 0) {
       content = [
         { type: "text", text: content },
-        ...imageUrls.map((url) => ({ type: "image_url", image_url: { url } })),
+        ...(await Promise.all(imageUrls.map(async (url) => ({ type: "image_url", image_url: { url: await getImageBase64(url) } })))),
       ];
     }
   }
@@ -319,9 +327,9 @@ client.on(Events.MessageCreate, async (message) => {
       (a, b) => a.createdTimestamp - b.createdTimestamp
     );
 
-    const messages = contextMessages.map((m) => makeMessage(m, scrape));
+    const messages = await Promise.all(contextMessages.map((m) => makeMessage(m, scrape)));
 
-    messages.push(makeMessage(message, scrape));
+    messages.push(await makeMessage(message, scrape));
 
     let response = "Something went wrong";
     const {
@@ -388,7 +396,7 @@ client.on(Events.MessageCreate, async (message) => {
       const { stopTyping } = await sendTyping(message.channel);
 
       const messages = await message.channel.messages.fetch();
-      const llmMessages = messages.map((m) => makeMessage(m, scrape)).reverse();
+      const llmMessages = (await Promise.all(messages.map((m) => makeMessage(m, scrape)))).reverse();
 
       const { answer, error } = await query(
         scrapeId,
@@ -457,7 +465,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     if (channel && channel.isThreadOnly()) {
       const { answer, error } = await query(
         scrapeId,
-        [makeMessage(await reaction.message.fetch(), scrape)],
+        [await makeMessage(await reaction.message.fetch(), scrape)],
         createToken(userId),
         {
           prompt: defaultPrompt,
