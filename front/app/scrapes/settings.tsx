@@ -230,9 +230,6 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
                 <div className="badge badge-soft badge-primary">
                   <TbCrown /> Hobby
                 </div>
-                <div className="badge badge-secondary badge-soft">
-                  <TbPhotoX /> Can't take images
-                </div>
               </div>
             ),
           },
@@ -270,9 +267,6 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
                 </div>
                 <div className="badge badge-soft badge-primary">
                   <TbCrown /> Pro
-                </div>
-                <div className="badge badge-secondary badge-soft">
-                  <TbPhotoX /> Can't take images
                 </div>
               </div>
             ),
