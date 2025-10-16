@@ -117,7 +117,12 @@ const makeMessage = async (message: DiscordMessage, scrape: Scrape) => {
     if (imageUrls.length > 0) {
       content = [
         { type: "text", text: content },
-        ...(await Promise.all(imageUrls.map(async (url) => ({ type: "image_url", image_url: { url: await getImageBase64(url) } })))),
+        ...(await Promise.all(
+          imageUrls.map(async (url) => ({
+            type: "image_url",
+            image_url: { url: await getImageBase64(url) },
+          }))
+        )),
       ];
     }
   }
@@ -327,7 +332,9 @@ client.on(Events.MessageCreate, async (message) => {
       (a, b) => a.createdTimestamp - b.createdTimestamp
     );
 
-    const messages = await Promise.all(contextMessages.map((m) => makeMessage(m, scrape)));
+    const messages = await Promise.all(
+      contextMessages.map((m) => makeMessage(m, scrape))
+    );
 
     messages.push(await makeMessage(message, scrape));
 
@@ -396,7 +403,9 @@ client.on(Events.MessageCreate, async (message) => {
       const { stopTyping } = await sendTyping(message.channel);
 
       const messages = await message.channel.messages.fetch();
-      const llmMessages = (await Promise.all(messages.map((m) => makeMessage(m, scrape)))).reverse();
+      const llmMessages = (
+        await Promise.all(messages.map((m) => makeMessage(m, scrape)))
+      ).reverse();
 
       const { answer, error } = await query(
         scrapeId,
