@@ -39,13 +39,6 @@ let latestFocusedElement:
   | HTMLElement
   | null = null;
 let blurTimeoutId: number | null = null;
-let currentPanelRoot: any = null;
-let currentPanelElement:
-  | HTMLInputElement
-  | HTMLTextAreaElement
-  | HTMLElement
-  | null = null;
-let currentPanelProps: any = null;
 
 function createGlobalButton(): void {
   if (globalButton) return;
@@ -235,9 +228,7 @@ async function openPanel(
     }
   };
 
-  currentPanelRoot = root;
-  currentPanelElement = inputElement;
-  currentPanelProps = {
+  root.render(React.createElement(Panel, {
     config,
     currentValue,
     onClose: handleClose,
@@ -246,19 +237,13 @@ async function openPanel(
     onFocus: handleFocusElement,
     submit: options?.submit,
     autoUse: options?.autoUse,
-  };
-
-  root.render(React.createElement(Panel, currentPanelProps));
+  }));
 }
 
 function closePanel(shadowHost: HTMLElement): void {
   if (shadowHost.parentNode) {
     shadowHost.parentNode.removeChild(shadowHost);
   }
-
-  currentPanelRoot = null;
-  currentPanelElement = null;
-  currentPanelProps = null;
 
   if (latestFocusedElement) {
     latestFocusedElement.focus();
