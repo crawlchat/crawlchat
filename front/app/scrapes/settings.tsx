@@ -196,23 +196,6 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
               </div>
             ),
           },
-          // {
-          //   label: "Gemini 2.5 Flash",
-          //   value: "gemini_2_5_flash",
-          //   description: "Best for most of the use cases.",
-          //   summary: "1 credit / message",
-          //   disabled: !isAllowed(["free", "starter", "pro"]),
-          //   content: (
-          //     <>
-          //       <div className="badge badge-accent badge-soft">
-          //         <TbBolt /> Fast
-          //       </div>
-          //       <div className="badge badge-secondary badge-soft">
-          //         <TbPhotoX /> Can't take images
-          //       </div>
-          //     </>
-          //   ),
-          // },
           {
             label: "OpenAI GPT 5-nano",
             value: "gpt_5_nano",
@@ -240,12 +223,15 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             summary: "2 credits / message",
             disabled: !isAllowed(["hobby", "starter", "pro"]),
             content: (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <div className="badge badge-accent badge-soft">
                   <TbBrain /> Good + Fast
                 </div>
                 <div className="badge badge-soft badge-primary">
                   <TbCrown /> Hobby
+                </div>
+                <div className="badge badge-secondary badge-soft">
+                  <TbPhotoX /> Can't take images
                 </div>
               </div>
             ),
@@ -278,12 +264,15 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             summary: "4 credits / message",
             disabled: !isAllowed(["pro"]),
             content: (
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <div className="badge badge-accent badge-soft">
                   <TbStar /> Fast & Best
                 </div>
                 <div className="badge badge-soft badge-primary">
                   <TbCrown /> Pro
+                </div>
+                <div className="badge badge-secondary badge-soft">
+                  <TbPhotoX /> Can't take images
                 </div>
               </div>
             ),
