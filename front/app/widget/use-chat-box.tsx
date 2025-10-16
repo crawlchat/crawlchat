@@ -80,7 +80,7 @@ export function useChatBox({
   }, [token]);
 
   useEffect(function () {
-    scroll(true);
+    scroll();
   }, []);
 
   useEffect(() => {
@@ -237,20 +237,15 @@ export function useChatBox({
       return;
     }
     chat.ask(query);
-    await scroll();
+    await scroll(true);
   }
 
-  async function scroll(offsetTopbar?: boolean) {
+  async function scroll(last?: boolean) {
     await new Promise((resolve) => setTimeout(resolve, 100));
     const message = document.querySelectorAll(".message");
     if (message) {
-      const element = message[message.length - 1] as HTMLElement;
+      const element = message[message.length - (last ? 1 : 2)] as HTMLElement;
       const rect = element.getBoundingClientRect();
-
-      const toolbar = document.getElementById(
-        "chat-box-toolbar"
-      ) as HTMLElement;
-      const toolbarRect = toolbar.getBoundingClientRect();
 
       const scrollContainer = document.getElementById(
         "chat-box-scroll"
@@ -261,7 +256,7 @@ export function useChatBox({
         const elementTop =
           rect.top - containerRect.top + scrollContainer.scrollTop;
         scrollContainer.scrollTo({
-          top: elementTop - (offsetTopbar ? toolbarRect.height : 0),
+          top: elementTop,
           behavior: "smooth",
         });
       }
