@@ -87,7 +87,6 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       apiKey: process.env.OPENROUTER_API_KEY!,
       ragTopN: 10,
       creditsPerMessage: 4,
-      supportsImages: true,
       baseURL: "https://openrouter.ai/api/v1",
     };
   }
@@ -97,9 +96,8 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       apiKey: process.env.OPENROUTER_API_KEY!,
       ragTopN: 6,
       creditsPerMessage: 1,
-      supportsImages: true,
       baseURL: "https://openrouter.ai/api/v1",
-    }
+    };
   }
   return {
     model: "gpt-4o-mini",
