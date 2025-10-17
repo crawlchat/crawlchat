@@ -211,6 +211,7 @@ async function openPanel(
       latestFocusedElement instanceof HTMLTextAreaElement
     ) {
       latestFocusedElement.value = content;
+      simulateUserInput(latestFocusedElement);
     } else if (
       latestFocusedElement instanceof HTMLElement &&
       latestFocusedElement.contentEditable === "true"
@@ -219,6 +220,8 @@ async function openPanel(
         /\n/g,
         "<br>"
       );
+      
+      simulateUserInput(latestFocusedElement);
     }
     closePanel(shadowHost);
     setTimeout(() => {
@@ -270,6 +273,23 @@ if (document.readyState === "loading") {
   });
 } else {
   initializeExtension();
+}
+
+function simulateUserInput(element: HTMLElement): void {
+  const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+  const changeEvent = new Event('change', { bubbles: true, cancelable: true });
+  const keyupEvent = new KeyboardEvent('keyup', { 
+    bubbles: true, 
+    cancelable: true,
+    key: 'Unidentified',
+    code: 'Unidentified',
+    keyCode: 0,
+    which: 0
+  });
+  
+  element.dispatchEvent(inputEvent);
+  element.dispatchEvent(changeEvent);
+  element.dispatchEvent(keyupEvent);
 }
 
 function initializeExtension(): void {
