@@ -1,7 +1,13 @@
 import cn from "@meltdownjs/cn";
 import type { LlmModel } from "libs/prisma";
-import { useContext, useEffect, useRef } from "react";
-import { TbAlertTriangle, TbMenu2 } from "react-icons/tb";
+import { useContext, useEffect, useMemo, useRef } from "react";
+import {
+  TbAlertTriangle,
+  TbBrandChrome,
+  TbDownload,
+  TbMenu2,
+  TbX,
+} from "react-icons/tb";
 import { Link } from "react-router";
 import { AppContext } from "~/dashboard/context";
 
@@ -20,6 +26,31 @@ const LlmNameMap: Record<LlmModel, string> = {
   haiku_4_5: "Claude Haiku 4.5",
 };
 
+const release = {
+  key: "chrome-extension-now-available-1",
+  title: "Chrome Extension is now available!",
+  description: (
+    <p>
+      Use your knowledge base to quickly compose text content for different
+      purposes and fill forms instantly on any web page! Watch a demo{" "}
+      <a
+        href="https://www.youtube.com/watch?v=F7zISPrz4nQ"
+        target="_blank"
+        className="link"
+      >
+        here
+      </a>
+    </p>
+  ),
+  date: "2025-10-17T17:14:04.947Z",
+  cta: {
+    label: "Install now",
+    href: "https://chromewebstore.google.com/detail/crawlchat/icimflpdiioobolkjdbldmmomflainie",
+    icon: <TbDownload />,
+    target: "_blank",
+  },
+};
+
 export function Page({
   title,
   icon,
@@ -33,7 +64,8 @@ export function Page({
   right?: React.ReactNode;
   noPadding?: boolean;
 }) {
-  const { setContainerWidth, scrape } = useContext(AppContext);
+  const { setContainerWidth, scrape, setClosedReleaseKey, closedReleaseKey } =
+    useContext(AppContext);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,11 +79,7 @@ export function Page({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const productionLlmModels: LlmModel[] = [
-    "sonnet_4_5",
-    "gpt_5",
-    "haiku_4_5",
-  ];
+  const productionLlmModels: LlmModel[] = ["sonnet_4_5", "gpt_5", "haiku_4_5"];
   const currentLlmModel = scrape?.llmModel ?? "gpt_4o_mini";
 
   return (
@@ -82,6 +110,48 @@ export function Page({
         className={cn("flex-1 flex flex-col", !noPadding && "p-4")}
         ref={containerRef}
       >
+        {closedReleaseKey !== undefined && closedReleaseKey !== release.key && (
+          <div
+            className={cn(
+              "bg-gradient-to-br from-primary to-primary/80 p-6 rounded-box",
+              "mb-4 text-primary-content shadow-md flex justify-between",
+              "gap-4 flex-col md:flex-row md:items-center"
+            )}
+          >
+            <div className="flex flex-col gap-1 flex-4 pr-10">
+              <div
+                className={cn(
+                  "text-2xl font-medium font-radio-grotesk",
+                  "flex items-center gap-2"
+                )}
+              >
+                {release.title}
+              </div>
+              <div className="text-primary-content/80">
+                {release.description}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {release.cta && (
+                <a
+                  href={release.cta.href}
+                  target={release.cta.target}
+                  className="btn btn-accent"
+                >
+                  {release.cta.label}
+                  {release.cta.icon}
+                </a>
+              )}
+              <button
+                className="btn btn-neutral btn-square"
+                onClick={() => setClosedReleaseKey(release.key)}
+              >
+                <TbX />
+              </button>
+            </div>
+          </div>
+        )}
+
         {scrape?.llmModel && !productionLlmModels.includes(scrape.llmModel) && (
           <div role="alert" className="alert alert-warning alert-dash mb-4">
             <TbAlertTriangle size={20} />

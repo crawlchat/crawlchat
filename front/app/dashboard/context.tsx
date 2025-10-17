@@ -1,5 +1,5 @@
 import type { Scrape, User } from "libs/prisma";
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import type { SetupProgressAction } from "./setup-progress";
 
 export const useApp = ({
@@ -15,6 +15,18 @@ export const useApp = ({
   const [progressActions, setProgressActions] = useState<SetupProgressAction[]>(
     []
   );
+  const [closedReleaseKey, setClosedReleaseKey] = useState<string | null>();
+
+  useEffect(() => {
+    const key = localStorage.getItem("closedReleaseKey");
+    setClosedReleaseKey(key ?? null);
+  }, []);
+
+  useEffect(() => {
+    if (closedReleaseKey) {
+      localStorage.setItem("closedReleaseKey", closedReleaseKey);
+    }
+  }, [closedReleaseKey]);
 
   return {
     user,
@@ -24,6 +36,8 @@ export const useApp = ({
     progressActions,
     setProgressActions,
     scrape,
+    closedReleaseKey,
+    setClosedReleaseKey,
   };
 };
 
