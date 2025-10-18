@@ -9,7 +9,7 @@ class CrawlChatEmbed {
     this.askAIButtonId = "crawlchat-ask-ai-button";
     this.lastScrollTop = 0;
     this.lastBodyStyle = {};
-    this.originalMaxWidth = null;
+    this.originalTocMaxWidth = null;
     this.widgetConfig = {};
     this.sidepanelId = "crawlchat-sidepanel";
     this.tocSelector = "main .container .row .col:first-child";
@@ -352,8 +352,8 @@ class CrawlChatEmbed {
     ).parentElement.style.display = "none";
     
     const mainCol = document.querySelector(this.tocSelector);
-    if (this.originalMaxWidth === null) {
-      this.originalMaxWidth = mainCol.style.maxWidth || getComputedStyle(mainCol).maxWidth;
+    if (this.originalTocMaxWidth === null) {
+      this.originalTocMaxWidth = mainCol.style.maxWidth || getComputedStyle(mainCol).maxWidth;
     }
     mainCol.style.setProperty("max-width", "100%", "important");
   }
@@ -364,8 +364,8 @@ class CrawlChatEmbed {
     ).parentElement.style.display = "block";
     
     const mainCol = document.querySelector(this.tocSelector);
-    if (this.originalMaxWidth) {
-      mainCol.style.setProperty("max-width", this.originalMaxWidth, "important");
+    if (this.originalTocMaxWidth) {
+      mainCol.style.setProperty("max-width", this.originalTocMaxWidth, "important");
     } else {
       mainCol.style.setProperty("max-width", "75%", "important");
     }
