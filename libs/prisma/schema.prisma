@@ -320,6 +320,9 @@ model Thread {
   ticketUserEmail String?
   customTags      Json?
   location        Location?
+  emailVerifiedAt DateTime?
+  emailOtp        String?
+  emailEntered    String?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   

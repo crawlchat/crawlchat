@@ -13,7 +13,7 @@ import { commitSession, getSession } from "~/session";
 import { data, redirect, type Session } from "react-router";
 import { fetchIpDetails, getClientIp } from "~/client-ip";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
-import { sanitizeScrape } from "~/scrapes/util";
+import { sanitizeScrape, sanitizeThread } from "~/scrapes/util";
 import { getAuthUser } from "~/auth/middleware";
 import { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
@@ -105,6 +105,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const sidePanel = searchParams.get("sidepanel") === "true";
 
   sanitizeScrape(scrape);
+  sanitizeThread(thread);
 
   return {
     scrape,
@@ -276,6 +277,40 @@ export async function action({ request, params }: Route.ActionArgs) {
         },
       }
     );
+  }
+
+  if (intent === "request-email-verification") {
+    const email = formData.get("email") as string;
+    if (!email) {
+      return data({ error: "Email is required" }, { status: 400 });
+    }
+
+    await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        emailEntered: email,
+        emailOtp: "123456",
+      },
+    });
+
+    return { success: true };
+  }
+
+  if (intent === "verify-email") {
+    const otp = formData.get("otp") as string;
+
+    if (otp !== "123456") {
+      return data({ error: "Invalid OTP" }, { status: 400 });
+    }
+
+    await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        emailVerifiedAt: new Date(),
+      },
+    });
+
+    return { success: true };
   }
 }
 

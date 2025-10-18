@@ -24,7 +24,16 @@ export const createTicketBlock: RichMessageBlock = {
   }),
 };
 
+export const verifyEmailBlock: RichMessageBlock = {
+  schema: z.object({
+    email: z.string({
+      description: "Email of the user to verify. Don't ask for it upfront.",
+    }),
+  }),
+};
+
 export const richMessageBlocks: Record<string, RichMessageBlock> = {
   cta: ctaBlock,
   "create-ticket": createTicketBlock,
+  "verify-email": verifyEmailBlock,
 };
