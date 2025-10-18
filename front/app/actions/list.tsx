@@ -72,6 +72,13 @@ function ActionType({ type }: { type: ApiActionType | null }) {
       </div>
     );
 
+  if (type === "linear_create_issue")
+    return (
+      <div className="min-w-22">
+        <img src="/linear.png" alt="Linear" className="w-6 h-6 rounded-box" />
+      </div>
+    );
+
   return (
     <div className="min-w-22">
       <TbWebhook />

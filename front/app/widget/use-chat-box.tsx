@@ -198,7 +198,7 @@ export function useChatBox({
       if (verifyEmailFetcher.data.success) {
         setThread((t) => ({ ...t!, emailVerifiedAt: new Date() }));
         toast.success("Email verified.");
-        ask("Verified. Proceed further");
+        ask("Verified. Continue the above operation");
       } else {
         toast.error("Invalid OTP");
       }
