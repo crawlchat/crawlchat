@@ -4,12 +4,14 @@ export function CrawlChatScript({
   src,
   hideAskAI,
   sidePanelOpen,
+  hideToc,
 }: {
   id: string;
   sidePanel?: boolean;
   src?: string;
   hideAskAI?: boolean;
   sidePanelOpen?: boolean;
+  hideToc?: boolean;
 }) {
   return (
     <script
@@ -20,6 +22,7 @@ export function CrawlChatScript({
       data-sidepanel={sidePanel}
       data-hide-ask-ai={hideAskAI}
       data-sidepanel-open={sidePanelOpen}
+      data-hide-toc={hideToc}
     />
   );
 }

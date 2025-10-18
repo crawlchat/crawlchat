@@ -9,8 +9,10 @@ class CrawlChatEmbed {
     this.askAIButtonId = "crawlchat-ask-ai-button";
     this.lastScrollTop = 0;
     this.lastBodyStyle = {};
+    this.originalMaxWidth = null;
     this.widgetConfig = {};
     this.sidepanelId = "crawlchat-sidepanel";
+    this.tocSelector = "main .container .row .col:first-child";
   }
 
   getCustomTags() {
@@ -252,6 +254,9 @@ class CrawlChatEmbed {
 
     const iframe = document.getElementById(this.iframeId);
     iframe.contentWindow.postMessage("focus", "*");
+    if (this.getScriptElem()?.dataset.hideToc === "true") {
+      this.hideDocusaurusToc();
+    }
   }
 
   hideSidePanel() {
@@ -259,6 +264,9 @@ class CrawlChatEmbed {
       .getElementById("__docusaurus")
       ?.classList.remove("crawlchat-sidepanel-open");
     document.getElementById(this.sidepanelId)?.classList.add("hidden");
+    if (this.getScriptElem()?.dataset.hideToc === "true") {
+      this.showDocusaurusToc();
+    }
   }
 
   mountSidePanel() {
@@ -305,7 +313,7 @@ class CrawlChatEmbed {
     resize.classList.add("crawlchat-sidepanel-resize");
 
     const handleMouseMove = (e) => {
-      const width = Math.max(Math.min(window.innerWidth - e.clientX, 500), 320);
+      const width = Math.max(Math.min(window.innerWidth - e.clientX, 500), 360);
       document.documentElement.style.setProperty(
         "--crawlchat-sidepanel-width",
         `${width}px`
@@ -336,6 +344,31 @@ class CrawlChatEmbed {
   isSidePanelOpen() {
     const sidepanel = document.getElementById(this.sidepanelId);
     return !sidepanel?.classList.contains("hidden");
+  }
+
+  hideDocusaurusToc() {
+    document.querySelector(
+      ".theme-doc-toc-desktop"
+    ).parentElement.style.display = "none";
+    
+    const mainCol = document.querySelector(this.tocSelector);
+    if (this.originalMaxWidth === null) {
+      this.originalMaxWidth = mainCol.style.maxWidth || getComputedStyle(mainCol).maxWidth;
+    }
+    mainCol.style.setProperty("max-width", "100%", "important");
+  }
+
+  showDocusaurusToc() {
+    document.querySelector(
+      ".theme-doc-toc-desktop"
+    ).parentElement.style.display = "block";
+    
+    const mainCol = document.querySelector(this.tocSelector);
+    if (this.originalMaxWidth) {
+      mainCol.style.setProperty("max-width", this.originalMaxWidth, "important");
+    } else {
+      mainCol.style.setProperty("max-width", "75%", "important");
+    }
   }
 }
 

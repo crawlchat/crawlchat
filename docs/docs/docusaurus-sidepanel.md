@@ -27,7 +27,8 @@ headTags: [
         "src": "https://crawlchat.app/embed.js",
         "id": "crawlchat-script",
         "data-id": "YOUR_COLLECTION_ID",
-        "data-tag-sidepanel": "true", // makes it sidepanel
+        "data-sidepanel": "true", // makes it sidepanel
+        "data-hide-toc": "true", // optional, hides the TOC when sidepanel is open
       },
     },
 ],
