@@ -572,6 +572,8 @@ model ApiAction {
   type            ApiActionType?
   calConfig       CalActionConfig?
 
+  requireEmailVerification Boolean?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

@@ -243,7 +243,7 @@ export function makeActionTools(
             options.onPreAction(action.title);
           }
 
-          if (!thread.emailVerifiedAt) {
+          if (action.requireEmailVerification && !thread.emailVerifiedAt) {
             return {
               content:
                 "User needs to verify the email. Use the verify-email rich block to verify the email.",

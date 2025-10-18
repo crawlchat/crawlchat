@@ -19,6 +19,7 @@ import { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
 import { makeMeta } from "~/meta";
+import { sendChatVerifyEmail } from "~/email";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -285,11 +286,14 @@ export async function action({ request, params }: Route.ActionArgs) {
       return data({ error: "Email is required" }, { status: 400 });
     }
 
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await sendChatVerifyEmail(email, otp);
+
     await prisma.thread.update({
       where: { id: threadId },
       data: {
         emailEntered: email,
-        emailOtp: "123456",
+        emailOtp: otp,
       },
     });
 
@@ -298,8 +302,11 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   if (intent === "verify-email") {
     const otp = formData.get("otp") as string;
+    const thread = await prisma.thread.findFirst({
+      where: { id: threadId },
+    });
 
-    if (otp !== "123456") {
+    if (otp && otp !== thread?.emailOtp) {
       return data({ error: "Invalid OTP" }, { status: 400 });
     }
 
