@@ -186,12 +186,25 @@ export function makeActionTools(
     throw new Error("Invalid type");
   }
 
-  function makeValue(input: Record<string, any>, item: ApiActionDataItem) {
+  function makeValue(
+    thread: Thread,
+    input: Record<string, any>,
+    item: ApiActionDataItem
+  ) {
     if (item.type === "dynamic") {
       return input[item.key];
     }
     if (item.type === "value") {
       return item.value;
+    }
+    if (item.description.includes("VERIFIED_EMAIL")) {
+      if (!thread.emailVerifiedAt) {
+        throw new Error("Email is not verified!");
+      }
+      if (!thread.emailEntered) {
+        throw new Error("Email is not entered!");
+      }
+      return thread.emailEntered;
     }
     throw new Error("Invalid item type");
   }
@@ -199,7 +212,9 @@ export function makeActionTools(
   const tools = [];
 
   for (const action of actions) {
-    const dynamicData = action.data.items.filter((i) => i.type === "dynamic");
+    const dynamicData = action.data.items.filter(
+      (i) => i.type === "dynamic" && !i.description.includes("VERIFIED_EMAIL")
+    );
     const dynamicHeaders = action.headers.items.filter(
       (i) => i.type === "dynamic"
     );
@@ -224,7 +239,10 @@ export function makeActionTools(
 
           const data: Record<string, any> = {};
           for (const item of action.data.items) {
-            data[item.key] = typeCast(makeValue(input, item), item.dataType);
+            data[item.key] = typeCast(
+              makeValue(thread, input, item),
+              item.dataType
+            );
           }
 
           const queryParams =
@@ -236,7 +254,10 @@ export function makeActionTools(
 
           const headers: Record<string, any> = {};
           for (const item of action.headers.items) {
-            headers[item.key] = typeCast(makeValue(input, item), item.dataType);
+            headers[item.key] = typeCast(
+              makeValue(thread, input, item),
+              item.dataType
+            );
           }
 
           if (options?.onPreAction) {
@@ -422,6 +443,87 @@ export function makeActionTools(
       });
 
       tools.push(getSlotsTool, bookSlotTool);
+    } else if (action.type === "linear_create_issue" && action.linearConfig) {
+      const createIssueTool = new SimpleTool<RAGAgentCustomMessage>({
+        id: "create-issue",
+        description: `Create an issue in Linear. ${action.description}`,
+        schema: z.object({
+          title: z.string({
+            description:
+              "The title of the issue. It is required and don't use dummy or default title.",
+          }),
+          description: z.string({
+            description:
+              "The description of the issue. It is required and don't use dummy or default description.",
+          }),
+        }),
+        execute: async ({
+          title,
+          description,
+        }: {
+          title: string;
+          description: string;
+        }) => {
+          if (action.requireEmailVerification && !thread.emailVerifiedAt) {
+            return {
+              content:
+                "User needs to verify the email. Use the verify-email rich block to verify the email and call this tool again.",
+            };
+          }
+
+          options?.onPreAction?.("create issue");
+
+          const query = `
+    mutation CreateIssue($input: IssueCreateInput!) {
+      issueCreate(input: $input) {
+        success
+        issue {
+          id
+          title
+        }
+      }
+    }
+  `;
+
+          const variables = {
+            input: {
+              teamId: action.linearConfig!.teamId,
+              title,
+              description: `Created by ${thread.emailEntered}\n\n${description}`,
+            },
+          };
+
+          const response = await fetch("https://api.linear.app/graphql", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: process.env.LINEAR_API_KEY!,
+            },
+            body: JSON.stringify({ query, variables }),
+          });
+
+          const content = await response.text();
+
+          return {
+            content,
+            customMessage: {
+              actionCall: {
+                actionId: action.id,
+                data: {
+                  title,
+                  description,
+                  api: "create-issue",
+                  teamId: action.linearConfig!.teamId!,
+                },
+                response: content,
+                statusCode: response.status,
+                createdAt: new Date(),
+              },
+            },
+          };
+        },
+      });
+      tools.push(createIssueTool);
     }
   }
 
