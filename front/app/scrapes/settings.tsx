@@ -11,16 +11,19 @@ import { getAuthUser } from "~/auth/middleware";
 import {
   TbBolt,
   TbBrain,
+  TbCheck,
   TbCrown,
+  TbFolder,
+  TbListCheck,
   TbLock,
-  TbPhotoX,
+  TbSearch,
   TbSettings,
   TbStar,
   TbTrash,
   TbWorld,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "./util";
 import { createToken } from "libs/jwt";
 import { RadioCard } from "~/components/radio-card";
@@ -29,6 +32,7 @@ import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import moment from "moment";
 import { makeMeta } from "~/meta";
+import { hideModal, showModal } from "~/components/daisy-utils";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -128,6 +132,85 @@ export async function action({ request }: Route.ActionArgs) {
 
   return { scrape };
 }
+
+const prompts = {
+  "product-expert": {
+    prompt: `You are an expert assistant that answers questions about <PRODUCT_OR_SERVICE>.
+Your job is to provide factual, concise, and reliable answers strictly based on the content available about <PRODUCT_OR_SERVICE> — such as its documentation, website pages, blogs, or public posts.
+
+Your Responsibilities:
+1. Understand the user’s query and identify what part of <PRODUCT_OR_SERVICE> it refers to.
+2. Retrieve relevant content and summarize it clearly.
+3. Do not speculate or invent features or claims.
+4. If unsure, say “I couldn’t find this in the available information.”
+5. Optionally include source references (URLs or section titles) if available.
+
+Output Style:
+- Use a friendly and informative tone.
+- Keep the response under 150 words unless the question is broad.
+- Format important details as bullet points when possible.
+- End with: “Would you like me to show related sections?” (optional)
+
+Example Output:
+<PRODUCT_OR_SERVICE> lets you build an AI-powered assistant trained on your website or documentation.
+It integrates with Slack and Discord, and supports embedding a chat widget on your site.`,
+  },
+  "action-planner": {
+    prompt: `
+You are a setup assistant for <PRODUCT_OR_SERVICE>.
+When a user asks “how to” or “help me do X,” you create a step-by-step guide that walks them through achieving that goal.
+
+Your Responsibilities:
+1. Understand the user’s goal (what they want to achieve with <PRODUCT_OR_SERVICE>).
+2. Break it into ordered steps (numbered or bulleted).
+3. Include any prerequisites or tips users should know.
+4. Use verified documentation for reference — or if missing, clearly note that the step is inferred.
+5. End with an optional “Next Steps” section or “Related Topics” suggestion.
+
+Output Style:
+- Use numbered steps (1, 2, 3...) for instructions.
+- Keep each step short (max 2 sentences).
+- Bold key UI elements, buttons, or menu options.
+- Add a short intro sentence explaining the goal before listing steps.
+- End with a short summary or next step.
+
+Example Output:
+To connect <PRODUCT_OR_SERVICE> with Slack:
+1. Go to Dashboard → Integrations → Slack.
+2. Click Add to Slack and authorize access.
+3. Choose the workspace where you want to install the bot.
+4. Test the bot by typing /<PRODUCT_OR_SERVICE> help in any Slack channel.`,
+  },
+  "research-assistant": {
+    prompt: `You are a research analyst specialized in <PRODUCT_OR_SERVICE>.
+Your job is to deeply understand the user’s query, explore related angles, and produce a comprehensive yet clear explanation or comparison.
+
+Your Responsibilities:
+1. Identify the main question and related subtopics.
+2. Explore and expand the topic using all relevant information about <PRODUCT_OR_SERVICE>.
+3. Provide context, comparisons, and implications where applicable.
+4. Organize your findings into clear sections (Overview, Analysis, Comparison, Takeaways).
+5. Avoid assumptions that aren’t supported by available content — if you infer something, mark it as such.
+
+Output Style:
+- Use section headings (Overview, Details, etc.).
+- Write in paragraph form with a concise, informative tone.
+- Use bullet lists or tables for comparisons if relevant.
+- End with a Summary or Key Takeaways section.
+
+Example Output:
+Overview
+<PRODUCT_OR_SERVICE> is an AI-powered documentation assistant that helps teams search, query, and interact with website or doc content in natural language.
+
+Comparison with Chatbase
+- <PRODUCT_OR_SERVICE> emphasizes developer integrations (Slack, Discord, Web Embed).
+- Chatbase focuses on simple no-code chat embedding.
+
+Key Takeaways
+<PRODUCT_OR_SERVICE> suits technical or API-driven teams that need deeper integration and action automation.
+Chatbase is better for simple website Q&A use cases.`,
+  },
+};
 
 function TicketingSettings({ scrape }: { scrape: Scrape }) {
   const fetcher = useFetcher();
@@ -354,8 +437,134 @@ function AnalyseMessageSettings({
   );
 }
 
-export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
+function ChatPromptSettings({ scrape }: { scrape: Scrape }) {
   const promptFetcher = useFetcher();
+  const [selectedPrompt, setSelectedPrompt] =
+    useState<keyof typeof prompts>("product-expert");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [productName, setProductName] = useState<string>("");
+  const formRef = useRef<HTMLFormElement>(null);
+
+  function handleUsePrompt() {
+    if (textareaRef.current && productName) {
+      const prompt = prompts[selectedPrompt].prompt;
+      textareaRef.current.value = prompt
+        .replaceAll("<PRODUCT_OR_SERVICE>", productName)
+        .replace(/^\n/, "")
+        .replace(/\n$/, "")
+        .trim();
+      setProductName("");
+      setSelectedPrompt("product-expert");
+      hideModal("browse-prompts");
+      promptFetcher.submit(formRef.current);
+    }
+  }
+
+  return (
+    <>
+      <SettingsSection
+        id="prompt"
+        title="Chat Prompt"
+        description="Customize the chat prompt for this scrape."
+        fetcher={promptFetcher}
+        formRef={formRef}
+        actionRight={
+          <button
+            className="btn"
+            type="button"
+            onClick={() => showModal("browse-prompts")}
+          >
+            Library
+            <TbFolder />
+          </button>
+        }
+      >
+        <textarea
+          ref={textareaRef}
+          className="textarea textarea-bordered w-full"
+          name="chatPrompt"
+          defaultValue={scrape.chatPrompt ?? ""}
+          placeholder="Enter a custom chat prompt for this scrape."
+          rows={5}
+        />
+      </SettingsSection>
+
+      <dialog id="browse-prompts" className="modal">
+        <div className="modal-box flex flex-col gap-4">
+          <div className="text-lg font-bold">Prompts library</div>
+          <RadioCard
+            options={[
+              {
+                label: "Product expert",
+                value: "product-expert",
+                icon: <TbCheck />,
+                description:
+                  "A product expert who knows about the product and can answer questions about it.",
+              },
+              {
+                label: "Action planner",
+                value: "action-planner",
+                icon: <TbListCheck />,
+                description:
+                  "A action planner who can plan actions to be taken to answer the question.",
+              },
+              {
+                label: "Research assistant",
+                value: "research-assistant",
+                icon: <TbSearch />,
+                description:
+                  "A research assistant who can help with research and answer questions about it.",
+              },
+            ]}
+            value={selectedPrompt}
+            cols={1}
+            onChange={(value) =>
+              setSelectedPrompt(value as keyof typeof prompts)
+            }
+          />
+
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">
+              Your product or service name
+            </legend>
+            <input
+              type="text"
+              className="input w-full"
+              placeholder="Ex: My Company"
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              required
+            />
+          </fieldset>
+
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              className="btn"
+              onClick={() => hideModal("browse-prompts")}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleUsePrompt}
+              disabled={!productName}
+            >
+              Use it
+              <TbCheck />
+            </button>
+          </div>
+        </div>
+        <form method="dialog" className="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
+    </>
+  );
+}
+
+export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const nameFetcher = useFetcher();
   const deleteFetcher = useFetcher();
   const minScoreFetcher = useFetcher();
@@ -472,20 +681,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             />
           </SettingsSection>
 
-          <SettingsSection
-            id="prompt"
-            title="Chat Prompt"
-            description="Customize the chat prompt for this scrape."
-            fetcher={promptFetcher}
-          >
-            <textarea
-              className="textarea textarea-bordered w-full"
-              name="chatPrompt"
-              defaultValue={loaderData.scrape.chatPrompt ?? ""}
-              placeholder="Enter a custom chat prompt for this scrape."
-              rows={5}
-            />
-          </SettingsSection>
+          <ChatPromptSettings scrape={loaderData.scrape} />
 
           <TicketingSettings scrape={loaderData.scrape} />
 
