@@ -96,11 +96,8 @@ const RichCreateTicket = ({
 };
 
 const RichVerifyEmail = ({
-  scrape,
   thread,
-  email: initialEmail,
   disabled,
-  onAsk,
   requestEmailVerificationFetcher,
   verifyEmailFetcher,
 }: {
@@ -108,7 +105,6 @@ const RichVerifyEmail = ({
   thread: Thread;
   email: string;
   disabled?: boolean;
-  onAsk: (text: string) => void;
   requestEmailVerificationFetcher: FetcherWithComponents<any>;
   verifyEmailFetcher: FetcherWithComponents<any>;
 }) => {
@@ -222,14 +218,12 @@ function CodeCopyButton({ code }: { code: string }) {
 }
 
 export function MarkdownProse({
-  scrape,
   thread,
   children,
   noMarginCode,
   sources,
   options,
 }: PropsWithChildren<{
-  scrape: Scrape;
   thread?: Thread | null;
   noMarginCode?: boolean;
   sources?: Array<{ title: string; url?: string }>;
@@ -244,7 +238,6 @@ export function MarkdownProse({
     customerEmail?: string;
     onSourceMouseEnter?: (index: number) => void;
     onSourceMouseLeave?: () => void;
-    onAsk?: (text: string) => void;
     requestEmailVerificationFetcher?: FetcherWithComponents<any>;
     verifyEmailFetcher?: FetcherWithComponents<any>;
   };
@@ -283,7 +276,6 @@ export function MarkdownProse({
                 if (
                   language === "json|verify-email" &&
                   thread &&
-                  options?.onAsk &&
                   options?.requestEmailVerificationFetcher &&
                   options?.verifyEmailFetcher
                 ) {
@@ -292,8 +284,6 @@ export function MarkdownProse({
                       {...json}
                       disabled={options?.disabled}
                       thread={thread}
-                      scrape={scrape}
-                      onAsk={options.onAsk}
                       requestEmailVerificationFetcher={
                         options.requestEmailVerificationFetcher
                       }

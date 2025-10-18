@@ -396,7 +396,6 @@ export function AssistantMessage({
     scrape,
     chat,
     thread,
-    ask,
     requestEmailVerificationFetcher,
     verifyEmailFetcher,
   } = useChatBoxContext();
@@ -430,6 +429,7 @@ export function AssistantMessage({
 
       <div className="flex flex-col gap-4">
         <MarkdownProse
+          thread={thread}
           sources={Object.values(citation.citedLinks).map((link) => ({
             title: link?.title ?? link?.url ?? "Source",
             url: link?.url ?? undefined,
@@ -439,12 +439,9 @@ export function AssistantMessage({
             ticketCreateLoading: ticketCreateFetcher.state !== "idle",
             disabled: readOnly,
             customerEmail,
-            onAsk: ask,
             requestEmailVerificationFetcher,
             verifyEmailFetcher,
           }}
-          thread={thread}
-          scrape={scrape}
         >
           {citation.content}
         </MarkdownProse>
@@ -497,7 +494,7 @@ function NoMessages() {
 
   return (
     <div className="flex flex-col gap-4 p-4 flex-1">
-      <MarkdownProse scrape={scrape}>
+      <MarkdownProse>
         {scrape.widgetConfig?.welcomeMessage ||
           "Ask your queries here. Remember, I am an AI assistant and refer to the sources to confirm the answer."}
       </MarkdownProse>
@@ -582,7 +579,7 @@ function MCPSetup() {
             <input type="radio" name={"mcp-section"} />
             <div className="collapse-title font-semibold">{item.title}</div>
             <div className="collapse-content text-sm">
-              <MarkdownProse scrape={scrape} noMarginCode>
+              <MarkdownProse noMarginCode>
                 {`\`\`\`${item.language}\n${item.script}\n\`\`\``}
               </MarkdownProse>
             </div>
