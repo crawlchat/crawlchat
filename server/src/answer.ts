@@ -180,13 +180,15 @@ export const baseAnswerer: Answerer = async (
     richBlocks.push(createTicketRichBlock);
   }
 
-  richBlocks.push({
-    name: "Verify email",
-    key: "verify-email",
-    payload: {},
-    prompt: `Use this block to verify the email of the user for this thread. 
+  if (options?.channel === "widget") {
+    richBlocks.push({
+      name: "Verify email",
+      key: "verify-email",
+      payload: {},
+      prompt: `Use this block to verify the email of the user for this thread. 
 Just use this block, don't ask the user to enter the email.`,
-  });
+    });
+  }
 
   options?.listen?.({
     type: "init",
