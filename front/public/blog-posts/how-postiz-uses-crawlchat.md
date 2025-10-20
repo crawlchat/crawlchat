@@ -36,8 +36,6 @@ As Postiz’s Egelhaus shared in a public testimonial:
 
 > “We can definitely recommend using CrawlChat — it’s **easy to set up**, really **affordable**, and has great support. Thank you [@pramodk73](https://x.com/pramodk73) for making this!”
 
-![Postiz testimonial about CrawlChat](https://files.oaiusercontent.com/file_00000000434061fa819f4810ff0efba0/Screenshot%202025-10-19%20at%201.49.57%E2%80%AFPM.png)
-
 ---
 
 ## How Postiz Uses CrawlChat
