@@ -53,6 +53,8 @@ The team also added the CrawlChat bot to their Discord server. When community me
 
 Postiz took it one step further by automating the support process. They set up another bot that automatically tags **@crawlchat** whenever a new support thread is created. CrawlChat then joins the thread, answers the user’s question, and continues the conversation if the user follows up.
 
+![Postiz uses CrawlChat on Discord](/blog-images/postiz-discord.png)
+
 So far, **over 150 support threads** have been handled this way — automatically, accurately, and instantly.
 
 This automation keeps the Discord clean, responsive, and scalable, while freeing up human maintainers to focus on building new features instead of repeating the same troubleshooting steps.
