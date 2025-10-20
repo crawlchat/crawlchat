@@ -1094,6 +1094,11 @@ export function Footer() {
           <div className="flex-[2]">
             <ul className="flex flex-col gap-4">
               <li>
+                <FooterLink href="/blog/how-postiz-uses-crawlchat">
+                  How Postiz Uses CrawlChat
+                </FooterLink>
+              </li>
+              <li>
                 <FooterLink href="/blog/why-crawlchat-is-the-better-choice-for-you">
                   Why CrawlChat is the better choice for you
                 </FooterLink>
@@ -1141,11 +1146,6 @@ export function Footer() {
               <li>
                 <FooterLink href="/blog/how-discord-bot-helps">
                   How Discord Bot helps?
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/blog/how-to-do-basic-rag">
-                  How to do a basic RAG?
                 </FooterLink>
               </li>
             </ul>
