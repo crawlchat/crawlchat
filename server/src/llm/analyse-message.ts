@@ -236,10 +236,13 @@ export async function analyseMessage(
     );
   }
 
+  const llmConfig = getConfig("gpt_5");
+
   const agent = new SimpleAgent({
     id: "analyser",
     prompt,
     schema: z.object(schema),
+    ...llmConfig,
   });
 
   const flow = new Flow([agent], {

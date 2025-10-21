@@ -1,4 +1,9 @@
-import type { Message } from "libs/prisma";
+import type {
+  CategorySuggestion,
+  Message,
+  Scrape,
+  ScrapeMessageCategory,
+} from "libs/prisma";
 import type { Route } from "./+types/messages";
 import { TbFolder, TbMessage, TbMessages, TbPointer } from "react-icons/tb";
 import { Page } from "~/components/page";
@@ -23,6 +28,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const scrapeId = await getSessionScrapeId(request);
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId },
+  });
+
   const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
 
   const messages = await prisma.message.findMany({
@@ -40,7 +49,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
-  return { messagePairs: makeMessagePairs(messages) };
+  return { messagePairs: makeMessagePairs(messages), scrape };
 }
 
 export function meta() {
@@ -52,6 +61,31 @@ export function meta() {
 function getMessageContent(message?: Message) {
   const content = (message?.llmMessage as any)?.content;
   return getQueryString(content) ?? "-";
+}
+
+function CategorySuggestionCount({
+  scrape,
+  suggestions,
+}: {
+  scrape: Scrape;
+  suggestions: CategorySuggestion[];
+}) {
+  const filtered = suggestions.filter(
+    (suggestion) =>
+      !scrape.messageCategories.some(
+        (category) =>
+          category.title.trim().toLowerCase() ===
+          suggestion.title.trim().toLowerCase()
+      )
+  );
+
+  if (filtered.length === 0) return null;
+
+  return (
+    <div className="tooltip" data-tip="Category suggestions">
+      <span className="text-base-content/50">+{filtered.length}</span>
+    </div>
+  );
 }
 
 export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
@@ -143,13 +177,20 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                             onlyIcon
                           />
                         </td>
-                        <td className="min-w-12">
+                        <td className="min-w-12 flex items-center gap-2">
                           {pair.queryMessage?.analysis?.category && (
                             <span className="badge badge-soft badge-accent whitespace-nowrap">
                               <TbFolder />
                               {pair.queryMessage?.analysis?.category}
                             </span>
                           )}
+                          <CategorySuggestionCount
+                            scrape={loaderData.scrape}
+                            suggestions={
+                              pair.queryMessage?.analysis
+                                ?.categorySuggestions ?? []
+                            }
+                          />
                         </td>
                         <td className="text-end min-w-34">
                           {moment(pair.queryMessage?.createdAt).fromNow()}

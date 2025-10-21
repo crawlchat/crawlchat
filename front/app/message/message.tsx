@@ -337,6 +337,16 @@ export default function Message({ loaderData }: Route.ComponentProps) {
   const actionsMap = loaderData.actionsMap;
   const categorySuggestions =
     messagePair?.queryMessage?.analysis?.categorySuggestions;
+  const filteredCategorySuggestions = useMemo(() => {
+    return categorySuggestions?.filter(
+      (suggestion) =>
+        !loaderData.scrape.messageCategories.some(
+          (category) =>
+            category.title.trim().toLowerCase() ===
+            suggestion.title.trim().toLowerCase()
+        )
+    );
+  }, [categorySuggestions, loaderData.scrape.messageCategories]);
 
   return (
     <Page
@@ -395,34 +405,35 @@ export default function Message({ loaderData }: Route.ComponentProps) {
           />
         )}
 
-        {categorySuggestions && categorySuggestions.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <div className="text-lg">Category Suggestions</div>
-            <div
-              className={cn(
-                "flex flex-col bg-base-200/50 rounded-box",
-                "shadow border border-base-300 max-w-prose"
-              )}
-            >
-              {categorySuggestions
-                .filter(
-                  (suggestion) =>
-                    !loaderData.scrape.messageCategories.some(
-                      (category) =>
-                        category.title.trim().toLowerCase() ===
-                        suggestion.title.trim().toLowerCase()
-                    )
-                )
-                .map((suggestion, index) => (
-                  <CategorySuggestion
-                    key={index}
-                    suggestion={suggestion}
-                    index={index}
-                  />
-                ))}
+        {filteredCategorySuggestions &&
+          filteredCategorySuggestions.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <div className="text-lg">Category Suggestions</div>
+              <div
+                className={cn(
+                  "flex flex-col bg-base-200/50 rounded-box",
+                  "shadow border border-base-300 max-w-prose"
+                )}
+              >
+                {filteredCategorySuggestions
+                  .filter(
+                    (suggestion) =>
+                      !loaderData.scrape.messageCategories.some(
+                        (category) =>
+                          category.title.trim().toLowerCase() ===
+                          suggestion.title.trim().toLowerCase()
+                      )
+                  )
+                  .map((suggestion, index) => (
+                    <CategorySuggestion
+                      key={index}
+                      suggestion={suggestion}
+                      index={index}
+                    />
+                  ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </Page>
   );

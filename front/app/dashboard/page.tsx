@@ -4,6 +4,7 @@ import {
   TbChartBar,
   TbCheck,
   TbDatabase,
+  TbFolder,
   TbHome,
   TbMessage,
   TbPlus,
@@ -171,6 +172,13 @@ export async function loader({ request }: Route.LoaderArgs) {
       })
     : 0;
 
+  const categories: Record<string, number> = {};
+  for (const message of messages) {
+    if (!message.analysis?.category) continue;
+    categories[message.analysis.category] =
+      (categories[message.analysis.category] ?? 0) + 1;
+  }
+
   return {
     user,
     dailyMessages,
@@ -186,6 +194,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     lowRatingQueries,
     dataGapMessages,
     nScrapeItems,
+    categories,
   };
 }
 
@@ -454,6 +463,33 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               value={loaderData.ratingDownCount}
               icon={<TbThumbDown />}
             />
+          </div>
+
+          <div className="flex gap-2 items-center flex-wrap">
+            {Object.entries(loaderData.categories).map(([category, count]) => (
+              <div
+                key={category}
+                className="badge badge-accent badge-soft badge-xl"
+              >
+                <TbFolder />
+                <span className="">{category}</span>
+                <span className="badge badge-neutral badge-soft rounded-full -mr-2">
+                  {count}
+                </span>
+              </div>
+            ))}
+            <div
+              className="tooltip"
+              data-tip="Add categories that will be tagged to the messages and you can check the count of each category here."
+            >
+              <a
+                href="/settings#categories"
+                className="btn btn-primary btn-soft btn-sm"
+              >
+                Add category
+                <TbPlus />
+              </a>
+            </div>
           </div>
 
           <div className="flex gap-4">
