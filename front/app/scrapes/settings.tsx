@@ -607,7 +607,7 @@ function CategorySettings({ scrape }: { scrape: Scrape }) {
     <SettingsSection
       id="categories"
       title="Categories"
-      description="Configure the categories for the scrape."
+      description="Add categories that will be tagged to the messages and you can view the count of each category on the dashboard. Make sure that the categories are narrowed and unambiguous."
       fetcher={fetcher}
       actionRight={
         <button className="btn" type="button" onClick={handleAddCategory}>

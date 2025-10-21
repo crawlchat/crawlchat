@@ -388,19 +388,29 @@ export async function fillMessageAnalysis(
     });
 
     const maxScore = Math.max(...sources.map((s) => s.score ?? 0));
-    if (maxScore > 0.15 && partialAnalysis?.category) {
+    if (maxScore > 0.15) {
+      const cleanedCategory =
+        partialAnalysis?.category &&
+        options?.categories &&
+        options?.categories.some(
+          (c) =>
+            c.title.trim().toLowerCase() ===
+            partialAnalysis.category?.trim().toLowerCase()
+        )
+          ? partialAnalysis.category
+          : null;
       await prisma.message.update({
         where: { id: questionMessageId },
         data: {
           analysis: {
             upsert: {
               set: {
-                category: partialAnalysis.category ?? null,
-                categorySuggestions: partialAnalysis.categorySuggestions ?? [],
+                category: cleanedCategory,
+                categorySuggestions: partialAnalysis?.categorySuggestions ?? [],
               },
               update: {
-                category: partialAnalysis.category ?? null,
-                categorySuggestions: partialAnalysis.categorySuggestions ?? [],
+                category: cleanedCategory,
+                categorySuggestions: partialAnalysis?.categorySuggestions ?? [],
               },
             },
           },
