@@ -465,14 +465,14 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             />
           </div>
 
-          <div className="flex gap-2 items-center flex-wrap">
+          <div className="flex gap-2 items-center flex-wrap my-4">
             {Object.entries(loaderData.categories).map(([category, count]) => (
               <div
                 key={category}
                 className="badge badge-accent badge-soft badge-xl"
               >
                 <TbFolder />
-                <span className="">{category}</span>
+                <span>{category}</span>
                 <span className="badge badge-neutral badge-soft rounded-full -mr-2">
                   {count}
                 </span>
