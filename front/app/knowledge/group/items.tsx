@@ -60,13 +60,6 @@ function getKey(item: { id: string; url?: string | null }) {
   return item.url;
 }
 
-function truncateStart(text: string, maxLength: number) {
-  const prefix = text.slice(0, maxLength);
-  const postfix = text.length > maxLength ? "..." : "";
-
-  return prefix + postfix;
-}
-
 export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
   return (
     <>
