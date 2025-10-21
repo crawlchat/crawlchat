@@ -388,6 +388,7 @@ expressWs.app.ws("/", (ws: any, req) => {
                   event.sources,
                   event.context,
                   {
+                    categories: scrape.messageCategories,
                     onFollowUpQuestion: (questions) => {
                       ws?.send(
                         makeMessage("follow-up-questions", { questions })
@@ -744,7 +745,10 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     getQueryString(query),
     answer!.content,
     answer!.sources,
-    answer!.context
+    answer!.context,
+    {
+      categories: scrape.messageCategories,
+    }
   );
 
   if (!answer) {

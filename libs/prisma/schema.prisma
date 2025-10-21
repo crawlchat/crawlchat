@@ -246,6 +246,11 @@ enum QuestionSentiment {
   happy
 }
 
+type CategorySuggestion {
+  title String
+  description String
+}
+
 type MessageAnalysis {
   category  String?
   questionRelevanceScore Float?
@@ -258,7 +263,7 @@ type MessageAnalysis {
   shortQuestion String?
   followUpQuestions String[]
 
-  categorySuggestions String[]
+  categorySuggestions CategorySuggestion[]
 }
 
 model Message {

@@ -1,6 +1,6 @@
 import type { Message } from "libs/prisma";
 import type { Route } from "./+types/messages";
-import { TbMessage, TbMessages, TbPointer } from "react-icons/tb";
+import { TbFolder, TbMessage, TbMessages, TbPointer } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
@@ -146,6 +146,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                         <td className="min-w-12">
                           {pair.queryMessage?.analysis?.category && (
                             <span className="badge badge-soft badge-accent whitespace-nowrap">
+                              <TbFolder />
                               {pair.queryMessage?.analysis?.category}
                             </span>
                           )}

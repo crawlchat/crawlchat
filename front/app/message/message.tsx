@@ -1,6 +1,13 @@
 import type { Route } from "./+types/message";
-import type { ApiAction, Message } from "libs/prisma";
-import { TbChartBar, TbMessage, TbPhoto, TbSettingsBolt } from "react-icons/tb";
+import type { ApiAction, CategorySuggestion, Message } from "libs/prisma";
+import {
+  TbChartBar,
+  TbFolder,
+  TbMessage,
+  TbPhoto,
+  TbPlus,
+  TbSettingsBolt,
+} from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { useEffect, useMemo, useState } from "react";
 import { makeMessagePairs } from "./analyse";
@@ -8,6 +15,7 @@ import { prisma } from "libs/prisma";
 import {
   Link,
   Link as RouterLink,
+  useFetcher,
   useLocation,
   useNavigate,
 } from "react-router";
@@ -30,6 +38,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: {
+      id: scrapeId,
+    },
+  });
 
   const queryMessage = await prisma.message.findUnique({
     where: {
@@ -64,7 +78,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     actions.map((action) => [action.id, action])
   );
 
-  return { messagePairs, messagePair, actionsMap };
+  return { messagePairs, messagePair, actionsMap, scrape };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -73,6 +87,59 @@ export function meta({ data }: Route.MetaArgs) {
       (data.messagePair?.queryMessage?.llmMessage as any)?.content ?? "Message"
     } - CrawlChat`,
   });
+}
+
+export async function action({ request, params }: Route.ActionArgs) {
+  const user = await getAuthUser(request);
+  const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  const scrape = await prisma.scrape.findFirst({
+    where: {
+      id: scrapeId,
+    },
+  });
+
+  if (!scrape) {
+    return Response.json({ error: "Scrape not found" }, { status: 404 });
+  }
+
+  if (intent === "add-category") {
+    const suggestion = JSON.parse(formData.get("suggestion") as string);
+    await prisma.scrape.update({
+      where: { id: scrapeId },
+      data: {
+        messageCategories: {
+          push: { ...suggestion, createdAt: new Date() },
+        },
+      },
+    });
+
+    const message = await prisma.message.findFirstOrThrow({
+      where: { id: params.queryMessageId },
+    });
+
+    const index = parseInt(formData.get("index") as string);
+
+    await prisma.message.update({
+      where: { id: message.id },
+      data: {
+        analysis: {
+          set: {
+            categorySuggestions:
+              message.analysis?.categorySuggestions?.filter(
+                (_, i) => i !== index
+              ) ?? [],
+          },
+        },
+      },
+    });
+
+    return { success: true };
+  }
 }
 
 function getMessageContent(message?: Message) {
@@ -202,6 +269,51 @@ function AssistantMessage({
   );
 }
 
+function CategorySuggestion({
+  suggestion,
+  index,
+}: {
+  suggestion: CategorySuggestion;
+  index: number;
+}) {
+  const fetcher = useFetcher();
+
+  return (
+    <div
+      className={cn(
+        "p-4 border-b border-base-300 last:border-b-0",
+        "flex justify-between items-center"
+      )}
+    >
+      <div>
+        {suggestion.title}
+        <p className="text-sm text-base-content/50">{suggestion.description}</p>
+      </div>
+      <div className="tooltip" data-tip="Add category to the collection">
+        <fetcher.Form method="post">
+          <input type="hidden" name="intent" value="add-category" />
+          <input
+            type="hidden"
+            name="suggestion"
+            value={JSON.stringify(suggestion)}
+          />
+          <input type="hidden" name="index" value={index} />
+          <button
+            className="btn btn-soft btn-primary"
+            type="submit"
+            disabled={fetcher.state !== "idle"}
+          >
+            {fetcher.state !== "idle" && (
+              <span className="loading loading-spinner loading-xs" />
+            )}
+            Add <TbPlus />
+          </button>
+        </fetcher.Form>
+      </div>
+    </div>
+  );
+}
+
 export default function Message({ loaderData }: Route.ComponentProps) {
   const location = useLocation();
   const imagesCount = useMemo(
@@ -223,6 +335,8 @@ export default function Message({ loaderData }: Route.ComponentProps) {
 
   const messagePair = loaderData.messagePair;
   const actionsMap = loaderData.actionsMap;
+  const categorySuggestions =
+    messagePair?.queryMessage?.analysis?.categorySuggestions;
 
   return (
     <Page
@@ -247,6 +361,12 @@ export default function Message({ loaderData }: Route.ComponentProps) {
           </div>
 
           <div className="flex gap-2 items-center">
+            {messagePair?.queryMessage?.analysis?.category && (
+              <span className="badge badge-soft badge-accent whitespace-nowrap">
+                <TbFolder />
+                {messagePair?.queryMessage?.analysis?.category}
+              </span>
+            )}
             <ChannelBadge channel={messagePair?.queryMessage?.channel} />
             {messagePair?.responseMessage.rating && (
               <Rating rating={messagePair?.responseMessage.rating} />
@@ -273,6 +393,35 @@ export default function Message({ loaderData }: Route.ComponentProps) {
             message={messagePair.responseMessage}
             actionsMap={actionsMap}
           />
+        )}
+
+        {categorySuggestions && categorySuggestions.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <div className="text-lg">Category Suggestions</div>
+            <div
+              className={cn(
+                "flex flex-col bg-base-200/50 rounded-box",
+                "shadow border border-base-300 max-w-prose"
+              )}
+            >
+              {categorySuggestions
+                .filter(
+                  (suggestion) =>
+                    !loaderData.scrape.messageCategories.some(
+                      (category) =>
+                        category.title.trim().toLowerCase() ===
+                        suggestion.title.trim().toLowerCase()
+                    )
+                )
+                .map((suggestion, index) => (
+                  <CategorySuggestion
+                    key={index}
+                    suggestion={suggestion}
+                    index={index}
+                  />
+                ))}
+            </div>
+          </div>
         )}
       </div>
     </Page>

@@ -197,13 +197,26 @@ export async function analyseMessage(
         It should not be part of thread questions.
       `
     ),
-    categorySuggestions: z.array(z.string()).describe(
-      `
+    categorySuggestions: z
+      .array(
+        z.object({
+          title: z.string().describe(`
+        The title of the category.
+        It should be under 3 words.
+      `),
+          description: z.string().describe(`
+        The description of the category.
+        It should be plain text under 30 words.
+      `),
+        })
+      )
+      .describe(
+        `
         Suggest categories for the question.
         It should be under 3 categories.
         It should not be one of the following: ${categories.join(", ")}
       `
-    ),
+      ),
   };
 
   if (categories.length > 0) {
@@ -248,7 +261,7 @@ export async function analyseMessage(
     shortQuestion: string;
     followUpQuestions: string[];
     category: string | null;
-    categorySuggestions: string[];
+    categorySuggestions: { title: string; description: string }[];
   };
 }
 
@@ -265,7 +278,10 @@ export async function fillMessageAnalysis(
   answer: string,
   sources: MessageSourceLink[],
   context: string[],
-  options?: { onFollowUpQuestion?: (questions: string[]) => void }
+  options?: {
+    onFollowUpQuestion?: (questions: string[]) => void;
+    categories?: ScrapeMessageCategory[];
+  }
 ) {
   try {
     const message = await prisma.message.findFirstOrThrow({
@@ -313,25 +329,7 @@ export async function fillMessageAnalysis(
       answer,
       recentQuestions,
       threadQuestions,
-      [
-        {
-          title: "Pricing",
-          description: "Pricing related questions",
-          createdAt: new Date(),
-        },
-        {
-          title: "Integrations",
-          description:
-            "Integration related questions about Slack, Discord, MCP, Widget, etc.",
-          createdAt: new Date(),
-        },
-        {
-          title: "Knowledge Base",
-          description:
-            "Anything about setting up the knowledge base, Notion, Confluence, GitHub, Linear connector, etc.",
-          createdAt: new Date(),
-        },
-      ]
+      options?.categories ?? []
     );
 
     if (
