@@ -74,6 +74,8 @@ export default [
     route("compose", "compose.tsx"),
 
     route("welcome", "welcome/page.tsx"),
+
+    route("api-key", "api-key/page.tsx"),
   ]),
 
   layout("landing/layout.tsx", [

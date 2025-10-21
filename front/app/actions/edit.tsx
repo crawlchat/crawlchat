@@ -58,6 +58,8 @@ export async function action({ request, params }: Route.ActionArgs) {
         description: data.description,
         type: data.type,
         calConfig: data.calConfig,
+        requireEmailVerification: data.requireEmailVerification,
+        linearConfig: data.linearConfig,
       },
     });
 

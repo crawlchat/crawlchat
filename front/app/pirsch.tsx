@@ -11,7 +11,7 @@ export function track(name: string, meta: Record<string, any>) {
     eventData: meta,
   });
 
-  (window as any)?.datafast(name, meta);
+  (window as any)?.datafast?.(name, meta);
 
   prisch(name, { meta });
 }

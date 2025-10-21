@@ -40,16 +40,16 @@ async function saveUsersCsv() {
     where: {
       createdAt: {
         gte: new Date("2025-08-01"),
-      }
-    }
+      },
+    },
   });
 
-  const text = `email\n${users.map((user) => user.email).join("\n")}`;   
+  const text = `email\n${users.map((user) => user.email).join("\n")}`;
   fs.writeFileSync("users.csv", text);
 }
 
 async function main() {
-  await saveUsersCsv();
+
 }
 
 console.log("Starting...");

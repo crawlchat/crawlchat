@@ -11,7 +11,6 @@ export function makeKbProcesser(
   scrape: Scrape,
   knowledgeGroup: KnowledgeGroup,
   options: {
-    hasCredits: (n?: number) => Promise<boolean>;
     limit?: number;
     url?: string;
   }
@@ -28,7 +27,6 @@ export function makeKbProcesser(
       knowledgeGroup,
       url,
       {
-        hasCredits: options.hasCredits,
         removeHtmlTags: knowledgeGroup.removeHtmlTags ?? undefined,
         dynamicFallbackContentLength:
           knowledgeGroup.staticContentThresholdLength ?? undefined,
@@ -41,6 +39,7 @@ export function makeKbProcesser(
           ? knowledgeGroup.skipPageRegex.split(",").map((r) => new RegExp(r))
           : undefined,
         scrollSelector: knowledgeGroup.scrollSelector ?? undefined,
+        maxWait: knowledgeGroup.maxWait || undefined,
       }
     );
 
@@ -48,7 +47,7 @@ export function makeKbProcesser(
   }
 
   if (knowledgeGroup.type === "github_issues") {
-    return new GithubIssuesKbProcesser(listener, knowledgeGroup, options);
+    return new GithubIssuesKbProcesser(listener, knowledgeGroup);
   }
 
   if (knowledgeGroup.type === "notion") {

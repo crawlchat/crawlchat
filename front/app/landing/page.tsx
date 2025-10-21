@@ -37,16 +37,15 @@ import {
   TbScoreboard,
   TbSettings,
   TbShare,
-  TbSpider,
   TbThumbUp,
   TbUpload,
   TbUserHeart,
   TbUsers,
-  TbUserStar,
   TbVideo,
   TbWorld,
 } from "react-icons/tb";
 import { prisma } from "libs/prisma";
+import type { User } from "libs/prisma";
 import { track } from "~/pirsch";
 import {
   PLAN_FREE,
@@ -147,7 +146,7 @@ function NavLink({
   tooltip,
 }: PropsWithChildren<{ href: string; tooltip?: string }>) {
   return (
-    <a href={href} className="font-medium hover:underline relative">
+    <a href={href} className="hover:underline relative">
       {children}
       {tooltip && (
         <div
@@ -530,6 +529,7 @@ function FeaturesWithImage({
       <div className="flex-1 flex flex-col gap-4">
         {features.map((feature) => (
           <ClickableFeature
+            key={feature.key}
             active={activeTab === feature.key}
             title={feature.title}
             description={feature.description}
@@ -939,12 +939,13 @@ export function PricingBoxes({
         description="Explore the platform"
         price={`$${hobbyPlan.price}`}
         items={[
-          { text: `${hobbyPlan.credits.scrapes} page credits/month` },
+          { text: `${hobbyPlan.credits.scrapes} pages` },
           { text: `${hobbyPlan.credits.messages} message credits/month` },
           { text: `${hobbyPlan.limits.scrapes} collections` },
           { text: `${hobbyPlan.limits.teamMembers} team members` },
           { text: "Base AI models" },
           { text: "Support tickets" },
+          { text: "API access" },
           { text: "Follow up questions", excluded: true },
           { text: "MCP server", excluded: true },
           { text: "Discord bot", excluded: true },
@@ -962,12 +963,13 @@ export function PricingBoxes({
         description="Start your journey with CrawlChat"
         price={`$${starterPlan.price}`}
         items={[
-          { text: `${starterPlan.credits.scrapes} page credits/month` },
+          { text: `${starterPlan.credits.scrapes} pages` },
           { text: `${starterPlan.credits.messages} message credits/month` },
           { text: `${starterPlan.limits.scrapes} collections` },
           { text: `${starterPlan.limits.teamMembers} team members` },
           { text: "Smart AI models" },
           { text: "Support tickets" },
+          { text: "API access" },
           { text: "Follow up questions" },
           { text: "MCP server" },
           { text: "Discord bot" },
@@ -985,12 +987,13 @@ export function PricingBoxes({
         popular
         price={`$${proPlan.price}`}
         items={[
-          { text: `${proPlan.credits.scrapes} page credits/month` },
+          { text: `${proPlan.credits.scrapes} pages` },
           { text: `${proPlan.credits.messages} message credits/month` },
           { text: `${proPlan.limits.scrapes} collections` },
           { text: `${proPlan.limits.teamMembers} team members` },
           { text: "Reasoning AI models" },
           { text: "Support tickets" },
+          { text: "API access" },
           { text: "Follow up questions" },
           { text: "MCP server" },
           { text: "Discord bot" },
@@ -1091,13 +1094,28 @@ export function Footer() {
           <div className="flex-[2]">
             <ul className="flex flex-col gap-4">
               <li>
-                <FooterLink href="/blog/internal-assistant-for-gtm-teams">
-                  Internal assistant for GTM teams
+                <FooterLink href="/blog/how-postiz-uses-crawlchat">
+                  How Postiz Uses CrawlChat
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/why-crawlchat-is-the-better-choice-for-you">
+                  Why CrawlChat is the better choice for you
                 </FooterLink>
               </li>
               <li>
                 <FooterLink href="/blog/crawlchat-vs-kapa-ai">
                   CrawlChat vs Kapa.ai
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/crawlchat-vs-chatbase">
+                  CrawlChat vs Chatbase
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/internal-assistant-for-gtm-teams">
+                  Internal assistant for GTM teams
                 </FooterLink>
               </li>
               <li>
@@ -1128,11 +1146,6 @@ export function Footer() {
               <li>
                 <FooterLink href="/blog/how-discord-bot-helps">
                   How Discord Bot helps?
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/blog/how-to-do-basic-rag">
-                  How to do a basic RAG?
                 </FooterLink>
               </li>
             </ul>
@@ -1212,7 +1225,7 @@ export function Footer() {
   );
 }
 
-export function Nav() {
+export function Nav({ user }: { user?: User | null }) {
   return (
     <nav className="flex items-center justify-between gap-2 lg:py-6">
       <Link to="/">
@@ -1262,11 +1275,11 @@ export function Nav() {
                     Internal assistant
                   </span>
                   <span className="text-sm text-base-content/50">
-                    Let your internal teams have a unified knowledge base. Best for GTM teams
+                    Let your internal teams have a unified knowledge base. Best
+                    for GTM teams
                   </span>
                 </Link>
               </li>
-              
             </ul>
           </div>
           <NavLink href="/#pricing">Pricing</NavLink>
@@ -1275,7 +1288,13 @@ export function Nav() {
           <NavLink href="/public-bots">Public bots</NavLink>
         </div>
 
-        <Button href="/login">Login</Button>
+        {!user && <Button href="/login">Login</Button>}
+        {user && (
+          <Button href="/app">
+            Dashboard
+            <TbArrowRight />
+          </Button>
+        )}
       </div>
     </nav>
   );
@@ -1331,18 +1350,18 @@ function Hero() {
           </a>
         )}
 
-        <h1 className="font-radio-grotesk text-[42px] md:text-[64px] leading-[1.1]">
+        <h1 className="font-radio-grotesk text-[42px] md:text-[58px] leading-[1.1]">
           Make your technical docs answer the queries{" "}
           <span className="text-primary">instantly!</span>
         </h1>
 
-        <p className="text-xl mt-6">
+        <p className="text-xl mt-6 text-base-content/60">
           Your users don't want to dig through endless pages of docs. They want
           answers that meet them where they are. With CrawlChat you get
           <ul className="mt-4 flex flex-col gap-2">
             {features.map((feature, index) => (
               <li key={index} className="flex items-center gap-2">
-                <div className="bg-primary/10 text-primary rounded-full p-1 text-sm">
+                <div className="text-primary/60 rounded-full p-1 text">
                   {feature.icon}
                 </div>{" "}
                 <span>{feature.text}</span>
@@ -1778,20 +1797,15 @@ function FAQ() {
       ),
     },
     {
-      question: "How does Support Ticket System work?",
+      question: "What happens if the message credits run out?",
       answer: (
-        <div className="flex flex-col gap-4">
-          <p>
-            CrawlChat's goal is to direct the queries to the humans if the
-            documentation does not have answer for any query. So, when it has no
-            answer, it prompts the user to give their email to create the
-            support ticket. Once the support ticket is created, you can view
-            them from the dashboard and work on the resolution. CrawlChat sends
-            email notifications to the user whenever there is an update.
-          </p>
-          <p>You can close the ticket once the query is resolved.</p>
-          <p>You can enable or disable this module as per your requirement</p>
-        </div>
+        <p>
+          The message credits are reset every month whenever the subscription is
+          renewed. Whereas the pages is the number of unique pages (maxed to a
+          set of charecters) you have at any given point of time. Choose the
+          plan that best suits your needs. You can topup your message credits by
+          sending an email to support.
+        </p>
       ),
     },
     {

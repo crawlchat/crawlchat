@@ -21,6 +21,7 @@ export function useChatBox({
   token: initialToken,
   fullscreen,
   readonly: initReadOnly,
+  sidePanel,
 }: {
   scrape: Scrape;
   thread: Thread | null;
@@ -30,12 +31,15 @@ export function useChatBox({
   token: string | null;
   fullscreen?: boolean;
   readonly?: boolean;
+  sidePanel?: boolean;
 }) {
   const pinFetcher = useFetcher();
   const unpinFetcher = useFetcher();
   const eraseFetcher = useFetcher();
   const deleteFetcher = useFetcher();
   const rateFetcher = useFetcher();
+  const requestEmailVerificationFetcher = useFetcher();
+  const verifyEmailFetcher = useFetcher();
   const ticketCreateFetcher = useFetcher();
   const createThreadFetcher = useFetcher();
   const [eraseAt, setEraseAt] = useState<number>();
@@ -94,6 +98,8 @@ export function useChatBox({
   }, []);
 
   useEffect(() => {
+    if (sidePanel) return;
+
     const isDarkMode = window.matchMedia(
       "(prefers-color-scheme: dark)"
     ).matches;
@@ -106,7 +112,7 @@ export function useChatBox({
 
     mediaQuery.addEventListener("change", handleThemeChange);
     return () => mediaQuery.removeEventListener("change", handleThemeChange);
-  }, []);
+  }, [sidePanel]);
 
   useEffect(() => {
     if (createThreadFetcher.data) {
@@ -177,6 +183,29 @@ export function useChatBox({
   }, [ticketCreateFetcher.data]);
 
   useEffect(() => {
+    if (requestEmailVerificationFetcher.data) {
+      if (requestEmailVerificationFetcher.data.success) {
+        setThread((t) => ({ ...t!, emailOtp: "xxxxxx" }));
+        toast.success("Email verification requested.");
+      } else {
+        toast.error("Enter a valid email");
+      }
+    }
+  }, [requestEmailVerificationFetcher.data]);
+
+  useEffect(() => {
+    if (verifyEmailFetcher.data) {
+      if (verifyEmailFetcher.data.success) {
+        setThread((t) => ({ ...t!, emailVerifiedAt: new Date() }));
+        toast.success("Email verified.");
+        ask("Verified. Continue the above operation");
+      } else {
+        toast.error("Invalid OTP");
+      }
+    }
+  }, [verifyEmailFetcher.data]);
+
+  useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data === "focus") {
         scroll();
@@ -233,14 +262,29 @@ export function useChatBox({
       return;
     }
     chat.ask(query);
-    await scroll();
+    await scroll(true);
   }
 
-  async function scroll(selector = ".message") {
+  async function scroll(last?: boolean) {
     await new Promise((resolve) => setTimeout(resolve, 100));
-    const message = document.querySelectorAll(selector);
+    const message = document.querySelectorAll(".message");
     if (message) {
-      message[message.length - 1]?.scrollIntoView({ behavior: "smooth" });
+      const element = message[message.length - (last ? 1 : 2)] as HTMLElement;
+      const rect = element?.getBoundingClientRect();
+
+      const scrollContainer = document.getElementById(
+        "chat-box-scroll"
+      ) as HTMLElement;
+
+      if (scrollContainer) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const elementTop =
+          rect.top - containerRect.top + scrollContainer.scrollTop;
+        scrollContainer.scrollTo({
+          top: elementTop,
+          behavior: "smooth",
+        });
+      }
     }
   }
 
@@ -254,10 +298,6 @@ export function useChatBox({
   function erase() {
     eraseFetcher.submit({ intent: "erase" }, { method: "post" });
     chat.erase();
-  }
-
-  function scrollToMessage(id: string) {
-    scroll(`#message-${id}`);
   }
 
   function deleteMessages(ids: string[]) {
@@ -323,6 +363,9 @@ export function useChatBox({
     fullscreen,
     theme,
     internalLinkHosts,
+    sidePanel,
+    requestEmailVerificationFetcher,
+    verifyEmailFetcher,
     close,
     erase,
     deleteMessages,
@@ -331,8 +374,6 @@ export function useChatBox({
     createTicket,
     cancelTicketCreate,
     refresh,
-    scrollToMessage,
-    scroll,
     setScreen,
     setTheme,
     handleInternalLinkClick,
@@ -359,6 +400,7 @@ export function ChatBoxProvider({
   token,
   fullscreen,
   readonly,
+  sidePanel,
 }: {
   children: React.ReactNode;
   scrape: Scrape;
@@ -369,6 +411,7 @@ export function ChatBoxProvider({
   token: string | null;
   fullscreen?: boolean;
   readonly?: boolean;
+  sidePanel?: boolean;
 }) {
   const chatBox = useChatBox({
     scrape,
@@ -379,6 +422,7 @@ export function ChatBoxProvider({
     token,
     fullscreen,
     readonly,
+    sidePanel,
   });
   return (
     <ChatBoxContext.Provider value={chatBox}>

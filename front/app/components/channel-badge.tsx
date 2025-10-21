@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import {
   TbBrandDiscord,
   TbBrandSlack,
+  TbCode,
   TbMessage,
   TbRobotFace,
 } from "react-icons/tb";
@@ -31,13 +32,15 @@ export function ChannelBadge({
           !channel && "badge-primary",
           channel === "discord" && "badge-info",
           channel === "slack" && "badge-error",
-          channel === "mcp" && "badge-success"
+          channel === "mcp" && "badge-success",
+          channel === "api" && "badge-neutral"
         )}
       >
         {!channel && <TbMessage />}
         {channel === "discord" && <TbBrandDiscord />}
         {channel === "slack" && <TbBrandSlack />}
         {channel === "mcp" && <TbRobotFace />}
+        {channel === "api" && <TbCode />}
 
         {!onlyIcon && channelName}
       </span>

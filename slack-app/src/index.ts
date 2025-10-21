@@ -6,7 +6,6 @@ import { InstallationStore } from "@slack/oauth";
 import { prisma } from "libs/prisma";
 import { createToken } from "libs/jwt";
 import { learn, query } from "./api";
-import slackifyMarkdown from "slackify-markdown";
 
 const LOADING_REACTION = "hourglass";
 
@@ -161,9 +160,7 @@ async function getLearnMessages(message: any, client: any, botUserId: string) {
     const date = new Date(Number((m as any).ts.split(".")[0]));
     return {
       role: m.user === botUserId ? "assistant" : "user",
-      content: `User (${date.toLocaleString()}): ${cleanText(
-        m.text ?? ""
-      )}`,
+      content: `User (${date.toLocaleString()}): ${cleanText(m.text ?? "")}`,
     };
   });
 }
@@ -209,11 +206,33 @@ app.message(async ({ message, say, client, context }) => {
     error,
     message: answerMessage,
   } = await query(scrape.id, llmMessages, createToken(scrape.userId), {
-    prompt:
-      "This would be a Slack message. Keep it short and concise. Use markdown for formatting.",
+    prompt: `
+This would be a Slack message.
+Keep it short and concise. Don't use markdown for formatting.
+Keep the format plain, if possible use the Slack blocks for formatting bold, italic, tables, links, etc.
+Only following blocks are allowed:
+1. Bold — *text*
+2. Italic — _text_
+3. Strikethrough — ~text~
+4. Inline code — \`code\`
+5. Code block —  code 
+6. Blockquote — > text
+7. List — • Item or - Item or 1. Item
+8. Link — <url|label>
+
+You should use only the above formatting in the answer.
+`,
   });
 
   if (error) {
+    try {
+      await client.reactions.remove({
+        token: context.botToken,
+        channel: message.channel,
+        timestamp: message.ts,
+        name: LOADING_REACTION,
+      });
+    } catch {}
     await say({
       text: `Error: ${error}`,
     });
@@ -230,7 +249,7 @@ app.message(async ({ message, say, client, context }) => {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: slackifyMarkdown(answer),
+          text: answer,
         },
       },
     ],

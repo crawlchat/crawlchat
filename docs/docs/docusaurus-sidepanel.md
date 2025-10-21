@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 8
 ---
 
 # Docusaurus sidepanel
@@ -27,8 +27,8 @@ headTags: [
         "src": "https://crawlchat.app/embed.js",
         "id": "crawlchat-script",
         "data-id": "YOUR_COLLECTION_ID",
-        "data-tag-sidepanel": "true", // makes it sidepanel
-        "data-hide-ask-ai": "true" // hides the regular ask ai button
+        "data-sidepanel": "true", // makes it sidepanel
+        "data-hide-toc": "true", // optional, hides the TOC when sidepanel is open
       },
     },
 ],
@@ -76,6 +76,10 @@ Add the following styles for the above Ask AI button. Feel free to change it as 
   cursor: pointer;
   transition: background-color 0.2s ease;
   border: 1px solid var(--ifm-color-emphasis-200);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .crawlchat-nav-askai:hover {
@@ -87,39 +91,30 @@ Add the following styles for the above Ask AI button. Feel free to change it as 
 }
 ```
 
-## Source links
+## crawlchat-client
 
-As mentioned above, one of the biggest advantages of having side panel so that the source link navigation is client side and gives a better experiance to the users. Following code handles whenever a user clicks the source links and navigates the page without doing a full page reload.
+You need to install the `crawlchat-client` npm package on your Docusaurus project and use the `useCrawlChatSidePanel` hook on your `Layout/index.tsx` file so that it handles client side navigation, dark theme sync, resizing, and makes it a regular Ask AI Popup on mobile devices.
+
+```bash
+npm install crawlchat-client
+```
 
 ```tsx title="theme/Layout/index.tsx"
-const history = useHistory();
+import React, { useEffect, type ReactNode } from "react";
+import Layout from "@theme-original/Layout";
+import { useHistory } from "@docusaurus/router";
+import { useCrawlChatSidePanel, CrawlChatScript } from "crawlchat-client";
 
-useEffect(() => {
-function handleMessage(event: MessageEvent) {
-    try {
-    const data = JSON.parse(event.data);
-    if (data.type === "internal-link-click") {
-        const url = new URL(data.url);
-        history.push(url.pathname); // makes client side navigation
-    }
-    if (data.type === "embed-ready") {
-        const iframe = document.getElementById(
-        "crawlchat-iframe"
-        ) as HTMLIFrameElement;
-        iframe?.contentWindow.postMessage(
-        JSON.stringify({
-            type: "internal-link-host",
-            host: window.location.host,
-        }),
-        "*"
-        );
-    }
-    } catch {}
+export default function LayoutWrapper(props) {
+  useCrawlChatSidePanel({ history: useHistory() });
+
+  return (
+    <>
+      <Layout {...props} />
+    </>
+  );
 }
 
-window.addEventListener("message", handleMessage);
-return () => window.removeEventListener("message", handleMessage);
-}, []);
 ```
 
 Also, users can use `Cmd` `I` shortcut to open the side panel for quick usage.

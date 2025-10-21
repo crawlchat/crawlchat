@@ -12,6 +12,7 @@ import {
 import { useMemo } from "react";
 import { VemetricScript } from "@vemetric/react";
 import stylesheet from "./app.css?url";
+import { crawlChatSchema } from "./schema";
 
 declare global {
   interface Window {
@@ -109,6 +110,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         ></script>
         <Meta />
         <Links />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(crawlChatSchema),
+          }}
+        />
       </head>
       <body>
         {shouldTrack && <VemetricScript token="MGxpZaWDYdxwChu5" />}

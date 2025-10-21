@@ -42,6 +42,10 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   border: 1px solid var(--ifm-color-emphasis-200);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .crawlchat-nav-askai:hover {

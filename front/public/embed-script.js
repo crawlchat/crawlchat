@@ -9,8 +9,10 @@ class CrawlChatEmbed {
     this.askAIButtonId = "crawlchat-ask-ai-button";
     this.lastScrollTop = 0;
     this.lastBodyStyle = {};
+    this.originalTocMaxWidth = null;
     this.widgetConfig = {};
     this.sidepanelId = "crawlchat-sidepanel";
+    this.tocSelector = "main .container .row .col:first-child";
   }
 
   getCustomTags() {
@@ -25,11 +27,26 @@ class CrawlChatEmbed {
     return Object.fromEntries(allTags);
   }
 
+  isMobile() {
+    return window.innerWidth < 700;
+  }
+
+  getScriptElem() {
+    return document.getElementById(this.scriptId);
+  }
+
+  isSidePanel() {
+    return (
+      this.getCustomTags().sidepanel === "true" ||
+      this.getScriptElem()?.dataset.sidepanel === "true"
+    );
+  }
+
   async mount() {
     const style = document.createElement("link");
     style.rel = "stylesheet";
     style.href = `${this.host}/embed.css`;
-    
+
     await new Promise((resolve, reject) => {
       style.onload = resolve;
       style.onerror = reject;
@@ -38,10 +55,13 @@ class CrawlChatEmbed {
 
     window.addEventListener("message", (e) => this.handleOnMessage(e));
 
-    const customTags = this.getCustomTags();
-
-    if (customTags.sidepanel === "true") {
+    if (!this.isMobile() && this.isSidePanel()) {
       this.mountSidePanel();
+      if (this.getScriptElem()?.dataset.sidepanelOpen === "true") {
+        setTimeout(() => {
+          this.showSidePanel();
+        }, 500);
+      }
       return;
     }
 
@@ -51,10 +71,11 @@ class CrawlChatEmbed {
     const params = new URLSearchParams({
       embed: "true",
     });
+    const customTags = this.getCustomTags();
     if (Object.keys(customTags).length > 0) {
       params.set("tags", btoa(JSON.stringify(customTags)));
     }
-    if (window.innerWidth < 700) {
+    if (this.isMobile()) {
       params.set("width", window.innerWidth.toString() + "px");
       params.set("height", window.innerHeight.toString() + "px");
       params.set("fullscreen", "true");
@@ -146,19 +167,24 @@ class CrawlChatEmbed {
   async showAskAIButton() {
     const script = document.getElementById(this.scriptId);
 
-    if (!script || script?.getAttribute("data-hide-ask-ai")) return;
+    if (
+      !script ||
+      script?.getAttribute("data-hide-ask-ai") === "true" ||
+      (this.isSidePanel() && !this.isMobile())
+    )
+      return;
 
     const text =
       this.widgetConfig.buttonText ??
       script.getAttribute("data-ask-ai-text") ??
       "💬 Ask AI";
     const backgroundColor =
-      this.widgetConfig.primaryColor ??
-      script.getAttribute("data-ask-ai-background-color") ??
+      this.widgetConfig.primaryColor ||
+      script.getAttribute("data-ask-ai-background-color") ||
       "#7b2cbf";
     const color =
-      this.widgetConfig.buttonTextColor ??
-      script.getAttribute("data-ask-ai-color") ??
+      this.widgetConfig.buttonTextColor ||
+      script.getAttribute("data-ask-ai-color") ||
       "white";
     const position = script.getAttribute("data-ask-ai-position") ?? "br";
     const marginX = script.getAttribute("data-ask-ai-margin-x") ?? "20px";
@@ -228,6 +254,9 @@ class CrawlChatEmbed {
 
     const iframe = document.getElementById(this.iframeId);
     iframe.contentWindow.postMessage("focus", "*");
+    if (this.getScriptElem()?.dataset.hideToc === "true") {
+      this.hideDocusaurusToc();
+    }
   }
 
   hideSidePanel() {
@@ -235,15 +264,21 @@ class CrawlChatEmbed {
       .getElementById("__docusaurus")
       ?.classList.remove("crawlchat-sidepanel-open");
     document.getElementById(this.sidepanelId)?.classList.add("hidden");
+    if (this.getScriptElem()?.dataset.hideToc === "true") {
+      this.showDocusaurusToc();
+    }
   }
 
   mountSidePanel() {
     document
       .getElementById("__docusaurus")
       ?.classList.add("crawlchat-with-sidepanel");
+
     const sidepanel = document.createElement("div");
     sidepanel.id = this.sidepanelId;
     sidepanel.classList.add("hidden");
+
+    sidepanel.appendChild(this.makeResizeDiv());
 
     const iframe = document.createElement("iframe");
     iframe.src = `${this.host}/w/${this.scrapeId}?embed=true&fullscreen=true&sidepanel=true`;
@@ -273,9 +308,67 @@ class CrawlChatEmbed {
     }
   }
 
+  makeResizeDiv() {
+    const resize = document.createElement("div");
+    resize.classList.add("crawlchat-sidepanel-resize");
+
+    const handleMouseMove = (e) => {
+      const width = Math.max(Math.min(window.innerWidth - e.clientX, 560), 400);
+      document.documentElement.style.setProperty(
+        "--crawlchat-sidepanel-width",
+        `${width}px`
+      );
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      document.getElementById(this.sidepanelId).style.pointerEvents = "auto";
+    };
+
+    const handleMouseDown = (e) => {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+      document.getElementById(this.sidepanelId).style.pointerEvents = "none";
+      e.preventDefault();
+      e.stopPropagation();
+    };
+
+    resize.addEventListener("mousedown", handleMouseDown);
+
+    return resize;
+  }
+
   isSidePanelOpen() {
     const sidepanel = document.getElementById(this.sidepanelId);
     return !sidepanel?.classList.contains("hidden");
+  }
+
+  hideDocusaurusToc() {
+    document.querySelector(
+      ".theme-doc-toc-desktop"
+    ).parentElement.style.display = "none";
+    
+    const mainCol = document.querySelector(this.tocSelector);
+    if (this.originalTocMaxWidth === null) {
+      this.originalTocMaxWidth = mainCol.style.maxWidth || getComputedStyle(mainCol).maxWidth;
+    }
+    mainCol.style.setProperty("max-width", "100%", "important");
+  }
+
+  showDocusaurusToc() {
+    document.querySelector(
+      ".theme-doc-toc-desktop"
+    ).parentElement.style.display = "block";
+    
+    const mainCol = document.querySelector(this.tocSelector);
+    if (this.originalTocMaxWidth) {
+      mainCol.style.setProperty("max-width", this.originalTocMaxWidth, "important");
+    } else {
+      mainCol.style.setProperty("max-width", "75%", "important");
+    }
   }
 }
 

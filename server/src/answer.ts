@@ -7,6 +7,7 @@ import {
   RichBlockConfig,
   MessageChannel,
   Scrape,
+  Thread,
 } from "libs/prisma";
 import { getConfig } from "./llm/config";
 import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
@@ -58,6 +59,7 @@ export type AnswerListener = (event: AnswerEvent) => void;
 
 export type Answerer = (
   scrape: Scrape,
+  thread: Thread,
   query: string | MultimodalContent[],
   messages: FlowMessage<RAGAgentCustomMessage>[],
   options?: {
@@ -77,6 +79,7 @@ const createTicketRichBlock: RichBlockConfig = {
   prompt: `Use this whenever you say contact the support team.
 This is the way they can contact the support team. This is mandatory.
 Use this if customer wants to contact the support team.
+If you use this block, you need not to search using the search_data tool.
 Don't tell user to reach out to support team, instead use this block.`,
 };
 
@@ -165,6 +168,7 @@ export function collectContext(messages: FlowMessage<RAGAgentCustomMessage>[]) {
 
 export const baseAnswerer: Answerer = async (
   scrape,
+  thread,
   query,
   messages,
   options
@@ -174,6 +178,16 @@ export const baseAnswerer: Answerer = async (
   const richBlocks = scrape.richBlocksConfig?.blocks ?? [];
   if (scrape.ticketingEnabled && options?.channel === "widget") {
     richBlocks.push(createTicketRichBlock);
+  }
+
+  if (options?.channel === "widget") {
+    richBlocks.push({
+      name: "Verify email",
+      key: "verify-email",
+      payload: {},
+      prompt: `Use this block to verify the email of the user for this thread. 
+Just use this block, don't ask the user to enter the email.`,
+    });
   }
 
   options?.listen?.({
@@ -193,6 +207,7 @@ export const baseAnswerer: Answerer = async (
   }
 
   const flow = makeFlow(
+    thread,
     scrape.id,
     options?.prompt ?? scrape.chatPrompt ?? "",
     query,

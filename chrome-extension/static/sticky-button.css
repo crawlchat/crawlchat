@@ -1,0 +1,23 @@
+.crawlchat-sticky-btn {
+  position: fixed;
+  left: 20px;
+  bottom: -8px;
+  z-index: 2147483647;
+  background-color: #eee;
+  padding: 12px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding-bottom: 20px;
+  border: 1px solid #ddd;
+  border-bottom: none;
+  cursor: pointer;
+}
+
+.crawlchat-sticky-btn:hover {
+  background-color: #ddd;
+}
+
+.crawlchat-sticky-btn img {
+  width: 24px;
+  height: 24px;
+}

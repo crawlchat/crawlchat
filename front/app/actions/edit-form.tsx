@@ -102,6 +102,27 @@ function DataItemForm({
   );
 }
 
+function EmailVerificationField() {
+  const { requireEmailVerification, setRequireEmailVerification } =
+    useContext(EditActionContext);
+
+  return (
+    <fieldset className="fieldset">
+      <legend className="fieldset-legend">Email verification</legend>
+      <label className="label">
+        <input
+          type="checkbox"
+          className="toggle"
+          defaultChecked={requireEmailVerification}
+          name="requireEmailVerification"
+          onChange={(e) => setRequireEmailVerification(e.target.checked)}
+        />
+        Require email verification
+      </label>
+    </fieldset>
+  );
+}
+
 function CustomForm() {
   const {
     data,
@@ -120,6 +141,8 @@ function CustomForm() {
     removeHeaderItem,
     description,
     setDescription,
+    requireEmailVerification,
+    setRequireEmailVerification,
   } = useContext(EditActionContext);
 
   return (
@@ -173,6 +196,8 @@ function CustomForm() {
             </select>
           </fieldset>
         </div>
+
+        <EmailVerificationField />
       </div>
 
       <div className="flex flex-col gap-2 mt-6">
@@ -344,6 +369,83 @@ function CalForm() {
   );
 }
 
+export function LinearCreateIssueForm() {
+  const {
+    title,
+    setTitle,
+    description,
+    setDescription,
+    linearConfig,
+    setLinearConfig,
+    linearTeams,
+  } = useContext(EditActionContext);
+
+  return (
+    <>
+      <div className="flex flex-col bg-base-200/50 rounded-box p-4 shadow">
+        <div className="flex gap-2">
+          <fieldset className="fieldset flex-1">
+            <legend className="fieldset-legend">Title</legend>
+            <input
+              className="input w-full"
+              type="text"
+              placeholder="Ex: Book a meeting"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </fieldset>
+
+          <fieldset className="fieldset flex-1">
+            <legend className="fieldset-legend">Description</legend>
+            <input
+              className="input w-full"
+              placeholder="Explain when to use it"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </fieldset>
+        </div>
+        <div className="flex gap-2">
+          <fieldset className="fieldset flex-1">
+            <legend className="fieldset-legend">API Key</legend>
+            <input
+              className="input w-full"
+              type="text"
+              placeholder="Ex: sk-1234567890"
+              value={linearConfig.apiKey ?? ""}
+              onChange={(e) =>
+                setLinearConfig({ ...linearConfig, apiKey: e.target.value })
+              }
+            />
+          </fieldset>
+
+          <fieldset className="fieldset flex-1">
+            <legend className="fieldset-legend">Team</legend>
+            <select
+              defaultValue="Pick a color"
+              className="select w-full"
+              disabled={!linearTeams}
+              value={linearConfig.teamId ?? ""}
+              onChange={(e) =>
+                setLinearConfig({ ...linearConfig, teamId: e.target.value })
+              }
+            >
+              <option>Pick a team</option>
+              {linearTeams?.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name}
+                </option>
+              ))}
+            </select>
+          </fieldset>
+        </div>
+        
+        <EmailVerificationField />
+      </div>
+    </>
+  );
+}
+
 export function EditForm() {
   const { type, setType } = useContext(EditActionContext);
 
@@ -375,12 +477,19 @@ export function EditForm() {
               description: "Lets the chatbot to book meetings on Cal.com",
               img: "/cal.png",
             },
+            {
+              label: "Linear create issue",
+              value: "linear_create_issue",
+              description: "Lets the chatbot to create issues on Linear",
+              img: "/linear.png",
+            },
           ]}
         />
       </div>
 
       {type === "custom" && <CustomForm />}
       {type === "cal" && <CalForm />}
+      {type === "linear_create_issue" && <LinearCreateIssueForm />}
     </div>
   );
 }

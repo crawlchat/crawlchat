@@ -4,6 +4,7 @@ import type {
   ApiActionDataItem,
   ApiActionMethod,
   CalActionConfig,
+  LinearConfig,
 } from "libs/prisma";
 import { useEffect, useMemo, useState } from "react";
 import { createContext } from "react";
@@ -18,6 +19,12 @@ type CalProfile = {
   id: number;
   email: string;
   username: string;
+};
+
+type LinearTeam = {
+  id: string;
+  name: string;
+  description: string;
 };
 
 export function useEditAction(initAction?: ApiAction) {
@@ -42,6 +49,13 @@ export function useEditAction(initAction?: ApiAction) {
 
   const [calEventTypes, setCalEventTypes] = useState<CalEventType[]>([]);
   const [calProfile, setCalProfile] = useState<CalProfile | null>(null);
+  const [requireEmailVerification, setRequireEmailVerification] =
+    useState<boolean>(initAction?.requireEmailVerification ?? false);
+
+  const [linearConfig, setLinearConfig] = useState<LinearConfig>(
+    initAction?.linearConfig ?? { apiKey: null, teamId: null }
+  );
+  const [linearTeams, setLinearTeams] = useState<LinearTeam[]>();
 
   const canSubmit = useMemo(() => {
     if (!title || !description) return false;
@@ -68,6 +82,11 @@ export function useEditAction(initAction?: ApiAction) {
       if (!calConfig.eventTypeId) return false;
     }
 
+    if (type === "linear_create_issue") {
+      if (!linearConfig.apiKey) return false;
+      if (!linearConfig.teamId) return false;
+    }
+
     return true;
   }, [
     title,
@@ -79,6 +98,7 @@ export function useEditAction(initAction?: ApiAction) {
     type,
     calConfig,
     calProfile,
+    linearConfig,
   ]);
 
   useEffect(() => {
@@ -94,6 +114,32 @@ export function useEditAction(initAction?: ApiAction) {
       setCalEventTypes(json.data.eventTypeGroups[0].eventTypes);
     });
   }, [calConfig.apiKey]);
+
+  useEffect(() => {
+    if (!linearConfig.apiKey) return;
+
+    fetch("https://api.linear.app/graphql", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: linearConfig.apiKey ?? "",
+      },
+      body: JSON.stringify({
+        query: `query ExampleQuery {
+  teams {
+    nodes {
+      id
+      name
+      description
+    }
+  }
+}`,
+      }),
+    }).then(async (res) => {
+      const json = await res.json();
+      setLinearTeams(json.data.teams.nodes);
+    });
+  }, [linearConfig.apiKey]);
 
   const addDataItem = (item: ApiActionDataItem) => {
     setData((prev) => ({
@@ -173,6 +219,11 @@ export function useEditAction(initAction?: ApiAction) {
     setCalConfig,
     calEventTypes,
     calProfile,
+    requireEmailVerification,
+    setRequireEmailVerification,
+    linearConfig,
+    setLinearConfig,
+    linearTeams,
   };
 }
 

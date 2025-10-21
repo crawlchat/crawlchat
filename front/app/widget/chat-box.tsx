@@ -35,6 +35,7 @@ import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp/setup";
 import { useChatBoxContext } from "./use-chat-box";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
+import { RiChatVoiceAiFill } from "react-icons/ri";
 
 export function useChatBoxDimensions(
   size: WidgetSize | null,
@@ -79,9 +80,10 @@ export function useChatBoxDimensions(
 }
 
 function ChatInput() {
-  const { ask, chat, screen, readOnly, scrape, inputRef, embed } =
+  const { ask, chat, screen, readOnly, scrape, inputRef, embed, sidePanel } =
     useChatBoxContext();
 
+  const [focused, setFocused] = useState(false);
   const [query, setQuery] = useState("");
   const cleanedQuery = useMemo(() => {
     return query.trim();
@@ -93,7 +95,10 @@ function ChatInput() {
     const adjustHeight = () => {
       if (inputRef.current) {
         inputRef.current.style.height = "auto";
-        inputRef.current!.style.height = `${inputRef.current!.scrollHeight}px`;
+        inputRef.current!.style.height = `${Math.max(
+          28,
+          inputRef.current!.scrollHeight
+        )}px`;
       }
     };
 
@@ -176,14 +181,20 @@ function ChatInput() {
     : undefined;
 
   return (
-    <div className="flex gap-2 border-t border-base-300 justify-between p-4">
+    <div
+      className={cn(
+        "flex gap-2 border-t border-base-300 justify-between p-4",
+        "transition-all",
+        sidePanel && "m-2 border rounded-2xl p-2 pl-4"
+      )}
+    >
       <div className="flex-1 flex items-center">
         <textarea
           ref={inputRef}
           placeholder={getPlaceholder()}
           className={cn(
             "text-lg p-0 max-h-[240px] overflow-y-auto resize-none",
-            "outline-none w-full",
+            "outline-none w-full placeholder-base-content/40",
             !query && "truncate"
           )}
           value={query}
@@ -191,6 +202,8 @@ function ChatInput() {
           rows={1}
           onKeyDown={handleKeyDown}
           disabled={isDisabled}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
         />
       </div>
 
@@ -380,6 +393,10 @@ export function AssistantMessage({
     ticketCreateFetcher,
     customerEmail,
     scrape,
+    chat,
+    thread,
+    requestEmailVerificationFetcher,
+    verifyEmailFetcher,
   } = useChatBoxContext();
   const citation = useMemo(
     () => extractCitations(content, links),
@@ -411,7 +428,7 @@ export function AssistantMessage({
 
       <div className="flex flex-col gap-4">
         <MarkdownProse
-          size={scrape.widgetConfig?.size === "large" ? "lg" : "md"}
+          thread={thread}
           sources={Object.values(citation.citedLinks).map((link) => ({
             title: link?.title ?? link?.url ?? "Source",
             url: link?.url ?? undefined,
@@ -421,47 +438,51 @@ export function AssistantMessage({
             ticketCreateLoading: ticketCreateFetcher.state !== "idle",
             disabled: readOnly,
             customerEmail,
+            requestEmailVerificationFetcher,
+            verifyEmailFetcher,
           }}
         >
           {citation.content}
         </MarkdownProse>
 
-        <div className="flex items-center gap-2">
-          <MessageCopyButton content={content} />
+        {chat.askStage === "idle" && (
+          <div className="flex items-center gap-2">
+            <MessageCopyButton content={content} />
 
-          <MessageButton
-            tip="Refresh"
-            onClick={() => refresh(questionId, id)}
-            disabled={readOnly}
-          >
-            <TbRefresh />
-          </MessageButton>
+            <MessageButton
+              tip="Refresh"
+              onClick={() => refresh(questionId, id)}
+              disabled={readOnly}
+            >
+              <TbRefresh />
+            </MessageButton>
 
-          <MessageButton
-            tip="Helpful"
-            onClick={() => handleRate("up")}
-            disabled={readOnly}
-            active={currentRating === "up"}
-          >
-            <TbThumbUp />
-          </MessageButton>
+            <MessageButton
+              tip="Helpful"
+              onClick={() => handleRate("up")}
+              disabled={readOnly}
+              active={currentRating === "up"}
+            >
+              <TbThumbUp />
+            </MessageButton>
 
-          <MessageButton
-            tip="Not helpful"
-            onClick={() => handleRate("down")}
-            disabled={readOnly}
-            active={currentRating === "down"}
-          >
-            <TbThumbDown />
-          </MessageButton>
+            <MessageButton
+              tip="Not helpful"
+              onClick={() => handleRate("down")}
+              disabled={readOnly}
+              active={currentRating === "down"}
+            >
+              <TbThumbDown />
+            </MessageButton>
 
-          {admin && (
-            <div className="badge badge-soft badge-primary">
-              <TbChartBar />
-              {score.toFixed(2)}
-            </div>
-          )}
-        </div>
+            {admin && (
+              <div className="badge badge-soft badge-primary">
+                <TbChartBar />
+                {score.toFixed(2)}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -472,7 +493,7 @@ function NoMessages() {
 
   return (
     <div className="flex flex-col gap-4 p-4 flex-1">
-      <MarkdownProse size="lg">
+      <MarkdownProse>
         {scrape.widgetConfig?.welcomeMessage ||
           "Ask your queries here. Remember, I am an AI assistant and refer to the sources to confirm the answer."}
       </MarkdownProse>
@@ -598,6 +619,26 @@ function Toolbar() {
     close,
   } = useChatBoxContext();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const menuItems = useMemo(() => {
+    const items = [];
+    if (chat.messages.length > 0) {
+      items.push({
+        key: "share",
+        label: "Share chat",
+        icon: <TbShare2 />,
+        onClick: handleShare,
+      });
+    }
+    if (scrape.widgetConfig?.showMcpSetup ?? true) {
+      items.push({
+        key: "mcp",
+        label: "As MCP",
+        icon: <TbRobotFace />,
+        onClick: () => setScreen("mcp"),
+      });
+    }
+    return items;
+  }, [chat.messages.length, scrape.widgetConfig?.showMcpSetup]);
 
   useEffect(
     function () {
@@ -636,6 +677,7 @@ function Toolbar() {
 
   return (
     <div
+      id="chat-box-toolbar"
       className={cn(
         "flex h-[60px] gap-2 border-b border-base-300",
         "p-4 w-full justify-between bg-base-200 items-center",
@@ -660,7 +702,9 @@ function Toolbar() {
           />
         )}
 
-        <div className="text-xl font-bold">{scrape.title ?? "Ask AI"}</div>
+        <div className="text-xl font-bold">
+          {scrape.widgetConfig?.title ?? scrape.title ?? "Ask AI"}
+        </div>
 
         {admin &&
           overallScore !== undefined &&
@@ -693,49 +737,53 @@ function Toolbar() {
           </div>
         )}
 
-        <div className="dropdown dropdown-end">
-          <ToolbarButton>
-            <TbMenu2 />
-          </ToolbarButton>
-          <ul
-            tabIndex={0}
-            className={cn(
-              "menu dropdown-content bg-base-100 rounded-box",
-              "z-1 w-34 p-2 shadow-sm text-base-content"
-            )}
-          >
-            <li>
-              <a onClick={() => handleMenuSelect("share")}>
-                <TbShare2 />
-                Share chat
-              </a>
-            </li>
-            {(scrape.widgetConfig?.showMcpSetup ?? true) && (
-              <li>
-                <a onClick={() => handleMenuSelect("mcp")}>
-                  <TbRobotFace />
-                  As MCP
-                </a>
-              </li>
-            )}
-          </ul>
-        </div>
+        {menuItems.length > 0 && (
+          <div className="dropdown dropdown-end">
+            <ToolbarButton>
+              <TbMenu2 />
+            </ToolbarButton>
+            <ul
+              tabIndex={0}
+              className={cn(
+                "menu dropdown-content bg-base-100 rounded-box",
+                "z-1 w-34 p-2 shadow-sm text-base-content"
+              )}
+            >
+              {menuItems.map((item) => (
+                <li key={item.key}>
+                  <a onClick={() => handleMenuSelect(item.key)}>
+                    {item.icon} {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 function PoweredBy() {
-  const { titleSlug } = useChatBoxContext();
+  const { titleSlug, sidePanel } = useChatBoxContext();
 
   return (
-    <div className="text-xs">
-      <span className="opacity-40">Powered by </span>
+    <div
+      className={cn(
+        "text-xs flex items-center gap-1",
+        sidePanel && "justify-center"
+      )}
+    >
+      <span className="opacity-40">Made by </span>
       <a
-        className="link link-primary link-hover"
+        className={cn(
+          "opacity-40 flex items-center gap-1",
+          "hover:opacity-100 transition-all"
+        )}
         href={`https://crawlchat.app?ref=powered-by-${titleSlug}`}
         target="_blank"
       >
+        <RiChatVoiceAiFill />
         CrawlChat
       </a>
     </div>
@@ -799,7 +847,7 @@ export default function ScrapeWidget() {
   return (
     <>
       <Toolbar />
-      <div className="flex flex-col flex-1 overflow-auto">
+      <div className="flex flex-col flex-1 overflow-auto" id="chat-box-scroll">
         {screen === "chat" && (
           <>
             {chat.allMessages.length === 0 && <NoMessages />}
@@ -842,7 +890,7 @@ export default function ScrapeWidget() {
                     key={index}
                     className={cn(
                       "border border-base-300 rounded-box p-1",
-                      "w-fit px-2 hover:shadow-sm transition-all cursor-pointer",
+                      "w-fit px-2 hover:shadow-sm transition-all cursor-pointer"
                     )}
                     onClick={() => handleAsk(question)}
                   >

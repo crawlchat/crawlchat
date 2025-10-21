@@ -11,19 +11,15 @@ import { prisma } from "~/prisma";
 import { createToken } from "libs/jwt";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, type Session } from "react-router";
-import { getNextNumber } from "libs/mongo-counter";
-import { sendReactEmail } from "~/email";
 import { fetchIpDetails, getClientIp } from "~/client-ip";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
-import { sanitizeScrape } from "~/scrapes/util";
+import { sanitizeScrape, sanitizeThread } from "~/scrapes/util";
 import { getAuthUser } from "~/auth/middleware";
 import { Toaster } from "react-hot-toast";
-import { randomUUID } from "crypto";
 import cn from "@meltdownjs/cn";
-import TicketUserCreateEmail from "emails/ticket-user-create";
-import TicketAdminCreateEmail from "emails/ticket-admin-create";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
 import { makeMeta } from "~/meta";
+import { sendChatVerifyEmail } from "~/email";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -107,8 +103,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const width = searchParams.get("width");
   const height = searchParams.get("height");
   const fullscreen = searchParams.get("fullscreen") === "true";
+  const sidePanel = searchParams.get("sidepanel") === "true";
 
   sanitizeScrape(scrape);
+  sanitizeThread(thread);
 
   return {
     scrape,
@@ -119,6 +117,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     width,
     height,
     fullscreen,
+    sidePanel,
   };
 }
 
@@ -245,98 +244,80 @@ export async function action({ request, params }: Route.ActionArgs) {
     const title = formData.get("title") as string;
     const message = formData.get("message") as string;
 
-    const scrape = await prisma.scrape.findFirstOrThrow({
-      where: { id: scrapeId },
-      include: {
-        user: true,
-        scrapeUsers: {
-          include: {
-            user: true,
-          },
+    const response = await fetch(
+      `${process.env.VITE_SERVER_URL}/ticket/${scrapeId}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${createToken(scrape.userId)}`,
+          "Content-Type": "application/json",
         },
-      },
-    });
-
-    await prisma.message.create({
-      data: {
-        threadId,
-        scrapeId,
-        ownerUserId: scrape.userId,
-        llmMessage: {
-          role: "user",
-          content: message,
-        },
-        ticketMessage: {
-          role: "user",
-          event: "message",
-        },
-      },
-    });
-
-    const ticketKey = randomUUID().slice(0, 8);
-    const ticketNumber = await getNextNumber("ticket-number");
-
-    await prisma.thread.update({
-      where: { id: threadId },
-      data: {
-        title,
-        ticketKey,
-        ticketNumber,
-        ticketStatus: "open",
-        ticketUserEmail: email,
-      },
-    });
-
-    await sendReactEmail(
-      email,
-      `Ticket created (#${ticketNumber})`,
-      <TicketUserCreateEmail
-        scrapeTitle={scrape.title ?? "CrawlChat"}
-        ticketNumber={ticketNumber}
-        ticketKey={ticketKey}
-        title={title}
-      />
+        body: JSON.stringify({
+          userEmail: email,
+          title,
+          message,
+          threadId,
+        }),
+      }
     );
 
-    for (const scrapeUser of scrape.scrapeUsers) {
-      if (
-        scrapeUser.user &&
-        (scrapeUser.user.settings?.ticketEmailUpdates ?? true)
-      ) {
-        await sendReactEmail(
-          scrapeUser.user.email,
-          `New ticket (#${ticketNumber})`,
-          <TicketAdminCreateEmail
-            scrapeTitle={scrape.title ?? "CrawlChat"}
-            ticketNumber={ticketNumber}
-            title={title}
-            message={message}
-            email={email}
-          />
-        );
-      }
+    if (!response.ok) {
+      return data(
+        { error: "Failed to create ticket" },
+        { status: response.status }
+      );
     }
 
-    const customTags = getCustomTags(new URL(request.url));
-    const thread = await prisma.thread.create({
-      data: {
-        scrapeId: scrapeId,
-        ticketUserEmail: customTags?.email,
-        customTags,
-      },
-    });
-    await updateSessionThreadId(session, scrapeId, thread.id);
-    const userToken = createToken(chatSessionKeys[scrapeId], {
-      expiresInSeconds: 60 * 60 * 24,
-    });
+    delete chatSessionKeys[scrapeId];
+    session.set("chatSessionKeys", chatSessionKeys);
     return data(
-      { userToken, thread },
+      { userToken: null },
       {
         headers: {
           "Set-Cookie": await commitSession(session),
         },
       }
     );
+  }
+
+  if (intent === "request-email-verification") {
+    const email = formData.get("email") as string;
+    if (!email) {
+      return data({ error: "Email is required" }, { status: 400 });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    await sendChatVerifyEmail(email, otp);
+
+    await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        emailEntered: email,
+        emailOtp: otp,
+      },
+    });
+
+    return { success: true };
+  }
+
+  if (intent === "verify-email") {
+    const otp = formData.get("otp") as string;
+    const thread = await prisma.thread.findFirst({
+      where: { id: threadId },
+    });
+
+    if (otp && otp !== thread?.emailOtp) {
+      return data({ error: "Invalid OTP" }, { status: 400 });
+    }
+
+    await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        emailVerifiedAt: new Date(),
+      },
+    });
+
+    return { success: true };
   }
 }
 
@@ -350,6 +331,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
       admin={false}
       token={loaderData.userToken}
       fullscreen={loaderData.fullscreen}
+      sidePanel={loaderData.sidePanel}
     >
       <div
         className={cn(

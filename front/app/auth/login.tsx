@@ -2,7 +2,7 @@ import type { Route } from "./+types/login";
 import { redirect, useFetcher, useLoaderData } from "react-router";
 import { authenticator } from ".";
 import { commitSession, getSession } from "~/session";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { TbArrowRight, TbCircleCheck, TbCircleX } from "react-icons/tb";
 import { getAuthUser } from "./middleware";
 import { Logo } from "~/dashboard/logo";
@@ -53,7 +53,7 @@ export default function LoginPage() {
   const fetcher = useFetcher();
   const { mailSent } = useLoaderData();
   const emailRef = useRef<HTMLInputElement>(null);
-  const [testiIndex, setTestiIndex] = useState(Math.floor(Math.random() * 4));
+  const testiIndex = useMemo(() => Math.floor(Math.random() * 4), []);
 
   useEffect(() => {
     if (mailSent && emailRef.current) {
@@ -62,7 +62,10 @@ export default function LoginPage() {
   }, [mailSent]);
 
   return (
-    <div className="flex h-screen w-screen gap-2 items-stretch">
+    <div
+      data-theme="brand"
+      className="flex h-screen w-screen gap-2 items-stretch"
+    >
       <div
         className={cn(
           "flex-col items-center justify-center bg-base-200 flex-1",
@@ -81,22 +84,6 @@ export default function LoginPage() {
         </div>
       </div>
       <div className="flex flex-col flex-1 gap-2 h-full justify-center items-center">
-        {/* <div role="alert" className="alert alert-info w-82 mb-2 text-base-100">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            className="h-6 w-6 shrink-0 stroke-current"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            ></path>
-          </svg>
-          <span>Sign in to start your 7 days trial.</span>
-        </div> */}
         <fetcher.Form method="post">
           <div
             className={cn(

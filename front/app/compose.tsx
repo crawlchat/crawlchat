@@ -40,7 +40,6 @@ export async function action({ request }: Route.ActionArgs) {
   if (intent === "compose") {
     const prompt = formData.get("prompt");
     const messages = formData.get("messages");
-    const format = formData.get("format");
     const formatText = formData.get("format-text");
 
     const token = createToken(user!.id);
@@ -51,7 +50,6 @@ export async function action({ request }: Route.ActionArgs) {
         body: JSON.stringify({
           prompt,
           messages,
-          format,
           formatText,
         }),
         headers: {
@@ -64,7 +62,7 @@ export async function action({ request }: Route.ActionArgs) {
     const data = await response.json();
 
     return {
-      answer: data.answer,
+      content: data.content,
       messages: data.messages,
     };
   }
@@ -74,7 +72,7 @@ type ComposeFormat = "markdown" | "email" | "tweet" | "linkedin-post";
 
 export default function Compose({ loaderData }: Route.ComponentProps) {
   const fetcher = useFetcher();
-  const [state, setState] = useState<{ answer: string; messages: any[] }>();
+  const [state, setState] = useState<{ content: string; messages: any[] }>();
   const [format, setFormat] = useState<ComposeFormat>("markdown");
   const [formatText, setFormatText] = useState<string>("");
   const [formatTextActive, setFormatTextActive] = useState<boolean>(false);
@@ -85,7 +83,7 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
       inputRef.current.value = "";
 
       setState({
-        answer: fetcher.data.answer,
+        content: fetcher.data.content,
         messages: fetcher.data.messages,
       });
       localStorage.setItem(
@@ -117,7 +115,7 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
   }, [formatText]);
 
   function handleCopy() {
-    navigator.clipboard.writeText(state?.answer ?? "");
+    navigator.clipboard.writeText(state?.content ?? "");
     toast.success("Copied to clipboard");
   }
 
@@ -216,7 +214,7 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
 
         <div className="bg-base-200 p-6 rounded-box border border-base-300 shadow">
           <MarkdownProse sources={[]}>
-            {state?.answer || "Start by asking a question below"}
+            {state?.content || "Start by asking a question below"}
           </MarkdownProse>
         </div>
 
@@ -237,7 +235,7 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
             {fetcher.state !== "idle" && (
               <span className="loading loading-spinner loading-xs" />
             )}
-            {state?.answer ? "Update" : "Compose"}
+            {state?.content ? "Update" : "Compose"}
             <TbCheck />
           </button>
         </div>

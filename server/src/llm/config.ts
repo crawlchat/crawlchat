@@ -42,7 +42,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       apiKey: process.env.OPENROUTER_API_KEY!,
       ragTopN: 6,
       creditsPerMessage: 1,
-      baseURL: "https://openrouter.ai/api/v1"
+      baseURL: "https://openrouter.ai/api/v1",
     };
   }
   if (model === LlmModel.gemini_2_5_flash_lite) {
@@ -74,12 +74,31 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
   }
   if (model === LlmModel.gpt_5) {
     return {
-      model: "openai/gpt-5",
-      apiKey: process.env.OPENROUTER_API_KEY!,
+      model: "gpt-5",
+      apiKey: process.env.OPENAI_API_KEY!,
       ragTopN: 6,
       creditsPerMessage: 2,
+      supportsImages: true,
+    };
+  }
+  if (model === LlmModel.sonnet_4_5) {
+    return {
+      model: "anthropic/claude-sonnet-4.5",
+      apiKey: process.env.OPENROUTER_API_KEY!,
+      ragTopN: 6,
+      creditsPerMessage: 4,
       baseURL: "https://openrouter.ai/api/v1",
       supportsImages: true,
+    };
+  }
+  if (model === LlmModel.haiku_4_5) {
+    return {
+      model: "anthropic/claude-haiku-4.5",
+      apiKey: process.env.OPENROUTER_API_KEY!,
+      ragTopN: 6,
+      creditsPerMessage: 1,
+      baseURL: "https://openrouter.ai/api/v1",
+      supportsImages: true
     };
   }
   return {

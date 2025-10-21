@@ -12,6 +12,7 @@ export function SettingsSection({
   actionRight,
   plainTitle,
   danger,
+  formRef,
 }: {
   id?: string;
   children?: React.ReactNode;
@@ -21,6 +22,7 @@ export function SettingsSection({
   actionRight?: React.ReactNode;
   plainTitle?: string;
   danger?: boolean;
+  formRef?: React.RefObject<HTMLFormElement | null>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [targeted, setTargeted] = useState(false);
@@ -111,7 +113,11 @@ export function SettingsSection({
     return render();
   }
 
-  return <fetcher.Form method="post">{render()}</fetcher.Form>;
+  return (
+    <fetcher.Form ref={formRef} method="post">
+      {render()}
+    </fetcher.Form>
+  );
 }
 
 export function SettingsContainer({ children }: { children: React.ReactNode }) {

@@ -12,12 +12,21 @@ async function getPage() {
 
 export async function scrapePw(
   url: string,
-  options?: { scrollSelector?: string }
+  options?: { scrollSelector?: string; maxWait?: number }
 ) {
   const page = await getPage();
   console.log("Navigating to", url);
-  await page.goto(url);
-  await page.waitForLoadState("networkidle");
+  const response = await page.goto(url);
+
+  if (options?.maxWait) {
+    console.log("Waiting for maxWait", options.maxWait);
+    await page.waitForTimeout(options.maxWait);
+  } else {
+    console.log("Waiting for networkidle");
+    await page.waitForLoadState("networkidle");
+  }
+
+  await page.waitForTimeout(5000);
 
   const scrollSelector = options?.scrollSelector;
 
@@ -55,5 +64,5 @@ export async function scrapePw(
 
   console.log("Getting html");
   const html = await page.content();
-  return html;
+  return { text: html, statusCode: response?.status() ?? -1 };
 }
