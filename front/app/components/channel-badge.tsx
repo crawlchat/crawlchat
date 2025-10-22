@@ -21,6 +21,7 @@ export function ChannelBadge({
     if (channel === "discord") return "Discord";
     if (channel === "slack") return "Slack";
     if (channel === "mcp") return "MCP";
+    if (channel === "api") return "API";
     return channel;
   }, [channel]);
 
