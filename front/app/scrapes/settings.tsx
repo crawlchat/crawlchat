@@ -616,58 +616,60 @@ function CategorySettings({ scrape }: { scrape: Scrape }) {
         </button>
       }
     >
-      <div className="flex gap-2">
-        <input
-          type="hidden"
-          name="categories"
-          value={JSON.stringify(categories)}
-        />
-        <div className="flex flex-col gap-2 w-full">
-          {categories.map((category, index) => (
-            <div key={index} className="flex gap-2 w-full items-end">
-              <fieldset className="fieldset flex-1">
-                <legend className="fieldset-legend">Title</legend>
-                <input
-                  type="text"
-                  className="input"
-                  name="category-title"
-                  defaultValue={category.title}
-                  placeholder="Ex: Pricing"
-                  value={category.title}
-                  onChange={(e) =>
-                    handleChangeCategoryTitle(index, e.target.value)
-                  }
-                />
-              </fieldset>
+      {categories.length > 0 && (
+        <div className="flex gap-2">
+          <div className="flex flex-col gap-2 w-full">
+            <input
+              type="hidden"
+              name="categories"
+              value={JSON.stringify(categories)}
+            />
+            {categories.map((category, index) => (
+              <div key={index} className="flex gap-2 w-full items-end">
+                <fieldset className="fieldset flex-1">
+                  <legend className="fieldset-legend">Title</legend>
+                  <input
+                    type="text"
+                    className="input"
+                    name="category-title"
+                    defaultValue={category.title}
+                    placeholder="Ex: Pricing"
+                    value={category.title}
+                    onChange={(e) =>
+                      handleChangeCategoryTitle(index, e.target.value)
+                    }
+                  />
+                </fieldset>
 
-              <fieldset className="fieldset flex-2">
-                <legend className="fieldset-legend">Description</legend>
-                <input
-                  type="text"
-                  className="input w-full"
-                  name="category-title"
-                  defaultValue={category.title}
-                  placeholder="Ex: Everything about pricing, plans, credits, etc."
-                  value={category.description}
-                  onChange={(e) =>
-                    handleChangeCategoryDescription(index, e.target.value)
-                  }
-                />
-              </fieldset>
+                <fieldset className="fieldset flex-2">
+                  <legend className="fieldset-legend">Description</legend>
+                  <input
+                    type="text"
+                    className="input w-full"
+                    name="category-title"
+                    defaultValue={category.title}
+                    placeholder="Ex: Everything about pricing, plans, credits, etc."
+                    value={category.description}
+                    onChange={(e) =>
+                      handleChangeCategoryDescription(index, e.target.value)
+                    }
+                  />
+                </fieldset>
 
-              <fieldset className="fieldset">
-                <button
-                  className="btn btn-error btn-soft btn-square"
-                  type="button"
-                  onClick={() => handleDeleteCategory(index)}
-                >
-                  <TbTrash />
-                </button>
-              </fieldset>
-            </div>
-          ))}
+                <fieldset className="fieldset">
+                  <button
+                    className="btn btn-error btn-soft btn-square"
+                    type="button"
+                    onClick={() => handleDeleteCategory(index)}
+                  >
+                    <TbTrash />
+                  </button>
+                </fieldset>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </SettingsSection>
   );
 }
