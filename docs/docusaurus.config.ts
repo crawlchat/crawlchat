@@ -57,13 +57,6 @@ const config: Config = {
     {
       "tagName": "script",
       "attributes": {
-        "src": "https://cdn.vemetric.com/main.js",
-        "data-token": "MGxpZaWDYdxwChu5"
-      },
-    },
-    {
-      "tagName": "script",
-      "attributes": {
         "src": "https://datafa.st/js/script.js",
         "data-domain": "crawlchat.app",
         "data-website-id": "dfid_JIKHGZEDxmQtWQODXf6zA"

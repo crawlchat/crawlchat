@@ -16,7 +16,7 @@ import { useFetcher, useLoaderData } from "react-router";
 import { NewKnowledgeGroupForm } from "~/knowledge/new-group";
 import { Logo } from "~/dashboard/logo";
 import Confetti from "react-confetti-boom";
-import { track } from "~/pirsch";
+import { track } from "~/track";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

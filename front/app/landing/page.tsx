@@ -46,7 +46,7 @@ import {
 } from "react-icons/tb";
 import { prisma } from "libs/prisma";
 import type { User } from "libs/prisma";
-import { track } from "~/pirsch";
+import { track } from "~/track";
 import {
   PLAN_FREE,
   PLAN_PRO,

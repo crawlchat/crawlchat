@@ -14,7 +14,6 @@ import {
 import { planMap } from "libs/user-plan";
 import { prisma } from "libs/prisma";
 import { getSession } from "~/session";
-import { vemetric } from "@vemetric/react";
 import { fetchDataGaps } from "~/data-gaps/fetch";
 import { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
@@ -122,11 +121,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     (async () => {
-      await vemetric.identify({
-        identifier: user.id,
-        displayName: user.name ?? "Unnamed",
-      });
-
       (window as any)?.datafast?.("identify", {
         user_id: user.id,
         name: user.name,

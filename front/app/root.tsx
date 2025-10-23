@@ -10,7 +10,6 @@ import {
   useMatches,
 } from "react-router";
 import { useMemo } from "react";
-import { VemetricScript } from "@vemetric/react";
 import stylesheet from "./app.css?url";
 import { crawlChatSchema } from "./schema";
 
@@ -84,14 +83,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {shouldTrack && (
           <script
             defer
-            src="https://api.pirsch.io/pa.js"
-            id="pianjs"
-            data-code="aO7kKYfA1oQ3g4FLHanketwYCWPu2cE0"
-          ></script>
-        )}
-        {shouldTrack && (
-          <script
-            defer
             data-website-id="68d97a639da288cbda55587a"
             data-domain="crawlchat.app"
             src="https://datafa.st/js/script.js"
@@ -118,7 +109,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
       </head>
       <body>
-        {shouldTrack && <VemetricScript token="MGxpZaWDYdxwChu5" />}
         {children}
         <ScrollRestoration />
         <Scripts />

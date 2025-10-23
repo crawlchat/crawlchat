@@ -35,7 +35,7 @@ import {
 } from "./setup-progress";
 import { Logo } from "./logo";
 import { AppContext } from "./context";
-import { track } from "~/pirsch";
+import { track } from "~/track";
 import { ScrapePrivacyBadge } from "~/components/scrape-type-badge";
 import { PlanIconBadge } from "~/components/plan-icon-badge";
 import cn from "@meltdownjs/cn";

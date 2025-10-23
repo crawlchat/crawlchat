@@ -32,7 +32,7 @@ import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import { getQueryString } from "libs/llm-message";
 import { dodoGateway } from "~/payment/gateway-dodo";
-import { track } from "~/pirsch";
+import { track } from "~/track";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

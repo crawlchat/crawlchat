@@ -29,7 +29,7 @@ import {
   TbChartBar,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
-import { track } from "~/pirsch";
+import { track } from "~/track";
 import { extractCitations } from "libs/citation";
 import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp/setup";
 import { useChatBoxContext } from "./use-chat-box";

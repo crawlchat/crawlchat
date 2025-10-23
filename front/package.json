@@ -28,7 +28,6 @@
     "@rvf/zod": "^7.0.1",
     "@tailwindcss/vite": "^4.1.12",
     "@tuesdaycrowd/sentence-transformers": "^1.0.1",
-    "@vemetric/react": "^0.5.4",
     "arctic": "^3.7.0",
     "countries-list": "^3.1.1",
     "crypto-js": "^4.2.0",

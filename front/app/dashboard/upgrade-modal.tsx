@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { TbCrown } from "react-icons/tb";
 import { useFetcher } from "react-router";
 import { PricingBoxes } from "~/landing/page";
-import { track } from "~/pirsch";
+import { track } from "~/track";
 
 export function UpgradeModal({
   starterPlan,
