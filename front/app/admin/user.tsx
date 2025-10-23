@@ -6,11 +6,17 @@ import type { Route } from "./+types/user";
 import { DataList } from "~/components/data-list";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  const user = await getAuthUser(request);
+  const loggedInUser = await getAuthUser(request);
 
-  if (user?.email !== "pramodkumar.damam73@gmail.com") {
+  if (loggedInUser?.email !== "pramodkumar.damam73@gmail.com") {
     throw redirect("/app");
   }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: params.userId,
+    },
+  });
 
   const scrapes = await prisma.scrape.findMany({
     where: {
