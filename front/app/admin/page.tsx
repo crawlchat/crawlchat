@@ -186,7 +186,14 @@ function MessagesTable({
                 )}
               </td>
               <td>{messageDetail.scrape.title}</td>
-              <td>{messageDetail.user.email}</td>
+              <td>
+                <Link
+                  to={`/admin-fowl/user/${messageDetail.user.id}`}
+                  className="link link-primary link-hover"
+                >
+                  {messageDetail.user.email}
+                </Link>
+              </td>
               <td>{messageDetail.message.analysis?.category}</td>
               <td>
                 <Score message={messageDetail.message} />
