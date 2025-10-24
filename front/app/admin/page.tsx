@@ -25,6 +25,7 @@ import {
   YAxis,
 } from "recharts";
 import { useEffect, useRef, useState } from "react";
+import moment from "moment";
 
 type UserDetail = {
   user: User;
@@ -152,17 +153,18 @@ export async function loader({ request }: Route.LoaderArgs) {
     return { counts, scrapes, total };
   }
 
-  const DAY_MILLIS = 24 * 60 * 60 * 1000;
   const dailyMessages = await Promise.all(
     Array.from({ length: 30 }).map(async (_, index) => {
-      const endDate = new Date(Date.now() - index * DAY_MILLIS);
-      const startDate = new Date(Date.now() - (index + 1) * DAY_MILLIS);
+      const now = moment();
+      const dayTime = now.subtract(index, "days");
+      const startOfDay = dayTime.clone().startOf("day");
+      const endOfDay = dayTime.clone().endOf("day");
       const { counts, scrapes, total } = await getMessagesCount(
-        startDate,
-        endDate
+        startOfDay.toDate(),
+        endOfDay.toDate()
       );
       return {
-        name: startDate.toISOString().split("T")[0],
+        name: startOfDay.format("YYYY-MM-DD"),
         counts,
         scrapes,
         total,

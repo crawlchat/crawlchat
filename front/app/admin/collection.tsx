@@ -14,6 +14,7 @@ import {
   YAxis,
 } from "recharts";
 import { useEffect, useRef, useState } from "react";
+import moment from "moment";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const loggedInUser = await getAuthUser(request);
@@ -49,17 +50,18 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     itemsCount[item.id] = item.count;
   }
 
-  const DAY_MILLIS = 24 * 60 * 60 * 1000;
   const dailyMessages = await Promise.all(
     Array.from({ length: 30 }).map(async (_, index) => {
-      const endDate = new Date(Date.now() - index * DAY_MILLIS);
-      const startDate = new Date(Date.now() - (index + 1) * DAY_MILLIS);
+      const now = moment();
+      const dayTime = now.subtract(index, "days");
+      const startOfDay = dayTime.clone().startOf("day");
+      const endOfDay = dayTime.clone().endOf("day");
       return {
-        name: startDate.toISOString().split("T")[0],
+        name: startOfDay.format("YYYY-MM-DD"),
         count: await prisma.message.count({
           where: {
             scrapeId: scrape.id,
-            createdAt: { gte: startDate, lte: endDate },
+            createdAt: { gte: startOfDay.toDate(), lte: endOfDay.toDate() },
             llmMessage: {
               is: {
                 role: "user",
