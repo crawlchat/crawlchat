@@ -1,10 +1,9 @@
 import cn from "@meltdownjs/cn";
 import type { LlmModel } from "libs/prisma";
-import { useContext, useEffect, useMemo, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 import {
   TbAlertTriangle,
-  TbBrandChrome,
-  TbDownload,
+  TbArrowRight,
   TbMenu2,
   TbX,
 } from "react-icons/tb";
@@ -27,26 +26,19 @@ const LlmNameMap: Record<LlmModel, string> = {
 };
 
 const release = {
-  key: "chrome-extension-now-available-1",
-  title: "Chrome Extension is now available!",
+  key: "categories-for-questions",
+  title: "Categories for questions",
   description: (
     <p>
-      Use your knowledge base to quickly compose text content for different
-      purposes and fill forms instantly on any web page! Watch a demo{" "}
-      <a
-        href="https://www.youtube.com/watch?v=F7zISPrz4nQ"
-        target="_blank"
-        className="link"
-      >
-        here
-      </a>
+      Now you can create <strong>Categories</strong> for the questions being
+      asked and group them for better analytics!
     </p>
   ),
   date: "2025-10-17T17:14:04.947Z",
   cta: {
-    label: "Install now",
-    href: "https://chromewebstore.google.com/detail/crawlchat/icimflpdiioobolkjdbldmmomflainie",
-    icon: <TbDownload />,
+    label: "Read more",
+    href: "/changelog/24-categories-for-questions",
+    icon: <TbArrowRight />,
     target: "_blank",
   },
 };
