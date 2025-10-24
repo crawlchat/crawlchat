@@ -16,7 +16,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { GroupStatus } from "./status";
-import { TbTrash } from "react-icons/tb";
+import { TbEraser, TbTrash } from "react-icons/tb";
 import { createToken } from "libs/jwt";
 import { MultiSelect, type SelectValue } from "~/components/multi-select";
 import { Client } from "@notionhq/client";
@@ -155,6 +155,23 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const formData = await request.formData();
+
+  const intent = formData.get("intent");
+  if (intent === "clear-pages") {
+    const token = createToken(user!.id);
+    await fetch(`${process.env.VITE_SERVER_URL}/knowledge-group`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        knowledgeGroupId: groupId,
+        clear: true,
+      }),
+    });
+    return { success: true };
+  }
 
   const update: Prisma.KnowledgeGroupUpdateInput = {};
 
@@ -521,7 +538,9 @@ export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
   const deleteFetcher = useFetcher();
+  const clearPagesFetcher = useFetcher();
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [clearPagesConfirm, setClearPagesConfirm] = useState(false);
 
   useEffect(() => {
     if (deleteConfirm) {
@@ -540,6 +559,20 @@ export default function KnowledgeGroupSettings({
     deleteFetcher.submit(null, {
       method: "delete",
     });
+  }
+
+  function handleClearPages() {
+    if (!clearPagesConfirm) {
+      return setClearPagesConfirm(true);
+    }
+
+    clearPagesFetcher.submit(
+      { intent: "clear-pages" },
+      {
+        method: "post",
+      }
+    );
+    setClearPagesConfirm(false);
   }
 
   return (
@@ -570,6 +603,26 @@ export default function KnowledgeGroupSettings({
             linearProjectStatuses={loaderData.linearProjectStatuses}
           />
         )}
+
+        <SettingsSection
+          id="clear-pages"
+          title="Clear pages"
+          description="This will clear the all the pages of the knowledge group."
+          danger
+          actionRight={
+            <button
+              className="btn btn-error"
+              onClick={handleClearPages}
+              disabled={clearPagesFetcher.state !== "idle"}
+            >
+              {clearPagesFetcher.state !== "idle" && (
+                <span className="loading loading-spinner loading-xs" />
+              )}
+              {clearPagesConfirm ? "Sure to clear?" : "Clear"}
+              <TbEraser />
+            </button>
+          }
+        />
 
         <SettingsSection
           id="delete-knowledge-group"

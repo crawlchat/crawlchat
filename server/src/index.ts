@@ -210,9 +210,11 @@ app.delete(
       where: { knowledgeGroupId },
     });
 
-    await prisma.knowledgeGroup.delete({
-      where: { id: knowledgeGroupId },
-    });
+    if (!req.body.clear) {
+      await prisma.knowledgeGroup.delete({
+        where: { id: knowledgeGroupId },
+      });
+    }
 
     res.json({ message: "ok" });
   }
