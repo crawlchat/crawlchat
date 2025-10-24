@@ -202,6 +202,8 @@ export function useScrapeChat({
         apiActionCalls: [],
         questionId: null,
         analysis: null,
+        llmModel: "gpt_4o_mini",
+        creditsUsed: 0,
       },
     ]);
     setAskStage("asked");

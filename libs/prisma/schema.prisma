@@ -266,6 +266,11 @@ type MessageAnalysis {
   categorySuggestions CategorySuggestion[]
 }
 
+type LlmMessage {
+  role String?
+  content Json?
+}
+
 model Message {
   id                        String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId                  String   @db.ObjectId
@@ -273,7 +278,7 @@ model Message {
   scrapeId                  String   @db.ObjectId
   questionId                String?  @db.ObjectId
 
-  llmMessage                Json
+  llmMessage                LlmMessage?
   links                     MessageSourceLink[]
   pinnedAt                  DateTime?
   channel                   MessageChannel?

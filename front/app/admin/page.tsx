@@ -122,6 +122,11 @@ export async function loader({ request }: Route.LoaderArgs) {
           gte: startDate,
           lte: endDate,
         },
+        llmMessage: {
+          is: {
+            role: "user",
+          },
+        },
       },
       select: {
         scrape: {

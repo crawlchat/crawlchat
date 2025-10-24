@@ -1,5 +1,6 @@
 import type { Route } from "./+types/embed";
 import type {
+  Message,
   Scrape,
   WidgetConfig,
   WidgetQuestion,
@@ -141,7 +142,7 @@ export async function action({ request }: Route.ActionArgs) {
   return null;
 }
 
-const DEFAULT_MESSAGE = {
+const DEFAULT_MESSAGE: Message = {
   id: "test",
   scrapeId: "test",
   createdAt: new Date(),
@@ -163,6 +164,8 @@ const DEFAULT_MESSAGE = {
   links: [],
   ticketMessage: null,
   apiActionCalls: [],
+  llmModel: "gpt_4o_mini",
+  creditsUsed: 0,
 };
 
 function AskAIButton({
