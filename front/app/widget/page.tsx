@@ -99,7 +99,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     }
   }
 
-  if (thread && messages.length > 3) {
+  if (thread && messages.length > 60) {
     console.log("Clearing chat session");
     delete chatSessionKeys[thread.scrapeId];
     session.set("chatSessionKeys", chatSessionKeys);
