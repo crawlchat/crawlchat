@@ -4,7 +4,6 @@ import {
   TbChartBar,
   TbCheck,
   TbDatabase,
-  TbExternalLink,
   TbFolder,
   TbHome,
   TbMessage,
@@ -15,14 +14,21 @@ import {
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import { Page } from "~/components/page";
-import { XAxis, CartesianGrid, Tooltip, AreaChart, Area } from "recharts";
+import {
+  XAxis,
+  CartesianGrid,
+  Tooltip,
+  AreaChart,
+  Area,
+  LineChart,
+  Line,
+} from "recharts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
 import { Link, redirect, useFetcher } from "react-router";
 import { getLimits } from "libs/user-plan";
-import { fetchDataGaps } from "~/data-gaps/fetch";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
 import { ChannelBadge } from "~/components/channel-badge";
@@ -34,63 +40,12 @@ import { getQueryString } from "libs/llm-message";
 import { dodoGateway } from "~/payment/gateway-dodo";
 import { track } from "~/track";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const user = await getAuthUser(request);
-  const session = await getSession(request.headers.get("cookie"));
-  const scrapeId = session.get("scrapeId");
-
-  // Check scrapeId in session
-  const scrapes = await prisma.scrapeUser
-    .findMany({
-      where: {
-        userId: user!.id,
-      },
-      include: {
-        scrape: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    })
-    .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
-
-  if (scrapeId && !scrapes.find((s) => s.id === scrapeId)) {
-    if (scrapes.length > 0) {
-      session.set("scrapeId", scrapes[0].id);
-    } else {
-      session.unset("scrapeId");
-    }
-    throw redirect("/app", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
-  }
-  if (!scrapeId && scrapes.length > 0) {
-    session.set("scrapeId", scrapes[0].id);
-    throw redirect("/app", {
-      headers: {
-        "Set-Cookie": await commitSession(session),
-      },
-    });
-  }
-
-  const ONE_WEEK = 1000 * 60 * 60 * 24 * 7;
-
-  const messages = await prisma.message.findMany({
-    where: {
-      scrapeId,
-      createdAt: {
-        gte: new Date(Date.now() - ONE_WEEK),
-      },
-    },
-  });
-
+function getMessagesSummary(messages: Message[]) {
   const dailyMessages: Record<string, number> = {};
 
   for (const message of messages) {
     if (!message.createdAt) continue;
-    if ((message.llmMessage as any)?.role === "user") continue;
+    if (message.llmMessage?.role === "user") continue;
     const date = new Date(message.createdAt);
     const key = date.toISOString().split("T")[0];
     dailyMessages[key] = (dailyMessages[key] ?? 0) + 1;
@@ -164,7 +119,87 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   lowRatingQueries = lowRatingQueries.sort((a, b) => a.maxScore - b.maxScore);
 
-  const dataGapMessages = scrapeId ? await fetchDataGaps(scrapeId) : [];
+  const maxScores = messages
+    .filter((m) => m.links.length > 0)
+    .map((m) => Math.max(...m.links.map((l) => l.score ?? 0)));
+  const avgScore =
+    maxScores.reduce((acc, curr) => acc + curr, 0) / maxScores.length;
+
+  return {
+    messagesCount: Object.values(dailyMessages).reduce(
+      (acc, curr) => acc + curr,
+      0
+    ),
+    dailyMessages,
+    messagesToday,
+    scoreDestribution,
+    ratingUpCount,
+    ratingDownCount,
+    topItems,
+    latestQuestions,
+    lowRatingQueries,
+    avgScore,
+  };
+}
+
+type MessagesSummary = ReturnType<typeof getMessagesSummary>;
+
+function monoString(str: string) {
+  return str.trim().toLowerCase().replace(/^\n+/, "").replace(/\n+$/, "");
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await getAuthUser(request);
+  const session = await getSession(request.headers.get("cookie"));
+  const scrapeId = session.get("scrapeId");
+
+  // Check scrapeId in session
+  const scrapes = await prisma.scrapeUser
+    .findMany({
+      where: {
+        userId: user!.id,
+      },
+      include: {
+        scrape: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    })
+    .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
+
+  if (scrapeId && !scrapes.find((s) => s.id === scrapeId)) {
+    if (scrapes.length > 0) {
+      session.set("scrapeId", scrapes[0].id);
+    } else {
+      session.unset("scrapeId");
+    }
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
+  if (!scrapeId && scrapes.length > 0) {
+    session.set("scrapeId", scrapes[0].id);
+    throw redirect("/app", {
+      headers: {
+        "Set-Cookie": await commitSession(session),
+      },
+    });
+  }
+
+  const ONE_WEEK = 1000 * 60 * 60 * 24 * 7;
+
+  const messages = await prisma.message.findMany({
+    where: {
+      scrapeId,
+      createdAt: {
+        gte: new Date(Date.now() - ONE_WEEK),
+      },
+    },
+  });
+
   const nScrapeItems = scrapeId
     ? await prisma.scrapeItem.count({
         where: {
@@ -174,45 +209,26 @@ export async function loader({ request }: Route.LoaderArgs) {
     : 0;
 
   const scrape = scrapes.find((s) => s.id === scrapeId);
-  const categories: Record<string, number> = {};
-  for (const message of messages) {
-    if (
-      (message.llmMessage as any)?.role !== "assistant" ||
-      !message.analysis?.category ||
-      !scrape?.messageCategories.some(
-        (c) =>
-          c.title.trim().toLowerCase() ===
-          message.analysis?.category?.trim().toLowerCase()
+  const messagesSummary = getMessagesSummary(messages);
+  const categoriesSummary = scrape?.messageCategories?.map((category) => ({
+    title: category.title,
+    summary: getMessagesSummary(
+      messages.filter(
+        (m) =>
+          m.analysis?.category &&
+          monoString(m.analysis.category) === monoString(category.title)
       )
-    )
-      continue;
-    categories[message.analysis.category] =
-      (categories[message.analysis.category] ?? 0) + 1;
-  }
-  if (scrape?.messageCategories) {
-    for (const category of scrape.messageCategories) {
-      if (!categories[category.title]) {
-        categories[category.title] = 0;
-      }
-    }
-  }
+    ),
+  }));
 
   return {
     user,
-    dailyMessages,
-    messagesToday,
     scrapeId,
-    scoreDestribution,
     scrape,
-    ratingUpCount,
-    ratingDownCount,
     noScrapes: scrapes.length === 0,
-    topItems,
-    latestQuestions,
-    lowRatingQueries,
-    dataGapMessages,
     nScrapeItems,
-    categories,
+    messagesSummary,
+    categoriesSummary,
   };
 }
 
@@ -338,6 +354,132 @@ export function StatCard({
   );
 }
 
+function CategoryCardStat({
+  label,
+  value,
+  error,
+  tooltip,
+}: {
+  label: string;
+  value: number | string;
+  error?: boolean;
+  tooltip?: string;
+}) {
+  return (
+    <div className="flex flex-col items-end gap-1 tooltip" data-tip={tooltip}>
+      <span className="text-base-content/50 text-xs text-right shrink-0">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "badge badge-sm badge-soft",
+          error ? "badge-error" : "badge-primary"
+        )}
+      >
+        {typeof value === "number" ? numberToKMB(value) : value}
+      </span>
+    </div>
+  );
+}
+
+function CategoryCard({
+  title,
+  summary,
+}: {
+  title: string;
+  summary: MessagesSummary;
+}) {
+  const chartData = useMemo(() => {
+    const data = [];
+    const today = new Date();
+    const DAY_MS = 1000 * 60 * 60 * 24;
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(today.getTime() - i * DAY_MS);
+      const key = date.toISOString().split("T")[0];
+      const name = moment(date).format("MMM D");
+      data.push({
+        name,
+        Messages: summary.dailyMessages[key] ?? 0,
+      });
+    }
+    return data.reverse();
+  }, [summary.dailyMessages]);
+  const lowRatingQuery = useMemo(() => {
+    const content =
+      summary.lowRatingQueries[0]?.userMessage?.llmMessage?.content;
+    if (typeof content === "string") {
+      return {
+        content,
+        score: summary.lowRatingQueries[0]?.maxScore,
+      };
+    }
+    return null;
+  }, [summary.lowRatingQueries]);
+
+  function renderTooltip(props: any) {
+    return (
+      <div className="bg-primary text-primary-content px-3 py-1 rounded-box">
+        <div className="text-[8px] opacity-80">{props.label}</div>
+        <div className="text-xs">{props.payload[0]?.value}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "bg-base-200/50 rounded-box p-4 border border-base-300",
+        "flex flex-col md:flex-row justify-between gap-2 md:items-center"
+      )}
+    >
+      <div className="h-fit">
+        <Link
+          to={`/messages?category=${title}`}
+          className="flex items-center gap-2 link link-primary link-hover"
+        >
+          <TbFolder />
+          <span className="font-bold">{title}</span>
+        </Link>
+        <div className="flex items-center gap-2">
+          {lowRatingQuery && (
+            <div
+              className="tooltip tooltip-bottom"
+              data-tip={"Latest low rating query"}
+            >
+              <div className="text-xs text-base-content/50 line-clamp-1">
+                [{lowRatingQuery.score.toFixed(2)}] {lowRatingQuery.content}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="flex gap-4 flex-wrap">
+        <LineChart width={160} height={40} data={chartData}>
+          <XAxis dataKey="name" hide />
+          <Tooltip content={renderTooltip} />
+          <Line
+            type="monotone"
+            dataKey="Messages"
+            stroke={"var(--color-primary)"}
+            dot={false}
+          />
+        </LineChart>
+        <CategoryCardStat label="This week" value={summary.messagesCount} />
+        <CategoryCardStat label="Today" value={summary.messagesToday} />
+        <CategoryCardStat
+          label="Avg score"
+          value={summary.avgScore.toFixed(2)}
+          error={summary.avgScore < 0.3}
+          tooltip={"Avg of max scores for all queries"}
+        />
+        <CategoryCardStat label="Not helpful" value={summary.ratingDownCount} />
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -354,24 +496,26 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       const name = moment(date).format("MMM D");
       data.push({
         name,
-        Messages: loaderData.dailyMessages[key] ?? 0,
+        Messages: loaderData.messagesSummary.dailyMessages[key] ?? 0,
       });
     }
     return data.reverse();
-  }, [loaderData.dailyMessages]);
+  }, [loaderData.messagesSummary.dailyMessages]);
 
   const scoreDistributionData = useMemo(() => {
     const data = [];
-    const points = Object.keys(loaderData.scoreDestribution).length;
+    const points = Object.keys(
+      loaderData.messagesSummary.scoreDestribution
+    ).length;
     for (let i = 0; i < points; i++) {
       data.push({
         name: i,
-        Messages: loaderData.scoreDestribution[i]?.count ?? 0,
+        Messages: loaderData.messagesSummary.scoreDestribution[i]?.count ?? 0,
         score: i / points,
       });
     }
     return data;
-  }, [loaderData.scoreDestribution]);
+  }, [loaderData.messagesSummary.scoreDestribution]);
 
   useEffect(() => {
     track("dashboard", {});
@@ -460,70 +604,36 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           <div className="flex flex-col justify-stretch md:flex-row gap-4 items-center">
             <StatCard
               label="Today"
-              value={loaderData.messagesToday}
+              value={loaderData.messagesSummary.messagesToday}
               icon={<TbMessage />}
             />
             <StatCard
               label="This week"
-              value={Object.values(loaderData.dailyMessages).reduce(
-                (acc, curr) => acc + curr,
-                0
-              )}
+              value={loaderData.messagesSummary.messagesCount}
               icon={<TbMessage />}
             />
             <StatCard
               label="Helpful"
-              value={loaderData.ratingUpCount}
+              value={loaderData.messagesSummary.ratingUpCount}
               icon={<TbThumbUp />}
             />
             <StatCard
               label="Not helpful"
-              value={loaderData.ratingDownCount}
+              value={loaderData.messagesSummary.ratingDownCount}
               icon={<TbThumbDown />}
             />
           </div>
 
-          <div className="flex gap-2 items-center flex-wrap my-4">
-            {Object.entries(loaderData.categories).map(([category, count]) => (
-              <Link
-                key={category}
-                to={`/messages?category=${category}`}
-                className={cn(
-                  "badge badge-accent badge-soft pr-0",
-                  "hover:shadow transition-all group"
-                )}
-              >
-                <TbFolder />
-                <span>{category}</span>
-                <span
-                  className={cn(
-                    "bg-accent text-accent-content border-left-base-300 px-1.5 rounded-full",
-                    "w-8 text-center h-full flex items-center justify-center"
-                  )}
-                >
-                  <span className="group-hover:hidden">{count}</span>
-                  <span className="hidden group-hover:block">
-                    <TbMessage />
-                  </span>
-                </span>
-              </Link>
-            ))}
-            <div
-              className={cn(
-                "tooltip",
-                Object.entries(loaderData.categories).length <= 2 &&
-                  "md:tooltip-right"
-              )}
-              data-tip="Add categories that will be tagged to the messages and you can check the count of each category here."
-            >
-              <a
-                href="/settings#categories"
-                className="btn btn-primary btn-soft btn-xs btn-square"
-              >
-                <TbPlus />
-              </a>
+          {loaderData.categoriesSummary && (
+            <div className="flex flex-col gap-2 my-4">
+              {loaderData.categoriesSummary.map((category) => (
+                <CategoryCard
+                  title={category.title}
+                  summary={category.summary}
+                />
+              ))}
             </div>
-          </div>
+          )}
 
           <div className="flex gap-4">
             <div className="flex flex-col gap-2">
@@ -622,22 +732,26 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {loaderData.latestQuestions.map((question) => (
-                    <tr key={question.id}>
-                      <td>
-                        <span className="line-clamp-1">
-                          {getQueryString((question.llmMessage as any).content)}
-                        </span>
-                      </td>
-                      <td>
-                        <ChannelBadge channel={question.channel} />
-                      </td>
-                      <td className="text-right">
-                        {moment(question.createdAt).fromNow()}
-                      </td>
-                    </tr>
-                  ))}
-                  {loaderData.latestQuestions.length === 0 && (
+                  {loaderData.messagesSummary.latestQuestions.map(
+                    (question) => (
+                      <tr key={question.id}>
+                        <td>
+                          <span className="line-clamp-1">
+                            {getQueryString(
+                              (question.llmMessage as any).content
+                            )}
+                          </span>
+                        </td>
+                        <td>
+                          <ChannelBadge channel={question.channel} />
+                        </td>
+                        <td className="text-right">
+                          {moment(question.createdAt).fromNow()}
+                        </td>
+                      </tr>
+                    )
+                  )}
+                  {loaderData.messagesSummary.latestQuestions.length === 0 && (
                     <tr>
                       <td colSpan={999} className="text-center">
                         No data
