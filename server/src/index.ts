@@ -1001,7 +1001,11 @@ app.get("/collection", authenticate, async (req, res) => {
       userId: req.user!.id,
     },
     include: {
-      scrape: true,
+      scrape: {
+        include: {
+          knowoledgeGroups: true,
+        },
+      },
     },
   });
 
@@ -1010,6 +1014,12 @@ app.get("/collection", authenticate, async (req, res) => {
       collectionId: m.scrape.id,
       collectionName: m.scrape.title,
       createdAt: m.scrape.createdAt,
+      knowledgeGroups: m.scrape.knowoledgeGroups.map((g) => ({
+        id: g.id,
+        title: g.title,
+        type: g.type,
+        createdAt: g.createdAt,
+      })),
     }))
   );
 });
