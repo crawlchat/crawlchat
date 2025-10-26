@@ -5,6 +5,7 @@ import {
   TbCheck,
   TbDatabase,
   TbFolder,
+  TbFolderPlus,
   TbHome,
   TbMessage,
   TbPlus,
@@ -624,16 +625,24 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             />
           </div>
 
-          {loaderData.categoriesSummary && (
-            <div className="flex flex-col gap-2 my-4">
-              {loaderData.categoriesSummary.map((category) => (
+          <div className="flex flex-col gap-2">
+            {loaderData.categoriesSummary &&
+              loaderData.categoriesSummary.map((category) => (
                 <CategoryCard
                   title={category.title}
                   summary={category.summary}
                 />
               ))}
+            <div className="flex justify-end">
+              <Link
+                to="/settings#categories"
+                className="btn btn-soft btn-primary"
+              >
+                <TbFolderPlus />
+                Add category
+              </Link>
             </div>
-          )}
+          </div>
 
           <div className="flex gap-4">
             <div className="flex flex-col gap-2">
