@@ -211,16 +211,17 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const scrape = scrapes.find((s) => s.id === scrapeId);
   const messagesSummary = getMessagesSummary(messages);
-  const categoriesSummary = scrape?.messageCategories?.map((category) => ({
-    title: category.title,
-    summary: getMessagesSummary(
-      messages.filter(
-        (m) =>
-          m.analysis?.category &&
-          monoString(m.analysis.category) === monoString(category.title)
-      )
-    ),
-  }));
+  // const categoriesSummary = scrape?.messageCategories?.map((category) => ({
+  //   title: category.title,
+  //   summary: getMessagesSummary(
+  //     messages.filter(
+  //       (m) =>
+  //         m.analysis?.category &&
+  //         monoString(m.analysis.category) === monoString(category.title)
+  //     )
+  //   ),
+  // }));
+  const categoriesSummary: { title: string; summary: MessagesSummary }[] = [];
 
   return {
     user,
