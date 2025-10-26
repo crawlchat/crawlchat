@@ -544,6 +544,7 @@ app.post(
     const markdown = req.body.markdown || req.body.content;
     const title = req.body.title;
     const knowledgeGroupId = req.body.knowledgeGroupId;
+    const url = req.body.key ?? `default-${uuidv4()}`;
 
     authoriseScrapeUser(req.user!.scrapeUsers, scrapeId, res);
 
@@ -609,45 +610,53 @@ app.post(
       });
     }
 
-    try {
-      await assertLimit(
-        new Date().toISOString(),
-        chunks.length,
-        scrape.id,
-        scrape.userId,
-        scrape.user.plan
-      );
-    } catch (error) {
-      res.status(400).json({ message: "Pages limit reached for the plan" });
-      return;
-    }
-
     const indexer = makeIndexer({ key: scrape.indexer });
-    let scrapeItem = await prisma.scrapeItem.create({
-      data: {
-        userId: req.user!.id,
-        scrapeId: scrape.id,
-        knowledgeGroupId: knowledgeGroup.id,
-        markdown,
-        title,
-        metaTags: [],
-        embeddings: [],
-        status: "completed",
-      },
-    });
-
     const documents = chunks.map((chunk) => ({
       id: makeRecordId(scrape.id, uuidv4()),
       text: chunk,
-      metadata: { content: chunk, scrapeItemId: scrapeItem.id },
+      metadata: { content: chunk },
     }));
+
     await indexer.upsert(scrape.id, documents);
-    scrapeItem = await prisma.scrapeItem.update({
-      where: { id: scrapeItem.id },
-      data: {
+
+    const existingItem = await prisma.scrapeItem.findFirst({
+      where: { scrapeId: scrape.id, url },
+    });
+    if (existingItem) {
+      await deleteByIds(
+        indexer.getKey(),
+        existingItem.embeddings.map((embedding) => embedding.id)
+      );
+    }
+
+    const scrapeItem = await prisma.scrapeItem.upsert({
+      where: {
+        knowledgeGroupId_url: {
+          knowledgeGroupId: knowledgeGroup.id,
+          url,
+        },
+      },
+      update: {
+        markdown,
+        title,
+        metaTags: [],
         embeddings: documents.map((doc) => ({
           id: doc.id,
         })),
+        status: "completed",
+      },
+      create: {
+        userId: req.user!.id,
+        scrapeId: scrape.id,
+        knowledgeGroupId: knowledgeGroup.id,
+        url,
+        markdown,
+        title,
+        metaTags: [],
+        embeddings: documents.map((doc) => ({
+          id: doc.id,
+        })),
+        status: "completed",
       },
     });
 

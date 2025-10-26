@@ -31,11 +31,12 @@ You need to pass the following headers in the request
 
 Pass the following information in the body of the request
 
-| Key                          | Type     | Note                                                       |
-| ---------------------------- | -------- | ---------------------------------------------------------- |
-| `title` (required)           | `STRING` | The title of the page                                      |
-| `content` (required)         | `STRING` | The text content of the page                               |
-| `knowledgeGroupId (required) | `STRING` | The knowledge group ID to which this page should get added |
+| Key                           | Type     | Note                                                                                               |
+| ----------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `title` (required)            | `STRING` | The title of the page                                                                              |
+| `content` (required)          | `STRING` | The text content of the page                                                                       |
+| `knowledgeGroupId` (required) | `STRING` | The knowledge group ID to which this page should get added                                         |
+| `key` (optional)              | `STRING` | Unique key for the page. If passed overrides the page if exists. Else it auto creates an unique id |
 
 ### CURL Request
 
@@ -46,7 +47,8 @@ curl --location --request POST 'https://wings.crawlchat.app/page/YOUR_COLLECTION
 --data-raw '{
     "content": "From api",
     "title": "The text content of the new page",
-    "knowledgeGroupId": "68fe1254773f2997d672c343"
+    "knowledgeGroupId": "68fe1254773f2997d672c343",
+    "key": "a-new-page"
 }'
 ```
 
