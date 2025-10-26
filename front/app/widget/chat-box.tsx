@@ -236,9 +236,10 @@ export function SourceLink({
 }) {
   const { internalLinkHosts, handleInternalLinkClick } = useChatBoxContext();
 
-  const internal = link.url
-    ? internalLinkHosts.includes(new URL(link.url).hostname)
-    : false;
+  const internal =
+    link.url && link.url.startsWith("https://")
+      ? internalLinkHosts.includes(new URL(link.url).hostname)
+      : false;
 
   return (
     <a
