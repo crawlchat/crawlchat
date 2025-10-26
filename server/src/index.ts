@@ -534,109 +534,121 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   res.json(processed);
 });
 
-app.post("/resource/:scrapeId", authenticate, async (req, res) => {
-  const scrapeId = req.params.scrapeId;
-  const knowledgeGroupType = req.body.knowledgeGroupType;
-  const defaultGroupTitle = req.body.defaultGroupTitle;
-  const markdown = req.body.markdown;
-  const title = req.body.title;
-  const knowledgeGroupId = req.body.knowledgeGroupId;
+app.post(
+  ["/resource/:scrapeId", "/page/:scrapeId"],
+  authenticate,
+  async (req, res) => {
+    const scrapeId = req.params.scrapeId;
+    const knowledgeGroupType = req.body.knowledgeGroupType;
+    const defaultGroupTitle = req.body.defaultGroupTitle;
+    const markdown = req.body.markdown || req.body.content;
+    const title = req.body.title;
+    const knowledgeGroupId = req.body.knowledgeGroupId;
 
-  authoriseScrapeUser(req.user!.scrapeUsers, scrapeId, res);
+    authoriseScrapeUser(req.user!.scrapeUsers, scrapeId, res);
 
-  if (!scrapeId || !markdown || !title) {
-    res.status(400).json({ message: "Missing scrapeId or markdown or title" });
-    return;
-  }
+    if (!scrapeId || !markdown || !title) {
+      res.status(400).json({ message: "Missing content or title" });
+      return;
+    }
 
-  const scrape = await prisma.scrape.findFirstOrThrow({
-    where: { id: scrapeId },
-    include: {
-      user: true,
-    },
-  });
+    if (!knowledgeGroupType && !knowledgeGroupId) {
+      res.status(400).json({
+        message:
+          "Required any one of knowledgeGroupId or knowledgeGroupType (allowed values: custom)",
+      });
+      return;
+    }
 
-  let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
-    where: { scrapeId, type: knowledgeGroupType },
-  });
-
-  if (knowledgeGroupId) {
-    knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
-      where: { id: knowledgeGroupId },
-    });
-  }
-
-  const chunks = await splitMarkdown(markdown);
-
-  try {
-    await assertLimit(
-      new Date().toISOString(),
-      chunks.length,
-      scrape.id,
-      scrape.userId,
-      scrape.user.plan
-    );
-  } catch (error) {
-    res.status(400).json({ message: "Pages limit reached for the plan" });
-    return;
-  }
-
-  if (!knowledgeGroup) {
-    knowledgeGroup = await prisma.knowledgeGroup.create({
-      data: {
-        userId: req.user!.id,
-        type: knowledgeGroupType,
-        scrapeId,
-        status: "done",
-        title: defaultGroupTitle ?? "Default",
+    const scrape = await prisma.scrape.findFirstOrThrow({
+      where: { id: scrapeId },
+      include: {
+        user: true,
       },
     });
+
+    let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
+      where: { scrapeId, type: knowledgeGroupType },
+    });
+
+    if (knowledgeGroupId) {
+      knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+        where: { id: knowledgeGroupId },
+      });
+    }
+
+    const chunks = await splitMarkdown(markdown);
+
+    try {
+      await assertLimit(
+        new Date().toISOString(),
+        chunks.length,
+        scrape.id,
+        scrape.userId,
+        scrape.user.plan
+      );
+    } catch (error) {
+      res.status(400).json({ message: "Pages limit reached for the plan" });
+      return;
+    }
+
+    if (!knowledgeGroup) {
+      knowledgeGroup = await prisma.knowledgeGroup.create({
+        data: {
+          userId: req.user!.id,
+          type: knowledgeGroupType,
+          scrapeId,
+          status: "done",
+          title: defaultGroupTitle ?? "Default",
+        },
+      });
+    }
+
+    try {
+      await assertLimit(
+        new Date().toISOString(),
+        chunks.length,
+        scrape.id,
+        scrape.userId,
+        scrape.user.plan
+      );
+    } catch (error) {
+      res.status(400).json({ message: "Pages limit reached for the plan" });
+      return;
+    }
+
+    const indexer = makeIndexer({ key: scrape.indexer });
+    let scrapeItem = await prisma.scrapeItem.create({
+      data: {
+        userId: req.user!.id,
+        scrapeId: scrape.id,
+        knowledgeGroupId: knowledgeGroup.id,
+        markdown,
+        title,
+        metaTags: [],
+        embeddings: [],
+        status: "completed",
+      },
+    });
+
+    const documents = chunks.map((chunk) => ({
+      id: makeRecordId(scrape.id, uuidv4()),
+      text: chunk,
+      metadata: { content: chunk, scrapeItemId: scrapeItem.id },
+    }));
+    await indexer.upsert(scrape.id, documents);
+    scrapeItem = await prisma.scrapeItem.update({
+      where: { id: scrapeItem.id },
+      data: {
+        embeddings: documents.map((doc) => ({
+          id: doc.id,
+        })),
+      },
+    });
+
+    res.json({ scrapeItem });
   }
-
-  try {
-    await assertLimit(
-      new Date().toISOString(),
-      chunks.length,
-      scrape.id,
-      scrape.userId,
-      scrape.user.plan
-    );
-  } catch (error) {
-    res.status(400).json({ message: "Pages limit reached for the plan" });
-    return;
-  }
-
-  const indexer = makeIndexer({ key: scrape.indexer });
-  let scrapeItem = await prisma.scrapeItem.create({
-    data: {
-      userId: req.user!.id,
-      scrapeId: scrape.id,
-      knowledgeGroupId: knowledgeGroup.id,
-      markdown,
-      title,
-      metaTags: [],
-      embeddings: [],
-      status: "completed",
-    },
-  });
-
-  const documents = chunks.map((chunk) => ({
-    id: makeRecordId(scrape.id, uuidv4()),
-    text: chunk,
-    metadata: { content: chunk, scrapeItemId: scrapeItem.id },
-  }));
-  await indexer.upsert(scrape.id, documents);
-  scrapeItem = await prisma.scrapeItem.update({
-    where: { id: scrapeItem.id },
-    data: {
-      embeddings: documents.map((doc) => ({
-        id: doc.id,
-      })),
-    },
-  });
-
-  res.json({ scrapeItem });
-});
+);
 
 app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   console.log("Answer request for", req.params.scrapeId);

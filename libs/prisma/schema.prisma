@@ -449,6 +449,7 @@ enum KnowledgeGroupType {
   notion
   confluence
   linear
+  custom
 }
 
 enum KnowledgeGroupStatus {

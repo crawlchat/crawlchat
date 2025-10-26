@@ -120,6 +120,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "linear") {
         icon = <SiLinear />;
         typeText = "Linear";
+      } else if (group.type === "custom") {
+        icon = <TbBook />;
+        typeText = "Custom";
       }
 
       const totalCited = Object.values(loaderData.citationCounts).reduce(
