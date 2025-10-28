@@ -94,9 +94,6 @@ async function weeklyUpdate() {
   });
 
   for (const scrape of scrapes) {
-    if (scrape.title !== "CrawlChat") {
-      continue;
-    }
     console.log(`Sending weekly update for scrape ${scrape.id}`);
     const response = await fetch(`${process.env.FRONT_URL}/email-alert`, {
       method: "POST",
