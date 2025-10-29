@@ -5,6 +5,7 @@ export function CrawlChatScript({
   hideAskAI,
   sidePanelOpen,
   hideToc,
+  selectionButtons,
 }: {
   id: string;
   sidePanel?: boolean;
@@ -12,6 +13,7 @@ export function CrawlChatScript({
   hideAskAI?: boolean;
   sidePanelOpen?: boolean;
   hideToc?: boolean;
+  selectionButtons?: Record<string, { name: string; queryPrefix: string }>;
 }) {
   return (
     <script
@@ -23,6 +25,9 @@ export function CrawlChatScript({
       data-hide-ask-ai={hideAskAI}
       data-sidepanel-open={sidePanelOpen}
       data-hide-toc={hideToc}
+      data-selection-buttons={
+        selectionButtons ? JSON.stringify(selectionButtons) : undefined
+      }
     />
   );
 }

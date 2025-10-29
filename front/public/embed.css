@@ -137,6 +137,41 @@ nav.navbar {
   min-height: var(--crawlchat-navbar-height);
 }
 
+#crawlchat-selection-tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: auto;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  gap: 4px;
+}
+
+#crawlchat-selection-tooltip .tooltip-button {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+}
+
+#crawlchat-selection-tooltip .tooltip-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
 @media (max-width: 768px) {
   :root {
     --crawlchat-sidepanel-width: 100vw;

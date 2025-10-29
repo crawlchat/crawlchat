@@ -225,6 +225,9 @@ export function useChatBox({
         if (data.type === "internal-link-host") {
           setInternalLinkHosts((hosts) => [...hosts, data.host]);
         }
+        if (data.type === "query") {
+          ask(data.query);
+        }
       } catch {}
     };
 
@@ -271,6 +274,8 @@ export function useChatBox({
     if (message) {
       const element = message[message.length - (last ? 1 : 2)] as HTMLElement;
       const rect = element?.getBoundingClientRect();
+
+      if (!rect) return;
 
       const scrollContainer = document.getElementById(
         "chat-box-scroll"
