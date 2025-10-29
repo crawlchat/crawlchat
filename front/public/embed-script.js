@@ -465,7 +465,17 @@ class CrawlChatEmbed {
           ? commonAncestor.parentElement.closest('main')
           : commonAncestor.closest('main');
         
-        if (mainElement) {
+        const noSelectionElements = document.querySelectorAll('.no-crawlchat-selection');
+        let hasExcludedContent = false;
+        
+        for (const excludedElement of noSelectionElements) {
+          if (range.intersectsNode(excludedElement)) {
+            hasExcludedContent = true;
+            break;
+          }
+        }
+        
+        if (mainElement && !hasExcludedContent) {
           showTooltip(selection);
           isSelecting = true;
         } else {
