@@ -1096,6 +1096,21 @@ export function Footer() {
           </div>
           <div className="flex-[2]">
             <ul className="flex flex-col gap-4">
+            <li>
+                <FooterLink href="/blog/crawlchat-vs-kapa-ai">
+                  CrawlChat vs Kapa.ai
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/crawlchat-vs-docsbot-ai">
+                  CrawlChat vs DocsBot.ai
+                </FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/blog/crawlchat-vs-chatbase">
+                  CrawlChat vs Chatbase
+                </FooterLink>
+              </li>
               <li>
                 <FooterLink href="/blog/how-postiz-uses-crawlchat">
                   How Postiz Uses CrawlChat
@@ -1104,16 +1119,6 @@ export function Footer() {
               <li>
                 <FooterLink href="/blog/why-crawlchat-is-the-better-choice-for-you">
                   Why CrawlChat is the better choice for you
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/blog/crawlchat-vs-kapa-ai">
-                  CrawlChat vs Kapa.ai
-                </FooterLink>
-              </li>
-              <li>
-                <FooterLink href="/blog/crawlchat-vs-chatbase">
-                  CrawlChat vs Chatbase
                 </FooterLink>
               </li>
               <li>
