@@ -1946,17 +1946,18 @@ function GalleryVideo({
         <div
           className={cn(
             "absolute w-full h-full bg-black/50",
-            "flex justify-center items-center flex-col gap-4"
+            "flex justify-center items-center flex-col gap-2 md:gap-4"
           )}
         >
           <button
             className={cn(
-              "p-10 bg-primary text-primary-content rounded-full",
-              "cursor-pointer hover:scale-105 transition-all duration-200 z-10"
+              "p-4 md:p-10 bg-primary text-primary-content rounded-full",
+              "cursor-pointer hover:scale-105 transition-all duration-200 z-10",
+              "text-4xl md:text-8xl"
             )}
             onClick={handlePlay}
           >
-            <TbPlayerPlayFilled size={82} />
+            <TbPlayerPlayFilled />
           </button>
           <div className="text-base-100">Plays with sound</div>
         </div>
@@ -1972,7 +1973,7 @@ function GalleryVideo({
             )}
             onClick={handlePause}
           >
-            <TbPlayerPauseFilled size={24} />
+            <TbPlayerPauseFilled />
           </button>
           <button
             className={cn(
@@ -1982,7 +1983,7 @@ function GalleryVideo({
             )}
             onClick={handleToggleMute}
           >
-            {!muted ? <TbMusicX size={24} /> : <TbMusic size={24} />}
+            {!muted ? <TbMusicX /> : <TbMusic />}
           </button>
         </div>
       )}
