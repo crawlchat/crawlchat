@@ -3,6 +3,7 @@ import type { Message } from "libs/prisma";
 import {
   TbChartBar,
   TbCheck,
+  TbCircleXFilled,
   TbDatabase,
   TbFolder,
   TbFolderPlus,
@@ -190,7 +191,6 @@ export async function action({ request }: Route.ActionArgs) {
         userId: user!.id,
         status: "done",
         indexer: "mars",
-        analyseMessage: true,
       },
     });
 
@@ -532,14 +532,38 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   summary={category.summary}
                 />
               ))}
-            <div className="flex justify-end">
-              <Link
-                to="/settings#categories"
-                className="btn btn-soft btn-primary"
-              >
-                <TbFolderPlus />
-                Add category
-              </Link>
+            <div className="flex justify-between">
+              <div>
+                {loaderData.scrape &&
+                  loaderData.scrape.messageCategories.length > 0 &&
+                  !loaderData.scrape.analyseMessage && (
+                    <div
+                      role="alert"
+                      className="flex items-center gap-2 text-error"
+                    >
+                      <TbCircleXFilled size={22} />
+                      <span>
+                        Turn on{" "}
+                        <Link
+                          to="/settings#data-gap-analysis"
+                          className="link link-error link-hover"
+                        >
+                          message analysis
+                        </Link>{" "}
+                        for categories to work!
+                      </span>
+                    </div>
+                  )}
+              </div>
+              <div>
+                <Link
+                  to="/settings#categories"
+                  className="btn btn-soft btn-primary"
+                >
+                  <TbFolderPlus />
+                  Add category
+                </Link>
+              </div>
             </div>
           </div>
 

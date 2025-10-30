@@ -379,7 +379,7 @@ expressWs.app.ws("/", (ws: any, req) => {
                 })
               );
 
-              if (questionMessage) {
+              if (questionMessage && scrape.analyseMessage) {
                 await fillMessageAnalysis(
                   newAnswerMessage.id,
                   questionMessage.id,
@@ -778,17 +778,19 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   });
   await updateLastMessageAt(thread.id);
 
-  fillMessageAnalysis(
-    newAnswerMessage.id,
-    questionMessage.id,
-    getQueryString(query),
-    answer!.content,
-    answer!.sources,
-    answer!.context,
-    {
-      categories: scrape.messageCategories,
-    }
-  );
+  if (scrape.analyseMessage) {
+    fillMessageAnalysis(
+      newAnswerMessage.id,
+      questionMessage.id,
+      getQueryString(query),
+      answer!.content,
+      answer!.sources,
+      answer!.context,
+      {
+        categories: scrape.messageCategories,
+      }
+    );
+  }
 
   if (!answer) {
     res.status(400).json({ message: "Failed to answer" });

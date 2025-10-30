@@ -423,7 +423,7 @@ function AnalyseMessageSettings({
   return (
     <SettingsSection
       id="data-gap-analysis"
-      title="Data gap & analysis"
+      title="Post answer analysis"
       description="Enable this to analyze the answer given by the AI and find out if there is any data gap in the knowledge base. It also analyzes more details from the question such as the sentiment, category and more. It uses one message credit per question."
       fetcher={fetcher}
     >

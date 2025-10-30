@@ -12,6 +12,7 @@ import { Flow } from "./flow";
 import { makeIndexer } from "../indexer/factory";
 import { getConfig } from "./config";
 import { createToken } from "libs/jwt";
+import { consumeCredits } from "libs/user-plan";
 
 const MAX_ANSWER_SCORE = 0.2;
 const MIN_QUESTION_SCORE = 0.8;
@@ -83,7 +84,11 @@ export async function getRelevantScore(
   return result;
 }
 
-async function getDataGap(question: string, context: string[], scrapeId: string) {
+async function getDataGap(
+  question: string,
+  context: string[],
+  scrapeId: string
+) {
   const llmConfig = getConfig("gpt_5");
 
   const agent = new SimpleAgent({
@@ -380,7 +385,6 @@ export async function fillMessageAnalysis(
       cleanedCategory && cleanedCategory.score > 0.9
         ? cleanedCategory.title
         : null;
-    console.log("categoryScore", cleanedCategory?.score);
 
     const analysis: MessageAnalysis = {
       questionRelevanceScore: null,
@@ -449,6 +453,8 @@ export async function fillMessageAnalysis(
         },
       });
     }
+
+    await consumeCredits(message.scrape.userId, "messages", 1);
   } catch (e) {
     console.error("Failed to analyse message", e);
   }
