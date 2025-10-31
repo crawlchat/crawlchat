@@ -465,11 +465,11 @@ function ShareDialog() {
                 disabled={fetcher.state !== "idle"}
                 required
               >
-                <option value="1h">1 hour</option>
-                <option value="1d">1 day</option>
-                <option value="1w">1 week</option>
-                <option value="1m">1 month</option>
-                <option value="1y">1 year</option>
+                <option value="1h">Expire in 1 hour</option>
+                <option value="1d">Expire in 1 day</option>
+                <option value="1w">Expire in 1 week</option>
+                <option value="1m">Expire in 1 month</option>
+                <option value="1y">Expire in 1 year</option>
               </select>
             )}
             <button
