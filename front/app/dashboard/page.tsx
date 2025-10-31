@@ -254,9 +254,17 @@ export async function action({ request }: Route.ActionArgs) {
       return { path: `/w/${slug}` };
     }
 
+    const expiresIn = (formData.get("expiresIn") ?? "1h") as
+      | "1h"
+      | "1d"
+      | "1w"
+      | "1m"
+      | "1y";
+
     const token = jwt.sign(
       { scrapeId, userId: user!.id },
-      process.env.JWT_SECRET!
+      process.env.JWT_SECRET!,
+      { expiresIn }
     );
 
     return {
@@ -428,7 +436,9 @@ function ShareDialog() {
   return (
     <dialog id="share-dialog" className="modal">
       <div className="modal-box">
-        <h3 className="font-bold text-lg">Share chat widget</h3>
+        <h3 className="font-bold text-lg flex items-center gap-2">
+          <TbShare /> Share chat widget
+        </h3>
         <p className="py-4">
           Share the chat widget with your users so they can chat with your bot.
         </p>
@@ -444,9 +454,24 @@ function ShareDialog() {
         )}
 
         <div className="flex justify-end mt-4">
-          <fetcher.Form method="post">
+          <fetcher.Form method="post" className="flex items-center gap-2">
             <input type="hidden" name="intent" value="share" />
             <input type="hidden" name="scrapeId" value={scrapeId} />
+            {scrape?.private && (
+              <select
+                name="expiresIn"
+                className="select"
+                defaultValue="1h"
+                disabled={fetcher.state !== "idle"}
+                required
+              >
+                <option value="1h">1 hour</option>
+                <option value="1d">1 day</option>
+                <option value="1w">1 week</option>
+                <option value="1m">1 month</option>
+                <option value="1y">1 year</option>
+              </select>
+            )}
             <button
               className="btn btn-primary"
               type="submit"
@@ -456,7 +481,7 @@ function ShareDialog() {
                 <span className="loading loading-spinner" />
               )}
               <TbCopy />
-              Copy
+              Copy URL
             </button>
           </fetcher.Form>
         </div>
@@ -541,11 +566,17 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       right={
         <div className="flex gap-2">
           <button
-            className="btn btn-soft"
+            className="btn btn-soft hidden md:flex"
             onClick={() => showModal("new-collection-dialog")}
           >
             <TbPlus />
             Collection
+          </button>
+          <button
+            className="btn btn-soft md:hidden btn-square"
+            onClick={() => showModal("new-collection-dialog")}
+          >
+            <TbPlus />
           </button>
           {loaderData.scrape && loaderData.nScrapeItems > 0 && (
             <a
@@ -569,13 +600,21 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           {loaderData.scrape &&
             loaderData.nScrapeItems > 0 &&
             loaderData.scrape.private && (
-              <button
-                className="btn btn-primary btn-soft"
-                onClick={() => showModal("share-dialog")}
-              >
-                <TbShare />
-                Share
-              </button>
+              <>
+                <button
+                  className="btn btn-primary btn-soft btn-square md:hidden"
+                  onClick={() => showModal("share-dialog")}
+                >
+                  <TbShare />
+                </button>
+                <button
+                  className="btn btn-primary btn-soft hidden md:flex"
+                  onClick={() => showModal("share-dialog")}
+                >
+                  <TbShare />
+                  Share
+                </button>
+              </>
             )}
         </div>
       }
