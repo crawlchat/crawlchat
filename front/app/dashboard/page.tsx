@@ -1,15 +1,18 @@
 import type { Route } from "./+types/page";
 import type { Message } from "libs/prisma";
 import {
+  TbAlertTriangleFilled,
   TbChartBar,
   TbCheck,
   TbCircleXFilled,
+  TbCopy,
   TbDatabase,
   TbFolder,
   TbFolderPlus,
   TbHome,
   TbMessage,
   TbPlus,
+  TbShare,
   TbThumbDown,
   TbThumbUp,
 } from "react-icons/tb";
@@ -29,7 +32,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { numberToKMB } from "~/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
-import { Link, redirect, useFetcher } from "react-router";
+import { Link, redirect, useFetcher, useLoaderData } from "react-router";
 import { getLimits } from "libs/user-plan";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
@@ -37,11 +40,13 @@ import { ChannelBadge } from "~/components/channel-badge";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
+import jwt from "jsonwebtoken";
 import { makeMeta } from "~/meta";
 import { getQueryString } from "libs/llm-message";
 import { dodoGateway } from "~/payment/gateway-dodo";
 import { track } from "~/track";
 import { getMessagesSummary, type MessagesSummary } from "~/messages-summary";
+import { authoriseScrapeUser } from "~/scrapes/util";
 
 function monoString(str: string) {
   return str.trim().toLowerCase().replace(/^\n+/, "").replace(/\n+$/, "");
@@ -232,6 +237,32 @@ export async function action({ request }: Route.ActionArgs) {
       },
     });
   }
+
+  if (intent === "share") {
+    const scrapeId = formData.get("scrapeId") as string;
+    authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+
+    const scrape = await prisma.scrape.findFirstOrThrow({
+      where: {
+        id: scrapeId,
+      },
+    });
+
+    let slug = scrape.slug || scrapeId;
+
+    if (!scrape.private) {
+      return { path: `/w/${slug}` };
+    }
+
+    const token = jwt.sign(
+      { scrapeId, userId: user!.id },
+      process.env.JWT_SECRET!
+    );
+
+    return {
+      path: `/w/${slug}?token=${token}`,
+    };
+  }
 }
 
 export function StatCard({
@@ -380,6 +411,63 @@ function CategoryCard({
   );
 }
 
+function ShareDialog() {
+  const { scrape, scrapeId } = useLoaderData<typeof loader>();
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    if (fetcher.data?.path) {
+      navigator.clipboard.writeText(
+        `${window.location.origin}${fetcher.data.path}`
+      );
+      toast.success("Copied to clipboard");
+      hideModal("share-dialog");
+    }
+  }, [fetcher.data]);
+
+  return (
+    <dialog id="share-dialog" className="modal">
+      <div className="modal-box">
+        <h3 className="font-bold text-lg">Share chat widget</h3>
+        <p className="py-4">
+          Share the chat widget with your users so they can chat with your bot.
+        </p>
+
+        {scrape?.private && (
+          <div role="alert" className="alert alert-warning">
+            <TbAlertTriangleFilled size={20} />
+            <span>
+              This is a private collection. Anyone with the link will have
+              access to the chat widget.
+            </span>
+          </div>
+        )}
+
+        <div className="flex justify-end mt-4">
+          <fetcher.Form method="post">
+            <input type="hidden" name="intent" value="share" />
+            <input type="hidden" name="scrapeId" value={scrapeId} />
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={fetcher.state !== "idle"}
+            >
+              {fetcher.state !== "idle" && (
+                <span className="loading loading-spinner" />
+              )}
+              <TbCopy />
+              Copy
+            </button>
+          </fetcher.Form>
+        </div>
+      </div>
+      <form method="dialog" className="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+  );
+}
+
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -478,6 +566,17 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <TbMessage />
             </a>
           )}
+          {loaderData.scrape &&
+            loaderData.nScrapeItems > 0 &&
+            loaderData.scrape.private && (
+              <button
+                className="btn btn-primary btn-soft"
+                onClick={() => showModal("share-dialog")}
+              >
+                <TbShare />
+                Share
+              </button>
+            )}
         </div>
       }
     >
@@ -740,6 +839,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           </newCollectionFetcher.Form>
         </div>
       </dialog>
+
+      <ShareDialog />
     </Page>
   );
 }

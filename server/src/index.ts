@@ -40,6 +40,7 @@ import { scrape } from "./scrape/crawl";
 import { getConfig } from "./llm/config";
 import { getNextNumber } from "libs/mongo-counter";
 import { randomUUID } from "crypto";
+import jwt from "jsonwebtoken";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -235,6 +236,18 @@ expressWs.app.ws("/", (ws: any, req) => {
           ws.send(makeMessage("error", { message: "Unauthorized" }));
           ws.close();
           return;
+        }
+
+        if (message.data.headers.token) {
+          try {
+            const decoded = jwt.verify(
+              message.data.headers.token,
+              process.env.JWT_SECRET!
+            ) as { scrapeId: string; userId: string };
+            userId = decoded.userId;
+            ws.send(makeMessage("connected", { message: "Connected" }));
+            return;
+          } catch (error) {}
         }
 
         const token = authHeader.split(" ")[1];

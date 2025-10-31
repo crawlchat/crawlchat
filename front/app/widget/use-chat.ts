@@ -83,10 +83,13 @@ export function useScrapeChat({
   }
 
   function joinRoom() {
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get("token");
     socket.current!.send(
       makeMessage("join-room", {
         headers: {
           Authorization: `Bearer ${token}`,
+          token,
         },
       })
     );

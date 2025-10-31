@@ -17,6 +17,7 @@ import { sanitizeScrape, sanitizeThread } from "~/scrapes/util";
 import { getAuthUser } from "~/auth/middleware";
 import { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
+import jwt from "jsonwebtoken";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
 import { makeMeta } from "~/meta";
 import { sendChatVerifyEmail } from "~/email";
@@ -49,7 +50,8 @@ async function updateSessionThreadId(
 
 async function isAllowed(
   scrape: Scrape,
-  loggedInUser: null | (User & { scrapeUsers: ScrapeUser[] })
+  loggedInUser: null | (User & { scrapeUsers: ScrapeUser[] }),
+  token: string | null
 ) {
   if (!scrape.private) {
     return true;
@@ -57,6 +59,19 @@ async function isAllowed(
 
   if (loggedInUser?.scrapeUsers.some((su) => su.scrapeId === scrape.id)) {
     return true;
+  }
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+        scrapeId: string;
+      };
+      if (decoded.scrapeId === scrape.id) {
+        return true;
+      }
+    } catch (error) {
+      return false;
+    }
   }
 
   return false;
@@ -71,7 +86,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
 
-  if (!scrape || !(await isAllowed(scrape, loggedInUser))) {
+  const url = new URL(request.url);
+  const token = url.searchParams.get("token");
+
+  if (!scrape || !(await isAllowed(scrape, loggedInUser, token))) {
     return redirect("/w/not-found");
   }
 
@@ -151,7 +169,10 @@ export async function action({ request, params }: Route.ActionArgs) {
     where: isMongoObjectId(params.id) ? { id: params.id } : { slug: params.id },
   });
 
-  if (!scrape || !(await isAllowed(scrape, loggedInUser))) {
+  const url = new URL(request.url);
+  const token = url.searchParams.get("token");
+
+  if (!scrape || !(await isAllowed(scrape, loggedInUser, token))) {
     return redirect("/w/not-found");
   }
 
