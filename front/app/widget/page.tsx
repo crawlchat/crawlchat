@@ -69,9 +69,7 @@ async function isAllowed(
       if (decoded.scrapeId === scrape.id) {
         return true;
       }
-    } catch (error) {
-      return false;
-    }
+    } catch (error) {}
   }
 
   return false;
