@@ -275,6 +275,12 @@ async function getPreviousMessages(message: DiscordMessage) {
         before: message.id,
       })
     ).map((m) => m);
+
+    const starterMessage = await threadChannel.fetchStarterMessage();
+    if (starterMessage && !messages.some((m) => m.id === starterMessage.id)) {
+      messages.push(starterMessage);
+    }
+
     return messages;
   }
 
