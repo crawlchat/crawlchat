@@ -94,6 +94,7 @@ const getImageBase64 = async (url: string) => {
 
 const makeMessage = async (message: DiscordMessage, scrape: Scrape) => {
   let content: any = cleanContent(removeBotMentions(message.content));
+  const attachments = [];
 
   if (message.embeds.length > 0) {
     for (const embed of message.embeds) {
@@ -113,6 +114,19 @@ const makeMessage = async (message: DiscordMessage, scrape: Scrape) => {
       if (attachment.contentType?.startsWith("image/")) {
         imageUrls.push(attachment.url);
       }
+      if (attachment.contentType?.startsWith("text/")) {
+        let content = await fetch(attachment.url).then((res) => res.text());
+
+        if (content.length > 3000) {
+          content = content.substring(0, 2900) + "[truncated]";
+        }
+
+        attachments.push({
+          name: attachment.name,
+          type: "text",
+          content,
+        });
+      }
     }
 
     if (imageUrls.length > 0) {
@@ -131,6 +145,7 @@ const makeMessage = async (message: DiscordMessage, scrape: Scrape) => {
   return {
     role: message.author.id === process.env.BOT_USER_ID! ? "assistant" : "user",
     content,
+    attachments,
   };
 };
 

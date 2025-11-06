@@ -1,6 +1,12 @@
 import type { CategorySuggestion, Message, Prisma, Scrape } from "libs/prisma";
 import type { Route } from "./+types/messages";
-import { TbFolder, TbMessage, TbMessages, TbPointer } from "react-icons/tb";
+import {
+  TbFolder,
+  TbMessage,
+  TbMessages,
+  TbPaperclip,
+  TbPointer,
+} from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
@@ -202,6 +208,21 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                                 location={pair.queryMessage.thread.location}
                               />
                             )}
+
+                            {pair.queryMessage?.attachments &&
+                              pair.queryMessage.attachments.length > 0 && (
+                                <div
+                                  className="tooltip"
+                                  data-tip={pair.queryMessage.attachments
+                                    .map((attachment) => attachment.name)
+                                    .join(", ")}
+                                >
+                                  <div className="badge badge-secondary badge-soft gap-1 px-2">
+                                    <TbPaperclip />
+                                    {pair.queryMessage.attachments.length}
+                                  </div>
+                                </div>
+                              )}
 
                             {pair.actionCalls.length > 0 && (
                               <div className="badge badge-secondary badge-soft gap-1 px-2">

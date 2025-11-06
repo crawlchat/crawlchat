@@ -271,6 +271,16 @@ type LlmMessage {
   content Json?
 }
 
+enum MessageAttachmentType {
+  text
+}
+
+type MessageAttachment {
+  name        String
+  type        MessageAttachmentType
+  content     String?
+}
+
 model Message {
   id                        String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId                  String   @db.ObjectId
@@ -286,6 +296,7 @@ model Message {
   correctionItemId          String?  @db.ObjectId
   ticketMessage             TicketMessage?
   apiActionCalls            ApiActionCall[]
+  attachments               MessageAttachment[]
 
   slackMessageId            String?
   discordMessageId          String?

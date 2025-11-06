@@ -4,6 +4,7 @@ import {
   TbFolder,
   TbMessage,
   TbMessages,
+  TbPaperclip,
   TbPhoto,
   TbPlus,
   TbSettingsBolt,
@@ -413,6 +414,32 @@ export default function Message({ loaderData }: Route.ComponentProps) {
             </span>
           </div>
         </div>
+
+        {messagePair?.queryMessage?.attachments &&
+          messagePair.queryMessage.attachments.length > 0 && (
+            <div
+              className={cn(
+                "bg-base-200/50 rounded-box p-2 shadow border border-base-300",
+                "max-w-prose flex flex-col gap-2"
+              )}
+            >
+              {messagePair.queryMessage.attachments.map((attachment, index) => (
+                <div
+                  className="collapse bg-base-100 border border-base-300"
+                  key={index}
+                >
+                  <input type="radio" name="my-accordion-1" />
+                  <div className="collapse-title font-semibold flex items-center gap-2">
+                    <TbPaperclip />
+                    {attachment.name}
+                  </div>
+                  <pre className="collapse-content text-sm">
+                    {attachment.content}
+                  </pre>
+                </div>
+              ))}
+            </div>
+          )}
 
         {messagePair && (
           <AssistantMessage

@@ -10,7 +10,13 @@ import { deleteByIds, deleteScrape, makeRecordId } from "./scrape/pinecone";
 import { authenticate, AuthMode, authoriseScrapeUser } from "./auth";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { v4 as uuidv4 } from "uuid";
-import { LlmModel, Message, MessageChannel, Thread } from "libs/prisma";
+import {
+  LlmModel,
+  Message,
+  MessageAttachment,
+  MessageChannel,
+  Thread,
+} from "libs/prisma";
 import { makeIndexer } from "./indexer/factory";
 import { name } from "libs";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
@@ -709,18 +715,33 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     });
   }
   let query = req.body.query as string | MultimodalContent[];
+  let attachments = req.body.attachments as MessageAttachment[] | undefined;
 
   if (query && JSON.stringify(query).length > 3000) {
     res.status(400).json({ message: "Question too long" });
     return;
   }
 
-  const messages = (req.body.messages ?? []) as {
+  type InputMessage = {
     role: string;
     content: string | MultimodalContent[];
-  }[];
+    attachments?: MessageAttachment[];
+  };
+
+  const messages = (req.body.messages ?? []) as InputMessage[];
   if (messages && messages.length > 0) {
-    query = messages[messages.length - 1].content;
+    const lastMessage = messages[messages.length - 1];
+    query = lastMessage.content;
+    attachments = lastMessage.attachments;
+
+    if (
+      attachments?.some(
+        (attachment) => attachment.content && attachment.content.length > 3000
+      )
+    ) {
+      res.status(400).json({ message: "Attachment content too long" });
+      return;
+    }
   }
 
   const reqPrompt = req.body.prompt as string;
@@ -740,6 +761,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       llmMessage: { role: "user", content: query },
       ownerUserId: scrape.userId,
       channel,
+      attachments,
     },
   });
   await updateLastMessageAt(thread.id);
@@ -750,6 +772,25 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     },
   });
 
+  function messageToContent(message: InputMessage): string {
+    const parts = [message.content];
+    if (message.attachments) {
+      for (const attachment of message.attachments) {
+        if (!attachment.content) {
+          continue;
+        }
+
+        parts.push(
+          `<attachment name="${attachment.name}" type="${attachment.type}">
+            ${attachment.content ?? ""}
+          </attachment>`
+        );
+      }
+    }
+
+    return parts.join("\n\n");
+  }
+
   const recentMessages = messages.slice(-40);
 
   const answer = await baseAnswerer(
@@ -759,7 +800,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     recentMessages.map((m) => ({
       llmMessage: {
         role: m.role as any,
-        content: m.content,
+        content: messageToContent(m),
       },
     })),
     {
