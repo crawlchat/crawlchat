@@ -348,7 +348,7 @@ function CategoryCard({
               className="tooltip tooltip-bottom"
               data-tip={"Latest low rating query"}
             >
-              <div className="text-xs text-base-content/50 line-clamp-1">
+              <div className="text-xs text-base-content/50 line-clamp-1 truncate max-w-[200px]">
                 [{lowRatingQuery.score.toFixed(2)}] {lowRatingQuery.content}
               </div>
             </div>
