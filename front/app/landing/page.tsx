@@ -2076,14 +2076,14 @@ function Gallery() {
       new: true,
       autoPlay: false,
     },
-    {
-      title: "Demo",
-      video:
-        "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/landing-page-demo.mp4",
-      poster:
-        "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/landing-page-demo-poster.png",
-      icon: <TbVideo />,
-    },
+    // {
+    //   title: "Demo",
+    //   video:
+    //     "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/landing-page-demo.mp4",
+    //   poster:
+    //     "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/landing-page-demo-poster.png",
+    //   icon: <TbVideo />,
+    // },
     {
       title: "Dashboard",
       img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/gallery/dashboard.png",
