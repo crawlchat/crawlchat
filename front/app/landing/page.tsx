@@ -1488,11 +1488,6 @@ function Hero() {
             </div>
           </div>
         </div>
-
-        <div className="text-sm text-base-content/50 text-center mt-4">
-          You can integrate AI trained on your documentation to your website,
-          Discord server, Slack workspace, or as an MCP server.
-        </div>
       </div>
     </div>
   );
