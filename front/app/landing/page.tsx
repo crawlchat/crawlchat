@@ -1457,8 +1457,8 @@ function Hero() {
               "absolute bottom-[100px]",
               "-left-6 -translate-x-full",
               "-rotate-20",
-              "flex flex-col items-center gap-1",
-              "hidden md:block"
+              "flex-col items-center gap-1",
+              "hidden md:flex"
             )}
           >
             <span
