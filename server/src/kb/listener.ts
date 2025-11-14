@@ -76,10 +76,6 @@ async function onChunksAvailable(
   knowledgeGroup: KnowledgeGroup,
   scrape: Prisma.ScrapeGetPayload<{ include: { user: true } }>
 ) {
-  if (path === "https://docs.crawlchat.app/category/knowledge-base") {
-    throw new Error("Test error");
-  }
-
   const indexer = makeIndexer({ key: scrape.indexer });
 
   const documents = chunks.map((chunk) => ({
