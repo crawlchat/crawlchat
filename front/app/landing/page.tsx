@@ -2397,7 +2397,7 @@ function SourcesChannels() {
   ];
 
   return (
-    <div className="mt-32 flex flex-col gap-4">
+    <div className="mt-32 flex flex-col gap-4 max-w-[100vw] overflow-hidden">
       <Heading>
         All useful <HeadingHighlight>sources</HeadingHighlight> and{" "}
         <HeadingHighlight>channels</HeadingHighlight>
