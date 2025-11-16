@@ -1009,7 +1009,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     ragQueries: [],
   };
 
-  const llmConfig = getConfig(llmModel ?? "sonnet_4_5");
+  const llmConfig = getConfig(llmModel ?? "haiku_4_5");
   const agent = new SimpleAgent({
     id: "compose-agent",
     prompt: `
