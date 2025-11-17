@@ -29,10 +29,10 @@ export default function BlogPage({ loaderData }: Route.ComponentProps) {
       <Container>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 max-w-full mx-auto">
-            <h1 className="text-5xl font-medium text-center leading-tight">
+            <h1 className="text-5xl max-w-3xl mx-auto font-medium text-center leading-tight">
               {loaderData.post.title}
             </h1>
-            <p className="opacity-60 text-center text-lg">
+            <p className="opacity-60 text-center text-lg max-w-3xl mx-auto">
               {loaderData.post.description}
             </p>
             <div className="flex items-center justify-center gap-2 text-sm opacity-60 text-center">
