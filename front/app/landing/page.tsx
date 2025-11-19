@@ -103,7 +103,9 @@ export async function loader() {
           gte: startOfWeek,
         },
         llmMessage: {
-          role: "user",
+          is: {
+            role: "assistant",
+          },
         },
       },
     });
@@ -114,7 +116,9 @@ export async function loader() {
           gte: startOfDay,
         },
         llmMessage: {
-          role: "user",
+          is: {
+            role: "assistant",
+          },
         },
       },
     });
@@ -125,7 +129,9 @@ export async function loader() {
           gte: startOfMonth,
         },
         llmMessage: {
-          role: "user",
+          is: {
+            role: "assistant",
+          },
         },
       },
     });
