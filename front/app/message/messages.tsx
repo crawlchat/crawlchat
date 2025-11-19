@@ -210,7 +210,7 @@ function Filters({
 
         <select
           value={category ?? ""}
-          className="select w-full hidden md:block"
+          className="select w-full"
           onChange={(e) => setCategory(e.target.value)}
         >
           <option value="">All categories</option>
