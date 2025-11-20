@@ -6,6 +6,7 @@ import {
   TbCheck,
   TbCircleXFilled,
   TbConfetti,
+  TbCrown,
   TbDatabase,
   TbFolder,
   TbFolderPlus,
@@ -393,6 +394,11 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const newCollectionFetcher = useFetcher();
+  const canCreateCollection = useMemo(() => {
+    if (loaderData.user?.plan?.subscriptionId) {
+      return true;
+    }
+  }, [loaderData.user]);
 
   const chartData = useMemo(() => {
     const data = [];
@@ -437,10 +443,10 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   }, [containerRef, loaderData]);
 
   useEffect(() => {
-    if (loaderData.noScrapes) {
+    if (loaderData.noScrapes && canCreateCollection) {
       showModal("new-collection-dialog");
     }
-  }, [loaderData.noScrapes, loaderData.user]);
+  }, [loaderData.noScrapes, canCreateCollection]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -461,13 +467,15 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       icon={<TbChartLine />}
       right={
         <div className="flex gap-2">
-          <button
-            className="btn btn-soft"
-            onClick={() => showModal("new-collection-dialog")}
-          >
-            <TbPlus />
-            Collection
-          </button>
+          {canCreateCollection && (
+            <button
+              className="btn btn-soft"
+              onClick={() => showModal("new-collection-dialog")}
+            >
+              <TbPlus />
+              Collection
+            </button>
+          )}
           {loaderData.scrape && loaderData.nScrapeItems > 0 && (
             <a
               className="btn btn-primary btn-soft hidden md:flex"
@@ -497,13 +505,24 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             title="No collections"
             description="Create a new collection to get started"
           >
-            <button
-              className="btn btn-primary"
-              onClick={() => showModal("new-collection-dialog")}
-            >
-              <TbPlus />
-              New collection
-            </button>
+            {canCreateCollection && (
+              <button
+                className="btn btn-primary"
+                onClick={() => showModal("new-collection-dialog")}
+              >
+                <TbPlus />
+                New collection
+              </button>
+            )}
+            {!canCreateCollection && (
+              <button
+                onClick={() => showModal("upgrade-modal")}
+                className="btn btn-primary"
+              >
+                Start free trial
+                <TbCrown />
+              </button>
+            )}
           </EmptyState>
         </div>
       )}

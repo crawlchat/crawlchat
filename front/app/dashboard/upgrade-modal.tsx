@@ -43,13 +43,6 @@ export function UpgradeModal({
   return (
     <dialog id="upgrade-modal" className="modal z-90">
       <div className="modal-box w-11/12 max-w-5xl">
-        <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
-          <TbCrown />
-          Upgrade
-        </h3>
-        <p className="text-base-content/50 mb-4">
-          Choose the plan that best fits your needs
-        </p>
         <div className="flex flex-col md:flex-row gap-4">
           <PricingBoxes
             starterPlan={starterPlan}

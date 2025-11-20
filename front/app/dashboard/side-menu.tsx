@@ -280,6 +280,7 @@ export function SideMenu({
         label: "API Keys",
         to: "/api-key",
         icon: <TbKey />,
+        forScrape: true,
       },
       { label: "Profile", to: "/profile", icon: <TbUser /> },
     ];
@@ -339,7 +340,7 @@ export function SideMenu({
 
   return (
     <div className={cn("flex flex-col h-full", "gap-0 justify-between w-full")}>
-      <div className="flex flex-col py-4 gap-4">
+      <div className="flex flex-col py-4 gap-2">
         <div className="flex flex-col px-4 mb-4">
           <div className="flex justify-between">
             <Logo />
@@ -357,15 +358,15 @@ export function SideMenu({
             <div className="dropdown w-full">
               <button
                 tabIndex={0}
-                role="button"
-                className="btn bg-base-200 mb-1 w-full flex justify-between"
+                className="btn w-full flex justify-between"
+                style={{ background: "white"}}
               >
                 {scrapeId ? scrape?.title : "Select collection"}
                 <TbChevronDown />
               </button>
               <ul
                 tabIndex={0}
-                className="menu dropdown-content bg-base-200 rounded-box z-1 w-full shadow"
+                className="menu dropdown-content bg-base-200 rounded-box z-1 w-full shadow mt-1"
               >
                 {scrapes.map((scrape) => (
                   <li key={scrape.id}>
