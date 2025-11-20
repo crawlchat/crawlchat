@@ -1,13 +1,23 @@
-import type { Scrape, User } from "libs/prisma";
-import { createContext, useEffect, useState } from "react";
+import type { Prisma, Scrape, ScrapeUser, User } from "libs/prisma";
+import { createContext, useEffect, useMemo, useState } from "react";
 import type { SetupProgressAction } from "./setup-progress";
 
 export const useApp = ({
   user,
+  scrapeUsers,
   scrapeId,
   scrape,
 }: {
   user: User;
+  scrapeUsers: Prisma.ScrapeUserGetPayload<{
+    include: {
+      scrape: {
+        include: {
+          user: true;
+        };
+      };
+    };
+  }>[];
   scrapeId?: string;
   scrape?: Scrape;
 }) => {
@@ -16,6 +26,9 @@ export const useApp = ({
     []
   );
   const [closedReleaseKey, setClosedReleaseKey] = useState<string | null>();
+  const shouldUpgrade = useMemo(() => {
+    return !scrapeUsers.find((su) => su.scrape.user.plan?.subscriptionId);
+  }, [scrapeUsers]);
 
   useEffect(() => {
     const key = localStorage.getItem("closedReleaseKey");
@@ -38,6 +51,7 @@ export const useApp = ({
     scrape,
     closedReleaseKey,
     setClosedReleaseKey,
+    shouldUpgrade,
   };
 };
 

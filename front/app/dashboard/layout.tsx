@@ -3,7 +3,7 @@ import { Outlet, useFetcher } from "react-router";
 import { AppContext, useApp } from "./context";
 import { getAuthUser } from "~/auth/middleware";
 import { SideMenu } from "./side-menu";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   getPagesCount,
   PLAN_FREE,
@@ -19,6 +19,7 @@ import { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { UpgradeModal } from "./upgrade-modal";
+import { showModal } from "~/components/daisy-utils";
 
 export function meta() {
   return makeMeta({
@@ -34,20 +35,19 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("cookie"));
   const scrapeId = session.get("scrapeId");
 
-  const scrapes = await prisma.scrapeUser
-    .findMany({
-      where: {
-        userId: user!.id,
-      },
-      include: {
-        scrape: {
-          include: {
-            user: true,
-          },
+  const scrapeUsers = await prisma.scrapeUser.findMany({
+    where: {
+      userId: user!.id,
+    },
+    include: {
+      scrape: {
+        include: {
+          user: true,
         },
       },
-    })
-    .then((scrapeUsers) => scrapeUsers.map((su) => su.scrape));
+    },
+  });
+  const scrapes = scrapeUsers.map((su) => su.scrape);
 
   const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
 
@@ -89,6 +89,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     proPlan: PLAN_PRO,
     hobbyPlan: PLAN_HOBBY,
     usedPages,
+    scrapeUsers,
   };
 }
 
@@ -96,6 +97,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
   const app = useApp({
     user,
+    scrapeUsers: loaderData.scrapeUsers,
     scrapeId: loaderData.scrapeId,
     scrape: loaderData.scrape,
   });
@@ -109,6 +111,12 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       });
     })();
   }, []);
+
+  useEffect(() => {
+    if (app.shouldUpgrade) {
+      showModal("upgrade-modal");
+    }
+  }, [app.shouldUpgrade]);
 
   return (
     <AppContext.Provider value={app}>

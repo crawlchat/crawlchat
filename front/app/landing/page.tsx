@@ -33,6 +33,7 @@ import {
   TbFolder,
   TbLock,
   TbMail,
+  TbMenu2,
   TbMessage,
   TbMusic,
   TbMusicX,
@@ -944,14 +945,14 @@ function PricingBox({
                   <TbCircleCheckFilled size={26} />
                 </span>
               )}
-              <span className="text-xl">{item.text}</span>
+              <span className="text-lg">{item.text}</span>
             </li>
           ))}
         </ul>
         <div className="w-full">
           <Button
             className={cn("w-full text-xl p-2")}
-            variant={"outline"}
+            variant={popular ? "solid" : "outline"}
             href={!onClick ? href : undefined}
             onClick={() => onClick?.()}
           >
@@ -1046,6 +1047,7 @@ export function PricingBoxes({
           "https://checkout.dodopayments.com/buy/pdt_vgCVfRAaCT99LM1Dfk5qF?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing"
         }
         onClick={onClick ? () => onClick?.(starterPlan.id) : undefined}
+        payLabel="Start free trial"
       />
       <PricingBox
         title="Pro"
@@ -1070,6 +1072,7 @@ export function PricingBoxes({
           "https://checkout.dodopayments.com/buy/pdt_P68hLo9a0At8cgn4WbzBe?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing"
         }
         onClick={onClick ? () => onClick?.(proPlan.id) : undefined}
+        payLabel="Start free trial"
       />
     </>
   );
@@ -1084,6 +1087,11 @@ export function Pricing() {
       <Heading>
         <HeadingHighlight>Pricing</HeadingHighlight> for everyone
       </Heading>
+
+      <HeadingDescription>
+        Choose the plan that best fits your needs. You can avail of the free
+        trial for 7 days and cancel anytime.
+      </HeadingDescription>
 
       <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
         <PricingBoxes
@@ -1309,76 +1317,146 @@ export function Footer() {
 
 export function Nav({ user }: { user?: User | null }) {
   return (
-    <nav className="flex items-center justify-between gap-2">
-      <Link to="/">
-        <Logo />
-      </Link>
-
-      <div className="flex items-center gap-8">
-        <div className="items-center gap-8 hidden md:flex">
-          <div className="dropdown">
-            <div
-              tabIndex={0}
-              role="button"
-              className="flex items-center gap-2 cursor-pointer"
-            >
-              Use cases
-              <TbChevronDown />
-            </div>
-            <ul
-              tabIndex={0}
-              className={cn(
-                "dropdown-content menu bg-base-100 rounded-box z-1 w-72 p-2",
-                "shadow-sm mt-2"
-              )}
-            >
-              <li>
-                <Link
-                  className="flex flex-col gap-0 items-start"
-                  to="/use-case/community-support"
-                >
-                  <span className="flex items-center gap-2">
-                    <TbUsers />
-                    Community support
-                  </span>
-                  <span className="text-sm text-base-content/50">
-                    Let your community get the answers from your docs instantly
-                  </span>
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  className="flex flex-col gap-0 items-start"
-                  to="/use-case/empower-gtm-teams"
-                >
-                  <span className="flex items-center gap-2">
-                    <TbRobotFace />
-                    Internal assistant
-                  </span>
-                  <span className="text-sm text-base-content/50">
-                    Let your internal teams have a unified knowledge base. Best
-                    for GTM teams
-                  </span>
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <NavLink href="/#pricing">Pricing</NavLink>
-          <NavLink href="/changelog">Changelog</NavLink>
-          <NavLink href="/blog">Blog</NavLink>
-          <NavLink href="/public-bots">Public bots</NavLink>
-        </div>
-
-        {!user && <Button href="/login">Login</Button>}
-        {user && (
-          <Button href="/app">
-            Dashboard
-            <TbArrowRight />
-          </Button>
+    <div
+      className={cn(
+        "border-b border-base-300",
+        "sticky top-0 z-20 bg-base-200"
+      )}
+    >
+      <nav
+        className={cn(
+          "flex items-center justify-between gap-2",
+          "max-w-[1200px] mx-auto",
+          "px-8 md:px-10 py-4"
         )}
-      </div>
-    </nav>
+      >
+        <Link to="/">
+          <Logo />
+        </Link>
+
+        <div className="flex items-center gap-8">
+          <div className="items-center gap-8 hidden md:flex">
+            <div className="dropdown">
+              <div
+                tabIndex={0}
+                role="button"
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                Use cases
+                <TbChevronDown />
+              </div>
+              <ul
+                tabIndex={0}
+                className={cn(
+                  "dropdown-content menu bg-base-100 rounded-box z-1 w-72 p-2",
+                  "shadow-sm mt-2"
+                )}
+              >
+                <li>
+                  <Link
+                    className="flex flex-col gap-0 items-start"
+                    to="/use-case/community-support"
+                  >
+                    <span className="flex items-center gap-2">
+                      <TbUsers />
+                      Community support
+                    </span>
+                    <span className="text-sm text-base-content/50">
+                      Let your community get the answers from your docs
+                      instantly
+                    </span>
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    className="flex flex-col gap-0 items-start"
+                    to="/use-case/empower-gtm-teams"
+                  >
+                    <span className="flex items-center gap-2">
+                      <TbRobotFace />
+                      Internal assistant
+                    </span>
+                    <span className="text-sm text-base-content/50">
+                      Let your internal teams have a unified knowledge base.
+                      Best for GTM teams
+                    </span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <NavLink href="/pricing">Pricing</NavLink>
+            <NavLink href="/changelog">Changelog</NavLink>
+            <NavLink href="/blog">Blog</NavLink>
+            <NavLink href="/public-bots">Public bots</NavLink>
+          </div>
+
+          <div>
+            <div className="items-center gap-2 hidden md:flex">
+              {!user && <Button href="/login">Login</Button>}
+              {!user && (
+                <div className="hidden md:block">
+                  <Button href="/pricing" variant="solid">
+                    Start free trial
+                  </Button>
+                </div>
+              )}
+              {user && (
+                <Button href="/app">
+                  Dashboard
+                  <TbArrowRight />
+                </Button>
+              )}
+            </div>
+            <div className="dropdown dropdown-end md:hidden">
+              <div tabIndex={0} role="button" className="btn btn-square">
+                <TbMenu2 />
+              </div>
+              <ul
+                tabIndex={-1}
+                className={cn(
+                  "dropdown-content menu bg-base-200 rounded-box z-1 w-42 p-2 shadow-sm",
+                  "mt-2"
+                )}
+              >
+                {!user && (
+                  <li>
+                    <Link
+                      to="/pricing"
+                      className="bg-primary text-primary-content"
+                    >
+                      Start free trial
+                    </Link>
+                  </li>
+                )}
+                {!user && (
+                  <li>
+                    <Link to="/login">Login</Link>
+                  </li>
+                )}
+                {user && (
+                  <li>
+                    <Link to="/app">Dashboard</Link>
+                  </li>
+                )}
+                <li>
+                  <Link to="/pricing">Pricing</Link>
+                </li>
+                <li>
+                  <Link to="/changelog">Changelog</Link>
+                </li>
+                <li>
+                  <Link to="/blog">Blog</Link>
+                </li>
+                <li>
+                  <Link to="/public-bots">Public bots</Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
   );
 }
 
@@ -1822,7 +1900,7 @@ export function CustomTestimonials() {
   );
 }
 
-function FAQ() {
+export function FAQ() {
   const questions = [
     {
       question: "How do I train with my documentation?",

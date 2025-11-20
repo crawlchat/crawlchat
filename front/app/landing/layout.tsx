@@ -14,9 +14,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function LandingLayout({ loaderData }: Route.ComponentProps) {
   return (
     <LandingPage>
-      <Container>
-        <Nav user={loaderData.user} />
-      </Container>
+      <Nav user={loaderData.user} />
 
       <Outlet />
 
