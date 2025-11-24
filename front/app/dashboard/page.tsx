@@ -395,7 +395,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       const name = moment(date).format("MMM D");
       data.push({
         name,
-        Messages: loaderData.messagesSummary.dailyMessages[key]?.count ?? 0,
+        Questions: loaderData.messagesSummary.dailyMessages[key]?.count ?? 0,
         Unhappy: loaderData.messagesSummary.dailyMessages[key]?.unhappy ?? 0,
       });
     }
@@ -469,9 +469,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <span
                 className={cn(
                   "min-w-5 h-5 px-1 text-sm flex items-center justify-center rounded-full",
-                  item.name === "Messages"
-                    ? "bg-primary text-primary-content"
-                    : "bg-error text-error-content"
+                  item.name === "Unhappy"
+                    ? "bg-error text-error-content"
+                    : "bg-primary text-primary-content"
                 )}
               >
                 {item.value}
@@ -619,7 +619,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   <CartesianGrid strokeDasharray="6 6" vertical={false} />
                   <Area
                     type="monotone"
-                    dataKey="Messages"
+                    dataKey="Questions"
                     stroke={"var(--color-primary)"}
                     fill={"var(--color-primary-content)"}
                   />
