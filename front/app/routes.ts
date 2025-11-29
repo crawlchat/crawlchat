@@ -95,6 +95,7 @@ export default [
       route("community-support", "landing/use-case/community-support.tsx"),
       route("empower-gtm-teams", "landing/use-case/empower-gtm-teams.tsx"),
       route("discord-bot", "landing/use-case/discord-bot.tsx"),
+      route("mcp", "landing/use-case/mcp.tsx"),
     ]),
   ]),
 
