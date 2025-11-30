@@ -171,9 +171,22 @@ export function makeKbProcesserListener(
         return;
       }
 
-      const chunks = await splitMarkdown(content.text, {
-        context: knowledgeGroup.itemContext ?? undefined,
-      });
+      let chunks: string[] = [];
+      try {
+        chunks = await splitMarkdown(content.text, {
+          context: knowledgeGroup.itemContext ?? undefined,
+        });
+      } catch (error: any) {
+        console.error("Error while splitting content", error);
+        await onError(
+          path,
+          "Error while splitting content",
+          error?.message?.toString() ?? "Unknown error",
+          knowledgeGroup,
+          scrape
+        );
+        return;
+      }
 
       await assertLimit(
         path,
