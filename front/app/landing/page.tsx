@@ -1625,19 +1625,19 @@ function Hero() {
 
 export function LandingPage({ children }: PropsWithChildren) {
   const handleCopyCoupon = () => {
-    navigator.clipboard.writeText("WINTER30");
+    navigator.clipboard.writeText("BLACKFRIDAY2025");
     toast.success("Coupon code copied to clipboard");
   };
 
   return (
     <div data-theme="brand" className="bg-base-200 font-aeonik">
       <div className="text-center bg-accent text-accent-content py-2 px-6">
-        Get 30% 💰 discount for first 3 months. Use{" "}
+        Get 50% 💰 discount for first 6 months. Use{" "}
         <strong
           onClick={handleCopyCoupon}
           className="cursor-pointer inline-block hover:underline"
         >
-          WINTER30
+          BLACKFRIDAY2025
         </strong>{" "}
         coupon code at checkout.
       </div>
