@@ -990,7 +990,7 @@ export function PricingSwitch({
         <span
           className={cn(
             "absolute top-0 right-0 text-sm bg-primary/30 px-2 rounded-box",
-            "whitespace-nowrap translate-x-full -translate-y-1/2"
+            "whitespace-nowrap translate-x-3/4 -translate-y-3/4 rotate-10"
           )}
         >
           2 months free
@@ -1554,7 +1554,7 @@ export function LandingPage({ children }: PropsWithChildren) {
   return (
     <div data-theme="brand" className="bg-base-200 font-aeonik">
       <div className="text-center bg-accent text-accent-content py-2 px-6">
-        Get 50% 💰 discount for first 6 months. Use{" "}
+        Get 50% 💰 discount now. Use{" "}
         <strong
           onClick={handleCopyCoupon}
           className="cursor-pointer inline-block hover:underline"
