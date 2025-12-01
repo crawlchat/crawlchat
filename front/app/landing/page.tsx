@@ -1124,6 +1124,11 @@ export function Footer() {
                 </FooterLink>
               </li>
               <li>
+                <FooterLink href="/blog/mava-vs-crawlchat">
+                  CrawlChat vs Mava.app
+                </FooterLink>
+              </li>
+              <li>
                 <FooterLink href="/blog/how-postiz-uses-crawlchat">
                   How Postiz Uses CrawlChat
                 </FooterLink>
