@@ -155,7 +155,7 @@ export function makeKbProcesserListener(
     },
 
     async onError(path: string, error: any) {
-      const errorMessage = `${error.message.toString()}\n\n${error.stack}`;
+      const errorMessage = error.message.toString();
       await onError(path, "Error", errorMessage, knowledgeGroup, scrape);
     },
 

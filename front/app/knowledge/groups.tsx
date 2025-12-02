@@ -124,6 +124,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "youtube") {
         icon = <TbVideo />;
         typeText = "YouTube";
+      } else if (group.type === "youtube_channel") {
+        icon = <TbVideo />;
+        typeText = "YouTube Channel";
       } else if (group.type === "custom") {
         icon = <TbBook />;
         typeText = "Custom";
@@ -254,6 +257,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                         "confluence",
                         "linear",
                         "youtube",
+                        "youtube_channel",
                       ].includes(item.group.type) && (
                         <ActionButton group={item.group} small />
                       )}

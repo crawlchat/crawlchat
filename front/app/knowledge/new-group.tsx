@@ -23,6 +23,7 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { RadioCard } from "~/components/radio-card";
 import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
+import { MultiSelect } from "~/components/multi-select";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -117,7 +118,8 @@ export async function action({ request }: { request: Request }) {
       type !== "notion" &&
       type !== "confluence" &&
       type !== "linear" &&
-      type !== "youtube"
+      type !== "youtube" &&
+      type !== "youtube_channel"
     ) {
       return { error: "URL is required" };
     }
@@ -130,6 +132,23 @@ export async function action({ request }: { request: Request }) {
       const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
       if (!youtubeRegex.test(url)) {
         return { error: "Invalid YouTube URL" };
+      }
+    }
+
+    if (type === "youtube_channel") {
+      if (!url) {
+        return { error: "YouTube channel URL, channel ID, or handle is required" };
+      }
+      // Validate YouTube channel URL, channel ID, or handle
+      // Accepts: channel URL, @handle, channel ID (UC-...), or just handle
+      const channelRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(channel\/|@|c\/|user\/)|@)?[a-zA-Z0-9_-]+/;
+      const channelIdRegex = /^UC[a-zA-Z0-9_-]{22}$/;
+      if (
+        !channelRegex.test(url) &&
+        !channelIdRegex.test(url) &&
+        !url.startsWith("@")
+      ) {
+        return { error: "Invalid YouTube channel URL, channel ID, or handle" };
       }
     }
 
@@ -148,6 +167,17 @@ export async function action({ request }: { request: Request }) {
         .map((v) => v.trim())
         .map((v) => "/docs/" + v)
         .join(",")}`;
+    }
+
+    // Handle skipUrls for youtube_channel
+    if (type === "youtube_channel") {
+      const skipUrlsValue = formData.get("skipUrls") as string;
+      if (skipUrlsValue) {
+        const skipUrlsArray = skipUrlsValue.split(",").filter(Boolean).map((v) => v.trim());
+        if (skipUrlsArray.length > 0) {
+          skipPageRegex = skipUrlsArray.join(",");
+        }
+      }
     }
 
     let status: KnowledgeGroupStatus = "pending";
@@ -363,6 +393,14 @@ export function NewKnowledgeGroupForm({
         longDescription:
           "Extract transcript from a YouTube video and add it to the knowledge base. Provide the YouTube video URL.",
       },
+      {
+        title: "YouTube Channel",
+        value: "youtube_channel",
+        description: "Add YouTube channel videos",
+        icon: <TbVideo />,
+        longDescription:
+          "Fetch all videos from a YouTube channel and extract their transcripts. Provide the YouTube channel URL, channel ID, or handle (e.g., @channelname).",
+      },
     ];
 
     if (skip) {
@@ -372,6 +410,7 @@ export function NewKnowledgeGroupForm({
     return types;
   }, []);
   const [type, setType] = useState<string>("scrape_web");
+  const [skipUrls, setSkipUrls] = useState<string[]>([]);
 
   function getDescription(type: string) {
     return types.find((t) => t.value === type)?.longDescription;
@@ -601,6 +640,43 @@ export function NewKnowledgeGroupForm({
               name="url"
               disabled={disabled}
             />
+          </fieldset>
+        </>
+      )}
+
+      {type === "youtube_channel" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">YouTube Channel URL, ID, or Handle</legend>
+            <input
+              className="input w-full"
+              type="text"
+              required
+              placeholder="https://www.youtube.com/@channelname or @channelname or UC-9-kyTW8ZkZNDHQJ6FgpwQ"
+              name="url"
+              disabled={disabled}
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              You can provide a channel URL (e.g., https://www.youtube.com/@channelname), 
+              a channel handle (e.g., @channelname), or a channel ID (e.g., UC-9-kyTW8ZkZNDHQJ6FgpwQ).
+            </p>
+          </fieldset>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Skip URLs (Regex)</legend>
+            <input
+              type="hidden"
+              name="skipUrls"
+              value={skipUrls.join(",")}
+            />
+            <MultiSelect
+              value={skipUrls}
+              onChange={setSkipUrls}
+              placeholder="Ex: /watch\\?v=.*, /shorts/.*"
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              Specify regex patterns to skip certain videos. Videos matching any of these patterns will be excluded. 
+              You can match against video URLs, IDs, or titles.
+            </p>
           </fieldset>
         </>
       )}
