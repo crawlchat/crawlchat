@@ -35,6 +35,7 @@ export function ActionButton({
       "notion",
       "confluence",
       "linear",
+      "youtube",
     ].includes(group.type)
   ) {
     return null;

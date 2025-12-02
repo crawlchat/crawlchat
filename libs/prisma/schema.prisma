@@ -465,6 +465,7 @@ enum KnowledgeGroupType {
   confluence
   linear
   custom
+  youtube
 }
 
 enum KnowledgeGroupStatus {

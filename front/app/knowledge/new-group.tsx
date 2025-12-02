@@ -7,6 +7,7 @@ import {
   TbBrandNotion,
   TbCheck,
   TbUpload,
+  TbVideo,
   TbWorld,
 } from "react-icons/tb";
 import { FaConfluence } from "react-icons/fa";
@@ -115,9 +116,21 @@ export async function action({ request }: { request: Request }) {
       !url &&
       type !== "notion" &&
       type !== "confluence" &&
-      type !== "linear"
+      type !== "linear" &&
+      type !== "youtube"
     ) {
       return { error: "URL is required" };
+    }
+
+    if (type === "youtube") {
+      if (!url) {
+        return { error: "YouTube video URL is required" };
+      }
+      // Validate YouTube URL
+      const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+      if (!youtubeRegex.test(url)) {
+        return { error: "Invalid YouTube URL" };
+      }
     }
 
     if (prefix === "on") {
@@ -338,6 +351,14 @@ export function NewKnowledgeGroupForm({
             </a>
           </p>
         ),
+      },
+      {
+        title: "YouTube Video",
+        value: "youtube",
+        description: "Add YouTube video transcript",
+        icon: <TbVideo />,
+        longDescription:
+          "Extract transcript from a YouTube video and add it to the knowledge base. Provide the YouTube video URL.",
       },
     ];
 
@@ -561,6 +582,23 @@ export function NewKnowledgeGroupForm({
       {type === "custom" && (
         <>
           <input type="hidden" name="url" value="https://none.com" />
+        </>
+      )}
+
+      {type === "youtube" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">YouTube Video URL</legend>
+            <input
+              className="input w-full"
+              type="url"
+              required
+              pattern="^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$"
+              placeholder="https://www.youtube.com/watch?v=..."
+              name="url"
+              disabled={disabled}
+            />
+          </fieldset>
         </>
       )}
     </>

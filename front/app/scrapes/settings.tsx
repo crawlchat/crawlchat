@@ -289,24 +289,6 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
               </div>
             ),
           },
-          // {
-          //   label: "OpenAI GPT 5-nano",
-          //   value: "gpt_5_nano",
-
-          //   description: "Better than 4o-mini, fast, can take more context.",
-          //   summary: "1 credit / message",
-          //   disabled: !isAllowed(["hobby", "starter", "pro"]),
-          //   content: (
-          //     <div className="flex gap-2">
-          //       <div className="badge badge-accent badge-soft">
-          //         <TbBrain /> Smart + Fast
-          //       </div>
-          //       <div className="badge badge-soft badge-primary">
-          //         <TbCrown /> Hobby
-          //       </div>
-          //     </div>
-          //   ),
-          // },
           {
             label: "Claude Haiku 4.5",
             value: "haiku_4_5",
@@ -332,7 +314,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
 
             description:
               "Best for complex use cases, programming docs, better searches.",
-            summary: "2 credits / message",
+            summary: "4 credits / message",
             disabled: !isAllowed(["pro"]),
             content: (
               <div className="flex gap-2">
@@ -351,7 +333,7 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
 
             description:
               "Best for technical use cases, programming docs. Can take more context.",
-            summary: "4 credits / message",
+            summary: "6 credits / message",
             disabled: !isAllowed(["pro"]),
             content: (
               <div className="flex gap-2 flex-wrap">

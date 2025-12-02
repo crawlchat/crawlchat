@@ -11,6 +11,7 @@ import {
   TbBrandSlack,
   TbFile,
   TbPlus,
+  TbVideo,
   TbWorld,
 } from "react-icons/tb";
 import { Link } from "react-router";
@@ -120,6 +121,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "linear") {
         icon = <SiLinear />;
         typeText = "Linear";
+      } else if (group.type === "youtube") {
+        icon = <TbVideo />;
+        typeText = "YouTube";
       } else if (group.type === "custom") {
         icon = <TbBook />;
         typeText = "Custom";
@@ -249,6 +253,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                         "notion",
                         "confluence",
                         "linear",
+                        "youtube",
                       ].includes(item.group.type) && (
                         <ActionButton group={item.group} small />
                       )}

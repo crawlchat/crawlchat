@@ -12,6 +12,7 @@ import {
   TbCircleX,
   TbFile,
   TbSettings,
+  TbVideo,
   TbWorld,
 } from "react-icons/tb";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
@@ -163,6 +164,9 @@ export default function KnowledgeGroupPage({
     }
     if (loaderData.knowledgeGroup.type === "linear") {
       return <SiLinear />;
+    }
+    if (loaderData.knowledgeGroup.type === "youtube") {
+      return <TbVideo />;
     }
 
     return <TbBook2 />;

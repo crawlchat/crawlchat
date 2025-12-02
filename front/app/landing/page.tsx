@@ -2333,6 +2333,12 @@ function SourcesChannels() {
       isNew: true,
     },
     {
+      icon: <TbVideo />,
+      title: "YouTube",
+      tooltip: "Extract transcript from YouTube videos",
+      isNew: true,
+    },
+    {
       icon: <TbCode />,
       title: "API",
       tooltip: "Add pages to the knowledge base using API",
