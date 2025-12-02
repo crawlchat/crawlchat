@@ -131,21 +131,44 @@ export class YoutubeKbProcesser extends BaseKbProcesser {
   }
 
   async process() {
-    if (!this.knowledgeGroup.url) {
+    const urls: string[] = [];
+    const knowledgeGroupWithUrls = this.knowledgeGroup as KnowledgeGroup & {
+      urls?: Array<{ url: string }>;
+    };
+    if (knowledgeGroupWithUrls.urls && knowledgeGroupWithUrls.urls.length > 0) {
+      urls.push(
+        ...knowledgeGroupWithUrls.urls.map((item: { url: string }) => item.url)
+      );
+    } else if (this.knowledgeGroup.url) {
+      urls.push(this.knowledgeGroup.url);
+    }
+
+    if (urls.length === 0) {
       throw new Error("YouTube video URL is required");
     }
 
-    const { transcript, title } = await fetchYouTubeVideoData(
-      this.knowledgeGroup.url
-    );
+    for (const videoUrl of urls) {
+      try {
+        const { transcript, title } = await fetchYouTubeVideoData(videoUrl);
 
-    if (!transcript || transcript.trim().length === 0) {
-      throw new Error("No transcript available for this video");
+        if (!transcript || transcript.trim().length === 0) {
+          await this.onError(
+            videoUrl,
+            new Error("No transcript available for this video")
+          );
+          continue;
+        }
+
+        await this.onContentAvailable(videoUrl, {
+          text: transcript,
+          title: title,
+        });
+      } catch (error) {
+        await this.onError(
+          videoUrl,
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
     }
-
-    await this.onContentAvailable(this.knowledgeGroup.url, {
-      text: transcript,
-      title: title,
-    });
   }
 }

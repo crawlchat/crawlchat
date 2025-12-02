@@ -484,6 +484,10 @@ enum KnowledgeGroupUpdateFrequency {
   monthly
 }
 
+type KnowledgeGroupUrlItem {
+  url String
+}
+
 model KnowledgeGroup {
   id                                        String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId                                  String   @db.ObjectId
@@ -521,6 +525,7 @@ model KnowledgeGroup {
   linearSkipProjectStatuses                 String?
 
   fetchError                                String?
+  urls                                      KnowledgeGroupUrlItem[]
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt

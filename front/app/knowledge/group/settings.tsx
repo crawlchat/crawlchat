@@ -209,6 +209,14 @@ export async function action({ request, params }: Route.ActionArgs) {
       "linearSkipProjectStatuses"
     ) as string;
   }
+  if (formData.has("youtubeUrls")) {
+    const urlsString = formData.get("youtubeUrls") as string;
+    const urls = urlsString
+      .split(",")
+      .filter(Boolean)
+      .map((url) => ({ url: url.trim() }));
+    update.urls = urls;
+  }
 
   const group = await prisma.knowledgeGroup.update({
     where: { id: groupId, scrapeId },
@@ -534,6 +542,36 @@ function LinearSettings({
   );
 }
 
+function YouTubeSettings({ group }: { group: KnowledgeGroup }) {
+  const youtubeUrlsFetcher = useFetcher();
+  const [youtubeUrls, setYoutubeUrls] = useState<string[]>(
+    group.urls?.map((item) => item.url).filter(Boolean) ?? []
+  );
+  const youtubeUrlsString = useMemo(() => {
+    return youtubeUrls.join(",");
+  }, [youtubeUrls]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <SettingsSection
+        id="youtube-urls"
+        fetcher={youtubeUrlsFetcher}
+        title="YouTube Video URLs"
+        description="Add multiple YouTube video URLs to extract transcripts from. Each URL will be processed and added to your knowledge base."
+      >
+        <input value={youtubeUrlsString} name="youtubeUrls" type="hidden" />
+        <MultiSelect
+          value={youtubeUrls}
+          onChange={setYoutubeUrls}
+          placeholder="https://www.youtube.com/watch?v=..."
+        />
+      </SettingsSection>
+
+      <AutoUpdateSettings group={group} />
+    </div>
+  );
+}
+
 export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
@@ -602,6 +640,9 @@ export default function KnowledgeGroupSettings({
             linearIssueStatuses={loaderData.linearIssueStatuses}
             linearProjectStatuses={loaderData.linearProjectStatuses}
           />
+        )}
+        {loaderData.knowledgeGroup.type === "youtube" && (
+          <YouTubeSettings group={loaderData.knowledgeGroup} />
         )}
 
         <SettingsSection

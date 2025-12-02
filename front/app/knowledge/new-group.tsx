@@ -156,6 +156,8 @@ export async function action({ request }: { request: Request }) {
       status = "done";
     }
 
+    const youtubeUrls = type === "youtube" && url ? [{ url }] : undefined;
+
     const group = await prisma.knowledgeGroup.create({
       data: {
         scrapeId: scrape.id,
@@ -165,7 +167,8 @@ export async function action({ request }: { request: Request }) {
 
         title,
 
-        url,
+        url: type === "youtube" ? undefined : url,
+        urls: youtubeUrls,
         matchPrefix: prefix === "on",
         removeHtmlTags: removeHtmlTags as string,
         maxPages: 5000,
