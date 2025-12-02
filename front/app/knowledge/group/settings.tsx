@@ -590,7 +590,7 @@ function YouTubeChannelSettings({ group }: { group: KnowledgeGroup }) {
   }, [skipUrls]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <SettingsSection
         id="skip-urls"
         fetcher={skipUrlsFetcher}
@@ -606,7 +606,7 @@ function YouTubeChannelSettings({ group }: { group: KnowledgeGroup }) {
       </SettingsSection>
 
       <AutoUpdateSettings group={group} />
-    </div>
+    </>
   );
 }
 
