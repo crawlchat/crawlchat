@@ -264,14 +264,14 @@ export async function analyseMessage(
       );
   }
 
-  const llmConfig = getConfig("gpt_5");
+  const llmConfig = getConfig("gpt_5_mini");
 
   const agent = new SimpleAgent({
     id: "analyser",
     prompt,
     schema: z.object(schema),
     ...llmConfig,
-    user: scrapeId,
+    user: `analyser/${scrapeId}`,
   });
 
   const flow = new Flow([agent], {
