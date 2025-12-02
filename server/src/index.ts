@@ -52,9 +52,6 @@ import { scrape } from "./scrape/crawl";
 import { getConfig } from "./llm/config";
 import { getNextNumber } from "libs/mongo-counter";
 import { randomUUID } from "crypto";
-import {
-  createPartFromText,
-} from "@google/genai";
 import { extractSiteUseCase } from "./site-use-case";
 
 const app: Express = express();
@@ -1263,32 +1260,13 @@ app.get("/test-api", authenticate, async (req, res) => {
 });
 
 app.get("/site-use-case", async (req, res) => {
-  try {
   siteUseCaseRateLimiter.check();
-
-  const url = req.query.url as string;
-    if (!url) {
-      res.status(400).json({ error: "URL parameter is required", code: "INVALID_URL" });
-      return;
-    }
-
-    console.log("Extracting site use case for URL:", url);
-
-    const result = await extractSiteUseCase(url);
-
-    if ("error" in result) {
-      const statusCode = result.code === "INVALID_URL" ? 400 : 500;
-      res.status(statusCode).json(result);
-      return;
-    }
-
+  try {
+    const result = await extractSiteUseCase(req.query.url as string);
     res.json(result);
-  } catch (error: any) {
-    console.error("Error in /site-use-case:", error);
-    res.status(500).json({
-      error: error.message || "Internal server error",
-      code: "FETCH_ERROR",
-    });
+  } catch (error) {
+    console.error("Error extracting site use case:", error);
+    res.status(400).json({ message: "Internal server error" });
   }
 });
 
