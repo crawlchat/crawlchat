@@ -48,6 +48,7 @@ export function SiteUseCase() {
 
     if (!fetcher.data) return null;
     if (fetcher.data.error) return null;
+    if (!fetcher.data.result) return null;
 
     const reasons = [];
     if (fetcher.data.result.isSoftware) {
