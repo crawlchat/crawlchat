@@ -116,8 +116,9 @@ async function getDataGap(
         `,
       }),
     }),
-    ...llmConfig,
     user: scrapeId,
+    maxTokens: 4096,
+    ...llmConfig,
   });
 
   const flow = new Flow([agent], {
@@ -270,8 +271,9 @@ export async function analyseMessage(
     id: "analyser",
     prompt,
     schema: z.object(schema),
+    user: `analyser/${scrapeId}`,
+    maxTokens: 4096,
     ...llmConfig,
-    user: scrapeId,
   });
 
   const flow = new Flow([agent], {

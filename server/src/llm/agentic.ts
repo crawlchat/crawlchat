@@ -38,6 +38,7 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
   private openai: OpenAI;
   private model: string;
   private user?: string;
+  private maxTokens?: number;
 
   constructor(
     id: string,
@@ -46,6 +47,7 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
       baseURL?: string;
       apiKey?: string;
       user?: string;
+      maxTokens?: number;
     }
   ) {
     this.openai = new OpenAI({
@@ -55,6 +57,7 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
     this.model = options?.model ?? "gpt-4o-mini";
     this.id = id;
     this.user = options?.user;
+    this.maxTokens = options?.maxTokens ?? 1000;
 
     console.log("Created agent", this.id, this.model);
   }
@@ -102,6 +105,7 @@ export class Agent<CustomState = {}, CustomMessage = {}> {
         : undefined,
       tools,
       user: this.user,
+      max_tokens: this.maxTokens,
     });
   }
 
@@ -134,6 +138,7 @@ export class SimpleAgent<CustomMessage> extends Agent<{}, CustomMessage> {
     baseURL,
     apiKey,
     user,
+    maxTokens,
   }: {
     id: string;
     prompt: string;
@@ -143,8 +148,9 @@ export class SimpleAgent<CustomMessage> extends Agent<{}, CustomMessage> {
     baseURL?: string;
     apiKey?: string;
     user?: string;
+    maxTokens?: number;
   }) {
-    super(id, { model, baseURL, apiKey, user });
+    super(id, { model, baseURL, apiKey, user, maxTokens });
     this.prompt = prompt;
     this.schema = schema;
     this.tools = tools;

@@ -117,7 +117,8 @@ export async function action({ request }: { request: Request }) {
       type !== "notion" &&
       type !== "confluence" &&
       type !== "linear" &&
-      type !== "youtube"
+      type !== "youtube" &&
+      type !== "youtube_channel"
     ) {
       return { error: "URL is required" };
     }
@@ -126,10 +127,24 @@ export async function action({ request }: { request: Request }) {
       if (!url) {
         return { error: "YouTube video URL is required" };
       }
-      // Validate YouTube URL
       const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
       if (!youtubeRegex.test(url)) {
         return { error: "Invalid YouTube URL" };
+      }
+    }
+
+    if (type === "youtube_channel") {
+      if (!url) {
+        return { error: "YouTube channel URL, channel ID, or handle is required" };
+      }
+      const channelRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(channel\/|@|c\/|user\/)|@)?[a-zA-Z0-9_-]+/;
+      const channelIdRegex = /^UC[a-zA-Z0-9_-]{22}$/;
+      if (
+        !channelRegex.test(url) &&
+        !channelIdRegex.test(url) &&
+        !url.startsWith("@")
+      ) {
+        return { error: "Invalid YouTube channel URL, channel ID, or handle" };
       }
     }
 
@@ -363,6 +378,14 @@ export function NewKnowledgeGroupForm({
         longDescription:
           "Extract transcript from a YouTube video and add it to the knowledge base. Provide the YouTube video URL.",
       },
+      {
+        title: "YouTube Channel",
+        value: "youtube_channel",
+        description: "Add YouTube channel videos",
+        icon: <TbVideo />,
+        longDescription:
+          "Fetch all videos from a YouTube channel and extract their transcripts. Provide the YouTube channel URL, channel ID, or handle (e.g., @channelname).",
+      },
     ];
 
     if (skip) {
@@ -372,6 +395,7 @@ export function NewKnowledgeGroupForm({
     return types;
   }, []);
   const [type, setType] = useState<string>("scrape_web");
+  const [skipUrls, setSkipUrls] = useState<string[]>([]);
 
   function getDescription(type: string) {
     return types.find((t) => t.value === type)?.longDescription;
@@ -601,6 +625,26 @@ export function NewKnowledgeGroupForm({
               name="url"
               disabled={disabled}
             />
+          </fieldset>
+        </>
+      )}
+
+      {type === "youtube_channel" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">YouTube Channel URL, ID, or Handle</legend>
+            <input
+              className="input w-full"
+              type="text"
+              required
+              placeholder="https://www.youtube.com/@channelname or @channelname or UC-9-kyTW8ZkZNDHQJ6FgpwQ"
+              name="url"
+              disabled={disabled}
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              You can provide a channel URL (e.g., https://www.youtube.com/@channelname), 
+              a channel handle (e.g., @channelname), or a channel ID (e.g., UC-9-kyTW8ZkZNDHQJ6FgpwQ).
+            </p>
           </fieldset>
         </>
       )}

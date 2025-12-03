@@ -42,7 +42,7 @@ interface YouTubeVideoData {
   title: string;
 }
 
-async function fetchYouTubeVideoData(
+export async function fetchYouTubeVideoData(
   videoUrl: string
 ): Promise<YouTubeVideoData> {
   const apiKey = process.env.SCRAPECREATORS_API_KEY;

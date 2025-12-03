@@ -6,6 +6,7 @@ import { NotionKbProcesser } from "./notion-kb-processer";
 import { ConfluenceKbProcesser } from "./confluence-kb-processer";
 import { LinearKbProcesser } from "./linear-kb-processer";
 import { YoutubeKbProcesser } from "./youtube-kb-processer";
+import { YoutubeChannelKbProcesser } from "./youtube-channel-kb-processer";
 
 export function makeKbProcesser(
   listener: KbProcesserListener,
@@ -65,6 +66,10 @@ export function makeKbProcesser(
 
   if (knowledgeGroup.type === "youtube") {
     return new YoutubeKbProcesser(listener, knowledgeGroup);
+  }
+
+  if (knowledgeGroup.type === "youtube_channel") {
+    return new YoutubeChannelKbProcesser(listener, knowledgeGroup);
   }
 
   throw new Error("Unsupported knowledge group type");

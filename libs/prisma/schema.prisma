@@ -466,6 +466,7 @@ enum KnowledgeGroupType {
   linear
   custom
   youtube
+  youtube_channel
 }
 
 enum KnowledgeGroupStatus {

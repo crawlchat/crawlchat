@@ -36,6 +36,7 @@ export function ActionButton({
       "confluence",
       "linear",
       "youtube",
+      "youtube_channel",
     ].includes(group.type)
   ) {
     return null;

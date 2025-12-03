@@ -229,7 +229,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 function AutoUpdateSettings({ group }: { group: KnowledgeGroup }) {
   const fetcher = useFetcher();
   const autoUpdateCollection = useMemo(() => {
-    return [
+    const allOptions = [
       {
         label: "Never",
         value: "never",
@@ -251,7 +251,15 @@ function AutoUpdateSettings({ group }: { group: KnowledgeGroup }) {
         value: "monthly",
       },
     ];
-  }, []);
+
+    if (group.type === "youtube_channel") {
+      return allOptions.filter(
+        (option) => option.value !== "hourly" && option.value !== "daily"
+      );
+    }
+
+    return allOptions;
+  }, [group.type]);
 
   return (
     <SettingsSection
@@ -572,6 +580,36 @@ function YouTubeSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
+function YouTubeChannelSettings({ group }: { group: KnowledgeGroup }) {
+  const skipUrlsFetcher = useFetcher();
+  const [skipUrls, setSkipUrls] = useState<string[]>(
+    group.skipPageRegex?.split(",").filter(Boolean) ?? []
+  );
+  const skipUrlsString = useMemo(() => {
+    return skipUrls.join(",");
+  }, [skipUrls]);
+
+  return (
+    <>
+      <SettingsSection
+        id="skip-urls"
+        fetcher={skipUrlsFetcher}
+        title="Skip URLs"
+        description="Specify regex patterns to skip certain videos. Videos matching any of these patterns will be excluded. You can match against video URLs, IDs, or titles."
+      >
+        <input value={skipUrlsString} name="skipPageRegex" type="hidden" />
+        <MultiSelect
+          value={skipUrls}
+          onChange={setSkipUrls}
+          placeholder="Ex: /watch\\?v=.*, /shorts/.*"
+        />
+      </SettingsSection>
+
+      <AutoUpdateSettings group={group} />
+    </>
+  );
+}
+
 export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
@@ -643,6 +681,9 @@ export default function KnowledgeGroupSettings({
         )}
         {loaderData.knowledgeGroup.type === "youtube" && (
           <YouTubeSettings group={loaderData.knowledgeGroup} />
+        )}
+        {loaderData.knowledgeGroup.type === "youtube_channel" && (
+          <YouTubeChannelSettings group={loaderData.knowledgeGroup} />
         )}
 
         <SettingsSection

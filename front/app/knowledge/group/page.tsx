@@ -168,6 +168,9 @@ export default function KnowledgeGroupPage({
     if (loaderData.knowledgeGroup.type === "youtube") {
       return <TbVideo />;
     }
+    if (loaderData.knowledgeGroup.type === "youtube_channel") {
+      return <TbVideo />;
+    }
 
     return <TbBook2 />;
   }
