@@ -75,6 +75,7 @@ import { FaConfluence, FaMicrophone } from "react-icons/fa";
 import { Logo } from "~/dashboard/logo";
 import { MCPIcon } from "~/mcp-icon";
 import toast, { Toaster } from "react-hot-toast";
+import { SiteUseCase } from "./site-use-case";
 
 export function meta() {
   return makeMeta({
@@ -160,6 +161,48 @@ export async function loader() {
     starterYearlyPlan: PLAN_STARTER_YEARLY,
     proYearlyPlan: PLAN_PRO_YEARLY,
   };
+}
+
+function sanitiseUrl(url: string) {
+  if (!url.startsWith("http")) {
+    url = "https://" + url;
+  }
+  return url;
+}
+
+function isUrlValid(url: string) {
+  try {
+    new URL(url);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "site-use-case") {
+    const url = formData.get("url") as string;
+    const sanitisedUrl = sanitiseUrl(url);
+    if (!isUrlValid(sanitisedUrl)) {
+      return { error: "Invalid URL" };
+    }
+    const result = await fetch(`${process.env.VITE_SERVER_URL}/site-use-case`, {
+      method: "POST",
+      body: JSON.stringify({ url: sanitisedUrl }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const json = await result.json();
+    console.log(json);
+    if (!result.ok) {
+      return { error: json.error };
+    }
+    return { result: json };
+  }
 }
 
 export function Container({ children }: PropsWithChildren) {
@@ -2823,6 +2866,10 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
 
       <Container>
         <FAQ />
+      </Container>
+
+      <Container>
+        <SiteUseCase />
       </Container>
     </>
   );

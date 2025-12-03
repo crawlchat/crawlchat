@@ -47,19 +47,28 @@ You must respond with a JSON object matching the required schema.`;
     id: "site-use-case-agent",
     prompt: systemPrompt,
     schema: z.object({
-      title: z.string({ description: "The title of the website" }),
+      name: z.string({
+        description:
+          "The name of the website/product. Ex: Remotion, CrawlChat, Google, Facebook",
+      }),
       description: z.string({ description: "The description of the website" }),
       faviconUrl: z
         .string({ description: "The favicon URL of the website" })
         .nullable(),
       githubUrl: z
-        .string({ description: "The GitHub repository URL of the app/product. It should belong to the website. Leave it empty if not available." })
+        .string({
+          description:
+            "The GitHub repository URL of the app/product. It should belong to the website. Leave it empty if not available.",
+        })
         .nullable(),
       isOpenSource: z.boolean({
         description: "Whether the website is open source",
       }),
       discordUrl: z
         .string({ description: "The Discord URL of the website" })
+        .nullable(),
+      slackUrl: z
+        .string({ description: "The Slack URL of the website" })
         .nullable(),
       docsWebsiteUrl: z
         .string({
@@ -76,6 +85,7 @@ You must respond with a JSON object matching the required schema.`;
         description: "Whether the website represents a software/SaaS product",
       }),
     }),
+    maxTokens: 4096,
     ...llmConfig,
   });
 

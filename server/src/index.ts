@@ -1259,10 +1259,10 @@ app.get("/test-api", authenticate, async (req, res) => {
   });
 });
 
-app.get("/site-use-case", async (req, res) => {
+app.post("/site-use-case", async (req, res) => {
   siteUseCaseRateLimiter.check();
   try {
-    const result = await extractSiteUseCase(req.query.url as string);
+    const result = await extractSiteUseCase(req.body.url as string);
     res.json(result);
   } catch (error) {
     console.error("Error extracting site use case:", error);
