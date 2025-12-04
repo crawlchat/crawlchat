@@ -200,7 +200,7 @@ function ChatModal({ token }: { token: string }) {
     <dialog id="chat-modal" className="modal">
       <div className="modal-box p-0 w-1/2 max-w-5xl">
         <iframe
-          src={`/w/68efbd0feb760ae53dcdafe8?secret=${token}&embed=true`}
+          src={`/w/crawlchat-internal?secret=${token}&embed=true`}
           style={{width: "100%", height: "500px" }}
         />
       </div>
