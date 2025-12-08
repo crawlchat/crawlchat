@@ -1,9 +1,10 @@
 import type { Route } from "./+types/fix";
-import type { ScrapeItem } from "@prisma/client";
 import {
   TbAlertTriangle,
   TbArrowRight,
   TbCheck,
+  TbEye,
+  TbMessage,
   TbSettingsBolt,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
@@ -15,6 +16,11 @@ import { createToken } from "libs/jwt";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
+import { makeMessagePairs } from "./analyse";
+import type { ApiAction, ScrapeItem } from "libs/prisma";
+import { QuestionAnswer } from "./message";
+import { SettingsContainer, SettingsSection } from "~/settings-section";
+import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -31,20 +37,40 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     throw redirect("/app");
   }
 
-  const message = await prisma.message.findUnique({
+  const queryMessage = await prisma.message.findUnique({
     where: {
       id: params.messageId,
     },
   });
 
-  if (!message) {
-    throw redirect("/app");
-  }
+  const messages = await prisma.message.findMany({
+    where: {
+      scrapeId,
+      threadId: queryMessage?.threadId,
+    },
+    include: {
+      thread: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
 
-  return {
-    scrape,
-    message,
-  };
+  const messagePairs = makeMessagePairs(messages);
+  const messagePair = messagePairs.find(
+    (pair) => pair.queryMessage?.id === params.messageId
+  );
+
+  const actions = await prisma.apiAction.findMany({
+    where: {
+      scrapeId,
+    },
+  });
+  const actionsMap = new Map<string, ApiAction>(
+    actions.map((action) => [action.id, action])
+  );
+
+  return { messagePairs, messagePair, actionsMap, scrape };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -52,7 +78,6 @@ export function meta({ data }: Route.MetaArgs) {
     title: "Fix message - CrawlChat",
   });
 }
-
 
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await getAuthUser(request);
@@ -142,7 +167,9 @@ ${content}`;
       },
     });
 
-    throw redirect(`/knowledge/item/${scrapeItem.id}`);
+    return {
+      scrapeItem,
+    };
   }
 }
 
@@ -162,23 +189,29 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
     }
   }, [saveFetcher.data]);
 
+  useFetcherToast(saveFetcher, {
+    title: "Saved",
+    description: "Saved the answer to the knowledge base!",
+  });
+
   return (
     <Page title="Fix message" icon={<TbSettingsBolt />}>
-      <div className="flex flex-col gap-4">
-        <div className="text-base-content/50">
-          You can attach your answer below and the AI will summarise the fix. It
-          finally adds it to the knowledge base so that this will be considered
-          for further answers. Uses 1 message credit and 1 scrape credit.
-        </div>
+      <div className="flex flex-col gap-4 max-w-prose">
+        {loaderData.messagePair && (
+          <QuestionAnswer
+            messagePair={loaderData.messagePair}
+            actionsMap={loaderData.actionsMap}
+          />
+        )}
 
-        {loaderData.message.correctionItemId && (
+        {loaderData.messagePair?.queryMessage?.correctionItemId && (
           <div role="alert" className="alert alert-warning">
             <TbAlertTriangle />
             <span>
               This message is already corrected{" "}
               <Link
                 className="link link-primary link-hover"
-                to={`/knowledge/item/${loaderData.message.correctionItemId}`}
+                to={`/knowledge/item/${loaderData.messagePair?.queryMessage?.correctionItemId}`}
               >
                 here
               </Link>
@@ -186,11 +219,47 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
           </div>
         )}
 
-        {summarizeFetcher.data?.title && summarizeFetcher.data?.content ? (
-          <saveFetcher.Form method="post">
+        {saveFetcher.data?.scrapeItem ? (
+          <SettingsSection
+            title="Correct the answer"
+            actionRight={
+              <div className="flex flex-col md:flex-row gap-2 items-center">
+                <p className="text-xs text-base-content/50 mr-4">
+                  It takes a few seconds for the page to be indexed and
+                  available for testing.
+                </p>
+                <Link
+                  to={`/knowledge/item/${saveFetcher.data.scrapeItem.id}`}
+                  className="btn"
+                >
+                  View the page
+                  <TbEye />
+                </Link>
+                <Link
+                  to={`/w/${loaderData.scrape.slug ?? loaderData.scrape.id}?q=${
+                    loaderData.messagePair?.queryMessage?.llmMessage?.content
+                  }`}
+                  target="_blank"
+                  className="btn btn-primary"
+                >
+                  Test it
+                  <TbMessage />
+                </Link>
+              </div>
+            }
+            description="Saved the answer to the knowledge base!"
+          />
+        ) : summarizeFetcher.data?.title && summarizeFetcher.data?.content ? (
+          <SettingsSection
+            title="Correct the answer"
+            fetcher={saveFetcher}
+            saveLabel="Save it"
+            savePrimary
+            saveIcon={<TbCheck />}
+            description="Give the correct answer and it will be added as a page to the knowledge base."
+          >
             <div className="flex flex-col gap-2">
-              <input type="hidden" name="intent" value={"save"} />
-
+              <input type="hidden" name="intent" value="save" />
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">Title</legend>
                 <input
@@ -213,47 +282,26 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
                   disabled={saveFetcher.state !== "idle"}
                 />
               </fieldset>
-              <div className="flex items-center justify-end w-full">
-                <button
-                  className="btn btn-primary"
-                  type="submit"
-                  disabled={saveFetcher.state !== "idle"}
-                >
-                  {saveFetcher.state !== "idle" && (
-                    <span className="loading loading-spinner loading-sm" />
-                  )}
-                  Save
-                  <TbCheck />
-                </button>
-              </div>
             </div>
-          </saveFetcher.Form>
+          </SettingsSection>
         ) : (
-          <summarizeFetcher.Form method="post">
-            <div className="flex flex-col gap-2">
-              <input type="hidden" name="intent" value={"summarise"} />
-              <textarea
-                className="textarea textarea-bordered w-full"
-                placeholder="Enter the correct answer/fix here"
-                rows={4}
-                name="answer"
-                disabled={saveFetcher.state !== "idle"}
-              />
-              <div className="flex items-center justify-end w-full">
-                <button
-                  className="btn btn-primary"
-                  type="submit"
-                  disabled={summarizeFetcher.state !== "idle"}
-                >
-                  {summarizeFetcher.state !== "idle" && (
-                    <span className="loading loading-spinner loading-sm" />
-                  )}
-                  Summarise
-                  <TbArrowRight />
-                </button>
-              </div>
-            </div>
-          </summarizeFetcher.Form>
+          <SettingsSection
+            title="Correct the answer"
+            fetcher={summarizeFetcher}
+            saveLabel="Summarise"
+            savePrimary
+            saveIcon={<TbArrowRight />}
+            description="Give the correct answer and it will be added as a page to the knowledge base."
+          >
+            <input type="hidden" name="intent" value="summarise" />
+            <textarea
+              className="textarea textarea-bordered w-full"
+              placeholder="Enter the correct answer/fix here"
+              rows={4}
+              name="answer"
+              disabled={saveFetcher.state !== "idle"}
+            />
+          </SettingsSection>
         )}
       </div>
     </Page>

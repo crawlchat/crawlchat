@@ -121,6 +121,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const fullscreen = searchParams.get("fullscreen") === "true";
   const sidePanel = searchParams.get("sidepanel") === "true";
   const secret = searchParams.get("secret");
+  const defaultQuery = searchParams.get("q");
 
   sanitizeScrape(scrape);
   sanitizeThread(thread);
@@ -137,6 +138,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       fullscreen,
       sidePanel,
       secret,
+      defaultQuery,
     },
     {
       headers,
@@ -356,6 +358,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
       fullscreen={loaderData.fullscreen}
       sidePanel={loaderData.sidePanel}
       secret={loaderData.secret}
+      defaultQuery={loaderData.defaultQuery}
     >
       <div
         className={cn(

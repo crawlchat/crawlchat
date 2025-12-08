@@ -13,6 +13,9 @@ export function SettingsSection({
   plainTitle,
   danger,
   formRef,
+  saveLabel = "Save",
+  savePrimary = false,
+  saveIcon,
 }: {
   id?: string;
   children?: React.ReactNode;
@@ -23,6 +26,9 @@ export function SettingsSection({
   plainTitle?: string;
   danger?: boolean;
   formRef?: React.RefObject<HTMLFormElement | null>;
+  saveLabel?: string;
+  savePrimary?: boolean;
+  saveIcon?: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [targeted, setTargeted] = useState(false);
@@ -92,14 +98,18 @@ export function SettingsSection({
               {fetcher && (
                 <button
                   type="submit"
-                  className={cn("btn", danger && "btn-error")}
+                  className={cn(
+                    "btn",
+                    danger && "btn-error",
+                    savePrimary && "btn-primary"
+                  )}
                   disabled={fetcher.state !== "idle"}
                 >
                   {fetcher.state !== "idle" && (
                     <span className="loading loading-spinner" />
                   )}
-                  Save
-                  <TbCheck />
+                  {saveLabel}
+                  {saveIcon ?? <TbCheck />}
                 </button>
               )}
             </div>

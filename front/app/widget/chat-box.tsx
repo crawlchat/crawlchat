@@ -80,11 +80,20 @@ export function useChatBoxDimensions(
 }
 
 function ChatInput() {
-  const { ask, chat, screen, readOnly, scrape, inputRef, embed, sidePanel } =
-    useChatBoxContext();
+  const {
+    ask,
+    chat,
+    screen,
+    readOnly,
+    scrape,
+    inputRef,
+    embed,
+    sidePanel,
+    defaultQuery,
+  } = useChatBoxContext();
 
   const [focused, setFocused] = useState(false);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(defaultQuery ?? "");
   const cleanedQuery = useMemo(() => {
     return query.trim();
   }, [query]);

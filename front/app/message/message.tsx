@@ -10,15 +10,10 @@ import {
   TbSettingsBolt,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
-import { useEffect, useMemo, useState } from "react";
-import { makeMessagePairs } from "./analyse";
+import { useMemo, useState } from "react";
+import { makeMessagePairs, type MessagePair } from "./analyse";
 import { prisma } from "libs/prisma";
-import {
-  Link,
-  Link as RouterLink,
-  useFetcher,
-  useLocation,
-} from "react-router";
+import { Link, Link as RouterLink, useFetcher } from "react-router";
 import { CountryFlag } from "./country-flag";
 import { extractCitations } from "libs/citation";
 import { DataList } from "~/components/data-list";
@@ -320,25 +315,96 @@ function CategorySuggestion({
   );
 }
 
-export default function Message({ loaderData }: Route.ComponentProps) {
-  const location = useLocation();
+export function QuestionAnswer({
+  messagePair,
+  actionsMap,
+}: {
+  messagePair: MessagePair;
+  actionsMap: Map<string, ApiAction>;
+}) {
   const imagesCount = useMemo(
     () =>
-      getImagesCount(
-        (loaderData.messagePair?.queryMessage?.llmMessage as any)?.content
-      ),
-    [loaderData.messagePair]
+      getImagesCount((messagePair?.queryMessage?.llmMessage as any)?.content),
+    [messagePair]
   );
 
-  useEffect(() => {
-    const drawer = document.getElementById(
-      "message-drawer"
-    ) as HTMLInputElement;
-    if (drawer) {
-      drawer.checked = true;
-    }
-  }, [location.pathname]);
+  return (
+    <>
+      <div className="flex flex-col gap-2 max-w-prose">
+        <div className="text-2xl">
+          {getQueryString(
+            (messagePair?.queryMessage?.llmMessage as any)?.content
+          )}
+        </div>
 
+        <div className="flex gap-2 items-center">
+          {messagePair?.queryMessage?.analysis?.category && (
+            <span className="badge badge-soft badge-accent whitespace-nowrap">
+              <TbFolder />
+              {messagePair?.queryMessage?.analysis?.category}
+            </span>
+          )}
+          <SentimentBadge
+            sentiment={
+              messagePair?.responseMessage?.analysis?.questionSentiment
+            }
+          />
+          <ChannelBadge channel={messagePair?.queryMessage?.channel} />
+          {messagePair?.responseMessage.rating && (
+            <Rating rating={messagePair?.responseMessage.rating} />
+          )}
+          {messagePair?.queryMessage?.thread.location && (
+            <CountryFlag
+              location={messagePair?.queryMessage?.thread.location}
+            />
+          )}
+          {imagesCount > 0 && (
+            <span className="badge badge-primary badge-soft">
+              <TbPhoto />
+              {imagesCount}
+            </span>
+          )}
+          <span>{moment(messagePair?.queryMessage?.createdAt).fromNow()}</span>
+        </div>
+      </div>
+
+      {messagePair?.queryMessage?.attachments &&
+        messagePair.queryMessage.attachments.length > 0 && (
+          <div
+            className={cn(
+              "bg-base-200/50 rounded-box p-2 shadow border border-base-300",
+              "max-w-prose flex flex-col gap-2"
+            )}
+          >
+            {messagePair.queryMessage.attachments.map((attachment, index) => (
+              <div
+                className="collapse bg-base-100 border border-base-300"
+                key={index}
+              >
+                <input type="radio" name="my-accordion-1" />
+                <div className="collapse-title font-semibold flex items-center gap-2">
+                  <TbPaperclip />
+                  {attachment.name}
+                </div>
+                <pre className="collapse-content text-sm">
+                  {attachment.content}
+                </pre>
+              </div>
+            ))}
+          </div>
+        )}
+
+      {messagePair && (
+        <AssistantMessage
+          message={messagePair.responseMessage}
+          actionsMap={actionsMap}
+        />
+      )}
+    </>
+  );
+}
+
+export default function Message({ loaderData }: Route.ComponentProps) {
   const messagePair = loaderData.messagePair;
   const actionsMap = loaderData.actionsMap;
   const categorySuggestions =
@@ -381,75 +447,8 @@ export default function Message({ loaderData }: Route.ComponentProps) {
       }
     >
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2 max-w-prose">
-          <div className="text-2xl">
-            {getQueryString(
-              (messagePair?.queryMessage?.llmMessage as any)?.content
-            )}
-          </div>
-
-          <div className="flex gap-2 items-center">
-            {messagePair?.queryMessage?.analysis?.category && (
-              <span className="badge badge-soft badge-accent whitespace-nowrap">
-                <TbFolder />
-                {messagePair?.queryMessage?.analysis?.category}
-              </span>
-            )}
-            <SentimentBadge
-              sentiment={messagePair?.responseMessage?.analysis?.questionSentiment}
-            />
-            <ChannelBadge channel={messagePair?.queryMessage?.channel} />
-            {messagePair?.responseMessage.rating && (
-              <Rating rating={messagePair?.responseMessage.rating} />
-            )}
-            {messagePair?.queryMessage?.thread.location && (
-              <CountryFlag
-                location={messagePair?.queryMessage?.thread.location}
-              />
-            )}
-            {imagesCount > 0 && (
-              <span className="badge badge-primary badge-soft">
-                <TbPhoto />
-                {imagesCount}
-              </span>
-            )}
-            <span>
-              {moment(messagePair?.queryMessage?.createdAt).fromNow()}
-            </span>
-          </div>
-        </div>
-
-        {messagePair?.queryMessage?.attachments &&
-          messagePair.queryMessage.attachments.length > 0 && (
-            <div
-              className={cn(
-                "bg-base-200/50 rounded-box p-2 shadow border border-base-300",
-                "max-w-prose flex flex-col gap-2"
-              )}
-            >
-              {messagePair.queryMessage.attachments.map((attachment, index) => (
-                <div
-                  className="collapse bg-base-100 border border-base-300"
-                  key={index}
-                >
-                  <input type="radio" name="my-accordion-1" />
-                  <div className="collapse-title font-semibold flex items-center gap-2">
-                    <TbPaperclip />
-                    {attachment.name}
-                  </div>
-                  <pre className="collapse-content text-sm">
-                    {attachment.content}
-                  </pre>
-                </div>
-              ))}
-            </div>
-          )}
-
         {messagePair && (
-          <AssistantMessage
-            message={messagePair.responseMessage}
-            actionsMap={actionsMap}
-          />
+          <QuestionAnswer messagePair={messagePair} actionsMap={actionsMap} />
         )}
 
         {filteredCategorySuggestions &&

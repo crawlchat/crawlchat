@@ -23,6 +23,7 @@ export function useChatBox({
   readonly: initReadOnly,
   sidePanel,
   secret,
+  defaultQuery,
 }: {
   scrape: Scrape;
   thread: Thread | null;
@@ -34,6 +35,7 @@ export function useChatBox({
   readonly?: boolean;
   sidePanel?: boolean;
   secret?: string | null;
+  defaultQuery?: string | null;
 }) {
   const pinFetcher = useFetcher();
   const unpinFetcher = useFetcher();
@@ -374,6 +376,7 @@ export function useChatBox({
     sidePanel,
     requestEmailVerificationFetcher,
     verifyEmailFetcher,
+    defaultQuery,
     close,
     erase,
     deleteMessages,
@@ -410,6 +413,7 @@ export function ChatBoxProvider({
   readonly,
   sidePanel,
   secret,
+  defaultQuery,
 }: {
   children: React.ReactNode;
   scrape: Scrape;
@@ -422,6 +426,7 @@ export function ChatBoxProvider({
   readonly?: boolean;
   sidePanel?: boolean;
   secret?: string | null;
+  defaultQuery?: string | null;
 }) {
   const chatBox = useChatBox({
     scrape,
@@ -434,6 +439,7 @@ export function ChatBoxProvider({
     readonly,
     sidePanel,
     secret,
+    defaultQuery,
   });
   return (
     <ChatBoxContext.Provider value={chatBox}>
