@@ -105,6 +105,7 @@ export default [
     index("admin/page.tsx"),
     route("user/:userId", "admin/user.tsx"),
     route("collection/:collectionId", "admin/collection.tsx"),
+    route("update-customer-dodo", "admin/update-customer.ts"),
   ]),
 
   route("email-alert", "email-alert.ts"),
