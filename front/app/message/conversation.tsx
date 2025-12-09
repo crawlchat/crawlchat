@@ -131,7 +131,7 @@ export default function Conversation({ loaderData }: Route.ComponentProps) {
       icon={<TbMessages />}
       right={
         <div className="flex items-center gap-2">
-          <div className="join">
+          <div className="join hidden">
             <Link
               to={`/compose?threadId=${loaderData.thread.id}&format=markdown&text=Summarise the conversation&submit=true`}
               className="btn join-item"
@@ -176,12 +176,6 @@ export default function Conversation({ loaderData }: Route.ComponentProps) {
               </ul>
             </div>
           </div>
-          {/* <Link
-              to={`/compose?threadId=${loaderData.thread.id}`}
-              className="btn btn-accent btn-soft btn-square"
-            >
-              <TbPencil />
-            </Link> */}
 
           <div
             className="tooltip tooltip-left"

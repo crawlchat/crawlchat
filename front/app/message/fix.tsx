@@ -21,6 +21,8 @@ import type { ApiAction, ScrapeItem } from "libs/prisma";
 import { QuestionAnswer } from "./message";
 import { SettingsContainer, SettingsSection } from "~/settings-section";
 import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
+import { Composer, useComposer } from "~/compose";
+import { MarkdownProse } from "~/widget/markdown-prose";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -176,10 +178,30 @@ ${content}`;
 export default function FixMessage({ loaderData }: Route.ComponentProps) {
   const summarizeFetcher = useFetcher();
   const saveFetcher = useFetcher();
+  const composer = useComposer({
+    scrapeId: loaderData.scrape.id,
+    init: {
+      format: "markdown",
+      formatText: `Create a markdown page as a correction for the answer provided by AI.
+      Keep things short and concise.
+      Use basic markdown formatting.
+      First message is a fact.`,
+    },
+  });
 
   useEffect(() => {
     if (summarizeFetcher.data?.error) {
       toast.error(summarizeFetcher.data.error);
+    } else if (summarizeFetcher.data?.content) {
+      composer.setState({
+        content: summarizeFetcher.data.content,
+        messages: [
+          {
+            role: "user",
+            content: summarizeFetcher.data.content,
+          },
+        ],
+      });
     }
   }, [summarizeFetcher.data]);
 
@@ -196,113 +218,140 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
 
   return (
     <Page title="Fix message" icon={<TbSettingsBolt />}>
-      <div className="flex flex-col gap-4 max-w-prose">
-        {loaderData.messagePair && (
-          <QuestionAnswer
-            messagePair={loaderData.messagePair}
-            actionsMap={loaderData.actionsMap}
-          />
-        )}
-
-        {loaderData.messagePair?.queryMessage?.correctionItemId && (
-          <div role="alert" className="alert alert-warning">
-            <TbAlertTriangle />
-            <span>
-              This message is already corrected{" "}
-              <Link
-                className="link link-primary link-hover"
-                to={`/knowledge/item/${loaderData.messagePair?.queryMessage?.correctionItemId}`}
-              >
-                here
-              </Link>
-            </span>
-          </div>
-        )}
-
-        {saveFetcher.data?.scrapeItem ? (
-          <SettingsSection
-            title="Correct the answer"
-            actionRight={
-              <div className="flex flex-col md:flex-row gap-2 items-center">
-                <p className="text-xs text-base-content/50 mr-4">
-                  It takes a few seconds for the page to be indexed and
-                  available for testing.
-                </p>
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-col gap-4 max-w-prose flex-2">
+          {loaderData.messagePair?.queryMessage?.correctionItemId && (
+            <div role="alert" className="alert alert-warning">
+              <TbAlertTriangle />
+              <span>
+                This message is already corrected{" "}
                 <Link
-                  to={`/knowledge/item/${saveFetcher.data.scrapeItem.id}`}
-                  className="btn"
+                  className="link link-primary link-hover"
+                  to={`/knowledge/item/${loaderData.messagePair?.queryMessage?.correctionItemId}`}
                 >
-                  View the page
-                  <TbEye />
+                  here
                 </Link>
-                <Link
-                  to={`/w/${loaderData.scrape.slug ?? loaderData.scrape.id}?q=${
-                    loaderData.messagePair?.queryMessage?.llmMessage?.content
-                  }`}
-                  target="_blank"
-                  className="btn btn-primary"
-                >
-                  Test it
-                  <TbMessage />
-                </Link>
-              </div>
-            }
-            description="Saved the answer to the knowledge base!"
-          />
-        ) : summarizeFetcher.data?.title && summarizeFetcher.data?.content ? (
-          <SettingsSection
-            title="Correct the answer"
-            fetcher={saveFetcher}
-            saveLabel="Save it"
-            savePrimary
-            saveIcon={<TbCheck />}
-            description="Give the correct answer and it will be added as a page to the knowledge base."
-          >
-            <div className="flex flex-col gap-2">
-              <input type="hidden" name="intent" value="save" />
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Title</legend>
-                <input
-                  type="text"
-                  placeholder="Ex: Price details"
-                  className="input w-full"
-                  name="title"
-                  defaultValue={summarizeFetcher.data.title}
-                  disabled={saveFetcher.state !== "idle"}
-                />
-              </fieldset>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Answer</legend>
-                <textarea
-                  className="textarea textarea-bordered w-full"
-                  placeholder="Answer to add as knowledge"
-                  rows={4}
-                  name="content"
-                  defaultValue={summarizeFetcher.data.content}
-                  disabled={saveFetcher.state !== "idle"}
-                />
-              </fieldset>
+              </span>
             </div>
-          </SettingsSection>
-        ) : (
-          <SettingsSection
-            title="Correct the answer"
-            fetcher={summarizeFetcher}
-            saveLabel="Summarise"
-            savePrimary
-            saveIcon={<TbArrowRight />}
-            description="Give the correct answer and it will be added as a page to the knowledge base."
-          >
-            <input type="hidden" name="intent" value="summarise" />
-            <textarea
-              className="textarea textarea-bordered w-full"
-              placeholder="Enter the correct answer/fix here"
-              rows={4}
-              name="answer"
-              disabled={saveFetcher.state !== "idle"}
+          )}
+
+          {saveFetcher.data?.scrapeItem ? (
+            <SettingsSection
+              title="Correct the answer"
+              actionRight={
+                <div className="flex flex-col md:flex-row gap-2 items-center">
+                  <p className="text-xs text-base-content/50 mr-4">
+                    It takes a few seconds for the page to be indexed and
+                    available for testing.
+                  </p>
+                  <Link
+                    to={`/knowledge/item/${saveFetcher.data.scrapeItem.id}`}
+                    className="btn"
+                  >
+                    View the page
+                    <TbEye />
+                  </Link>
+                  <Link
+                    to={`/w/${
+                      loaderData.scrape.slug ?? loaderData.scrape.id
+                    }?q=${
+                      loaderData.messagePair?.queryMessage?.llmMessage?.content
+                    }`}
+                    target="_blank"
+                    className="btn btn-primary"
+                  >
+                    Test it
+                    <TbMessage />
+                  </Link>
+                </div>
+              }
+              description="Saved the answer to the knowledge base!"
             />
-          </SettingsSection>
-        )}
+          ) : summarizeFetcher.data?.title && summarizeFetcher.data?.content ? (
+            <SettingsSection
+              title="Correct the answer"
+              description="Give the correct answer and it will be added as a page to the knowledge base."
+              actionRight={
+                <div className="flex gap-2 w-full">
+                  <Composer composer={composer} className="flex-1">
+                    <Composer.Form composer={composer} primary={false} />
+                  </Composer>
+                  <saveFetcher.Form method="post">
+                    <input type="hidden" name="intent" value="save" />
+                    <input
+                      type="hidden"
+                      name="title"
+                      value={summarizeFetcher.data?.title}
+                    />
+                    <input
+                      type="hidden"
+                      name="content"
+                      value={composer.state?.content}
+                    />
+                    <button
+                      className="btn btn-primary"
+                      type="submit"
+                      disabled={saveFetcher.state !== "idle"}
+                    >
+                      {saveFetcher.state !== "idle" && (
+                        <span className="loading loading-spinner loading-xs" />
+                      )}
+                      Save it
+                      <TbCheck />
+                    </button>
+                  </saveFetcher.Form>
+                </div>
+              }
+            >
+              <div className="flex flex-col gap-2">
+                <input type="hidden" name="intent" value="save" />
+                <fieldset className="fieldset">
+                  <legend className="fieldset-legend">Title</legend>
+                  <input
+                    type="text"
+                    placeholder="Ex: Price details"
+                    className="input w-full"
+                    name="title"
+                    defaultValue={summarizeFetcher.data.title}
+                    disabled={saveFetcher.state !== "idle"}
+                  />
+                </fieldset>
+
+                <MarkdownProse sources={[]}>
+                  {composer.state?.content ||
+                    "Start by asking a question below"}
+                </MarkdownProse>
+              </div>
+            </SettingsSection>
+          ) : (
+            <SettingsSection
+              title="Correct the answer"
+              fetcher={summarizeFetcher}
+              saveLabel="Summarise"
+              savePrimary
+              saveIcon={<TbArrowRight />}
+              description="Give the correct answer and it will be added as a page to the knowledge base."
+            >
+              <input type="hidden" name="intent" value="summarise" />
+              <textarea
+                className="textarea textarea-bordered w-full"
+                placeholder="Enter the correct answer/fix here"
+                name="answer"
+                disabled={saveFetcher.state !== "idle"}
+              />
+            </SettingsSection>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-4 flex-1">
+          {loaderData.messagePair && (
+            <QuestionAnswer
+              messagePair={loaderData.messagePair}
+              actionsMap={loaderData.actionsMap}
+              showResources={false}
+            />
+          )}
+        </div>
       </div>
     </Page>
   );

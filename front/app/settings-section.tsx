@@ -88,12 +88,11 @@ export function SettingsSection({
           <div
             className={cn(
               "flex justify-between p-4 py-3 border-t border-base-300",
-              "bg-base-200 w-full justify-between rounded-b-box",
+              "bg-base-200 w-full rounded-b-box",
               danger && "bg-red-100 border-red-200"
             )}
           >
-            <div></div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-end w-full">
               {actionRight}
               {fetcher && (
                 <button

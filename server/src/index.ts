@@ -1047,6 +1047,9 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     Don't include <answer> or any kind of tags in the answer.
     Don't mention about you searching the context etc., it should be pure answer.
 
+    If you don't have answer, just give back the text.
+    Don't make huge changes, do minimal and concise changes.
+
     <format-text>${formatText}</format-text>
     `,
     tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],

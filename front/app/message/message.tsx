@@ -144,9 +144,11 @@ function getMessageContent(message?: Message) {
 function AssistantMessage({
   message,
   actionsMap,
+  showResources = true,
 }: {
   message: Message;
   actionsMap: Map<string, ApiAction>;
+  showResources?: boolean;
 }) {
   const [hoveredUniqueId, setHoveredUniqueId] = useState<string | null>(null);
   const citation = useMemo(
@@ -186,7 +188,7 @@ function AssistantMessage({
         </MarkdownProse>
       </div>
 
-      {message.links.length > 0 && (
+      {showResources && message.links.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="text-lg">Resources</div>
           <div
@@ -234,7 +236,7 @@ function AssistantMessage({
         </div>
       )}
 
-      {message.apiActionCalls.length > 0 && (
+      {showResources && message.apiActionCalls.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="text-lg">Actions</div>
           {message.apiActionCalls.map((call, index) => (
@@ -318,9 +320,11 @@ function CategorySuggestion({
 export function QuestionAnswer({
   messagePair,
   actionsMap,
+  showResources = true,
 }: {
   messagePair: MessagePair;
   actionsMap: Map<string, ApiAction>;
+  showResources?: boolean;
 }) {
   const imagesCount = useMemo(
     () =>
@@ -398,6 +402,7 @@ export function QuestionAnswer({
         <AssistantMessage
           message={messagePair.responseMessage}
           actionsMap={actionsMap}
+          showResources={showResources}
         />
       )}
     </>

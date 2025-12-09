@@ -1,13 +1,11 @@
 import {
   TbBrandLinkedin,
   TbBrandTwitter,
-  TbCheck,
   TbChevronDown,
   TbChevronUp,
   TbCopy,
   TbMail,
   TbPencil,
-  TbQuestionMark,
   TbTextCaption,
 } from "react-icons/tb";
 import { Page } from "./components/page";
@@ -17,7 +15,7 @@ import type { Route } from "./+types/compose";
 import { createToken } from "libs/jwt";
 import { useFetcher } from "react-router";
 import { MarkdownProse } from "./widget/markdown-prose";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type PropsWithChildren } from "react";
 import { RadioCard } from "./components/radio-card";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
@@ -67,21 +65,6 @@ export async function action({ request }: Route.ActionArgs) {
     const messages = formData.get("messages");
     const formatText = formData.get("format-text");
 
-    const url = new URL(request.url);
-    const threadId = url.searchParams.get("threadId");
-    if (threadId) {
-      const thread = await prisma.thread.findUnique({
-        where: { id: threadId },
-        include: {
-          messages: true,
-        },
-      });
-
-      prompt += `\n\n<conversation>\n${thread?.messages
-        .map((m) => `${m.llmMessage?.role}: ${m.llmMessage?.content}`)
-        .join("\n")}\n</conversation>`;
-    }
-
     const token = createToken(user!.id);
     const response = await fetch(
       `${process.env.VITE_SERVER_URL}/compose/${scrapeId}`,
@@ -110,13 +93,25 @@ export async function action({ request }: Route.ActionArgs) {
 
 type ComposeFormat = "markdown" | "email" | "tweet" | "linkedin-post";
 
-export default function Compose({ loaderData }: Route.ComponentProps) {
+export function useComposer({
+  scrapeId,
+  init,
+}: {
+  scrapeId: string;
+  init?: {
+    format?: ComposeFormat;
+    formatText?: string;
+    state?: { content: string; messages: any[] };
+  };
+}) {
   const fetcher = useFetcher();
-  const [state, setState] = useState<{ content: string; messages: any[] }>();
+  const [state, setState] = useState<
+    { content: string; messages: any[] } | undefined
+  >(init?.state);
   const [format, setFormat] = useState<ComposeFormat>(
-    (loaderData.format as ComposeFormat) ?? "markdown"
+    init?.format ?? "markdown"
   );
-  const [formatText, setFormatText] = useState<string>("");
+  const [formatText, setFormatText] = useState<string>(init?.formatText ?? "");
   const [formatTextActive, setFormatTextActive] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
@@ -130,25 +125,17 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
         messages: fetcher.data.messages,
       });
       localStorage.setItem(
-        `compose-state-${loaderData.scrapeId}`,
+        `compose-state-${scrapeId}`,
         JSON.stringify(fetcher.data)
       );
     }
-  }, [fetcher.data, loaderData.scrapeId]);
+  }, [fetcher.data, scrapeId]);
 
   useEffect(() => {
-    if (
-      loaderData.scrapeId &&
-      !loaderData.thread &&
-      localStorage.getItem(`compose-state-${loaderData.scrapeId}`)
-    ) {
-      setState(
-        JSON.parse(
-          localStorage.getItem(`compose-state-${loaderData.scrapeId}`)!
-        )
-      );
+    if (scrapeId && localStorage.getItem(`compose-state-${scrapeId}`)) {
+      setState(JSON.parse(localStorage.getItem(`compose-state-${scrapeId}`)!));
     }
-  }, [loaderData.scrapeId]);
+  }, [scrapeId]);
 
   useEffect(() => {
     setFormatText(localStorage.getItem(`compose-format-${format}`) ?? "");
@@ -158,20 +145,171 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
     localStorage.setItem(`compose-format-${format}`, formatText);
   }, [formatText]);
 
+  return {
+    format,
+    setFormat,
+    formatText,
+    setFormatText,
+    formatTextActive,
+    setFormatTextActive,
+    state,
+    fetcher,
+    inputRef,
+    submitRef,
+    setState,
+  };
+}
+
+export type ComposerState = ReturnType<typeof useComposer>;
+
+export function Composer({
+  composer,
+  children,
+  className,
+}: PropsWithChildren<{
+  composer: ComposerState;
+  className?: string;
+}>) {
+  return (
+    <composer.fetcher.Form
+      method="post"
+      className={className}
+      action="/compose"
+    >
+      <input type="hidden" name="intent" value="compose" />
+      <input
+        type="hidden"
+        name="messages"
+        value={JSON.stringify(composer.state?.messages)}
+      />
+      <input type="hidden" name="format" value={composer.format} />
+      <input type="hidden" name="format-text" value={composer.formatText} />
+
+      {children}
+    </composer.fetcher.Form>
+  );
+}
+
+function FormatSelector({ composer }: { composer: ComposerState }) {
+  return (
+    <div
+      className={cn(
+        "bg-base-200 p-4 rounded-box border border-base-300 shadow",
+        "flex flex-col gap-4"
+      )}
+    >
+      <RadioCard
+        cols={2}
+        options={[
+          {
+            label: "Markdown",
+            icon: <TbTextCaption />,
+            value: "markdown",
+          },
+          {
+            label: "Email",
+            icon: <TbMail />,
+            value: "email",
+          },
+          {
+            label: "Tweet",
+            icon: <TbBrandTwitter />,
+            value: "tweet",
+          },
+          {
+            label: "LinkedIn Post",
+            icon: <TbBrandLinkedin />,
+            value: "linkedin-post",
+          },
+        ]}
+        value={composer.format}
+        onChange={(value) => composer.setFormat(value as ComposeFormat)}
+      />
+      <div className="flex justify-end">
+        <span
+          className={cn(
+            "text-xs flex items-center gap-1 cursor-pointer",
+            "opacity-50 hover:opacity-100"
+          )}
+          onClick={() => composer.setFormatTextActive((t) => !t)}
+        >
+          Customise
+          {composer.formatTextActive ? <TbChevronUp /> : <TbChevronDown />}
+        </span>
+      </div>
+      {composer.formatTextActive && (
+        <textarea
+          className="textarea w-full"
+          name="format"
+          value={composer.formatText}
+          onChange={(e) => composer.setFormatText(e.target.value)}
+          placeholder="Customise the format"
+        />
+      )}
+    </div>
+  );
+}
+
+function Form({
+  composer,
+  primary = true,
+  defaultValue,
+}: {
+  composer: ComposerState;
+  primary?: boolean;
+  defaultValue?: string;
+}) {
+  return (
+    <div className="flex gap-2">
+      <input
+        className="input flex-1"
+        type="text"
+        name="prompt"
+        placeholder="What to update?"
+        ref={composer.inputRef}
+        defaultValue={defaultValue}
+      />
+      <button
+        type="submit"
+        disabled={composer.fetcher.state !== "idle"}
+        className={cn("btn", primary && "btn-primary")}
+        ref={composer.submitRef}
+      >
+        {composer.fetcher.state !== "idle" && (
+          <span className="loading loading-spinner loading-xs" />
+        )}
+        {composer.state?.content ? "Update" : "Compose"}
+        <TbPencil />
+      </button>
+    </div>
+  );
+}
+
+Composer.FormatSelector = FormatSelector;
+Composer.Form = Form;
+
+export default function Compose({ loaderData }: Route.ComponentProps) {
+  const composer = useComposer({
+    scrapeId: loaderData.scrapeId,
+    init: {
+      format: loaderData.format as ComposeFormat,
+    },
+  });
+
   useEffect(() => {
-    if (loaderData.submit && submitRef.current) {
-      submitRef.current.click();
+    if (loaderData.submit && composer.submitRef.current) {
+      composer.submitRef.current.click();
     }
   }, [loaderData.submit]);
 
   function handleCopy() {
-    navigator.clipboard.writeText(state?.content ?? "");
+    navigator.clipboard.writeText(composer.state?.content ?? "");
     toast.success("Copied to clipboard");
   }
 
   function handleClear() {
     localStorage.removeItem(`compose-state-${loaderData.scrapeId}`);
-    setState(undefined);
+    composer.setState(undefined);
   }
 
   return (
@@ -189,123 +327,25 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
         </>
       }
     >
-      <fetcher.Form method="post" className="flex flex-col gap-4 max-w-prose">
+      <div className="flex flex-col gap-4 max-w-prose">
         <div className="text-base-content/50">
           Use this section to compose content for in different formats from your
           knowledge base. Ask any update below and it uses the context to
           componse and update the text. It uses 1 message credit per update.
         </div>
-
-        <input type="hidden" name="intent" value="compose" />
-        <input
-          type="hidden"
-          name="messages"
-          value={JSON.stringify(state?.messages)}
-        />
-        <input type="hidden" name="format" value={format} />
-
-        {loaderData.thread && (
-          <div
-            className={cn(
-              "bg-base-200 p-4 rounded-box border border-base-300 shadow"
-            )}
-          >
-            <span className="line-clamp-1">
-              {loaderData.thread.title ??
-                (loaderData.thread.messages[0].llmMessage?.content as string)}
-            </span>
-          </div>
-        )}
-
-        <div
-          className={cn(
-            "bg-base-200 p-4 rounded-box border border-base-300 shadow",
-            "flex flex-col gap-4"
-          )}
+        <Composer
+          composer={composer}
+          className="flex flex-col gap-4 max-w-prose"
         >
-          <input type="hidden" name="format" value={format} />
-          <input type="hidden" name="format-text" value={formatText} />
-
-          <RadioCard
-            cols={2}
-            options={[
-              {
-                label: "Markdown",
-                icon: <TbTextCaption />,
-                value: "markdown",
-              },
-              {
-                label: "Email",
-                icon: <TbMail />,
-                value: "email",
-              },
-              {
-                label: "Tweet",
-                icon: <TbBrandTwitter />,
-                value: "tweet",
-              },
-              {
-                label: "LinkedIn Post",
-                icon: <TbBrandLinkedin />,
-                value: "linkedin-post",
-              },
-            ]}
-            value={format}
-            onChange={(value) => setFormat(value as ComposeFormat)}
-          />
-          <div className="flex justify-end">
-            <span
-              className={cn(
-                "text-xs flex items-center gap-1 cursor-pointer",
-                "opacity-50 hover:opacity-100"
-              )}
-              onClick={() => setFormatTextActive((t) => !t)}
-            >
-              Customise
-              {formatTextActive ? <TbChevronUp /> : <TbChevronDown />}
-            </span>
+          <FormatSelector composer={composer} />
+          <div className="bg-base-200 p-6 rounded-box border border-base-300 shadow">
+            <MarkdownProse sources={[]}>
+              {composer.state?.content || "Start by asking a question below"}
+            </MarkdownProse>
           </div>
-          {formatTextActive && (
-            <textarea
-              className="textarea w-full"
-              name="format"
-              value={formatText}
-              onChange={(e) => setFormatText(e.target.value)}
-              placeholder="Customise the format"
-            />
-          )}
-        </div>
-
-        <div className="bg-base-200 p-6 rounded-box border border-base-300 shadow">
-          <MarkdownProse sources={[]}>
-            {state?.content || "Start by asking a question below"}
-          </MarkdownProse>
-        </div>
-
-        <div className="flex gap-2">
-          <input
-            className="input flex-1"
-            type="text"
-            name="prompt"
-            placeholder="What to update?"
-            disabled={fetcher.state !== "idle"}
-            ref={inputRef}
-            defaultValue={loaderData.text ?? ""}
-          />
-          <button
-            type="submit"
-            disabled={fetcher.state !== "idle"}
-            className="btn btn-primary"
-            ref={submitRef}
-          >
-            {fetcher.state !== "idle" && (
-              <span className="loading loading-spinner loading-xs" />
-            )}
-            {state?.content ? "Update" : "Compose"}
-            <TbCheck />
-          </button>
-        </div>
-      </fetcher.Form>
+          <Form composer={composer} defaultValue={loaderData.text ?? ""} />
+        </Composer>
+      </div>
     </Page>
   );
 }
