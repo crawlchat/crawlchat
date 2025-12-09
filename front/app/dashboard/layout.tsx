@@ -124,7 +124,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   }, []);
 
   useEffect(() => {
-    if (app.shouldUpgrade || true) {
+    if (app.shouldUpgrade) {
       showModal("upgrade-modal");
     }
   }, [app.shouldUpgrade]);
