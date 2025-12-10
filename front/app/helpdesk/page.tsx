@@ -26,6 +26,7 @@ import {
   makeMcpCommand,
   makeMcpName,
 } from "~/mcp/setup";
+import { redirect } from "react-router";
 
 const DEFAULT_HELPDESK_CONFIG = {
   heroBg: "#7F0E87",
@@ -77,6 +78,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     scrapeWithConfig.helpdeskConfig
       ? scrapeWithConfig.helpdeskConfig
       : undefined;
+
+  if (!helpdeskConfig?.enabled) {
+    return redirect("/");
+  }
 
   return { scrape, thread, messages, userToken, helpdeskConfig };
 }

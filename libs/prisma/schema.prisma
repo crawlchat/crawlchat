@@ -150,6 +150,7 @@ type HelpdeskNavLink {
 }
 
 type HelpdeskConfig {
+  enabled Boolean?
   heroBg String?
   logo String?
   heroTitle String?

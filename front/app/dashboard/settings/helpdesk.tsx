@@ -32,6 +32,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     helpdeskConfig?: HelpdeskConfig;
   };
   const helpdeskConfig: HelpdeskConfig = scrapeWithConfig.helpdeskConfig ?? {
+    enabled: false,
     heroBg: "#7F0E87",
     logo: "https://crawlchat.app/logo-white.png",
     navLinks: [
@@ -63,6 +64,7 @@ export async function action({ request }: Route.ActionArgs) {
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const formData = await request.formData();
+  const enabled = formData.get("enabled") === "true";
   const heroBg = formData.get("heroBg") as string;
   const logo = formData.get("logo") as string;
   const heroTitle = formData.get("heroTitle") as string;
@@ -72,6 +74,7 @@ export async function action({ request }: Route.ActionArgs) {
   const navLinks = JSON.parse(navLinksJson || "[]");
 
   const helpdeskConfig: HelpdeskConfig = {
+    enabled,
     heroBg,
     logo,
     heroTitle,
@@ -92,6 +95,9 @@ export async function action({ request }: Route.ActionArgs) {
 export default function HelpdeskSettings({ loaderData }: Route.ComponentProps) {
   const settingsFetcher = useFetcher();
 
+  const [enabled, setEnabled] = useState(
+    loaderData.helpdeskConfig.enabled ?? false
+  );
   const [heroBg, setHeroBg] = useState(loaderData.helpdeskConfig.heroBg);
   const [logo, setLogo] = useState(loaderData.helpdeskConfig.logo);
   const [heroTitle, setHeroTitle] = useState(
@@ -106,13 +112,14 @@ export default function HelpdeskSettings({ loaderData }: Route.ComponentProps) {
 
   const previewConfig: HelpdeskConfig = useMemo(
     () => ({
+      enabled,
       heroBg,
       logo,
       heroTitle,
       searchPlaceholder,
       navLinks,
     }),
-    [heroBg, logo, heroTitle, searchPlaceholder, navLinks]
+    [enabled, heroBg, logo, heroTitle, searchPlaceholder, navLinks]
   );
 
   function handleAddNavLink() {
@@ -151,6 +158,11 @@ export default function HelpdeskSettings({ loaderData }: Route.ComponentProps) {
               </button>
             }
           >
+            <input
+              type="hidden"
+              name="enabled"
+              value={enabled ? "true" : "false"}
+            />
             <input type="hidden" name="heroBg" value={heroBg ?? ""} />
             <input type="hidden" name="logo" value={logo ?? ""} />
             <input type="hidden" name="heroTitle" value={heroTitle ?? ""} />
@@ -165,6 +177,18 @@ export default function HelpdeskSettings({ loaderData }: Route.ComponentProps) {
               value={JSON.stringify(navLinks)}
             />
             <div className="flex flex-col gap-4">
+              <fieldset className="fieldset">
+                <legend className="fieldset-legend">Enabled</legend>
+                <label className="label">
+                  <input
+                    type="checkbox"
+                    className="toggle"
+                    checked={enabled}
+                    onChange={(e) => setEnabled(e.target.checked)}
+                  />
+                  Enable helpdesk
+                </label>
+              </fieldset>
               <fieldset className="fieldset">
                 <legend className="fieldset-legend">
                   Hero Background Color
