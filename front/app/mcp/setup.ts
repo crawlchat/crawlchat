@@ -21,3 +21,14 @@ export function makeCursorMcpJson(scrapeId: string, name: string) {
     ]
 }`;
 }
+
+export function makeCursorMcpConfig(scrapeId: string, name: string) {
+  return `{
+    "command": "npx",
+    "args": [
+        "crawl-chat-mcp",
+        "--id=${scrapeId}",
+        "--name=${name}"
+    ]
+}`;
+}

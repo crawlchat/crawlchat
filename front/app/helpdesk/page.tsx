@@ -20,6 +20,12 @@ import { HelpdeskContext, HelpdeskProvider } from "./context";
 import { createToken } from "libs/jwt";
 import { Toaster } from "react-hot-toast";
 import { MCPIcon } from "~/mcp-icon";
+import {
+  makeCursorMcpConfig,
+  makeCursorMcpJson,
+  makeMcpCommand,
+  makeMcpName,
+} from "~/mcp/setup";
 
 const DEFAULT_HELPDESK_CONFIG = {
   heroBg: "#7F0E87",
@@ -274,7 +280,24 @@ function QuickLink({
 }
 
 function QuickLinks() {
-  const { chatActive } = useContext(HelpdeskContext);
+  const { ask } = useChatBoxContext();
+  const { chatActive, scrape, setChatActive } = useContext(HelpdeskContext);
+
+  function handleAddToCursor() {
+    const name = makeMcpName(scrape);
+    const script = makeCursorMcpConfig(scrape.id, name);
+    window.open(
+      `cursor://anysphere.cursor-deeplink/mcp/install?name=${name}&config=${btoa(
+        script
+      )}`,
+      "_blank"
+    );
+  }
+
+  function handleCreateTicket() {
+    ask("I want to create a support ticket");
+    setChatActive(true);
+  }
 
   if (chatActive) {
     return null;
@@ -283,18 +306,22 @@ function QuickLinks() {
   return (
     <Container className="w-full">
       <ul className="flex flex-col gap-2">
-        <li>
-          <QuickLink>
-            <MCPIcon />
-            Add to Cursor as MCP
-          </QuickLink>
-        </li>
-        <li>
-          <QuickLink>
-            <TbTicket />
-            Create a support ticket
-          </QuickLink>
-        </li>
+        {scrape.widgetConfig?.showMcpSetup && (
+          <li>
+            <QuickLink onClick={handleAddToCursor}>
+              <MCPIcon />
+              Add to Cursor as MCP
+            </QuickLink>
+          </li>
+        )}
+        {scrape.ticketingEnabled && (
+          <li>
+            <QuickLink onClick={handleCreateTicket}>
+              <TbTicket />
+              Create a support ticket
+            </QuickLink>
+          </li>
+        )}
       </ul>
     </Container>
   );
@@ -314,7 +341,10 @@ export function Helpdesk({
   config?: HelpdeskConfig;
 }) {
   return (
-    <HelpdeskProvider config={config ?? DEFAULT_HELPDESK_CONFIG}>
+    <HelpdeskProvider
+      scrape={scrape}
+      config={config ?? DEFAULT_HELPDESK_CONFIG}
+    >
       <ChatBoxProvider
         scrape={scrape}
         thread={thread}

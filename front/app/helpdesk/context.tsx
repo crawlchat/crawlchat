@@ -1,7 +1,13 @@
 import { createContext, useEffect, useState } from "react";
-import type { HelpdeskConfig } from "libs/prisma";
+import type { HelpdeskConfig, Scrape } from "libs/prisma";
 
-export function useHelpdesk({ config }: { config: HelpdeskConfig }) {
+export function useHelpdesk({
+  config,
+  scrape,
+}: {
+  config: HelpdeskConfig;
+  scrape: Scrape;
+}) {
   const [chatActive, setChatActive] = useState(false);
 
   useEffect(() => {
@@ -16,6 +22,7 @@ export function useHelpdesk({ config }: { config: HelpdeskConfig }) {
     chatActive,
     setChatActive,
     config,
+    scrape,
   };
 }
 
@@ -26,11 +33,13 @@ export const HelpdeskContext = createContext<ReturnType<typeof useHelpdesk>>(
 export function HelpdeskProvider({
   children,
   config,
+  scrape,
 }: {
   children: React.ReactNode;
   config: HelpdeskConfig;
+  scrape: Scrape;
 }) {
-  const helpdesk = useHelpdesk({ config });
+  const helpdesk = useHelpdesk({ config, scrape });
 
   return (
     <HelpdeskContext.Provider value={helpdesk}>
