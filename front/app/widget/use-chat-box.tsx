@@ -256,7 +256,10 @@ export function useChatBox({
 
   function rate(id: string, rating: MessageRating) {
     toast.success("Thank you for your feedback!");
-    rateFetcher.submit({ intent: "rate", id, rating }, { method: "post" });
+    rateFetcher.submit(
+      { intent: "rate", id, rating },
+      { method: "post", action: `/w/${scrape.id}` }
+    );
   }
 
   async function ask(query: string) {
@@ -264,7 +267,7 @@ export function useChatBox({
       chat.setMakingThreadId();
       createThreadFetcher.submit(
         { intent: "create-thread" },
-        { method: "post" }
+        { method: "post", action: `/w/${scrape.id}` }
       );
       setPendingQuery(query);
       return;
@@ -302,16 +305,23 @@ export function useChatBox({
     if (embed) {
       window.parent.postMessage("close", "*");
     }
+    window.postMessage("close", "*");
     inputRef.current?.blur();
   }
 
   function erase() {
-    eraseFetcher.submit({ intent: "erase" }, { method: "post" });
+    eraseFetcher.submit(
+      { intent: "erase" },
+      { method: "post", action: `/w/${scrape.id}` }
+    );
     chat.erase();
   }
 
   function deleteMessages(ids: string[]) {
-    deleteFetcher.submit({ intent: "delete", ids }, { method: "post" });
+    deleteFetcher.submit(
+      { intent: "delete", ids },
+      { method: "post", action: `/w/${scrape.id}` }
+    );
     chat.deleteMessage(ids);
   }
 
@@ -334,7 +344,7 @@ export function useChatBox({
   function createTicket(email: string, title: string, message: string) {
     ticketCreateFetcher.submit(
       { intent: "ticket-create", email, title, message },
-      { method: "post" }
+      { method: "post", action: `/w/${scrape.id}` }
     );
   }
 

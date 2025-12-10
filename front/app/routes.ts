@@ -110,6 +110,8 @@ export default [
 
   route("email-alert", "email-alert.ts"),
 
+  route("helpdesk/:slug", "helpdesk/page.tsx"),
+
   route("w/:id", "widget/page.tsx"),
   route("s/:id", "widget/share.tsx"),
   route("w/:id/config", "widget/config.tsx"),

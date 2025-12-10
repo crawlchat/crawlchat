@@ -1475,7 +1475,7 @@ export function Nav({ user }: { user?: User | null }) {
             <NavLink href="/pricing">Pricing</NavLink>
             <NavLink href="/changelog">Changelog</NavLink>
             <NavLink href="/blog">Blog</NavLink>
-            <NavLink href="/public-bots">Public bots</NavLink>
+            {/* <NavLink href="/public-bots">Public bots</NavLink> */}
           </div>
 
           <div>
