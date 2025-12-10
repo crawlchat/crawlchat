@@ -13,7 +13,7 @@ import cn from "@meltdownjs/cn";
 import Color from "color";
 import { TbArrowRight, TbArrowUp, TbSparkles, TbTicket } from "react-icons/tb";
 import { ChatBoxProvider, useChatBoxContext } from "~/widget/use-chat-box";
-import type { Message, Scrape, Thread } from "libs/prisma";
+import type { HelpdeskConfig, Message, Scrape, Thread } from "libs/prisma";
 import { getSession } from "~/session";
 import ChatBox from "~/widget/chat-box";
 import { HelpdeskContext, HelpdeskProvider } from "./context";
@@ -21,15 +21,18 @@ import { createToken } from "libs/jwt";
 import { Toaster } from "react-hot-toast";
 import { MCPIcon } from "~/mcp-icon";
 
-const heroBg = "#7F0E87";
-const logo = "https://crawlchat.app/logo-white.png";
-const navLinks = [
-  {
-    label: "Website",
-    href: "https://crawlchat.app",
-  },
-];
-const heroTitle = "Ask about CrawlChat here";
+const DEFAULT_HELPDESK_CONFIG = {
+  heroBg: "#7F0E87",
+  logo: "https://crawlchat.app/logo-white.png",
+  navLinks: [
+    {
+      label: "Website",
+      href: "https://crawlchat.app",
+    },
+  ],
+  heroTitle: "Hello there 👋",
+  searchPlaceholder: "Ask your question here",
+};
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const scrape = await prisma.scrape.findFirstOrThrow({
@@ -61,7 +64,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     });
   }
 
-  return { scrape, thread, messages, userToken };
+  const scrapeWithConfig = scrape as Scrape & {
+    helpdeskConfig?: HelpdeskConfig;
+  };
+  const helpdeskConfig: HelpdeskConfig | undefined =
+    scrapeWithConfig.helpdeskConfig
+      ? scrapeWithConfig.helpdeskConfig
+      : undefined;
+
+  return { scrape, thread, messages, userToken, helpdeskConfig };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -82,7 +93,13 @@ function Container({
   );
 }
 
-function SearchInput({ color }: { color: string }) {
+function SearchInput({
+  color,
+  config,
+}: {
+  color: string;
+  config: HelpdeskConfig;
+}) {
   const { ask } = useChatBoxContext();
   const { setChatActive } = useContext(HelpdeskContext);
   const ref = useRef<HTMLInputElement>(null);
@@ -116,7 +133,7 @@ function SearchInput({ color }: { color: string }) {
             "flex items-center gap-2 text-xl pl-4 hover:scale-105 transition-all",
             "cursor-pointer"
           )}
-          style={{ color: heroBg }}
+          style={{ color: config.heroBg || DEFAULT_HELPDESK_CONFIG.heroBg }}
           onClick={() => setChatActive(true)}
         >
           <TbSparkles />
@@ -124,7 +141,10 @@ function SearchInput({ color }: { color: string }) {
         <input
           ref={ref}
           type="text"
-          placeholder="Ask your question here"
+          placeholder={
+            config.searchPlaceholder ||
+            DEFAULT_HELPDESK_CONFIG.searchPlaceholder
+          }
           className="input input-xl flex-1 shadow-none bg-base-200"
           style={{ border: 0, outline: 0, boxShadow: "none" }}
           value={query}
@@ -143,7 +163,10 @@ function SearchInput({ color }: { color: string }) {
                 "h-8 w-8 rounded-box flex items-center justify-center",
                 "cursor-pointer hover:scale-105 transition-all"
               )}
-              style={{ background: heroBg, color }}
+              style={{
+                background: config.heroBg || DEFAULT_HELPDESK_CONFIG.heroBg,
+                color,
+              }}
               onClick={handleSubmit}
             >
               <TbArrowUp />
@@ -161,7 +184,7 @@ function SearchInput({ color }: { color: string }) {
 }
 
 function PageChatBox() {
-  const { chatActive } = useContext(HelpdeskContext);
+  const { chatActive, config } = useContext(HelpdeskContext);
 
   if (!chatActive) {
     return null;
@@ -174,7 +197,7 @@ function PageChatBox() {
           "flex flex-col w-full h-full",
           "max-h-[480px] shadow-lg bg-base-200"
         )}
-        style={{ borderColor: heroBg }}
+        style={{ borderColor: config.heroBg || DEFAULT_HELPDESK_CONFIG.heroBg }}
       >
         <ChatBox />
       </div>
@@ -183,19 +206,27 @@ function PageChatBox() {
 }
 
 function Hero() {
+  const { config } = useContext(HelpdeskContext);
   const color = useMemo(() => {
-    const c = Color(heroBg);
+    const c = Color(config.heroBg || DEFAULT_HELPDESK_CONFIG.heroBg);
     return c.isDark() ? "white" : "black";
-  }, []);
+  }, [config.heroBg]);
 
   return (
-    <div className="shadow-md" style={{ background: heroBg }}>
+    <div
+      className="shadow-md"
+      style={{ background: config.heroBg || DEFAULT_HELPDESK_CONFIG.heroBg }}
+    >
       <Container className="flex flex-col">
         <div className="flex items-center justify-between" style={{ color }}>
-          <img src={logo} alt="CrawlChat" className="h-8" />
+          <img
+            src={config.logo || DEFAULT_HELPDESK_CONFIG.logo}
+            alt="CrawlChat"
+            className="h-8"
+          />
 
           <ul>
-            {navLinks.map((link) => (
+            {config.navLinks.map((link) => (
               <li key={link.href}>
                 <a href={link.href} className="link link-hover">
                   {link.label}
@@ -207,12 +238,12 @@ function Hero() {
 
         <div className="text-center mt-16 mb-4" style={{ color }}>
           <h1 className="text-5xl font-medium text-center font-radio-grotesk">
-            {heroTitle}
+            {config.heroTitle}
           </h1>
         </div>
 
         <div className="translate-y-1/2">
-          <SearchInput color={color} />
+          <SearchInput color={color} config={config} />
         </div>
       </Container>
     </div>
@@ -274,14 +305,16 @@ export function Helpdesk({
   thread,
   messages,
   userToken,
+  config,
 }: {
   scrape: Scrape;
   thread: Thread | null;
   messages: Message[];
   userToken: string | null;
+  config?: HelpdeskConfig;
 }) {
   return (
-    <HelpdeskProvider>
+    <HelpdeskProvider config={config ?? DEFAULT_HELPDESK_CONFIG}>
       <ChatBoxProvider
         scrape={scrape}
         thread={thread}
@@ -311,6 +344,7 @@ export default function HelpdeskPage({ loaderData }: Route.ComponentProps) {
       thread={loaderData.thread}
       messages={loaderData.messages}
       userToken={loaderData.userToken}
+      config={loaderData.helpdeskConfig}
     />
   );
 }

@@ -144,6 +144,19 @@ type SlackConfig {
   replyBroadcast        Boolean?
 }
 
+type HelpdeskNavLink {
+  label String
+  href String
+}
+
+type HelpdeskConfig {
+  heroBg String?
+  logo String?
+  heroTitle String?
+  navLinks HelpdeskNavLink[]
+  searchPlaceholder String?
+}
+
 type ScrapeMessageCategory {
   title String
   createdAt DateTime
@@ -176,6 +189,8 @@ model Scrape {
 
   slackTeamId           String?
   slackConfig           SlackConfig?
+
+  helpdeskConfig        HelpdeskConfig?
 
   private               Boolean?
 

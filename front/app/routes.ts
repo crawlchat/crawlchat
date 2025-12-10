@@ -31,6 +31,7 @@ export default [
     route("profile", "dashboard/profile.tsx"),
     
     route("settings", "scrapes/settings.tsx"),
+    route("settings/helpdesk", "dashboard/settings/helpdesk.tsx"),
     route("tickets", "tickets/list.tsx"),
     route("tickets/settings", "tickets/settings.tsx"),
 
