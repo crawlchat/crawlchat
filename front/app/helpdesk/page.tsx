@@ -20,15 +20,11 @@ import { HelpdeskContext, HelpdeskProvider } from "./context";
 import { createToken } from "libs/jwt";
 import { Toaster } from "react-hot-toast";
 import { MCPIcon } from "~/mcp-icon";
-import {
-  makeCursorMcpConfig,
-  makeCursorMcpJson,
-  makeMcpCommand,
-  makeMcpName,
-} from "~/mcp/setup";
+import { makeCursorMcpConfig, makeMcpName } from "~/mcp/setup";
 import { redirect } from "react-router";
 
 const DEFAULT_HELPDESK_CONFIG = {
+  enabled: false,
   heroBg: "#7F0E87",
   logo: "https://crawlchat.app/logo-white.png",
   navLinks: [
