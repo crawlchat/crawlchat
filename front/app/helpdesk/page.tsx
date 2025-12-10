@@ -232,7 +232,7 @@ function Hero() {
             className="h-8"
           />
 
-          <ul>
+          <ul className="flex items-center gap-4">
             {config.navLinks.map((link) => (
               <li key={link.href}>
                 <a href={link.href} className="link link-hover">
