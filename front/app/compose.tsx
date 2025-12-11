@@ -136,8 +136,6 @@ export function useComposer({
     if (fetcher.data && inputRef.current) {
       inputRef.current.value = "";
 
-      console.log(fetcher.data);
-
       setState({
         slate: fetcher.data.slate,
         messages: fetcher.data.messages,

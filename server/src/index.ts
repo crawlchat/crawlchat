@@ -1011,8 +1011,6 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   const slate = req.body.slate as string;
   const content = req.body.content as string;
 
-  console.log({ formatText });
-
   const message = {
     role: "user",
     content,
