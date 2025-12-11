@@ -30,9 +30,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export default function MakeGuide({ loaderData }: Route.ComponentProps) {
   const composer = useComposer({
     scrapeId: loaderData.scrape.id,
-    init: {
-      format: "markdown",
-      formatText: `You are a helpful guide writer.
+    prompt: `You are a helpful guide writer.
       You are given a conversation and you need to write a guide based on the conversation.
       <conversation>
         ${loaderData.thread.messages
@@ -41,9 +39,10 @@ export default function MakeGuide({ loaderData }: Route.ComponentProps) {
               `${message.llmMessage?.role}: ${getMessageContent(message)}`
           )
           .join("\n")}
-      </conversation>
-
-      It should be plain steps as markdown list or nested lists. No headings, no subheadings.
+      </conversation>`,
+    init: {
+      format: "markdown",
+      formatText: `It should be plain steps as markdown list or nested lists. No headings, no subheadings.
       Each step should not be more than 2 sentences.
 
       Example output:
@@ -53,16 +52,12 @@ export default function MakeGuide({ loaderData }: Route.ComponentProps) {
         3. Type "How to make a guide"
         4. Click on the search button
       </example>
-
-      Give only the output as shown in the example. Don't add any other text.
       `,
     },
     stateLess: true,
   });
 
-  useEffect(() => {
-
-  }, [])
+  useEffect(() => {}, []);
 
   return (
     <Page

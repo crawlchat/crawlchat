@@ -1009,12 +1009,13 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   const formatText = req.body.formatText as string;
   const llmModel = req.body.llmModel as LlmModel | undefined;
   const slate = req.body.slate as string;
+  const content = req.body.content as string;
 
-  console.log(slate);
+  console.log({ formatText });
 
   const message = {
     role: "user",
-    content: prompt,
+    content,
   };
 
   const messages = [message];
@@ -1047,12 +1048,16 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
 
     <slate>${slate}</slate>
 
+    Output should be in the following format:
+
     <format-text>${formatText}</format-text>
 
     You need to give back the updated slate.
     You should apply changes asked to the current slate.
     You should only apply changes and not do anything else.
     Don't inspire from previous slates. Continue from the current slate.
+
+    ${prompt}
     `,
     tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
     schema: z.object({
@@ -1079,8 +1084,8 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
 
   while (await flow.stream()) {}
 
-  const content = flow.getLastMessage().llmMessage.content as string;
-  const { slate: newSlate, details } = JSON.parse(content);
+  const response = flow.getLastMessage().llmMessage.content as string;
+  const { slate: newSlate, details } = JSON.parse(response);
 
   await consumeCredits(scrape.userId, "messages", llmConfig.creditsPerMessage);
 

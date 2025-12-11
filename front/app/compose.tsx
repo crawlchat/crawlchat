@@ -64,10 +64,11 @@ export async function action({ request }: Route.ActionArgs) {
   const intent = formData.get("intent");
 
   if (intent === "compose") {
-    let prompt = formData.get("prompt");
+    const prompt = formData.get("prompt");
     const messages = formData.get("messages");
-    const formatText = formData.get("format-text");
+    const formatText = formData.get("formatText");
     const slate = formData.get("slate");
+    const content = formData.get("content");
 
     const token = createToken(user!.id);
     const response = await fetch(
@@ -79,6 +80,7 @@ export async function action({ request }: Route.ActionArgs) {
           messages,
           formatText,
           slate,
+          content,
         }),
         headers: {
           Authorization: `Bearer ${token}`,
@@ -102,9 +104,11 @@ export function useComposer({
   scrapeId,
   stateLess,
   init,
+  prompt: inputPrompt,
 }: {
   scrapeId: string;
   stateLess?: boolean;
+  prompt?: string;
   init?: {
     format?: ComposeFormat;
     formatText?: string;
@@ -124,6 +128,7 @@ export function useComposer({
   const [editMode, setEditMode] = useState<boolean>(false);
   const [editText, setEditText] = useState<string>("");
   const [title, setTitle] = useState<string | undefined>(init?.title);
+  const [prompt, setPrompt] = useState<string>(inputPrompt ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
 
@@ -191,10 +196,11 @@ export function useComposer({
     setEditMode((e) => !e);
   }
 
-  function askEdit(prompt: string) {
+  function askEdit(content: string) {
     fetcher.submit(
       {
         intent: "compose",
+        content,
         prompt,
         messages: JSON.stringify(state?.messages ?? []),
         formatText,
@@ -229,6 +235,8 @@ export function useComposer({
     editText,
     setEditText,
     askEdit,
+    prompt,
+    setPrompt,
   };
 }
 
