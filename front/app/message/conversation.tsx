@@ -131,58 +131,12 @@ export default function Conversation({ loaderData }: Route.ComponentProps) {
       icon={<TbMessages />}
       right={
         <div className="flex items-center gap-2">
-          {/* <div className="join">
-            <Link
-              to={`/compose?threadId=${loaderData.thread.id}&format=markdown&text=Summarise the conversation&submit=true`}
-              className="btn join-item"
-            >
-              Summarise
-            </Link>
-            <div className="dropdown dropdown-end">
-              <button
-                tabIndex={0}
-                className="btn btn-square join-item border-l-0"
-              >
-                <TbChevronDown />
-              </button>
-              <ul
-                className={cn(
-                  "menu dropdown-content bg-base-200 rounded-box z-1 w-52 p-2 shadow-sm",
-                  "mt-1"
-                )}
-              >
-                <li>
-                  <Link
-                    to={`/compose?threadId=${loaderData.thread.id}&format=tweet&text=Make a viral tweet about this conversation&submit=true`}
-                  >
-                    <TbBrandTwitter />
-                    <span>Make a tweet</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to={`/compose?threadId=${loaderData.thread.id}&format=markdown&text=Make a blog post about this conversation&submit=true`}
-                  >
-                    <TbMarkdown />
-                    <span>Make a blog post</span>
-                  </Link>
-                </li>
-                <li>
-                  <Link to={`/compose?threadId=${loaderData.thread.id}`}>
-                    <TbPencil />
-                    <span>Compose</span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div> */}
-
-          <Link
+          {/* <Link
             to={`/questions/conversations/${loaderData.thread.id}/make-guide`}
             className="btn btn-primary btn-soft"
           >
             Make a guide
-          </Link>
+          </Link> */}
 
           <div
             className="tooltip tooltip-left"
