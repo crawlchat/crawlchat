@@ -11,18 +11,20 @@ import { Page } from "~/components/page";
 import { prisma } from "~/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { Link, redirect, useFetcher } from "react-router";
+import {
+  Link,
+  redirect,
+  useFetcher,
+  type FetcherWithComponents,
+} from "react-router";
 import { createToken } from "libs/jwt";
-import { useEffect } from "react";
-import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import { makeMessagePairs } from "./analyse";
 import type { ApiAction, ScrapeItem } from "libs/prisma";
 import { QuestionAnswer } from "./message";
-import { SettingsContainer, SettingsSection } from "~/settings-section";
+import { SettingsSection } from "~/settings-section";
 import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
-import { Composer, useComposer } from "~/compose";
-import { MarkdownProse } from "~/widget/markdown-prose";
+import { ComposerSection, useComposer } from "~/compose";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -175,46 +177,74 @@ ${content}`;
   }
 }
 
-export default function FixMessage({ loaderData }: Route.ComponentProps) {
-  const summarizeFetcher = useFetcher();
-  const saveFetcher = useFetcher();
+function FixComposer({
+  scrapeId,
+  title,
+  text,
+  saveFetcher,
+}: {
+  scrapeId: string;
+  title: string;
+  text: string;
+  saveFetcher: FetcherWithComponents<any>;
+}) {
   const composer = useComposer({
-    scrapeId: loaderData.scrape.id,
+    scrapeId,
+    stateLess: true,
     init: {
       format: "markdown",
       formatText: `Create a markdown page as a correction for the answer provided by AI.
       Keep things short and concise.
       Use basic markdown formatting.
       First message is a fact.`,
-    },
-  });
-
-  useEffect(() => {
-    if (summarizeFetcher.data?.error) {
-      toast.error(summarizeFetcher.data.error);
-    } else if (summarizeFetcher.data?.content) {
-      composer.setState({
-        content: summarizeFetcher.data.content,
+      title,
+      state: {
+        slate: text,
         messages: [
           {
             role: "user",
-            content: summarizeFetcher.data.content,
+            content: text,
           },
         ],
-      });
-    }
-  }, [summarizeFetcher.data]);
-
-  useEffect(() => {
-    if (saveFetcher.data?.error) {
-      toast.error(saveFetcher.data.error);
-    }
-  }, [saveFetcher.data]);
+      },
+    },
+  });
 
   useFetcherToast(saveFetcher, {
     title: "Saved",
     description: "Saved the answer to the knowledge base!",
   });
+
+  return (
+    <ComposerSection
+      composer={composer}
+      sectionTitle="Correct the answer"
+      sectionDescription="Give the correct answer and it will be added as a page to the knowledge base."
+      sectionRight={
+        <saveFetcher.Form method="post">
+          <input type="hidden" name="intent" value="save" />
+          <input type="hidden" name="title" value={title} />
+          <input type="hidden" name="content" value={composer.state.slate} />
+          <button
+            className="btn btn-primary"
+            type="submit"
+            disabled={saveFetcher.state !== "idle" || composer.editMode}
+          >
+            {saveFetcher.state !== "idle" && (
+              <span className="loading loading-spinner loading-xs" />
+            )}
+            Save it
+            <TbCheck />
+          </button>
+        </saveFetcher.Form>
+      }
+    />
+  );
+}
+
+export default function FixMessage({ loaderData }: Route.ComponentProps) {
+  const summarizeFetcher = useFetcher();
+  const saveFetcher = useFetcher();
 
   return (
     <Page title="Fix message" icon={<TbSettingsBolt />}>
@@ -268,61 +298,12 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
               description="Saved the answer to the knowledge base!"
             />
           ) : summarizeFetcher.data?.title && summarizeFetcher.data?.content ? (
-            <SettingsSection
-              title="Correct the answer"
-              description="Give the correct answer and it will be added as a page to the knowledge base."
-              actionRight={
-                <div className="flex gap-2 w-full">
-                  <Composer composer={composer} className="flex-1">
-                    <Composer.Form composer={composer} primary={false} />
-                  </Composer>
-                  <saveFetcher.Form method="post">
-                    <input type="hidden" name="intent" value="save" />
-                    <input
-                      type="hidden"
-                      name="title"
-                      value={summarizeFetcher.data?.title}
-                    />
-                    <input
-                      type="hidden"
-                      name="content"
-                      value={composer.state?.content}
-                    />
-                    <button
-                      className="btn btn-primary"
-                      type="submit"
-                      disabled={saveFetcher.state !== "idle"}
-                    >
-                      {saveFetcher.state !== "idle" && (
-                        <span className="loading loading-spinner loading-xs" />
-                      )}
-                      Save it
-                      <TbCheck />
-                    </button>
-                  </saveFetcher.Form>
-                </div>
-              }
-            >
-              <div className="flex flex-col gap-2">
-                <input type="hidden" name="intent" value="save" />
-                <fieldset className="fieldset">
-                  <legend className="fieldset-legend">Title</legend>
-                  <input
-                    type="text"
-                    placeholder="Ex: Price details"
-                    className="input w-full"
-                    name="title"
-                    defaultValue={summarizeFetcher.data.title}
-                    disabled={saveFetcher.state !== "idle"}
-                  />
-                </fieldset>
-
-                <MarkdownProse sources={[]}>
-                  {composer.state?.content ||
-                    "Start by asking a question below"}
-                </MarkdownProse>
-              </div>
-            </SettingsSection>
+            <FixComposer
+              scrapeId={loaderData.scrape.id}
+              title={summarizeFetcher.data.title}
+              text={summarizeFetcher.data.content}
+              saveFetcher={saveFetcher}
+            />
           ) : (
             <SettingsSection
               title="Correct the answer"

@@ -1,4 +1,6 @@
 import {
+  TbArrowUp,
+  TbCheck,
   TbBrandLinkedin,
   TbBrandTwitter,
   TbChevronDown,
@@ -20,6 +22,7 @@ import { RadioCard } from "./components/radio-card";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
 import { prisma, type Message, type Thread } from "libs/prisma";
+import { SettingsSection } from "./settings-section";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -64,6 +67,7 @@ export async function action({ request }: Route.ActionArgs) {
     let prompt = formData.get("prompt");
     const messages = formData.get("messages");
     const formatText = formData.get("format-text");
+    const slate = formData.get("slate");
 
     const token = createToken(user!.id);
     const response = await fetch(
@@ -74,6 +78,7 @@ export async function action({ request }: Route.ActionArgs) {
           prompt,
           messages,
           formatText,
+          slate,
         }),
         headers: {
           Authorization: `Bearer ${token}`,
@@ -85,7 +90,7 @@ export async function action({ request }: Route.ActionArgs) {
     const data = await response.json();
 
     return {
-      content: data.content,
+      slate: data.slate,
       messages: data.messages,
     };
   }
@@ -95,24 +100,30 @@ type ComposeFormat = "markdown" | "email" | "tweet" | "linkedin-post";
 
 export function useComposer({
   scrapeId,
+  stateLess,
   init,
 }: {
   scrapeId: string;
+  stateLess?: boolean;
   init?: {
     format?: ComposeFormat;
     formatText?: string;
-    state?: { content: string; messages: any[] };
+    state?: { slate: string; messages: any[] };
+    title?: string;
   };
 }) {
   const fetcher = useFetcher();
-  const [state, setState] = useState<
-    { content: string; messages: any[] } | undefined
-  >(init?.state);
+  const [state, setState] = useState<{ slate: string; messages: any[] }>(
+    init?.state ?? { slate: "", messages: [] }
+  );
   const [format, setFormat] = useState<ComposeFormat>(
     init?.format ?? "markdown"
   );
   const [formatText, setFormatText] = useState<string>(init?.formatText ?? "");
   const [formatTextActive, setFormatTextActive] = useState<boolean>(false);
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [editText, setEditText] = useState<string>("");
+  const [title, setTitle] = useState<string | undefined>(init?.title);
   const inputRef = useRef<HTMLInputElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
 
@@ -120,30 +131,82 @@ export function useComposer({
     if (fetcher.data && inputRef.current) {
       inputRef.current.value = "";
 
+      console.log(fetcher.data);
+
       setState({
-        content: fetcher.data.content,
+        slate: fetcher.data.slate,
         messages: fetcher.data.messages,
       });
-      localStorage.setItem(
-        `compose-state-${scrapeId}`,
-        JSON.stringify(fetcher.data)
-      );
+
+      if (!stateLess) {
+        localStorage.setItem(
+          `compose-state-${scrapeId}`,
+          JSON.stringify({
+            slate: fetcher.data.slate,
+            messages: fetcher.data.messages,
+          })
+        );
+      }
     }
   }, [fetcher.data, scrapeId]);
 
   useEffect(() => {
+    if (stateLess) return;
+
     if (scrapeId && localStorage.getItem(`compose-state-${scrapeId}`)) {
       setState(JSON.parse(localStorage.getItem(`compose-state-${scrapeId}`)!));
     }
   }, [scrapeId]);
 
   useEffect(() => {
+    if (stateLess) return;
+
     setFormatText(localStorage.getItem(`compose-format-${format}`) ?? "");
   }, [format]);
 
   useEffect(() => {
+    if (stateLess) return;
+
     localStorage.setItem(`compose-format-${format}`, formatText);
-  }, [formatText]);
+  }, [formatText, stateLess]);
+
+  function setSlate(text: string) {
+    setState((old) => {
+      const newState = old ?? { slate: "", messages: [] };
+      newState.slate = text;
+      newState.messages.push({
+        role: "assistant",
+        content: text,
+      });
+      return newState;
+    });
+  }
+
+  function toggleEditMode() {
+    if (editMode) {
+      setSlate(editText);
+    } else {
+      setEditText(state.slate);
+    }
+    setEditMode((e) => !e);
+  }
+
+  function askEdit(prompt: string) {
+    fetcher.submit(
+      {
+        intent: "compose",
+        prompt,
+        messages: JSON.stringify(state?.messages ?? []),
+        formatText,
+        format,
+        slate: state.slate,
+      },
+      {
+        method: "post",
+        action: "/compose",
+      }
+    );
+  }
 
   return {
     format,
@@ -157,38 +220,19 @@ export function useComposer({
     inputRef,
     submitRef,
     setState,
+    setSlate,
+    title,
+    setTitle,
+    editMode,
+    setEditMode,
+    toggleEditMode,
+    editText,
+    setEditText,
+    askEdit,
   };
 }
 
 export type ComposerState = ReturnType<typeof useComposer>;
-
-export function Composer({
-  composer,
-  children,
-  className,
-}: PropsWithChildren<{
-  composer: ComposerState;
-  className?: string;
-}>) {
-  return (
-    <composer.fetcher.Form
-      method="post"
-      className={className}
-      action="/compose"
-    >
-      <input type="hidden" name="intent" value="compose" />
-      <input
-        type="hidden"
-        name="messages"
-        value={JSON.stringify(composer.state?.messages)}
-      />
-      <input type="hidden" name="format" value={composer.format} />
-      <input type="hidden" name="format-text" value={composer.formatText} />
-
-      {children}
-    </composer.fetcher.Form>
-  );
-}
 
 function FormatSelector({ composer }: { composer: ComposerState }) {
   return (
@@ -260,7 +304,7 @@ function Form({
   defaultValue?: string;
 }) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-1">
       <input
         className="input flex-1"
         type="text"
@@ -268,25 +312,96 @@ function Form({
         placeholder="What to update?"
         ref={composer.inputRef}
         defaultValue={defaultValue}
-      />
-      <button
-        type="submit"
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            composer.askEdit(composer.inputRef.current?.value ?? "");
+          }
+        }}
         disabled={composer.fetcher.state !== "idle"}
-        className={cn("btn", primary && "btn-primary")}
-        ref={composer.submitRef}
-      >
-        {composer.fetcher.state !== "idle" && (
-          <span className="loading loading-spinner loading-xs" />
-        )}
-        {composer.state?.content ? "Update" : "Compose"}
-        <TbPencil />
-      </button>
+      />
+      <div className="tooltip" data-tip="Ask AI to update">
+        <button
+          type="submit"
+          disabled={composer.fetcher.state !== "idle" || composer.editMode}
+          className={cn("btn btn-square", primary && "btn-primary")}
+          ref={composer.submitRef}
+          onClick={() =>
+            composer.askEdit(composer.inputRef.current?.value ?? "")
+          }
+        >
+          {composer.fetcher.state !== "idle" ? (
+            <span className="loading loading-spinner loading-xs" />
+          ) : (
+            <TbArrowUp />
+          )}
+        </button>
+      </div>
+      <div className="tooltip" data-tip="Edit manually">
+        <button
+          type="button"
+          className={cn("btn btn-square", composer.editMode && "btn-primary")}
+          onClick={composer.toggleEditMode}
+        >
+          {composer.editMode ? <TbCheck /> : <TbPencil />}
+        </button>
+      </div>
     </div>
   );
 }
 
-Composer.FormatSelector = FormatSelector;
-Composer.Form = Form;
+export function ComposerSection({
+  composer,
+  sectionRight,
+  sectionTitle,
+  sectionDescription,
+}: {
+  composer: ComposerState;
+  sectionRight?: React.ReactNode;
+  sectionTitle?: string;
+  sectionDescription?: string;
+}) {
+  return (
+    <SettingsSection
+      title={sectionTitle}
+      description={sectionDescription}
+      actionRight={
+        <div className="flex gap-2 w-full">
+          <Form composer={composer} primary={false} />
+          {sectionRight}
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-2">
+        <input type="hidden" name="intent" value="save" />
+        {composer.title !== undefined && (
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">Title</legend>
+            <input
+              type="text"
+              placeholder="Ex: Price details"
+              className="input w-full"
+              name="title"
+              value={composer.title}
+            />
+          </fieldset>
+        )}
+
+        {!composer.editMode && (
+          <MarkdownProse sources={[]}>
+            {composer.state.slate || "Start by asking a question below"}
+          </MarkdownProse>
+        )}
+        {composer.editMode && (
+          <textarea
+            className="textarea w-full"
+            value={composer.editText}
+            onChange={(e) => composer.setEditText(e.target.value)}
+          />
+        )}
+      </div>
+    </SettingsSection>
+  );
+}
 
 export default function Compose({ loaderData }: Route.ComponentProps) {
   const composer = useComposer({
@@ -303,13 +418,13 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
   }, [loaderData.submit]);
 
   function handleCopy() {
-    navigator.clipboard.writeText(composer.state?.content ?? "");
+    navigator.clipboard.writeText(composer.state.slate);
     toast.success("Copied to clipboard");
   }
 
   function handleClear() {
     localStorage.removeItem(`compose-state-${loaderData.scrapeId}`);
-    composer.setState(undefined);
+    composer.setState({ slate: "", messages: [] });
   }
 
   return (
@@ -333,18 +448,10 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
           knowledge base. Ask any update below and it uses the context to
           componse and update the text. It uses 1 message credit per update.
         </div>
-        <Composer
-          composer={composer}
-          className="flex flex-col gap-4 max-w-prose"
-        >
-          <FormatSelector composer={composer} />
-          <div className="bg-base-200 p-6 rounded-box border border-base-300 shadow">
-            <MarkdownProse sources={[]}>
-              {composer.state?.content || "Start by asking a question below"}
-            </MarkdownProse>
-          </div>
-          <Form composer={composer} defaultValue={loaderData.text ?? ""} />
-        </Composer>
+
+        <FormatSelector composer={composer} />
+
+        <ComposerSection composer={composer} />
       </div>
     </Page>
   );

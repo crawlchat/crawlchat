@@ -69,19 +69,21 @@ export function SettingsSection({
         ref={ref}
       >
         <div className={cn("flex flex-col gap-4 p-4")}>
-          <div className="flex flex-col gap-2">
-            {title && <div className="text-md font-medium">{title}</div>}
-            {description && (
-              <div
-                className={cn(
-                  "text-sm text-base-content/50",
-                  danger && "text-error/50"
-                )}
-              >
-                {description}
-              </div>
-            )}
-          </div>
+          {(title || description) && (
+            <div className="flex flex-col gap-2">
+              {title && <div className="text-md font-medium">{title}</div>}
+              {description && (
+                <div
+                  className={cn(
+                    "text-sm text-base-content/50",
+                    danger && "text-error/50"
+                  )}
+                >
+                  {description}
+                </div>
+              )}
+            </div>
+          )}
           {children}
         </div>
         {(actionRight || fetcher) && (

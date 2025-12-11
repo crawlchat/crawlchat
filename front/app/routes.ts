@@ -41,6 +41,7 @@ export default [
 
     route("questions/conversations", "message/conversations.tsx"),
     route("questions/conversations/:conversationId", "message/conversation.tsx"),
+    route("questions/conversations/:conversationId/make-guide", "message/make-guide.tsx"),
 
     route("connect", "integrations/page.tsx", [
       index("integrations/customise.tsx"),

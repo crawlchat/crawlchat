@@ -1008,23 +1008,27 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   const oldMessages = JSON.parse((req.body.messages as string) || "[]");
   const formatText = req.body.formatText as string;
   const llmModel = req.body.llmModel as LlmModel | undefined;
+  const slate = req.body.slate as string;
+
+  console.log(slate);
 
   const message = {
     role: "user",
     content: prompt,
   };
 
-  const messages = [...oldMessages, message];
+  const messages = [message];
 
   const queryContext: QueryContext = {
     ragQueries: [],
   };
 
-  const llmConfig = getConfig(llmModel ?? "haiku_4_5");
+  const llmConfig = getConfig(llmModel ?? "gemini_2_5_flash");
   const agent = new SimpleAgent({
     id: "compose-agent",
     prompt: `
-    Update the answer given above following the prompt and the question.
+    Update the <slate> given below following the prompt and the question.
+
     Use the search_data tool to get the relevant information.
     Only update the asked items from <answer>.
     Use the search_data tool only if new information is required.
@@ -1041,18 +1045,24 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     You need to find indirect questions. For example: 'What is the cheapest pricing plan?' should be converted into 'pricing plans' and then find cheapest
     Don't use the search_data tool if the latest message is answer for a follow up question. Ex: yes, no.,
 
-    Don't overwrite the answer with delta. Always apply the delta.
-
-    Just give the answer. Don't give any other text other than the answer.
-    Don't include <answer> or any kind of tags in the answer.
-    Don't mention about you searching the context etc., it should be pure answer.
-
-    If you don't have answer, just give back the text.
-    Don't make huge changes, do minimal and concise changes.
+    <slate>${slate}</slate>
 
     <format-text>${formatText}</format-text>
+
+    You need to give back the updated slate.
+    You should apply changes asked to the current slate.
+    You should only apply changes and not do anything else.
+    Don't inspire from previous slates. Continue from the current slate.
     `,
     tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    schema: z.object({
+      slate: z.string({
+        description: "The answer in slate format",
+      }),
+      details: z.string({
+        description: "Any additional details while updating the slate",
+      }),
+    }),
     user: scrape.id,
     ...llmConfig,
   });
@@ -1060,9 +1070,9 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   const flow = new Flow([agent], {
     messages: messages.map((m) => ({
       llmMessage: {
-        role: m.role as any,
+        role: m.role,
         content: m.content,
-      },
+      } as any,
     })),
   });
   flow.addNextAgents(["compose-agent"]);
@@ -1070,11 +1080,14 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   while (await flow.stream()) {}
 
   const content = flow.getLastMessage().llmMessage.content as string;
+  const { slate: newSlate, details } = JSON.parse(content);
 
   await consumeCredits(scrape.userId, "messages", llmConfig.creditsPerMessage);
 
   res.json({
     content,
+    details,
+    slate: newSlate,
     messages: [
       ...messages,
       {
