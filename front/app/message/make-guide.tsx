@@ -32,6 +32,11 @@ export default function MakeGuide({ loaderData }: Route.ComponentProps) {
     scrapeId: loaderData.scrape.id,
     prompt: `You are a helpful guide writer.
       You are given a conversation and you need to write a guide based on the conversation.
+
+      It should be plain steps as markdown list or nested lists. No headings, no subheadings.
+      Each step should not be more than 2 sentences.
+      Don't use headings at all. It should be just pure bullet points.
+
       <conversation>
         ${loaderData.thread.messages
           .map(
@@ -42,22 +47,21 @@ export default function MakeGuide({ loaderData }: Route.ComponentProps) {
       </conversation>`,
     init: {
       format: "markdown",
-      formatText: `It should be plain steps as markdown list or nested lists. No headings, no subheadings.
-      Each step should not be more than 2 sentences.
-
-      Example output:
-      <example>
+      formatText: `
         1. Go to <https://www.google.com>
         2. Click on the search icon
         3. Type "How to make a guide"
         4. Click on the search button
-      </example>
       `,
     },
     stateLess: true,
   });
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    setTimeout(() => {
+      composer.askEdit("Make a guide");
+    }, 100);
+  }, []);
 
   return (
     <Page
@@ -70,9 +74,7 @@ export default function MakeGuide({ loaderData }: Route.ComponentProps) {
         </button>
       }
     >
-      <div className="max-w-prose">
-        <ComposerSection composer={composer} />
-      </div>
+      <ComposerSection composer={composer} />
     </Page>
   );
 }

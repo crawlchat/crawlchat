@@ -207,7 +207,6 @@ function FixComposer({
   return (
     <ComposerSection
       composer={composer}
-      titlePlaceholder="Title of the correction"
       right={
         <saveFetcher.Form method="post">
           <input type="hidden" name="intent" value="save" />

@@ -584,10 +584,12 @@ function LexicalErrorBoundary({
 }
 
 function LexicalEditor({
+  composer,
   markdown,
   onMarkdownChange,
   editable = true,
 }: {
+  composer: ComposerState;
   markdown: string;
   onMarkdownChange: (markdown: string) => void;
   editable?: boolean;
@@ -650,8 +652,12 @@ function LexicalEditor({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="overflow-hidden">
-        <ToolbarPlugin />
+      <div>
+        <div className="sticky top-15 z-10 bg-base-200">
+          <TitleBar composer={composer} />
+          <ToolbarPlugin />
+        </div>
+
         <div className="relative lexical-editor-content">
           <RichTextPlugin
             contentEditable={
@@ -677,46 +683,53 @@ function LexicalEditor({
   );
 }
 
-export function ComposerSection({
-  composer,
-  right,
-  titlePlaceholder = "Title of the page",
-}: {
-  composer: ComposerState;
-  right?: React.ReactNode;
-  titlePlaceholder?: string;
-}) {
+function TitleBar({ composer }: { composer: ComposerState }) {
   function refreshTitle() {
     composer.askEdit("Update the title of the page");
   }
 
   return (
+    <div
+      className={cn(
+        "px-4 py-3 flex items-center bg-base-200 border-b border-base-300"
+      )}
+    >
+      <input
+        type="text"
+        placeholder={"Title of the page"}
+        className={cn("w-full outline-0")}
+        name="title"
+        value={composer.state.title ?? ""}
+        onChange={(e) => {
+          composer.setState((old) => ({
+            ...old,
+            title: e.target.value,
+          }));
+        }}
+      />
+
+      <button
+        className="btn btn-ghost btn-square btn-xs"
+        onClick={refreshTitle}
+        disabled={composer.fetcher.state !== "idle"}
+      >
+        <TbRefresh />
+      </button>
+    </div>
+  );
+}
+
+export function ComposerSection({
+  composer,
+  right,
+}: {
+  composer: ComposerState;
+  right?: React.ReactNode;
+}) {
+  return (
     <div className="bg-base-200/50 border border-base-300 rounded-box">
-      <div className="px-4 py-3 flex items-center bg-base-200 border-b border-base-300">
-        <input
-          type="text"
-          placeholder={titlePlaceholder ?? "Title of the page"}
-          className={cn("w-full outline-0")}
-          name="title"
-          value={composer.state.title ?? ""}
-          onChange={(e) => {
-            composer.setState((old) => ({
-              ...old,
-              title: e.target.value,
-            }));
-          }}
-        />
-
-        <button
-          className="btn btn-ghost btn-square btn-xs"
-          onClick={refreshTitle}
-          disabled={composer.fetcher.state !== "idle"}
-        >
-          <TbRefresh />
-        </button>
-      </div>
-
       <LexicalEditor
+        composer={composer}
         markdown={composer.state.slate}
         onMarkdownChange={(markdown) => {
           composer.setState((old) => ({

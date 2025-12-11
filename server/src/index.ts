@@ -1077,6 +1077,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
       }),
     }),
     user: scrape.id,
+    maxTokens: 8000,
     ...llmConfig,
   });
 
