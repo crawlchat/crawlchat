@@ -53,7 +53,7 @@ const Panel = ({
   }>({
     content: input.content,
     messages: input.messages,
-    slate: "",
+    slate: input.content,
     title: undefined,
   });
   const [composeLoading, setComposeLoading] = useState(false);
@@ -145,7 +145,7 @@ const Panel = ({
     }
 
     setCompose({
-      content: result.data.content,
+      content: result.data.slate,
       messages: result.data.messages,
       slate: result.data.slate,
       title: result.data.title,
