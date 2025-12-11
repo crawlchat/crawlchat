@@ -1010,6 +1010,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   const llmModel = req.body.llmModel as LlmModel | undefined;
   const slate = req.body.slate as string;
   const content = req.body.content as string;
+  const title = req.body.title as string;
 
   const message = {
     role: "user",
@@ -1044,6 +1045,12 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     You need to find indirect questions. For example: 'What is the cheapest pricing plan?' should be converted into 'pricing plans' and then find cheapest
     Don't use the search_data tool if the latest message is answer for a follow up question. Ex: yes, no.,
 
+    Don't add top level heading to the slate. It is included outside.
+    Start the slate with a regular paragraph or text.
+    Update the title only if it is asked or the title is empty or not set.
+
+
+    <title>${title}</title>
     <slate>${slate}</slate>
 
     Output should be in the following format:
@@ -1065,6 +1072,9 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
       details: z.string({
         description: "Any additional details while updating the slate",
       }),
+      title: z.string({
+        description: "The title of the page. Should be under 8 words.",
+      }),
     }),
     user: scrape.id,
     ...llmConfig,
@@ -1083,13 +1093,14 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   while (await flow.stream()) {}
 
   const response = flow.getLastMessage().llmMessage.content as string;
-  const { slate: newSlate, details } = JSON.parse(response);
+  const { slate: newSlate, details, title: newTitle } = JSON.parse(response);
 
   await consumeCredits(scrape.userId, "messages", llmConfig.creditsPerMessage);
 
   res.json({
     content,
     details,
+    title: newTitle,
     slate: newSlate,
     messages: [
       ...messages,

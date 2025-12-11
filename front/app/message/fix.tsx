@@ -179,13 +179,9 @@ ${content}`;
 
 function FixComposer({
   scrapeId,
-  title,
-  text,
   saveFetcher,
 }: {
   scrapeId: string;
-  title: string;
-  text: string;
   saveFetcher: FetcherWithComponents<any>;
 }) {
   const composer = useComposer({
@@ -197,16 +193,6 @@ function FixComposer({
       Keep things short and concise.
       Use basic markdown formatting.
       First message is a fact.`,
-      title,
-      state: {
-        slate: text,
-        messages: [
-          {
-            role: "user",
-            content: text,
-          },
-        ],
-      },
     },
   });
 
@@ -215,27 +201,39 @@ function FixComposer({
     description: "Saved the answer to the knowledge base!",
   });
 
+  const missingDetails =
+    !composer.state.title?.trim() || !composer.state.slate.trim();
+
   return (
     <ComposerSection
       composer={composer}
-      sectionTitle="Correct the answer"
-      sectionDescription="Give the correct answer and it will be added as a page to the knowledge base."
-      sectionRight={
+      titlePlaceholder="Title of the correction"
+      right={
         <saveFetcher.Form method="post">
           <input type="hidden" name="intent" value="save" />
-          <input type="hidden" name="title" value={title} />
+          <input
+            type="hidden"
+            name="title"
+            value={composer.state.title ?? ""}
+          />
           <input type="hidden" name="content" value={composer.state.slate} />
-          <button
-            className="btn btn-primary"
-            type="submit"
-            disabled={saveFetcher.state !== "idle" || composer.editMode}
+
+          <div
+            className="tooltip tooltip-left"
+            data-tip={missingDetails ? "Title and content are required" : ""}
           >
-            {saveFetcher.state !== "idle" && (
-              <span className="loading loading-spinner loading-xs" />
-            )}
-            Save it
-            <TbCheck />
-          </button>
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={saveFetcher.state !== "idle" || missingDetails}
+            >
+              {saveFetcher.state !== "idle" && (
+                <span className="loading loading-spinner loading-xs" />
+              )}
+              Save it
+              <TbCheck />
+            </button>
+          </div>
         </saveFetcher.Form>
       }
     />
@@ -243,7 +241,6 @@ function FixComposer({
 }
 
 export default function FixMessage({ loaderData }: Route.ComponentProps) {
-  const summarizeFetcher = useFetcher();
   const saveFetcher = useFetcher();
 
   return (
@@ -297,30 +294,11 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
               }
               description="Saved the answer to the knowledge base!"
             />
-          ) : summarizeFetcher.data?.title && summarizeFetcher.data?.content ? (
+          ) : (
             <FixComposer
               scrapeId={loaderData.scrape.id}
-              title={summarizeFetcher.data.title}
-              text={summarizeFetcher.data.content}
               saveFetcher={saveFetcher}
             />
-          ) : (
-            <SettingsSection
-              title="Correct the answer"
-              fetcher={summarizeFetcher}
-              saveLabel="Summarise"
-              savePrimary
-              saveIcon={<TbArrowRight />}
-              description="Give the correct answer and it will be added as a page to the knowledge base."
-            >
-              <input type="hidden" name="intent" value="summarise" />
-              <textarea
-                className="textarea textarea-bordered w-full"
-                placeholder="Enter the correct answer/fix here"
-                name="answer"
-                disabled={saveFetcher.state !== "idle"}
-              />
-            </SettingsSection>
           )}
         </div>
 

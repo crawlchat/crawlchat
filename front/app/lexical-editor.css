@@ -1,0 +1,45 @@
+.lexical-editor-content > ul,
+.lexical-editor-content > ol {
+  list-style-position: outside;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.lexical-editor-content ul {
+  list-style-type: disc;
+}
+
+.lexical-editor-content ol {
+  list-style-type: decimal;
+}
+
+.lexical-editor-content li {
+  margin: 0.25rem 0;
+  display: list-item;
+}
+
+.lexical-editor-content li > ul,
+.lexical-editor-content li > ol {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  padding-left: 1.5rem;
+  list-style-type: circle;
+}
+
+.lexical-editor-content li > ol {
+  list-style-type: lower-alpha;
+}
+
+.lexical-editor-content li > ul > li > ul,
+.lexical-editor-content li > ul > li > ul > li > ul {
+  list-style-type: square;
+}
+
+.lexical-editor-content li > ol > li > ol {
+  list-style-type: lower-roman;
+}
+
+.lexical-editor-content li:has(> ul),
+.lexical-editor-content li:has(> ol) {
+  list-style: none;
+}
