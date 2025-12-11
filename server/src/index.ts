@@ -1023,7 +1023,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     ragQueries: [],
   };
 
-  const llmConfig = getConfig(llmModel ?? "gemini_2_5_flash");
+  const llmConfig = getConfig("gemini_2_5_flash");
   const agent = new SimpleAgent({
     id: "compose-agent",
     prompt: `
