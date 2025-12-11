@@ -51,7 +51,6 @@ const EXCLUDE_NON_MAIN_TAGS = [
   "style",
   "p:empty",
   "div:empty",
-  '[class*="sidebar"]',
   '[id*="sidebar"]',
   "iframe",
 ];
