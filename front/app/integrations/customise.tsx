@@ -554,7 +554,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
             Hide branding
             {!canHideBranding && (
               <span className="text-sm text-base-content/60 ml-2">
-                (Requires brand removal subscription)
+                Contact support
               </span>
             )}
           </label>
