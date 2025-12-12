@@ -15,6 +15,7 @@ import { TbConfetti, TbCopy } from "react-icons/tb";
 import { toast, Toaster } from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import cn from "@meltdownjs/cn";
+import Avatar from "boring-avatars";
 import {
   Bar,
   BarChart,
@@ -279,12 +280,21 @@ function MessagesTable({
                 </Link>
               </td>
               <td>
-                <Link
-                  to={`/admin-fowl/user/${messageDetail.user.id}`}
-                  className="link link-primary link-hover"
-                >
-                  {messageDetail.user.email}
-                </Link>
+                <div className="flex items-center gap-2">
+                  {messageDetail.message.fingerprint && (
+                    <Avatar
+                      name={messageDetail.message.fingerprint}
+                      size={24}
+                      variant="beam"
+                    />
+                  )}
+                  <Link
+                    to={`/admin-fowl/user/${messageDetail.user.id}`}
+                    className="link link-primary link-hover"
+                  >
+                    {messageDetail.user.email}
+                  </Link>
+                </div>
               </td>
               <td>
                 <div className="flex items-center gap-2">

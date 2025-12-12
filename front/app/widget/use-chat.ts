@@ -1,6 +1,7 @@
 import type { Message } from "libs/prisma";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { makeMessage } from "~/dashboard/socket-util";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export type AskStage =
   | "idle"
@@ -33,6 +34,22 @@ export function useScrapeChat({
   const [actionCall, setActionCall] = useState<string>();
   const [connected, setConnected] = useState(false);
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
+  const [fingerprint, setFingerprint] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    FingerprintJS.load()
+      .then((fp) => fp.get())
+      .then((result) => {
+        if (mounted) {
+          setFingerprint(result.visitorId);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const allMessages = useMemo(() => {
     const allMessages = [
@@ -181,6 +198,7 @@ export function useScrapeChat({
           timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
         secret: secret,
+        fingerprint,
       })
     );
     const messagesCount = messages.length;
@@ -207,6 +225,8 @@ export function useScrapeChat({
         analysis: null,
         llmModel: "gpt_4o_mini",
         creditsUsed: 0,
+        attachments: [],
+        fingerprint: null,
       },
     ]);
     setAskStage("asked");
@@ -248,5 +268,6 @@ export function useScrapeChat({
     actionCall,
     followUpQuestions,
     setFollowUpQuestions,
+    fingerprint,
   };
 }

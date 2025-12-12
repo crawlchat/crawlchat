@@ -390,6 +390,7 @@ client.on(Events.MessageCreate, async (message) => {
     } = await query(scrape.id, messages, createToken(scrape.userId), {
       prompt: defaultPrompt,
       clientThreadId: discordThread?.id ?? publicThreadId,
+      fingerprint: message.author.id,
     });
 
     if (error) {
@@ -446,6 +447,7 @@ client.on(Events.MessageCreate, async (message) => {
         createToken(userId),
         {
           prompt: defaultPrompt,
+          fingerprint: message.author.id,
         }
       );
 
@@ -511,6 +513,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
         createToken(userId),
         {
           prompt: defaultPrompt,
+          fingerprint: user.id,
         }
       );
 

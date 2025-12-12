@@ -7,6 +7,7 @@ export async function query(
   options?: {
     prompt?: string;
     clientThreadId?: string;
+    fingerprint?: string;
   }
 ) {
   const result = await fetch(`${process.env.SERVER_HOST}/answer/${scrapeId}`, {
@@ -16,6 +17,7 @@ export async function query(
       prompt: options?.prompt,
       channel: "discord",
       clientThreadId: options?.clientThreadId,
+      fingerprint: options?.fingerprint,
     }),
     headers: {
       "Content-Type": "application/json",

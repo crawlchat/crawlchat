@@ -332,6 +332,15 @@ expressWs.app.ws("/", (ws: any, req) => {
           },
         });
 
+        const fingerprint = message.data.fingerprint as string | undefined;
+
+        if (fingerprint && !thread.fingerprint) {
+          await prisma.thread.update({
+            where: { id: threadId },
+            data: { fingerprint },
+          });
+        }
+
         let questionMessage: Message | null = null;
 
         const answerListener: AnswerListener = async (event) => {
@@ -344,6 +353,7 @@ expressWs.app.ws("/", (ws: any, req) => {
                   llmMessage: { role: "user", content: event.query },
                   ownerUserId: scrape.userId,
                   channel: "widget",
+                  fingerprint: fingerprint,
                 },
               });
               await updateLastMessageAt(threadId);
@@ -384,6 +394,7 @@ expressWs.app.ws("/", (ws: any, req) => {
                   llmModel: scrape.llmModel,
                   creditsUsed: event.creditsUsed,
                   channel: "widget",
+                  fingerprint: fingerprint,
                 },
               });
               await updateLastMessageAt(threadId);
@@ -708,6 +719,8 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
+  const fingerprint = req.body.fingerprint as string | undefined;
+
   let thread = await prisma.thread.findFirst({
     where: { scrapeId: scrape.id, isDefault: true },
   });
@@ -722,7 +735,13 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
         scrapeId: scrape.id,
         isDefault: !req.body.clientThreadId,
         clientThreadId: req.body.clientThreadId,
+        fingerprint,
       },
+    });
+  } else if (fingerprint && !thread.fingerprint) {
+    await prisma.thread.update({
+      where: { id: thread.id },
+      data: { fingerprint },
     });
   }
   let query = req.body.query as string | MultimodalContent[];
@@ -773,6 +792,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       ownerUserId: scrape.userId,
       channel,
       attachments,
+      fingerprint,
     },
   });
   await updateLastMessageAt(thread.id);
@@ -832,6 +852,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       apiActionCalls: answer!.actionCalls as any,
       llmModel: scrape.llmModel as any,
       creditsUsed: answer!.creditsUsed,
+      fingerprint,
     },
   });
   await updateLastMessageAt(thread.id);

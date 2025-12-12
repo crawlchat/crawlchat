@@ -24,6 +24,7 @@ import { makeMeta } from "~/meta";
 import { ScoreBadge } from "~/components/score-badge";
 import { ChannelBadge } from "~/components/channel-badge";
 import { getMessageContent } from "./messages";
+import Avatar from "boring-avatars";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -219,6 +220,13 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
               >
                 <div className="flex flex-col md:flex-row gap-2 md:items-center justify-between">
                   <div className="flex gap-2 items-center">
+                    {thread.fingerprint && (
+                      <Avatar
+                        name={thread.fingerprint}
+                        size={24}
+                        variant="beam"
+                      />
+                    )}
                     {thread.location?.country && (
                       <CountryFlag location={thread.location} />
                     )}

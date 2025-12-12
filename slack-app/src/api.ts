@@ -4,6 +4,7 @@ export async function query(
   token: string,
   options?: {
     prompt?: string;
+    fingerprint?: string;
   }
 ) {
   const result = await fetch(`${process.env.SERVER_HOST}/answer/${scrapeId}`, {
@@ -12,6 +13,7 @@ export async function query(
       messages,
       prompt: options?.prompt,
       channel: "slack",
+      fingerprint: options?.fingerprint,
     }),
     headers: {
       "Content-Type": "application/json",

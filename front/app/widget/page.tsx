@@ -178,6 +178,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     const customTags = getCustomTags(new URL(request.url));
     const ip = getClientIp(request);
     const ipDetails = ip ? await fetchIpDetails(ip) : null;
+    const fingerprint = formData.get("fingerprint") as string | null;
     const thread = await prisma.thread.create({
       data: {
         scrapeId: scrape.id,
@@ -189,6 +190,7 @@ export async function action({ request, params }: Route.ActionArgs) {
           city: ipDetails?.city,
           region: ipDetails?.region,
         },
+        fingerprint: fingerprint ?? undefined,
       },
     });
     await updateSessionThreadId(session, scrapeId, thread.id);

@@ -15,6 +15,7 @@
   "dependencies": {
     "@11labs/react": "^0.0.4",
     "@emotion/react": "^11.14.0",
+    "@fingerprintjs/fingerprintjs": "^4.6.2",
     "@lexical/code": "^0.39.0",
     "@lexical/html": "^0.39.0",
     "@lexical/link": "^0.39.0",
@@ -38,6 +39,7 @@
     "@tailwindcss/vite": "^4.1.12",
     "@tuesdaycrowd/sentence-transformers": "^1.0.1",
     "arctic": "^3.7.0",
+    "boring-avatars": "^2.0.4",
     "color": "^5.0.3",
     "countries-list": "^3.1.1",
     "crypto-js": "^4.2.0",

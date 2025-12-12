@@ -266,7 +266,7 @@ export function useChatBox({
     if (!thread?.id) {
       chat.setMakingThreadId();
       createThreadFetcher.submit(
-        { intent: "create-thread" },
+        { intent: "create-thread", fingerprint: chat.fingerprint },
         { method: "post", action: `/w/${scrape.id}` }
       );
       setPendingQuery(query);

@@ -34,6 +34,7 @@ import { makeMeta } from "~/meta";
 import { useEffect, useMemo, useState } from "react";
 import { CreditsUsedBadge } from "./credits-used-badge";
 import { SentimentBadge } from "./sentiment-badge";
+import Avatar from "boring-avatars";
 
 function isLowRating(message: Message) {
   if (message.analysis?.questionSentiment === "sad") return true;
@@ -306,9 +307,16 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                     {loaderData.messagePairs.map((pair, index) => (
                       <tr key={index}>
                         <td>
-                          <div className="w-[400px] line-clamp-1">
+                          <div className="w-[400px] flex items-center gap-2">
+                            {pair.queryMessage?.fingerprint && (
+                              <Avatar
+                                name={pair.queryMessage.fingerprint}
+                                size={24}
+                                variant="beam"
+                              />
+                            )}
                             <RouterLink
-                              className="link link-hover"
+                              className="link link-hover line-clamp-1"
                               to={`/questions/${pair.queryMessage?.id}`}
                             >
                               {getMessageContent(pair.queryMessage)}
