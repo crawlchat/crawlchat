@@ -75,6 +75,7 @@ type WidgetConfig {
   logoUrl               String?
   applyColorsToChatbox  Boolean?
   title                 String?
+  hideBranding          Boolean?
 }
 
 type ScrapeAnalyticsCategoryMessageId {
@@ -446,6 +447,10 @@ type PlanLimits {
   pages       Float
 }
 
+type BrandRemovalPlan {
+  subscriptionId    String?
+}
+
 type UserPlan {
   planId            String
   type              PlanType
@@ -456,6 +461,8 @@ type UserPlan {
 
   credits           PlanCredits?
   limits            PlanLimits?
+
+  brandRemoval      BrandRemovalPlan?
 
   expiresAt         DateTime?
   activatedAt       DateTime

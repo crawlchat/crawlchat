@@ -871,7 +871,7 @@ export function ChatboxContainer({
 }
 
 export default function ScrapeWidget() {
-  const { screen, chat, ask } = useChatBoxContext();
+  const { screen, chat, ask, scrape } = useChatBoxContext();
 
   function handleAsk(question: string) {
     ask(question);
@@ -937,9 +937,11 @@ export default function ScrapeWidget() {
         {screen === "mcp" && <MCPSetup />}
       </div>
       {screen === "chat" && <ChatInput />}
-      <div className="px-4 py-2 bg-base-300/80 border-t border-base-300">
-        <PoweredBy />
-      </div>
+      {!scrape.widgetConfig?.hideBranding && (
+        <div className="px-4 py-2 bg-base-300/80 border-t border-base-300">
+          <PoweredBy />
+        </div>
+      )}
     </>
   );
 }

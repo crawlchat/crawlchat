@@ -29,7 +29,7 @@ export default [
   layout("dashboard/layout.tsx", [
     route("app", "dashboard/page.tsx"),
     route("profile", "dashboard/profile.tsx"),
-    
+
     route("settings", "scrapes/settings.tsx"),
     route("settings/helpdesk", "dashboard/settings/helpdesk.tsx"),
     route("tickets", "tickets/list.tsx"),
@@ -40,8 +40,14 @@ export default [
     route("questions/:messageId/fix", "message/fix.tsx"),
 
     route("questions/conversations", "message/conversations.tsx"),
-    route("questions/conversations/:conversationId", "message/conversation.tsx"),
-    route("questions/conversations/:conversationId/make-guide", "message/make-guide.tsx"),
+    route(
+      "questions/conversations/:conversationId",
+      "message/conversation.tsx"
+    ),
+    route(
+      "questions/conversations/:conversationId/make-guide",
+      "message/make-guide.tsx"
+    ),
 
     route("connect", "integrations/page.tsx", [
       index("integrations/customise.tsx"),
@@ -111,6 +117,10 @@ export default [
     route("user/:userId", "admin/user.tsx"),
     route("collection/:collectionId", "admin/collection.tsx"),
     route("update-customer-dodo", "admin/update-customer.ts"),
+    route(
+      "set-brand-removal-subscription",
+      "admin/set-brand-removal-subscription.ts"
+    ),
   ]),
 
   route("email-alert", "email-alert.ts"),

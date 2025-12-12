@@ -1,4 +1,4 @@
-import type { Route } from "./+types/embed";
+import type { Route } from "./+types/customise";
 import type {
   Message,
   Scrape,
@@ -35,6 +35,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     where: {
       id: scrapeId,
     },
+    include: {
+      user: true,
+    },
   });
 
   return { scrape };
@@ -54,6 +57,9 @@ export async function action({ request }: Route.ActionArgs) {
   const scrape = await prisma.scrape.findUnique({
     where: {
       id: scrapeId,
+    },
+    include: {
+      user: true,
     },
   });
 
@@ -80,6 +86,7 @@ export async function action({ request }: Route.ActionArgs) {
     logoUrl: null,
     applyColorsToChatbox: null,
     title: null,
+    hideBranding: null,
   };
 
   if (size) {
@@ -129,6 +136,12 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("title")) {
     update.title = formData.get("title") as string;
   }
+  if (formData.has("from-hide-branding")) {
+    if (!scrape.user?.plan?.brandRemoval?.subscriptionId) {
+      return { error: "Brand removal subscription required" };
+    }
+    update.hideBranding = formData.get("hideBranding") === "on";
+  }
 
   await prisma.scrape.update({
     where: {
@@ -166,6 +179,7 @@ const DEFAULT_MESSAGE: Message = {
   apiActionCalls: [],
   llmModel: "gpt_4o_mini",
   creditsUsed: 0,
+  attachments: [],
 };
 
 function AskAIButton({
@@ -249,6 +263,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   const welcomeMessageFetcher = useFetcher();
   const mcpSetupFetcher = useFetcher();
   const textInputPlaceholderFetcher = useFetcher();
+  const hideBrandingFetcher = useFetcher();
   const [questions, setQuestions] = useState<WidgetQuestion[]>(
     loaderData.scrape?.widgetConfig?.questions ?? []
   );
@@ -284,7 +299,14 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     loaderData.scrape?.widgetConfig?.applyColorsToChatbox ?? false
   );
   const [title, setTitle] = useState(loaderData.scrape?.widgetConfig?.title);
+  const [hideBranding, setHideBranding] = useState(
+    loaderData.scrape?.widgetConfig?.hideBranding ?? false
+  );
   const [previewType, setPreviewType] = useState<"home" | "chat">("home");
+
+  const canHideBranding = useMemo(() => {
+    return !!loaderData.scrape?.user?.plan?.brandRemoval?.subscriptionId;
+  }, [loaderData.scrape?.user?.plan?.brandRemoval?.subscriptionId]);
 
   useEffect(() => {
     setQuestions(loaderData.scrape?.widgetConfig?.questions ?? []);
@@ -307,6 +329,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         logoUrl,
         applyColorsToChatbox,
         title,
+        hideBranding,
       },
     };
   }, [
@@ -323,6 +346,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     logoUrl,
     applyColorsToChatbox,
     title,
+    hideBranding,
   ]);
 
   function addQuestion() {
@@ -508,6 +532,31 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
               onChange={(e) => setShowMcpSetup(e.target.checked)}
             />
             Show it
+          </label>
+        </SettingsSection>
+
+        <SettingsSection
+          id="hide-branding"
+          title="Hide branding"
+          description="Hide CrawlChat branding from the widget"
+          fetcher={hideBrandingFetcher}
+        >
+          <input type="hidden" name="from-hide-branding" value={"true"} />
+          <label className="label">
+            <input
+              type="checkbox"
+              className="toggle"
+              name="hideBranding"
+              checked={hideBranding}
+              disabled={!canHideBranding}
+              onChange={(e) => setHideBranding(e.target.checked)}
+            />
+            Hide branding
+            {!canHideBranding && (
+              <span className="text-sm text-base-content/60 ml-2">
+                Contact support
+              </span>
+            )}
           </label>
         </SettingsSection>
       </div>
