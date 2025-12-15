@@ -888,6 +888,245 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   res.json({ content: citation.content, message: newAnswerMessage });
 });
 
+app.post("/google-chat/answer/:scrapeId", async (req, res) => {
+  console.log("Google Chat request for", req.params.scrapeId);
+
+  res
+    .header({
+      "Content-Type": "application/json",
+    })
+    .status(200)
+    .json({
+      text: "Hello, world!",
+    });
+  return;
+
+  // wsRateLimiter.check();
+
+  // const apiKey = req.query.apiKey as string;
+  // if (!apiKey) {
+  //   res.status(401).json({ error: "API key required in query params" });
+  //   return;
+  // }
+
+  // const apiKeyRecord = await prisma.apiKey.findFirst({
+  //   where: { key: apiKey },
+  //   include: {
+  //     user: {
+  //       include: {
+  //         scrapeUsers: true,
+  //       },
+  //     },
+  //   },
+  // });
+
+  // if (!apiKeyRecord?.user) {
+  //   res.status(401).json({ error: "Invalid API key" });
+  //   return;
+  // }
+
+  // const user = apiKeyRecord.user;
+
+  // const scrape = await prisma.scrape.findFirst({
+  //   where: { id: req.params.scrapeId },
+  // });
+  // if (!scrape) {
+  //   res.status(404).json({
+  //     actionResponse: {
+  //       type: "NEW_MESSAGE",
+  //     },
+  //     text: "Collection not found",
+  //   });
+  //   return;
+  // }
+
+  // authoriseScrapeUser(user.scrapeUsers, scrape.id, res);
+
+  // if (
+  //   !(await hasEnoughCredits(scrape.userId, "messages", {
+  //     alert: {
+  //       scrapeId: scrape.id,
+  //       token: createToken(scrape.userId),
+  //     },
+  //   }))
+  // ) {
+  //   res.status(400).json({
+  //     actionResponse: {
+  //       type: "NEW_MESSAGE",
+  //     },
+  //     text: "Not enough credits",
+  //   });
+  //   return;
+  // }
+
+  // const googleChatEvent = req.body;
+
+  // console.log("Google Chat event", JSON.stringify(googleChatEvent, null, 2));
+
+  // const messagePayload = googleChatEvent.chat?.messagePayload?.message;
+  // if (!messagePayload) {
+  //   res.json({
+  //     actionResponse: {
+  //       type: "NEW_MESSAGE",
+  //     },
+  //     text: "No message payload found",
+  //   });
+  //   return;
+  // }
+
+  // const annotations = messagePayload.annotations || [];
+  // const isBotMentioned = annotations.some(
+  //   (annotation: any) =>
+  //     annotation.type === "USER_MENTION" &&
+  //     annotation.userMention?.user?.type === "BOT"
+  // );
+
+  // if (!isBotMentioned) {
+  //   res.json({
+  //     actionResponse: {
+  //       type: "NEW_MESSAGE",
+  //     },
+  //     text: "",
+  //   });
+  //   return;
+  // }
+
+  // const messageText = messagePayload.argumentText || messagePayload.text || "";
+
+  // if (!messageText.trim()) {
+  //   res.status(400).json({
+  //     actionResponse: {
+  //       type: "NEW_MESSAGE",
+  //     },
+  //     text: "No message text found",
+  //   });
+  //   return;
+  // }
+
+  // if (messageText.length > 3000) {
+  //   res.status(400).json({
+  //     actionResponse: {
+  //       type: "NEW_MESSAGE",
+  //     },
+  //     text: "Question too long",
+  //   });
+  //   return;
+  // }
+
+  // const threadKey =
+  //   messagePayload.thread?.name || messagePayload.space?.name;
+  // let thread = await prisma.thread.findFirst({
+  //   where: { scrapeId: scrape.id, isDefault: true },
+  // });
+  // if (threadKey) {
+  //   thread = await prisma.thread.findFirst({
+  //     where: { clientThreadId: threadKey },
+  //   });
+  // }
+  // if (!thread) {
+  //   thread = await prisma.thread.create({
+  //     data: {
+  //       scrapeId: scrape.id,
+  //       isDefault: !threadKey,
+  //       clientThreadId: threadKey || undefined,
+  //     },
+  //   });
+  // }
+
+  // const prompt = scrape.chatPrompt ?? "";
+
+  // const questionMessage = await prisma.message.create({
+  //   data: {
+  //     threadId: thread.id,
+  //     scrapeId: scrape.id,
+  //     llmMessage: { role: "user", content: messageText },
+  //     ownerUserId: scrape.userId,
+  //     channel: "google_chat",
+  //   },
+  // });
+  // await updateLastMessageAt(thread.id);
+
+  // const actions = await prisma.apiAction.findMany({
+  //   where: {
+  //     scrapeId: scrape.id,
+  //   },
+  // });
+
+  // const threadMessages = await prisma.message.findMany({
+  //   where: { threadId: thread.id },
+  //   orderBy: { createdAt: "asc" },
+  //   take: 40,
+  // });
+
+  // const recentMessages = threadMessages.map((m) => ({
+  //   llmMessage: m.llmMessage as any,
+  // }));
+
+  // const answer = await baseAnswerer(
+  //   scrape,
+  //   thread,
+  //   messageText,
+  //   recentMessages,
+  //   {
+  //     prompt,
+  //     actions,
+  //   }
+  // );
+
+  // await consumeCredits(scrape.userId, "messages", answer!.creditsUsed);
+  // const newAnswerMessage = await prisma.message.create({
+  //   data: {
+  //     threadId: thread.id,
+  //     scrapeId: scrape.id,
+  //     llmMessage: { role: "assistant", content: answer!.content },
+  //     links: answer!.sources,
+  //     ownerUserId: scrape.userId,
+  //     channel: "google_chat",
+  //     apiActionCalls: answer!.actionCalls as any,
+  //     llmModel: scrape.llmModel,
+  //     creditsUsed: answer!.creditsUsed,
+  //     questionId: questionMessage.id,
+  //   },
+  // });
+  // await updateLastMessageAt(thread.id);
+
+  // if (scrape.analyseMessage) {
+  //   fillMessageAnalysis(
+  //     newAnswerMessage.id,
+  //     questionMessage.id,
+  //     messageText,
+  //     answer!.content,
+  //     answer!.sources,
+  //     answer!.context,
+  //     {
+  //       categories: scrape.messageCategories,
+  //     }
+  //   );
+  // }
+
+  // if (!answer) {
+  //   res.status(400).json({
+  //     actionResponse: {
+  //       type: "NEW_MESSAGE",
+  //     },
+  //     text: "Failed to answer",
+  //   });
+  //   return;
+  // }
+
+  // const citation = extractCitations(answer.content, answer.sources, {
+  //   cleanCitations: true,
+  //   addSourcesToMessage: true,
+  // });
+
+  // res.json({
+  //   actionResponse: {
+  //     type: "NEW_MESSAGE",
+  //   },
+  //   text: citation.content,
+  // });
+});
+
 app.post("/ticket/:scrapeId", authenticate, async (req, res) => {
   const scrape = await prisma.scrape.findFirst({
     where: { id: req.params.scrapeId },

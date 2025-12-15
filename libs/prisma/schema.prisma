@@ -237,6 +237,7 @@ enum MessageChannel {
   slack
   widget
   api
+  google_chat
 }
 
 enum MessageRating {
