@@ -194,7 +194,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       },
     });
     await updateSessionThreadId(session, scrapeId, thread.id);
-    const userToken = createToken(thread.id, {
+    const userToken = createToken(loggedInUser?.id ?? thread.id, {
       expiresInSeconds: 60 * 60 * 24,
     });
     return data(
