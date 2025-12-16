@@ -7,6 +7,7 @@ import {
   TbBook,
   TbChartBarOff,
   TbChartLine,
+  TbChecks,
   TbChevronDown,
   TbChevronUp,
   TbCreditCard,
@@ -233,11 +234,11 @@ function WithSubMenuItems({
         }
       />
 
-      <div className={cn("ml-4 hidden", isExpanded && "block")}>
+      <ul className={cn("ml-4 hidden flex-col gap-1", isExpanded && "flex")}>
         {item.items?.map((item, index) => (
           <SideMenuItem key={index} link={item} />
         ))}
-      </div>
+      </ul>
     </>
   );
 }
@@ -332,6 +333,12 @@ export function SideMenu({
             label: "Compose",
             to: "/tool/compose",
             icon: <TbPencil />,
+            forScrape: true,
+          },
+          {
+            label: "Fact check",
+            to: "/tool/fact-check",
+            icon: <TbChecks />,
             forScrape: true,
           },
         ],
