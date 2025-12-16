@@ -18,6 +18,7 @@ import {
   TbPlug,
   TbPointer,
   TbSettings,
+  TbStarFilled,
   TbTicket,
   TbTools,
   TbUser,
@@ -228,13 +229,25 @@ function WithSubMenuItems({
         link={item}
         onClick={() => setIsExpanded(!isExpanded)}
         badge={
-          <span className="text-base-content/40 group-hover:text-accent-content">
-            {isExpanded ? <TbChevronUp /> : <TbChevronDown />}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="badge badge-success badge-soft badge-sm">
+              New
+              <TbStarFilled />
+            </span>
+            <span className="text-base-content/40 group-hover:text-accent-content">
+              {isExpanded ? <TbChevronUp /> : <TbChevronDown />}
+            </span>
+          </div>
         }
       />
 
-      <ul className={cn("ml-4 hidden flex-col gap-1", isExpanded && "flex")}>
+      <ul
+        className={cn(
+          "ml-4 hidden flex-col gap-1 flex-1",
+          "border-l border-base-300",
+          isExpanded && "flex"
+        )}
+      >
         {item.items?.map((item, index) => (
           <SideMenuItem key={index} link={item} />
         ))}

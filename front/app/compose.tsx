@@ -931,6 +931,7 @@ export default function Compose({ loaderData }: Route.ComponentProps) {
   return (
     <Page
       title="Compose"
+      description="Write along with AI from your knowledge base"
       icon={<TbPencil />}
       right={
         <>
