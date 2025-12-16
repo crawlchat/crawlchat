@@ -239,7 +239,7 @@ export function useComposer({
       },
       {
         method: "post",
-        action: "/compose",
+        action: "/tool/compose",
       }
     );
   }

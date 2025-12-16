@@ -83,6 +83,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const token = createToken(user!.id, { expiresInSeconds: 60 * 60 });
 
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
   return {
     user: user!,
     plan,
@@ -101,6 +104,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     usedPages,
     scrapeUsers,
     token,
+    pathname,
   };
 }
 
@@ -170,6 +174,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               dataGapMessages={loaderData.dataGapMessages.length}
               scrape={loaderData.scrape}
               usedPages={loaderData.usedPages}
+              pathname={loaderData.pathname}
             />
           </div>
         </div>

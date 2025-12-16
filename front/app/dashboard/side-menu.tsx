@@ -16,14 +16,14 @@ import {
   TbPencil,
   TbPlug,
   TbPointer,
-  TbRobotFace,
   TbSettings,
   TbTicket,
+  TbTools,
   TbUser,
   TbUsers,
   TbX,
 } from "react-icons/tb";
-import { Link, NavLink, useFetcher } from "react-router";
+import { Link, NavLink, useFetcher, useLocation } from "react-router";
 import { numberToKMB } from "~/number-util";
 import { useContext, useEffect, useMemo, useState } from "react";
 import {
@@ -38,28 +38,47 @@ import { track } from "~/track";
 import { ScrapePrivacyBadge } from "~/components/scrape-type-badge";
 import { PlanIconBadge } from "~/components/plan-icon-badge";
 import cn from "@meltdownjs/cn";
-import { showModal } from "~/components/daisy-utils";
+
+type MenuItemType = {
+  label: string;
+  to: string;
+  icon: React.ReactNode;
+  external?: boolean;
+  items?: MenuItemType[];
+  forScrape?: boolean;
+};
 
 function SideMenuItem({
   link,
   badge,
+  onClick,
 }: {
-  link: {
-    label: string;
-    to: string;
-    icon: React.ReactNode;
-    external?: boolean;
-  };
+  link: MenuItemType;
   badge?: React.ReactNode;
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }) {
+  function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (onClick) {
+      e.preventDefault();
+      onClick(e);
+    }
+  }
+
+  if (!link.to) return null;
+
   return (
-    <NavLink to={link.to} target={link.external ? "_blank" : undefined}>
+    <NavLink
+      to={link.to}
+      target={link.external ? "_blank" : undefined}
+      onClick={handleClick}
+    >
       {({ isPending, isActive }) => (
         <div
           className={cn(
-            "flex pl-3 pr-2 py-1 w-full justify-between rounded-box",
-            "transition-all hover:bg-accent hover:text-accent-content",
-            isActive && "bg-accent text-accent-content"
+            "flex pl-3 pr-2 py-1 w-full justify-between rounded-box items-center",
+            "transition-all hover:bg-accent hover:text-accent-content group",
+            isActive && !link.items && "bg-accent text-accent-content",
+            isActive && link.items && "bg-base-300"
           )}
         >
           <div className="flex gap-2 items-center">
@@ -193,6 +212,36 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
   );
 }
 
+function WithSubMenuItems({
+  item,
+  pathname,
+}: {
+  item: MenuItemType;
+  pathname: string;
+}) {
+  const [isExpanded, setIsExpanded] = useState(pathname.startsWith(item.to));
+
+  return (
+    <>
+      <SideMenuItem
+        link={item}
+        onClick={() => setIsExpanded(!isExpanded)}
+        badge={
+          <span className="text-base-content/40 group-hover:text-accent-content">
+            {isExpanded ? <TbChevronUp /> : <TbChevronDown />}
+          </span>
+        }
+      />
+
+      <div className={cn("ml-4 hidden", isExpanded && "block")}>
+        {item.items?.map((item, index) => (
+          <SideMenuItem key={index} link={item} />
+        ))}
+      </div>
+    </>
+  );
+}
+
 export function SideMenu({
   scrapeOwner,
   loggedInUser,
@@ -205,6 +254,7 @@ export function SideMenu({
   scrape,
   dataGapMessages,
   usedPages,
+  pathname,
 }: {
   scrapeOwner: User;
   loggedInUser: User;
@@ -218,8 +268,9 @@ export function SideMenu({
   scrape?: Scrape;
   dataGapMessages: number;
   usedPages: number;
+  pathname: string;
 }) {
-  const links = useMemo(() => {
+  const links: MenuItemType[] = useMemo(() => {
     const links = [
       { label: "Summary", to: "/app", icon: <TbChartLine /> },
       {
@@ -272,10 +323,18 @@ export function SideMenu({
         forScrape: true,
       },
       {
-        label: "Compose",
-        to: "/compose",
-        icon: <TbPencil />,
+        label: "Tools",
+        icon: <TbTools />,
         forScrape: true,
+        to: "/tool",
+        items: [
+          {
+            label: "Compose",
+            to: "/tool/compose",
+            icon: <TbPencil />,
+            forScrape: true,
+          },
+        ],
       },
       {
         label: "API Keys",
@@ -382,13 +441,17 @@ export function SideMenu({
         )}
 
         <div className="flex flex-col gap-1 px-3 w-full">
-          {links.map((link, index) => (
-            <SideMenuItem
-              key={index}
-              link={link}
-              badge={getMenuBadge(link.label)}
-            />
-          ))}
+          {links.map((link, index) =>
+            !link.items ? (
+              <SideMenuItem
+                key={index}
+                link={link}
+                badge={getMenuBadge(link.label)}
+              />
+            ) : (
+              <WithSubMenuItems item={link} pathname={pathname} />
+            )
+          )}
           {/* <div
             className={cn(
               "flex pl-3 pr-2 py-1 w-full items-center gap-2 rounded-box",
