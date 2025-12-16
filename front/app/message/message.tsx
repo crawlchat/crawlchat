@@ -23,8 +23,8 @@ import { Rating } from "./rating-badge";
 import { Page } from "~/components/page";
 import { ChannelBadge } from "~/components/channel-badge";
 import cn from "@meltdownjs/cn";
-import moment from "moment";
 import { ScoreBadge } from "~/components/score-badge";
+import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
 import { getImagesCount, getQueryString } from "libs/llm-message";
 import { SentimentBadge } from "./sentiment-badge";
@@ -368,7 +368,11 @@ export function QuestionAnswer({
               {imagesCount}
             </span>
           )}
-          <span>{moment(messagePair?.queryMessage?.createdAt).fromNow()}</span>
+          <span>
+            {messagePair?.queryMessage?.createdAt && (
+              <Timestamp date={messagePair.queryMessage.createdAt} />
+            )}
+          </span>
         </div>
       </div>
 

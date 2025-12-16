@@ -8,8 +8,8 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { prisma } from "libs/prisma";
 import { EmptyState } from "~/components/empty-state";
 import { makeMeta } from "~/meta";
-import moment from "moment";
 import cn from "@meltdownjs/cn";
+import { Timestamp } from "~/components/timestamp";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -212,7 +212,7 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
                       </div>
                     </td>
                     <td className="text-end">
-                      {moment(item.createdAt).fromNow()}
+                      <Timestamp date={item.createdAt} />
                     </td>
                     <td className="text-end">
                       <DuplicateAction id={item.id} />

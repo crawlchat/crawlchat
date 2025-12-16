@@ -23,8 +23,8 @@ import { MarkdownProse } from "./markdown-prose";
 import { sendReactEmail } from "~/email";
 import toast, { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
-import moment from "moment";
 import TicketUserMessageEmail from "emails/ticket-user-message";
+import { Timestamp } from "~/components/timestamp";
 import TicketAdminMessageEmail from "emails/ticket-admin-message";
 import { makeMeta } from "~/meta";
 
@@ -273,7 +273,7 @@ export function Message({
           {message.role === "user" ? youTag : scrape.title}
         </div>
         <div className="text-sm text-base-content/50">
-          {moment(message.createdAt).fromNow()}
+          <Timestamp date={message.createdAt} />
         </div>
       </div>
       <div className="flex flex-col gap-2 p-4">
@@ -377,7 +377,7 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
                 {loaderData.thread.ticketStatus!.toUpperCase()}
               </div>
               <div className="text-sm text-base-content/80">
-                Opened {moment(openedAt).fromNow()}
+                Opened <Timestamp date={openedAt!} />
               </div>
               {loaderData.role === "agent" && (
                 <div className="flex items-center gap-2">
@@ -451,7 +451,7 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
                 <div className="text-sm text-base-content/50">
                   This ticket has been resolved and closed{" "}
                   <span className="font-medium">
-                    {moment(loaderData.thread.ticketClosedAt).fromNow()}
+                    <Timestamp date={loaderData.thread.ticketClosedAt!} />
                   </span>
                 </div>
               </div>

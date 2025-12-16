@@ -18,8 +18,8 @@ import { Link, redirect, useLoaderData } from "react-router";
 import { ViewSwitch } from "./view-switch";
 import { CountryFlag } from "./country-flag";
 import { EmptyState } from "~/components/empty-state";
-import moment from "moment";
 import cn from "@meltdownjs/cn";
+import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
 import { ScoreBadge } from "~/components/score-badge";
 import { ChannelBadge } from "~/components/channel-badge";
@@ -277,7 +277,7 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
                   </div>
                 </div>
                 <span className="text-base-content/50 text-sm">
-                  {moment(thread.createdAt).fromNow()}
+                  <Timestamp date={thread.createdAt} />
                 </span>
                 <div className="flex flex-wrap gap-1">
                   {thread.customTags &&

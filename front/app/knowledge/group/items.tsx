@@ -7,7 +7,7 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { EmptyState } from "~/components/empty-state";
 import { makeMeta } from "~/meta";
 import cn from "@meltdownjs/cn";
-import moment from "moment";
+import { Timestamp } from "~/components/timestamp";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -193,7 +193,7 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                       </div>
                     </td>
                     <td className="min-w-38 text-end">
-                      {moment(item.updatedAt).fromNow()}
+                      <Timestamp date={item.updatedAt} />
                     </td>
                   </tr>
                 ))}

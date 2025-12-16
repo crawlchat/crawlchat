@@ -13,6 +13,7 @@ import moment from "moment";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
+import { Timestamp } from "~/components/timestamp";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -137,7 +138,7 @@ function Ticket({ thread }: { thread: Thread }) {
           #{thread.ticketNumber}
         </div>
         <div className="text-sm text-base-content/50">
-          {moment(thread.lastMessageAt).format("MMM D, YYYY h:mm A")}
+          {thread.lastMessageAt && <Timestamp date={thread.lastMessageAt} />}
         </div>
       </div>
       <div className="flex gap-2">

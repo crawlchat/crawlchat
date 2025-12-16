@@ -25,6 +25,7 @@ import { EmptyState } from "~/components/empty-state";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { FaConfluence } from "react-icons/fa";
+import { Timestamp } from "~/components/timestamp";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -232,13 +233,13 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                   </td>
                   <td className="min-w-38">
                     <div>
-                      {moment(item.group.updatedAt).fromNow()}
+                      <Timestamp date={item.group.updatedAt} />
                       {item.group.nextUpdateAt && (
                         <div
                           className="tooltip"
                           data-tip={`Next update at ${moment(
                             item.group.nextUpdateAt
-                          ).format("DD/MM/YYYY HH:mm")}`}
+                          ).format("DD/MM/YYYY HH:mm A")}`}
                         >
                           <span className="badge badge-soft badge-primary ml-1">
                             <TbAutomation />

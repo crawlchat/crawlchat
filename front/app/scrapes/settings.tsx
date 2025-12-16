@@ -37,8 +37,8 @@ import { RadioCard } from "~/components/radio-card";
 import { DataList } from "~/components/data-list";
 import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
-import moment from "moment";
 import { makeMeta } from "~/meta";
+import { Timestamp } from "~/components/timestamp";
 import { hideModal, showModal } from "~/components/daisy-utils";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -699,7 +699,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             data={[
               {
                 label: "Created",
-                value: moment(loaderData.scrape.createdAt).fromNow(),
+                value: <Timestamp date={loaderData.scrape.createdAt} />,
               },
               {
                 label: "Id",

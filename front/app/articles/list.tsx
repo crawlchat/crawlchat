@@ -6,8 +6,8 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { prisma } from "libs/prisma";
 import { EmptyState } from "~/components/empty-state";
 import { makeMeta } from "~/meta";
-import moment from "moment";
 import cn from "@meltdownjs/cn";
+import { Timestamp } from "~/components/timestamp";
 import { Link } from "react-router";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -99,7 +99,7 @@ export default function Articles({ loaderData }: Route.ComponentProps) {
                       </div>
                     </td>
                     <td className="text-end">
-                      {moment(article.createdAt).fromNow()}
+                      <Timestamp date={article.createdAt} />
                     </td>
                   </tr>
                 ))}

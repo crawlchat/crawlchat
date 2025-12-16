@@ -17,8 +17,8 @@ import { useEffect, useState } from "react";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
-import moment from "moment";
 import { makeMeta } from "~/meta";
+import { Timestamp } from "~/components/timestamp";
 
 function maskApiKey(apiKey: string) {
   if (apiKey.length <= 4) {
@@ -276,7 +276,9 @@ function ApiKeyRow({
       <td>
         <span className="badge badge-soft badge-primary">Active</span>
       </td>
-      <td className="text-right">{moment(apiKey.createdAt).fromNow()}</td>
+      <td className="text-right">
+        <Timestamp date={apiKey.createdAt} />
+      </td>
       <td className="text-right">
         <button
           className="btn btn-square btn-error btn-sm btn-soft"

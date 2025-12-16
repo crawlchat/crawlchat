@@ -15,8 +15,8 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { Link, useFetcher } from "react-router";
 import { fetchDataGaps } from "./fetch";
 import { EmptyState } from "~/components/empty-state";
-import moment from "moment";
 import cn from "@meltdownjs/cn";
+import { Timestamp } from "~/components/timestamp";
 import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 
@@ -171,7 +171,7 @@ export function DataGapCard({
       </div>
       <MarkdownProse>{message.analysis!.dataGapDescription}</MarkdownProse>
       <div className="text-sm text-base-content/50">
-        {moment(message.createdAt).fromNow()}
+        <Timestamp date={message.createdAt} />
       </div>
     </div>
   );

@@ -29,6 +29,7 @@ import {
   LinearClient,
 } from "libs/linear";
 import moment from "moment";
+import { Timestamp } from "~/components/timestamp";
 
 function getNotionPageTitle(page: any): string | undefined {
   if (!page.properties) {
@@ -283,7 +284,7 @@ function AutoUpdateSettings({ group }: { group: KnowledgeGroup }) {
         <div className="text-sm flex items-center">
           Next update at{" "}
           <span className="badge badge-neutral ml-2">
-            {moment(group.nextUpdateAt).format("DD/MM/YYYY HH:mm")}
+            <Timestamp date={group.nextUpdateAt} />
           </span>
         </div>
       )}
@@ -341,7 +342,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
       },
       {
         label: "Updated at",
-        value: moment(group.updatedAt).format("DD/MM/YYYY HH:mm"),
+        value: <Timestamp date={group.updatedAt} />,
       },
       {
         label: "Status",
@@ -446,7 +447,7 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
       },
       {
         label: "Updated at",
-        value: moment(group.updatedAt).format("DD/MM/YYYY HH:mm"),
+        value: <Timestamp date={group.updatedAt} />,
       },
       {
         label: "Status",

@@ -28,8 +28,8 @@ import { EmptyState } from "~/components/empty-state";
 import { ScoreBadge } from "~/components/score-badge";
 import { ChannelBadge } from "~/components/channel-badge";
 import { getQueryString } from "libs/llm-message";
-import moment from "moment";
 import cn from "@meltdownjs/cn";
+import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
 import { useEffect, useMemo, useState } from "react";
 import { CreditsUsedBadge } from "./credits-used-badge";
@@ -417,7 +417,9 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                           />
                         </td>
                         <td className="text-end min-w-34">
-                          {moment(pair.queryMessage?.createdAt).fromNow()}
+                          {pair.queryMessage?.createdAt && (
+                            <Timestamp date={pair.queryMessage.createdAt} />
+                          )}
                         </td>
                       </tr>
                     ))}

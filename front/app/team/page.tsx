@@ -22,6 +22,7 @@ import { hideModal, showModal } from "~/components/daisy-utils";
 import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
+import { Timestamp } from "~/components/timestamp";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -466,7 +467,7 @@ export default function TeamPage({ loaderData }: Route.ComponentProps) {
                     <RoleBadge role={scrapeUser.role} />
                   </td>
                   <td className="text-right">
-                    {scrapeUser.createdAt.toLocaleDateString()}
+                    <Timestamp date={scrapeUser.createdAt} />
                   </td>
                   <td className="text-right">
                     <button
