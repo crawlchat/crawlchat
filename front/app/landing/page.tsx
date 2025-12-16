@@ -331,6 +331,8 @@ export function UsedBy() {
             className="max-h-[24px]"
           />
         </div>
+
+        <img src="/used-by/nobl9.png" alt="Nobl9" className="max-h-[38px]" />
       </div>
     </div>
   );
@@ -894,8 +896,7 @@ export function PricingBoxes({
             {
               text: (
                 <div>
-                  {hobbyYearlyPlan.credits.messages / 12} message
-                  credits/month
+                  {hobbyYearlyPlan.credits.messages / 12} message credits/month
                   <CreditsPopover />
                 </div>
               ),
@@ -1279,6 +1280,11 @@ export function Footer() {
                     className="max-h-4 inline-block"
                   />
                 </div>
+                <img
+                  src="/used-by/nobl9.png"
+                  alt="Nobl9"
+                  className="max-h-6 inline-block"
+                />
               </div>
             </div>
 
