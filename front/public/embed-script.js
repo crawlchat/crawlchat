@@ -583,6 +583,7 @@ class CrawlChatEmbed {
   }
 
   watchNavigation() {
+    console.log("watching navigation");
     const notify = async (url) => {
       const iframe = document.getElementById(this.iframeId);
       await new Promise((resolve) => setTimeout(resolve, 100));
