@@ -4,7 +4,7 @@ class CrawlChatEmbed {
     this.embedDivId = "crawlchat-embed";
     this.iframeId = "crawlchat-iframe";
     this.scriptId = "crawlchat-script";
-    this.host = "https://crawlchat.app";
+    this.host = "http://localhost:5173";
     this.scrapeId = this.getScrapeId();
     this.askAIButtonId = "crawlchat-ask-ai-button";
     this.lastScrollTop = 0;
