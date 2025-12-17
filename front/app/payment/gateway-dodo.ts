@@ -39,7 +39,7 @@ export const productIdPlanMap: Record<string, Plan> = {
   pdt_lpFZp5sBEu5bzKwCbE5Y8: PLAN_HOBBY,
 };
 
-const planProductIdMap: Record<string, string> = {
+export const planProductIdMap: Record<string, string> = {
   [PLAN_HOBBY.id]: "pdt_IcrpqSx48qoCenz4lnLi1",
   [PLAN_STARTER.id]: "pdt_vgCVfRAaCT99LM1Dfk5qF",
   [PLAN_PRO.id]: "pdt_P68hLo9a0At8cgn4WbzBe",
