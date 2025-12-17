@@ -62,7 +62,7 @@ export const lemonsqueezyGateway: PaymentGateway = {
       {
         headers: {
           Accept: "application/vnd.api+json",
-          ContentType: "application/vnd.api+json",
+          "Content-Type": "application/vnd.api+json",
           Authorization: `Bearer ${process.env.LEMONSQUEEZY_API_KEY}`,
         },
       }
@@ -72,7 +72,6 @@ export const lemonsqueezyGateway: PaymentGateway = {
 
     return {
       id: json.data.id,
-      customerPortalUrl: json.data.attributes.urls.customer_portal,
     };
   },
 
@@ -94,5 +93,21 @@ export const lemonsqueezyGateway: PaymentGateway = {
     }
 
     throw new Error("Plan not found");
+  },
+  getCustomerPortalUrl: async (subscriptionId) => {
+    const res = await fetch(
+      `https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`,
+      {
+        headers: {
+          Accept: "application/vnd.api+json",
+          "Content-Type": "application/vnd.api+json",
+          Authorization: `Bearer ${process.env.LEMONSQUEEZY_API_KEY}`,
+        },
+      }
+    );
+
+    const json = await res.json();
+
+    return { url: json.data.attributes.urls.customer_portal };
   },
 };

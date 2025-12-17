@@ -110,12 +110,8 @@ export const dodoGateway: PaymentGateway = {
   },
 
   getSubscription: async (subscriptionId) => {
-    const customerPortalSession = await client.customers.customerPortal.create(
-      "customer_id"
-    );
     return {
       id: subscriptionId,
-      customerPortalUrl: customerPortalSession.link,
     };
   },
 
@@ -155,5 +151,12 @@ export const dodoGateway: PaymentGateway = {
     const checkoutSession = await client.checkoutSessions.create(body);
 
     return { url: checkoutSession.checkout_url };
+  },
+  getCustomerPortalUrl: async (subscriptionId) => {
+    const subscription = await client.subscriptions.retrieve(subscriptionId);
+    const session = await client.customers.customerPortal.create(
+      subscription.customer.customer_id
+    );
+    return { url: session.link };
   },
 };

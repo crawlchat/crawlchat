@@ -2,7 +2,7 @@ import type { Route } from "./+types/profile";
 import type { Prisma } from "libs/prisma";
 import { Page } from "~/components/page";
 import { TbArrowRight, TbCrown, TbSettings } from "react-icons/tb";
-import { useFetcher } from "react-router";
+import { redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
 import {
@@ -68,6 +68,23 @@ export async function action({ request }: Route.ActionArgs) {
 
   const formData = await request.formData();
 
+  const intent = formData.get("intent") as string;
+
+  if (intent === "customer-portal") {
+    const gateway = getPaymentGateway(user!.plan!.provider);
+    if (gateway && user?.plan?.subscriptionId) {
+      const portal = await gateway.getCustomerPortalUrl(
+        user.plan.subscriptionId
+      );
+      return redirect(portal.url);
+    } else {
+      return Response.json(
+        { error: "Failed to get customer portal url" },
+        { status: 400 }
+      );
+    }
+  }
+
   const update: Prisma.UserUpdateInput = {
     settings: user?.settings ?? {
       weeklyUpdates: true,
@@ -103,6 +120,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
   const ticketUpdatesFetcher = useFetcher();
   const dataGapUpdatesFetcher = useFetcher();
   const nameFetcher = useFetcher();
+  const customerPortalFetcher = useFetcher();
 
   const credits = loaderData.user.plan!.credits!;
   const limits = loaderData.user.plan!.limits;
@@ -194,16 +212,18 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
               actionRight={
                 <>
                   {loaderData.subscription && (
-                    <a
-                      className="btn btn-neutral"
-                      href={loaderData.subscription.customerPortalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <TbSettings />
-                      Subscription
-                      <TbArrowRight />
-                    </a>
+                    <customerPortalFetcher.Form method="post">
+                      <input
+                        type="hidden"
+                        name="intent"
+                        value="customer-portal"
+                      />
+                      <button className="btn btn-neutral" type="submit">
+                        <TbSettings />
+                        Subscription
+                        <TbArrowRight />
+                      </button>
+                    </customerPortalFetcher.Form>
                   )}
                   {!loaderData.subscription && (
                     <button

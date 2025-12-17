@@ -29,7 +29,6 @@ export type PaymentGatewayWebhook = {
 
 export type PaymentGatewaySubscription = {
   id: string;
-  customerPortalUrl: string;
 };
 
 export interface PaymentGateway {
@@ -49,5 +48,8 @@ export interface PaymentGateway {
       referralId?: string | null;
       meta?: Record<string, string> | null;
     }
+  ) => Promise<{ url: string }>;
+  getCustomerPortalUrl: (
+    subscriptionId: string
   ) => Promise<{ url: string }>;
 }
