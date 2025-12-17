@@ -618,6 +618,21 @@ export function makeFlow(
       })
     : [];
 
+  let currentPagePrompt = "";
+  if (options?.scrapeItem) {
+    currentPagePrompt = `
+    The current page from which the user is asking the question is as mentioned below.
+    Use this information to answer the question if user refers to the page.
+
+    <current-page>
+    ${JSON.stringify({
+      url: options.scrapeItem.url,
+      title: options.scrapeItem.title,
+      markdown: options.scrapeItem.markdown,
+    })}
+    </current-page>`;
+  }
+
   const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
     id: "rag-agent",
     prompt: multiLinePrompt([
@@ -668,13 +683,7 @@ export function makeFlow(
       "Be polite when you don't have the answer, explain in a friendly way and inform that it is better to reach out the support team.",
       systemPrompt,
 
-      options?.scrapeItem
-        ? `<current-page>\n${JSON.stringify({
-            url: options.scrapeItem.url,
-            title: options.scrapeItem.title,
-            markdown: options.scrapeItem.markdown,
-          })}\n</current-page>`
-        : "",
+      currentPagePrompt,
 
       `<client-data>\n${JSON.stringify(options?.clientData)}\n</client-data>`,
     ]),

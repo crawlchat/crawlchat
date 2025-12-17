@@ -258,6 +258,7 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
           channel: "widget",
           clientData: message.data.clientData,
           secret: message.data.secret,
+          scrapeItem: currentItem ?? undefined,
         }
       );
     });

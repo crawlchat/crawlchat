@@ -239,6 +239,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
       actions: options?.actions,
       clientData: options?.clientData,
       secret: options?.secret,
+      scrapeItem: options?.scrapeItem,
     }
   );
 
