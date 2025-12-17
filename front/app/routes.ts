@@ -127,6 +127,7 @@ export default [
     route("collection/:collectionId", "admin/collection.tsx"),
     route("update-customer-dodo", "admin/update-customer.ts"),
     route("change-plan-dodo", "admin/change-plan-dodo.ts"),
+    route("subscription-details", "admin/subscription-details.ts"),
     route(
       "set-brand-removal-subscription",
       "admin/set-brand-removal-subscription.ts"
