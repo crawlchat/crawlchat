@@ -4,6 +4,7 @@ import {
   ApiActionDataItem,
   ApiActionDataType,
   RichBlockConfig,
+  ScrapeItem,
   Thread,
 } from "libs/prisma";
 import { makeIndexer } from "../indexer/factory";
@@ -559,6 +560,7 @@ export function makeFlow(
     actions?: ApiAction[];
     clientData?: any;
     secret?: string;
+    scrapeItem?: ScrapeItem;
   }
 ) {
   const queryContext: QueryContext = {
@@ -665,6 +667,14 @@ export function makeFlow(
       "Don't ask more than 3 questions for the entire answering flow.",
       "Be polite when you don't have the answer, explain in a friendly way and inform that it is better to reach out the support team.",
       systemPrompt,
+
+      options?.scrapeItem
+        ? `<current-page>\n${JSON.stringify({
+            url: options.scrapeItem.url,
+            title: options.scrapeItem.title,
+            markdown: options.scrapeItem.markdown,
+          })}\n</current-page>`
+        : "",
 
       `<client-data>\n${JSON.stringify(options?.clientData)}\n</client-data>`,
     ]),
