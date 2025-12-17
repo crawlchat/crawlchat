@@ -28,19 +28,13 @@ import {
 import { extractCitations } from "libs/citation";
 import { assertLimit, makeKbProcesserListener } from "./kb/listener";
 import { makeKbProcesser } from "./kb/factory";
-import {
-  FlowMessage,
-  multiLinePrompt,
-  SimpleAgent,
-  SimpleTool,
-} from "./llm/agentic";
+import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
 import { chunk } from "libs/chunk";
-import { retry } from "./retry";
 import { Flow } from "./llm/flow";
 import { z } from "zod";
-import { baseAnswerer, AnswerListener, collectSourceLinks } from "./answer";
+import { baseAnswerer, collectSourceLinks } from "./answer";
 import { fillMessageAnalysis } from "./llm/analyse-message";
-import { createToken, verifyToken } from "libs/jwt";
+import { createToken } from "libs/jwt";
 import { MultimodalContent, getQueryString } from "libs/llm-message";
 import {
   draftRateLimiter,
@@ -53,7 +47,7 @@ import { getConfig } from "./llm/config";
 import { getNextNumber } from "libs/mongo-counter";
 import { randomUUID } from "crypto";
 import { extractSiteUseCase } from "./site-use-case";
-import { title } from "process";
+import { handleWs } from "./routes/socket";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -69,10 +63,6 @@ process.on("unhandledRejection", (reason, promise) => {
 
 app.use(/\/((?!sse).)*/, express.json({ limit: "50mb" }));
 app.use(cors());
-
-function makeMessage(type: string, data: any) {
-  return JSON.stringify({ type, data });
-}
 
 function cleanUrl(url: string) {
   if (!url.startsWith("http")) {
@@ -234,250 +224,7 @@ app.delete(
   }
 );
 
-expressWs.app.ws("/", (ws: any, req) => {
-  let userId: string | null = null;
-
-  ws.on("message", async (msg: Buffer | string) => {
-    wsRateLimiter.check();
-
-    try {
-      const message = JSON.parse(msg.toString());
-
-      if (message.type === "join-room") {
-        const authHeader = message.data.headers.Authorization;
-        if (!authHeader?.startsWith("Bearer ")) {
-          ws.send(makeMessage("error", { message: "Unauthorized" }));
-          ws.close();
-          return;
-        }
-
-        const token = authHeader.split(" ")[1];
-        const user = verifyToken(token);
-        userId = user.userId;
-        ws.send(makeMessage("connected", { message: "Connected" }));
-        return;
-      }
-
-      if (!userId) {
-        ws.send(makeMessage("error", { message: "Not authenticated" }));
-        ws.close();
-        return;
-      }
-
-      if (message.type === "ask-llm") {
-        const threadId = message.data.threadId;
-        const deleteIds = message.data.delete;
-        const thread = await prisma.thread.findFirstOrThrow({
-          where: { id: threadId },
-          include: {
-            messages: true,
-          },
-        });
-
-        if (message.data.query.length > 3000) {
-          return ws.send(
-            makeMessage("error", {
-              message: "Question too long. Please shorten it.",
-            })
-          );
-        }
-
-        if (deleteIds) {
-          await prisma.message.deleteMany({
-            where: { id: { in: deleteIds }, threadId },
-          });
-        }
-
-        const scrape = await prisma.scrape.findFirstOrThrow({
-          where: { id: thread.scrapeId },
-        });
-
-        if (scrape.private) {
-          const user = await prisma.user.findFirst({
-            where: { id: userId },
-            include: {
-              scrapeUsers: true,
-            },
-          });
-
-          const isMember = user?.scrapeUsers.some(
-            (su) => su.scrapeId === scrape.id
-          );
-
-          if (!isMember) {
-            throw new Error("Private collection");
-          }
-        }
-
-        if (
-          !(await hasEnoughCredits(scrape.userId, "messages", {
-            alert: {
-              scrapeId: scrape.id,
-              token: createToken(scrape.userId),
-            },
-          }))
-        ) {
-          ws.send(
-            makeMessage("error", {
-              message: "Not enough credits. Contact the owner!",
-            })
-          );
-          ws.close();
-          return;
-        }
-
-        const actions = await prisma.apiAction.findMany({
-          where: {
-            scrapeId: scrape.id,
-          },
-        });
-
-        const fingerprint = message.data.fingerprint as string | undefined;
-
-        if (fingerprint && !thread.fingerprint) {
-          await prisma.thread.update({
-            where: { id: threadId },
-            data: { fingerprint },
-          });
-        }
-
-        let questionMessage: Message | null = null;
-
-        const answerListener: AnswerListener = async (event) => {
-          switch (event.type) {
-            case "init":
-              questionMessage = await prisma.message.create({
-                data: {
-                  threadId,
-                  scrapeId: scrape.id,
-                  llmMessage: { role: "user", content: event.query },
-                  ownerUserId: scrape.userId,
-                  channel: "widget",
-                  fingerprint: fingerprint,
-                },
-              });
-              await updateLastMessageAt(threadId);
-              ws?.send(makeMessage("query-message", questionMessage));
-              break;
-
-            case "stream-delta":
-              if (event.delta) {
-                ws?.send(makeMessage("llm-chunk", { content: event.delta }));
-              }
-              break;
-
-            case "tool-call":
-              ws?.send(
-                makeMessage("stage", {
-                  stage: "tool-call",
-                  query: event.query,
-                  action: event.action,
-                })
-              );
-              break;
-
-            case "answer-complete":
-              await consumeCredits(
-                scrape.userId,
-                "messages",
-                event.creditsUsed
-              );
-              const newAnswerMessage = await prisma.message.create({
-                data: {
-                  threadId,
-                  scrapeId: scrape.id,
-                  llmMessage: { role: "assistant", content: event.content },
-                  links: event.sources,
-                  apiActionCalls: event.actionCalls as any,
-                  ownerUserId: scrape.userId,
-                  questionId: questionMessage?.id ?? null,
-                  llmModel: scrape.llmModel,
-                  creditsUsed: event.creditsUsed,
-                  channel: "widget",
-                  fingerprint: fingerprint,
-                },
-              });
-              await updateLastMessageAt(threadId);
-              ws?.send(
-                makeMessage("llm-chunk", {
-                  end: true,
-                  content: event.content,
-                  message: newAnswerMessage,
-                })
-              );
-
-              if (questionMessage && scrape.analyseMessage) {
-                await fillMessageAnalysis(
-                  newAnswerMessage.id,
-                  questionMessage.id,
-                  message.data.query,
-                  event.content,
-                  event.sources,
-                  event.context,
-                  {
-                    categories: scrape.messageCategories,
-                    onFollowUpQuestion: (questions) => {
-                      ws?.send(
-                        makeMessage("follow-up-questions", { questions })
-                      );
-                    },
-                  }
-                );
-              }
-          }
-        };
-
-        const answerer = baseAnswerer;
-
-        const recentMessages = thread.messages.slice(-40);
-
-        await retry(async () => {
-          answerer(
-            scrape,
-            thread,
-            message.data.query,
-            recentMessages.map((message) => {
-              const llmMessage = message.llmMessage as any;
-              if (message.apiActionCalls.length > 0) {
-                llmMessage.content = `
-                ${llmMessage.content}
-                ${message.apiActionCalls
-                  .map((call) => {
-                    return `
-                  Data: ${JSON.stringify(call.data)}
-                  Response: ${call.response}
-                  `;
-                  })
-                  .join("\n\n")}
-                `;
-              }
-              return { llmMessage };
-            }),
-            {
-              listen: answerListener,
-              actions,
-              channel: "widget",
-              clientData: message.data.clientData,
-              secret: message.data.secret,
-            }
-          );
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      ws.send(
-        makeMessage("error", {
-          message: "Something went wrong! Please refresh and try again.",
-        })
-      );
-      ws.close();
-    }
-  });
-
-  ws.on("close", () => {
-    userId = null;
-  });
-});
+expressWs.app.ws("/", handleWs);
 
 app.get("/mcp/:scrapeId", async (req, res) => {
   console.log(`MCP request for ${req.params.scrapeId} and ${req.query.query}`);
@@ -1973,7 +1720,6 @@ app.post("/api/collection/show-sources", authenticate, async (req, res) => {
   res.json({ success: true });
 });
 
-// Error handling middleware - must be last
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Express Error:", error);
   res.status(500).json({
@@ -1982,7 +1728,6 @@ app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-// 404 handler for unmatched routes
 app.use((req: Request, res: Response) => {
   res.status(404).json({ message: "Route not found" });
 });
