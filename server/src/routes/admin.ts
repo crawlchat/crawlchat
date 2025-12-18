@@ -78,8 +78,11 @@ router.get("/metrics", async (req, res) => {
   const customers = await prisma.user.findMany({
     where: {
       plan: {
-        isNot: {
-          planId: PLAN_FREE.id,
+        is: {
+          status: "ACTIVE",
+          planId: {
+            not: PLAN_FREE.id,
+          },
         },
       },
       email: {
