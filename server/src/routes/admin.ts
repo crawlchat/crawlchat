@@ -16,7 +16,7 @@ const collectionIcons: Record<string, string> = {
   "67e312247a822a2303f2b8a7": "🪄",
   "686d843711915abf46700f2b": "9️⃣",
   "67dbfc7258ed87c571a04b83": "💬",
-  "692bb91325e4f55feefdfe82": "☁️"
+  "692bb91325e4f55feefdfe82": "☁️",
 };
 
 router.get("/metrics", async (req, res) => {
@@ -84,17 +84,22 @@ router.get("/metrics", async (req, res) => {
           planId: {
             not: PLAN_FREE.id,
           },
+          subscriptionId: {
+            not: "custom",
+          },
         },
-      },
-      email: {
-        not: "pramodkumar.damam73@gmail.com",
       },
     },
   });
 
-  const mrr = customers.reduce((acc, customer) => {
-    return acc + planMap[customer.plan?.planId ?? PLAN_FREE.id].price;
-  }, 0);
+  const addOnMrr =
+    customers.filter((c) => c.plan?.brandRemoval?.subscriptionId).length * 10;
+
+  const mrr =
+    addOnMrr +
+    customers.reduce((acc, customer) => {
+      return acc + planMap[customer.plan?.planId ?? PLAN_FREE.id].price;
+    }, 0);
 
   const sortedCollections = Object.values(messagesByCollection).sort(
     (a, b) => b.count - a.count
