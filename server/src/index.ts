@@ -593,18 +593,18 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     }
   );
 
-  await consumeCredits(scrape.userId, "messages", answer!.creditsUsed);
+  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
   const newAnswerMessage = await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content: answer!.content },
+      llmMessage: { role: "assistant", content: answer.content },
       links: answer!.sources,
       ownerUserId: scrape.userId,
       channel,
-      apiActionCalls: answer!.actionCalls as any,
+      apiActionCalls: answer.actionCalls as any,
       llmModel: scrape.llmModel as any,
-      creditsUsed: answer!.creditsUsed,
+      creditsUsed: answer.creditsUsed,
       fingerprint,
       questionId: questionMessage.id,
     },
@@ -616,18 +616,13 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       newAnswerMessage.id,
       questionMessage.id,
       getQueryString(query),
-      answer!.content,
-      answer!.sources,
-      answer!.context,
+      answer.content,
+      answer.sources,
+      answer.context,
       {
         categories: scrape.messageCategories,
       }
     );
-  }
-
-  if (!answer) {
-    res.status(400).json({ message: "Failed to answer" });
-    return;
   }
 
   console.log("Sending answer to client");

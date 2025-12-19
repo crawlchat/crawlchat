@@ -73,7 +73,7 @@ export type Answerer = (
     secret?: string;
     scrapeItem?: ScrapeItem;
   }
-) => Promise<AnswerCompleteEvent | null>;
+) => Promise<AnswerCompleteEvent>;
 
 const createTicketRichBlock: RichBlockConfig = {
   name: "Create support ticket",
@@ -259,26 +259,20 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
   ) {}
 
   const lastMessage = flow.getLastMessage();
-  let answer: AnswerCompleteEvent | null = null;
-  if (lastMessage.llmMessage.content) {
-    answer = {
-      type: "answer-complete",
-      content: lastMessage.llmMessage.content as string,
-      sources: await collectSourceLinks(
-        scrape.id,
-        flow.flowState.state.messages
-      ),
-      actionCalls: await collectActionCalls(
-        scrape.id,
-        flow.flowState.state.messages
-      ),
-      llmCalls: 1,
-      creditsUsed: llmConfig.creditsPerMessage,
-      messages: flow.flowState.state.messages,
-      context: collectContext(flow.flowState.state.messages),
-    };
-    options?.listen?.(answer);
-  }
+  const answer: AnswerCompleteEvent = {
+    type: "answer-complete",
+    content: (lastMessage.llmMessage.content ?? "") as string,
+    sources: await collectSourceLinks(scrape.id, flow.flowState.state.messages),
+    actionCalls: await collectActionCalls(
+      scrape.id,
+      flow.flowState.state.messages
+    ),
+    llmCalls: 1,
+    creditsUsed: llmConfig.creditsPerMessage,
+    messages: flow.flowState.state.messages,
+    context: collectContext(flow.flowState.state.messages),
+  };
+  options?.listen?.(answer);
 
   return answer;
 };
