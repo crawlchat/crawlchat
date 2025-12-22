@@ -472,7 +472,8 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
-  const fingerprint = req.body.fingerprint as string | undefined;
+  const clientUserId = req.body.clientUserId as string | undefined;
+  const fingerprint = (clientUserId ?? req.body.fingerprint) as string | undefined;
 
   let thread = await prisma.thread.findFirst({
     where: { scrapeId: scrape.id, isDefault: true },
