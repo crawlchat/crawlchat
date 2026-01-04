@@ -2675,8 +2675,6 @@ function Why() {
 export default function Landing({ loaderData }: Route.ComponentProps) {
   return (
     <>
-      <div className="text-center">With changes</div>
-
       <Container>
         <Hero />
       </Container>
