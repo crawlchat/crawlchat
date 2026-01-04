@@ -59,12 +59,7 @@ import type { User } from "libs/prisma";
 import { track } from "~/track";
 import {
   type Plan,
-  PLAN_LAUNCH,
-  PLAN_LAUNCH_YEARLY,
-  PLAN_GROW,
-  PLAN_GROW_YEARLY,
-  PLAN_ACCELERATE,
-  PLAN_ACCELERATE_YEARLY,
+  allActivePlans,
 } from "libs/user-plan";
 import { Link, useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
@@ -153,12 +148,7 @@ export async function loader() {
     messagesThisWeek: cache.messagesThisWeek,
     messagesDay: cache.messagesDay,
     messagesMonth: cache.messagesMonth,
-    launchPlan: PLAN_LAUNCH,
-    launchYearlyPlan: PLAN_LAUNCH_YEARLY,
-    growPlan: PLAN_GROW,
-    growYearlyPlan: PLAN_GROW_YEARLY,
-    acceleratePlan: PLAN_ACCELERATE,
-    accelerateYearlyPlan: PLAN_ACCELERATE_YEARLY,
+    plans: allActivePlans,
     focusChangelog,
   };
 }
@@ -868,239 +858,44 @@ function CreditsPopover() {
   );
 }
 
-export function PricingBoxes({
-  launchPlan,
-  launchYearlyPlan,
-  growPlan,
-  growYearlyPlan,
-  acceleratePlan,
-  accelerateYearlyPlan,
-  yearly,
-  onClick,
-}: {
-  launchPlan: Plan;
-  launchYearlyPlan: Plan;
-  growPlan: Plan;
-  growYearlyPlan: Plan;
-  acceleratePlan: Plan;
-  accelerateYearlyPlan: Plan;
-  yearly?: boolean;
-  onClick?: (planId: string) => void;
-}) {
-  if (yearly) {
-    return (
-      <>
-        <PricingBox
-          period="year"
-          title="Launch"
-          description="Perfect for personal projects"
-          price={`$${launchYearlyPlan.price}`}
-          items={[
-            { text: `${launchYearlyPlan.limits.pages} pages` },
-            {
-              text: (
-                <div>
-                  {launchYearlyPlan.credits.messages / 12} message credits/month
-                  <CreditsPopover />
-                </div>
-              ),
-            },
-            { text: `${launchYearlyPlan.limits.scrapes} collections` },
-            { text: `${launchYearlyPlan.limits.teamMembers} team members` },
-            {
-              text: (
-                <span>
-                  <a href="/ai-models" className="link link-primary link-hover">
-                    Smart AI
-                  </a>{" "}
-                  models
-                </span>
-              ),
-            },
-          ]}
-          href={
-            "https://checkout.dodopayments.com/buy/pdt_0NVYGgRC1GaW0ogaIngH7?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing"
-          }
-          onClick={onClick ? () => onClick?.(launchYearlyPlan.id) : undefined}
-          payLabel="Start free trial"
-        />
-        <PricingBox
-          popular
-          period="year"
-          title="Grow"
-          description="Start your journey with CrawlChat"
-          price={`$${growYearlyPlan.price}`}
-          items={[
-            { text: `${growYearlyPlan.limits.pages} pages` },
-            {
-              text: (
-                <div>
-                  {growYearlyPlan.credits.messages / 12} message
-                  credits/month
-                  <CreditsPopover />
-                </div>
-              ),
-            },
-            { text: `${growYearlyPlan.limits.scrapes} collections` },
-            { text: `${growYearlyPlan.limits.teamMembers} team members` },
-            {
-              text: (
-                <span>
-                  <a href="/ai-models" className="link link-primary link-hover">
-                    Smart AI
-                  </a>{" "}
-                  models
-                </span>
-              ),
-            },
-          ]}
-          href={
-            "https://checkout.dodopayments.com/buy/pdt_0NVYGypdaV3R7ZKvSkJvd?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing"
-          }
-          onClick={onClick ? () => onClick?.(growYearlyPlan.id) : undefined}
-          payLabel="Start free trial"
-        />
-        <PricingBox
-          period="year"
-          title="Accelerate"
-          description="For power users and teams"
-          price={`$${accelerateYearlyPlan.price}`}
-          items={[
-            { text: `${accelerateYearlyPlan.limits.pages} pages` },
-            {
-              text: (
-                <div>
-                  {accelerateYearlyPlan.credits.messages / 12} message credits/month
-                  <CreditsPopover />
-                </div>
-              ),
-            },
-            { text: `${accelerateYearlyPlan.limits.scrapes} collections` },
-            { text: `${accelerateYearlyPlan.limits.teamMembers} team members` },
-            {
-              text: (
-                <span>
-                  <a href="/ai-models" className="link link-primary link-hover">
-                    Best AI
-                  </a>{" "}
-                  models
-                </span>
-              ),
-            },
-          ]}
-          href={
-            "https://checkout.dodopayments.com/buy/pdt_0NVYHOktAtrFNDT4qYVhb?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing"
-          }
-          onClick={onClick ? () => onClick?.(accelerateYearlyPlan.id) : undefined}
-          payLabel="Start free trial"
-        />
-      </>
-    );
-  }
+function PlanBox({ plan }: { plan: Plan }) {
   return (
-    <>
-      <PricingBox
-        title="Launch"
-        description="Perfect for personal projects"
-        price={`$${launchPlan.price}`}
-        items={[
-          { text: `${launchPlan.limits.pages} pages` },
-          {
-            text: (
-              <div>
-                {launchPlan.credits.messages} message credits/month
-                <CreditsPopover />
-              </div>
-            ),
-          },
-          { text: `${launchPlan.limits.scrapes} collections` },
-          { text: `${launchPlan.limits.teamMembers} team members` },
-          {
-            text: (
-              <span>
-                <a href="/ai-models" className="link link-primary link-hover">
-                  Smart AI
-                </a>{" "}
-                models
-              </span>
-            ),
-          },
-        ]}
-        href={
-          "https://checkout.dodopayments.com/buy/pdt_0NVYGTDXnMxIdEJ8TCPQR?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing"
-        }
-        onClick={onClick ? () => onClick?.(launchPlan.id) : undefined}
-        payLabel="Start free trial"
-      />
-      <PricingBox
-        popular
-        title="Grow"
-        description="Start your journey with CrawlChat"
-        price={`$${growPlan.price}`}
-        items={[
-          { text: `${growPlan.limits.pages} pages` },
-          {
-            text: (
-              <div>
-                {growPlan.credits.messages} message credits/month
-                <CreditsPopover />
-              </div>
-            ),
-          },
-          { text: `${growPlan.limits.scrapes} collections` },
-          { text: `${growPlan.limits.teamMembers} team members` },
-          {
-            text: (
-              <span>
-                <a href="/ai-models" className="link link-primary link-hover">
-                  Smart AI
-                </a>{" "}
-                models
-              </span>
-            ),
-          },
-        ]}
-        href={
-          "https://checkout.dodopayments.com/buy/pdt_0NVYGpvQOVQSs6XD7nWFg?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing"
-        }
-        onClick={onClick ? () => onClick?.(growPlan.id) : undefined}
-        payLabel="Start free trial"
-      />
-      <PricingBox
-        title="Accelerate"
-        description="For power users and teams"
-        price={`$${acceleratePlan.price}`}
-        items={[
-          { text: `${acceleratePlan.limits.pages} pages` },
-          {
-            text: (
-              <div>
-                {acceleratePlan.credits.messages} message credits/month
-                <CreditsPopover />
-              </div>
-            ),
-          },
-          { text: `${acceleratePlan.limits.scrapes} collections` },
-          { text: `${acceleratePlan.limits.teamMembers} team members` },
-          {
-            text: (
-              <span>
-                <a href="/ai-models" className="link link-primary link-hover">
-                  Best AI
-                </a>{" "}
-                models
-              </span>
-            ),
-          },
-        ]}
-        href={
-          "https://checkout.dodopayments.com/buy/pdt_0NVYHBbhSr7JUmQtMcTiV?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing"
-        }
-        onClick={onClick ? () => onClick?.(acceleratePlan.id) : undefined}
-        payLabel="Start free trial"
-      />
-    </>
+    <PricingBox
+      period={plan.resetType === "monthly" ? "month" : "year"}
+      title={plan.name}
+      description={plan.description ?? "Get started with CrawlChat"}
+      price={`$${plan.price}`}
+      items={[
+        { text: `${plan.limits.pages} pages` },
+        {
+          text: (
+            <div>
+              {plan.credits.messages} message credits/
+              {plan.resetType === "monthly" ? "month" : "year"}
+              <CreditsPopover />
+            </div>
+          ),
+        },
+        { text: `${plan.limits.scrapes} collections` },
+        { text: `${plan.limits.teamMembers} team members` },
+      ]}
+      href={plan.checkoutLink}
+      payLabel="Start free trial"
+    />
   );
+}
+
+export function PricingBoxes({
+  plans,
+  yearly,
+}: {
+  plans: Plan[];
+  yearly: boolean;
+}) {
+  const resetType = yearly ? "yearly" : "monthly";
+  return plans
+    .filter((plan) => plan.resetType === resetType)
+    .map((plan) => <PlanBox key={plan.id} plan={plan} />);
 }
 
 export function PricingSwitch({
@@ -1148,14 +943,7 @@ export function PricingSwitch({
 }
 
 export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
-  const {
-    launchPlan,
-    launchYearlyPlan,
-    growPlan,
-    growYearlyPlan,
-    acceleratePlan,
-    accelerateYearlyPlan,
-  } = useLoaderData<typeof loader>();
+  const { plans } = useLoaderData<typeof loader>();
   const [isYearly, setIsYearly] = useState(false);
 
   return (
@@ -1172,15 +960,7 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
       <PricingSwitch yearly={isYearly} setYearly={setIsYearly} />
 
       <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
-        <PricingBoxes
-          launchPlan={launchPlan}
-          launchYearlyPlan={launchYearlyPlan}
-          growPlan={growPlan}
-          growYearlyPlan={growYearlyPlan}
-          acceleratePlan={acceleratePlan}
-          accelerateYearlyPlan={accelerateYearlyPlan}
-          yearly={isYearly}
-        />
+        <PricingBoxes plans={plans} yearly={isYearly} />
       </div>
     </div>
   );

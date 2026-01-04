@@ -1,11 +1,4 @@
-import {
-  PLAN_LAUNCH,
-  PLAN_LAUNCH_YEARLY,
-  PLAN_GROW,
-  PLAN_GROW_YEARLY,
-  PLAN_ACCELERATE,
-  PLAN_ACCELERATE_YEARLY,
-} from "libs/user-plan";
+import { allActivePlans } from "libs/user-plan";
 import {
   Container,
   CustomTestimonials,
@@ -25,12 +18,7 @@ export function meta() {
 
 export async function loader() {
   return {
-    launchPlan: PLAN_LAUNCH,
-    launchYearlyPlan: PLAN_LAUNCH_YEARLY,
-    growPlan: PLAN_GROW,
-    growYearlyPlan: PLAN_GROW_YEARLY,
-    acceleratePlan: PLAN_ACCELERATE,
-    accelerateYearlyPlan: PLAN_ACCELERATE_YEARLY,
+    plans: allActivePlans,
   };
 }
 

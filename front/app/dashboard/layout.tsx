@@ -4,16 +4,7 @@ import { AppContext, useApp } from "./context";
 import { getAuthUser } from "~/auth/middleware";
 import { SideMenu } from "./side-menu";
 import { useEffect } from "react";
-import {
-  getPagesCount,
-  PLAN_FREE,
-  PLAN_LAUNCH,
-  PLAN_LAUNCH_YEARLY,
-  PLAN_GROW,
-  PLAN_GROW_YEARLY,
-  PLAN_ACCELERATE,
-  PLAN_ACCELERATE_YEARLY,
-} from "libs/user-plan";
+import { getPagesCount, PLAN_FREE, allActivePlans } from "libs/user-plan";
 import { planMap } from "libs/user-plan";
 import { prisma } from "libs/prisma";
 import { getSession } from "~/session";
@@ -95,12 +86,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     openTickets,
     scrape,
     dataGapMessages,
-    launchPlan: PLAN_LAUNCH,
-    launchYearlyPlan: PLAN_LAUNCH_YEARLY,
-    growPlan: PLAN_GROW,
-    growYearlyPlan: PLAN_GROW_YEARLY,
-    acceleratePlan: PLAN_ACCELERATE,
-    accelerateYearlyPlan: PLAN_ACCELERATE_YEARLY,
+    plans: allActivePlans,
     usedPages,
     scrapeUsers,
     token,
@@ -180,14 +166,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         </div>
       </div>
       <Toaster position="bottom-right" />
-      <UpgradeModal
-        launchPlan={loaderData.launchPlan}
-        launchYearlyPlan={loaderData.launchYearlyPlan}
-        growPlan={loaderData.growPlan}
-        growYearlyPlan={loaderData.growYearlyPlan}
-        acceleratePlan={loaderData.acceleratePlan}
-        accelerateYearlyPlan={loaderData.accelerateYearlyPlan}
-      />
+      <UpgradeModal plans={loaderData.plans} />
       {/* <ChatModal token={loaderData.token} /> */}
     </AppContext.Provider>
   );
