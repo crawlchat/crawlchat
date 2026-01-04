@@ -4,19 +4,19 @@ import { useFetcher } from "react-router";
 import { PricingBoxes, PricingSwitch } from "~/landing/page";
 
 export function UpgradeModal({
-  starterPlan,
-  proPlan,
-  starterYearlyPlan,
-  proYearlyPlan,
-  hobbyPlan,
-  hobbyYearlyPlan,
+  launchPlan,
+  launchYearlyPlan,
+  growPlan,
+  growYearlyPlan,
+  acceleratePlan,
+  accelerateYearlyPlan,
 }: {
-  starterPlan: Plan;
-  proPlan: Plan;
-  starterYearlyPlan: Plan;
-  proYearlyPlan: Plan;
-  hobbyPlan: Plan;
-  hobbyYearlyPlan: Plan;
+  launchPlan: Plan;
+  launchYearlyPlan: Plan;
+  growPlan: Plan;
+  growYearlyPlan: Plan;
+  acceleratePlan: Plan;
+  accelerateYearlyPlan: Plan;
 }) {
   const paymentFetcher = useFetcher();
   const [yearly, setYearly] = useState(false);
@@ -36,13 +36,13 @@ export function UpgradeModal({
         <PricingSwitch yearly={yearly} setYearly={setYearly} />
         <div className="flex flex-col md:flex-row gap-4">
           <PricingBoxes
-            starterPlan={starterPlan}
-            proPlan={proPlan}
-            starterYearlyPlan={starterYearlyPlan}
-            proYearlyPlan={proYearlyPlan}
+            launchPlan={launchPlan}
+            launchYearlyPlan={launchYearlyPlan}
+            growPlan={growPlan}
+            growYearlyPlan={growYearlyPlan}
+            acceleratePlan={acceleratePlan}
+            accelerateYearlyPlan={accelerateYearlyPlan}
             yearly={yearly}
-            hobbyPlan={hobbyPlan}
-            hobbyYearlyPlan={hobbyYearlyPlan}
           />
         </div>
       </div>

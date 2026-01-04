@@ -1,6 +1,12 @@
 import {
+  PLAN_ACCELERATE,
+  PLAN_ACCELERATE_YEARLY,
+  PLAN_GROW,
+  PLAN_GROW_YEARLY,
   PLAN_HOBBY,
   PLAN_HOBBY_YEARLY,
+  PLAN_LAUNCH,
+  PLAN_LAUNCH_YEARLY,
   PLAN_PRO,
   PLAN_PRO_YEARLY,
   PLAN_STARTER,
@@ -33,6 +39,13 @@ export const productIdPlanMap: Record<string, Plan> = {
   pdt_5dCrGhvBslGdT2fIxQjuy: PLAN_PRO_YEARLY,
   pdt_boJZHUL9XLprkefonKtuT: PLAN_HOBBY_YEARLY,
 
+  pdt_0NVYGTDXnMxIdEJ8TCPQR: PLAN_LAUNCH,
+  pdt_0NVYGgRC1GaW0ogaIngH7: PLAN_LAUNCH_YEARLY,
+  pdt_0NVYGpvQOVQSs6XD7nWFg: PLAN_GROW,
+  pdt_0NVYGypdaV3R7ZKvSkJvd: PLAN_GROW_YEARLY,
+  pdt_0NVYHBbhSr7JUmQtMcTiV: PLAN_ACCELERATE,
+  pdt_0NVYHOktAtrFNDT4qYVhb: PLAN_ACCELERATE_YEARLY,
+
   // dev
   pdt_CDgenxMUiAKjzBDVROTDr: PLAN_STARTER,
   pdt_7tO1wC3NRoQsCXh8oIFEi: PLAN_PRO,
@@ -46,6 +59,13 @@ export const planProductIdMap: Record<string, string> = {
   [PLAN_STARTER_YEARLY.id]: "pdt_uAHyWAsgys9afUnn9NjAM",
   [PLAN_PRO_YEARLY.id]: "pdt_5dCrGhvBslGdT2fIxQjuy",
   [PLAN_HOBBY_YEARLY.id]: "pdt_boJZHUL9XLprkefonKtuT",
+
+  [PLAN_LAUNCH.id]: "pdt_0NVYGTDXnMxIdEJ8TCPQR",
+  [PLAN_LAUNCH_YEARLY.id]: "pdt_0NVYGgRC1GaW0ogaIngH7",
+  [PLAN_GROW.id]: "pdt_0NVYGpvQOVQSs6XD7nWFg",
+  [PLAN_GROW_YEARLY.id]: "pdt_0NVYGypdaV3R7ZKvSkJvd",
+  [PLAN_ACCELERATE.id]: "pdt_0NVYHBbhSr7JUmQtMcTiV",
+  [PLAN_ACCELERATE_YEARLY.id]: "pdt_0NVYHOktAtrFNDT4qYVhb",
 
   // [PLAN_HOBBY.id]: "pdt_lpFZp5sBEu5bzKwCbE5Y8",
   // [PLAN_STARTER.id]: "pdt_CDgenxMUiAKjzBDVROTDr",

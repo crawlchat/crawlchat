@@ -3,16 +3,16 @@ import { Outlet, useFetcher } from "react-router";
 import { AppContext, useApp } from "./context";
 import { getAuthUser } from "~/auth/middleware";
 import { SideMenu } from "./side-menu";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import {
   getPagesCount,
   PLAN_FREE,
-  PLAN_HOBBY,
-  PLAN_HOBBY_YEARLY,
-  PLAN_PRO,
-  PLAN_PRO_YEARLY,
-  PLAN_STARTER,
-  PLAN_STARTER_YEARLY,
+  PLAN_LAUNCH,
+  PLAN_LAUNCH_YEARLY,
+  PLAN_GROW,
+  PLAN_GROW_YEARLY,
+  PLAN_ACCELERATE,
+  PLAN_ACCELERATE_YEARLY,
 } from "libs/user-plan";
 import { planMap } from "libs/user-plan";
 import { prisma } from "libs/prisma";
@@ -95,12 +95,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     openTickets,
     scrape,
     dataGapMessages,
-    starterPlan: PLAN_STARTER,
-    proPlan: PLAN_PRO,
-    hobbyPlan: PLAN_HOBBY,
-    starterYearlyPlan: PLAN_STARTER_YEARLY,
-    proYearlyPlan: PLAN_PRO_YEARLY,
-    hobbyYearlyPlan: PLAN_HOBBY_YEARLY,
+    launchPlan: PLAN_LAUNCH,
+    launchYearlyPlan: PLAN_LAUNCH_YEARLY,
+    growPlan: PLAN_GROW,
+    growYearlyPlan: PLAN_GROW_YEARLY,
+    acceleratePlan: PLAN_ACCELERATE,
+    accelerateYearlyPlan: PLAN_ACCELERATE_YEARLY,
     usedPages,
     scrapeUsers,
     token,
@@ -181,12 +181,12 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       </div>
       <Toaster position="bottom-right" />
       <UpgradeModal
-        starterPlan={loaderData.starterPlan}
-        proPlan={loaderData.proPlan}
-        starterYearlyPlan={loaderData.starterYearlyPlan}
-        proYearlyPlan={loaderData.proYearlyPlan}
-        hobbyPlan={loaderData.hobbyPlan}
-        hobbyYearlyPlan={loaderData.hobbyYearlyPlan}
+        launchPlan={loaderData.launchPlan}
+        launchYearlyPlan={loaderData.launchYearlyPlan}
+        growPlan={loaderData.growPlan}
+        growYearlyPlan={loaderData.growYearlyPlan}
+        acceleratePlan={loaderData.acceleratePlan}
+        accelerateYearlyPlan={loaderData.accelerateYearlyPlan}
       />
       {/* <ChatModal token={loaderData.token} /> */}
     </AppContext.Provider>
