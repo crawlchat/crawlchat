@@ -57,10 +57,7 @@ import {
 import { prisma } from "libs/prisma";
 import type { User } from "libs/prisma";
 import { track } from "~/track";
-import {
-  type Plan,
-  allActivePlans,
-} from "libs/user-plan";
+import { type Plan, allActivePlans } from "libs/user-plan";
 import { Link, useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
 import { makeMeta } from "~/meta";
@@ -2678,6 +2675,8 @@ function Why() {
 export default function Landing({ loaderData }: Route.ComponentProps) {
   return (
     <>
+      <div className="text-center">With changes</div>
+
       <Container>
         <Hero />
       </Container>
