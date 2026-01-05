@@ -72,6 +72,37 @@ app.post(
   }
 );
 
+app.post(
+  "/stop-group",
+  authenticate,
+  async function (req: Request, res: Response) {
+    const scrapeItem = await prisma.scrapeItem.findFirstOrThrow({
+      where: { id: req.body.scrapeItemId },
+    });
+
+    authoriseScrapeUser(req.user!.scrapeUsers, scrapeItem.scrapeId, res);
+
+    await prisma.scrapeItem.deleteMany({
+      where: {
+        knowledgeGroupId: req.body.knowledgeGroupId,
+        status: "pending",
+      },
+    });
+
+    await prisma.scrapeItem.updateMany({
+      where: {
+        knowledgeGroupId: req.body.knowledgeGroupId,
+        willUpdate: true,
+      },
+      data: {
+        willUpdate: false,
+      },
+    });
+
+    res.json({ message: "ok" });
+  }
+);
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

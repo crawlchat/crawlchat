@@ -23,7 +23,7 @@ async function checkCompletion(knowledgeGroupId: string) {
   const pendingItems = await prisma.scrapeItem.findMany({
     where: {
       knowledgeGroupId,
-      status: "pending",
+      willUpdate: true,
     },
   });
 
@@ -38,15 +38,20 @@ async function checkCompletion(knowledgeGroupId: string) {
 itemEvents.on("failed", async ({ jobId, failedReason }) => {
   const job = await itemQueue.getJob(jobId);
   if (job && job.failedReason && "scrapeItemId" in job.data) {
-    const item = await prisma.scrapeItem.findUniqueOrThrow({
+    const item = await prisma.scrapeItem.findFirst({
       where: { id: job.data.scrapeItemId },
     });
+
+    if (!item) {
+      return;
+    }
 
     await prisma.scrapeItem.update({
       where: { id: item.id },
       data: {
         status: "failed",
         error: failedReason,
+        willUpdate: false,
       },
     });
 
@@ -57,9 +62,14 @@ itemEvents.on("failed", async ({ jobId, failedReason }) => {
 itemEvents.on("completed", async ({ jobId }) => {
   const job = await itemQueue.getJob(jobId);
   if (job && job.data && "scrapeItemId" in job.data) {
-    const item = await prisma.scrapeItem.findUniqueOrThrow({
+    const item = await prisma.scrapeItem.findFirst({
       where: { id: job.data.scrapeItemId },
     });
+
+    if (!item) {
+      return;
+    }
+
     await checkCompletion(item.knowledgeGroupId);
   }
 });
@@ -175,6 +185,7 @@ const itemWorker = new Worker<ItemWebData>(
             id: doc.id,
           })),
           status: "completed",
+          willUpdate: false,
         },
       });
     }

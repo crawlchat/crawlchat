@@ -106,8 +106,8 @@ export class WebSource implements Source {
             },
           },
           update: {
-            status: "pending",
             updatedByProcessId: jobData.processId,
+            willUpdate: true,
           },
           create: {
             knowledgeGroupId: item.knowledgeGroupId,
@@ -118,6 +118,7 @@ export class WebSource implements Source {
             userId: item.userId,
             markdown: "Not yet available",
             updatedByProcessId: jobData.processId,
+            willUpdate: true,
           },
         });
 

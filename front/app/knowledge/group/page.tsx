@@ -115,6 +115,19 @@ export async function action({ request, params }: Route.ActionArgs) {
       data: { status: "done" },
     });
 
+    const token = createToken(user!.id);
+
+    await fetch(`${process.env.VITE_SOURCE_SYNC_URL}/stop-group`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        knowledgeGroupId,
+      }),
+    });
+
     return { success: true };
   }
 }

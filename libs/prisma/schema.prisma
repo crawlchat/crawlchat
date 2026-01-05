@@ -413,6 +413,7 @@ model ScrapeItem {
   status                  ScrapeItemStatus?
   error                   String?
   updatedByProcessId      String?
+  willUpdate              Boolean?
 
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt

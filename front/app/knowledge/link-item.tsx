@@ -80,19 +80,19 @@ export async function action({ params, request }: Route.ActionArgs) {
       return redirect("/knowledge");
     }
 
-    await prisma.scrapeItem.update({
-      where: { id: scrapeItem.id },
-      data: { status: "pending" },
+    await prisma.knowledgeGroup.update({
+      where: { id: scrapeItem.knowledgeGroupId },
+      data: { status: "processing" },
     });
 
     const token = createToken(user!.id);
     const host = ["scrape_web"].includes(scrapeItem.knowledgeGroup!.type)
-      ? process.env.VITE_SERVER_URL
+      ? process.env.VITE_SOURCE_SYNC_URL
       : process.env.VITE_SERVER_URL;
     const endpoint = ["scrape_web"].includes(scrapeItem.knowledgeGroup!.type)
-      ? "/scrape"
+      ? "/update-item"
       : "/scrape";
-      
+
     await fetch(`${host}${endpoint}`, {
       method: "POST",
       headers: {
