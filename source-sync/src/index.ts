@@ -4,7 +4,7 @@ dotenv.config();
 import express from "express";
 import type { Express, Request, Response } from "express";
 import { authenticate, AuthMode, authoriseScrapeUser } from "libs/express-auth";
-import "./queue";
+import "./worker";
 import { Prisma, prisma } from "libs/dist/prisma";
 import { groupQueue, itemQueue } from "./source/queue";
 import { v4 as uuidv4 } from "uuid";
@@ -23,7 +23,7 @@ declare global {
 }
 
 const app: Express = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3007;
 
 app.use(express.json());
 

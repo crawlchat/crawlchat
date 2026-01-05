@@ -81,11 +81,14 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
 
     const token = createToken(user!.id);
+    const host = ["scrape_web"].includes(group.type)
+      ? process.env.VITE_SOURCE_SYNC_URL
+      : process.env.VITE_SERVER_URL;
     const endpoint = ["scrape_web"].includes(group.type)
       ? "/update-group"
       : "/scrape";
 
-    await fetch(`${process.env.VITE_SERVER_URL}${endpoint}`, {
+    await fetch(`${host}${endpoint}`, {
       method: "POST",
       body: JSON.stringify({
         scrapeId,
