@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^22.13.1",
     "@types/turndown": "^5.0.6",
     "nodemon": "^3.1.9",
@@ -25,6 +26,7 @@
     "bullmq": "^5.66.4",
     "cheerio": "^1.1.2",
     "dotenv": "^16.4.7",
+    "express": "^5.2.1",
     "ioredis": "^5.8.2",
     "libs": "file:../libs",
     "lodash": "^4.17.21",
@@ -34,6 +36,6 @@
     "prisma": "^6.2.1",
     "turndown": "^7.2.2",
     "turndown-plugin-gfm": "^1.0.2",
-    "uuid": "^11.0.5"
+    "uuid": "^11.1.0"
   }
 }

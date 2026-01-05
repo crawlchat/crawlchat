@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "../prisma";
-import { adminAuthenticate } from "../auth";
+import { adminAuthenticate } from "libs/express-auth";
 import { PLAN_FREE, planMap } from "libs/user-plan";
 
 const router = Router();

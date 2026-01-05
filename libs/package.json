@@ -61,6 +61,10 @@
     "./linear": {
       "default": "./dist/linear.js",
       "types": "./dist/linear.d.ts"
+    },
+    "./express-auth": {
+      "default": "./dist/express-auth.js",
+      "types": "./dist/express-auth.d.ts"
     }
   },
   "typesVersions": {
@@ -103,6 +107,9 @@
       ],
       "linear": [
         "./dist/linear.d.ts"
+      ],
+      "express-auth": [
+        "./dist/express-auth.d.ts"
       ]
     }
   },

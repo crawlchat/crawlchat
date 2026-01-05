@@ -1,7 +1,6 @@
-import { Request, Response, NextFunction } from "express";
 import { prisma } from "./prisma";
-import { Prisma, ScrapeUser } from "libs/prisma";
-import { verifyToken } from "libs/jwt";
+import { Prisma, ScrapeUser } from "./prisma";
+import { verifyToken } from "./jwt";
 
 export enum AuthMode {
   jwt,
@@ -9,9 +8,9 @@ export enum AuthMode {
 }
 
 export async function authenticate(
-  req: Request,
-  res: Response,
-  next: NextFunction
+  req: any,
+  res: any,
+  next: any
 ): Promise<void> {
   try {
     let user: Prisma.UserGetPayload<{
@@ -64,9 +63,9 @@ export async function authenticate(
 }
 
 export async function adminAuthenticate(
-  req: Request,
-  res: Response,
-  next: NextFunction
+  req: any,
+  res: any,
+  next: any
 ): Promise<void> {
   await authenticate(req, res, () => {
     const adminEmails = ["pramodkumar.damam73@gmail.com"];
@@ -94,7 +93,7 @@ declare global {
 export function authoriseScrapeUser(
   scrapeUsers: ScrapeUser[],
   scrapeId: string,
-  response: Response
+  response: any
 ) {
   if (!scrapeUsers.find((su) => su.scrapeId === scrapeId)) {
     response.status(401).json({ error: "Unauthorised" });
