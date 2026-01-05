@@ -1,0 +1,39 @@
+{
+  "name": "source-sync",
+  "version": "1.0.0",
+  "description": "Source Sync",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node -r tsconfig-paths/register dist/index.js",
+    "dev": "nodemon src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "@types/turndown": "^5.0.6",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@notionhq/client": "^4.0.1",
+    "@pinecone-database/pinecone": "^4.1.0",
+    "bullmq": "^5.66.4",
+    "cheerio": "^1.1.2",
+    "dotenv": "^16.4.7",
+    "ioredis": "^5.8.2",
+    "libs": "file:../libs",
+    "lodash": "^4.17.21",
+    "markdown-to-txt": "^2.0.1",
+    "notion-to-md": "^3.1.9",
+    "playwright": "^1.50.1",
+    "prisma": "^6.2.1",
+    "turndown": "^7.2.2",
+    "turndown-plugin-gfm": "^1.0.2",
+    "uuid": "^11.0.5"
+  }
+}

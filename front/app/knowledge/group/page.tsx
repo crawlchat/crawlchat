@@ -75,13 +75,17 @@ export async function action({ request, params }: Route.ActionArgs) {
       return { error: "Knowledge group ID is required" };
     }
 
-    await prisma.knowledgeGroup.update({
+    const group = await prisma.knowledgeGroup.update({
       where: { id: knowledgeGroupId, scrapeId },
       data: { status: "processing", fetchError: null },
     });
 
     const token = createToken(user!.id);
-    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+    const endpoint = ["scrape_web"].includes(group.type)
+      ? "/update-group"
+      : "/scrape";
+
+    await fetch(`${process.env.VITE_SERVER_URL}${endpoint}`, {
       method: "POST",
       body: JSON.stringify({
         scrapeId,

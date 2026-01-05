@@ -394,6 +394,7 @@ type Embedding {
 }
 
 enum ScrapeItemStatus {
+  pending
   completed
   failed
 }
@@ -411,6 +412,7 @@ model ScrapeItem {
   embeddings              Embedding[]
   status                  ScrapeItemStatus?
   error                   String?
+  updatedByProcessId      String?
 
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt

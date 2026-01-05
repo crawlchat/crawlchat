@@ -50,6 +50,7 @@ import { extractSiteUseCase } from "./site-use-case";
 import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
+import { groupQueue, itemQueue } from "./queue";
 
 const app: Express = express();
 const expressWs = ws(app);
@@ -142,6 +143,50 @@ app.post("/scrape", authenticate, async function (req: Request, res: Response) {
 
   res.json({ message: "ok" });
 });
+
+app.post(
+  "/update-group",
+  authenticate,
+  async function (req: Request, res: Response) {
+    const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+      where: { id: req.body.knowledgeGroupId },
+    });
+
+    authoriseScrapeUser(req.user!.scrapeUsers, knowledgeGroup.scrapeId, res);
+
+    groupQueue.add("group", {
+      scrapeId: knowledgeGroup.scrapeId,
+      knowledgeGroupId: knowledgeGroup.id,
+      userId: knowledgeGroup.userId,
+      processId: uuidv4(),
+    });
+
+    res.json({ message: "ok" });
+  }
+);
+
+app.post(
+  "/update-item",
+  authenticate,
+  async function (req: Request, res: Response) {
+    const scrapeItem = await prisma.scrapeItem.findFirstOrThrow({
+      where: { id: req.body.scrapeItemId },
+    });
+
+    authoriseScrapeUser(req.user!.scrapeUsers, scrapeItem.scrapeId, res);
+
+    itemQueue.add("item", {
+      scrapeItemId: scrapeItem.id,
+      scrapeId: scrapeItem.scrapeId,
+      knowledgeGroupId: scrapeItem.knowledgeGroupId,
+      userId: scrapeItem.userId,
+      processId: uuidv4(),
+      justThis: true,
+    });
+
+    res.json({ message: "ok" });
+  }
+);
 
 app.delete(
   "/scrape",
@@ -473,7 +518,9 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   }
 
   const clientUserId = req.body.clientUserId as string | undefined;
-  const fingerprint = (clientUserId ?? req.body.fingerprint) as string | undefined;
+  const fingerprint = (clientUserId ?? req.body.fingerprint) as
+    | string
+    | undefined;
 
   let thread = await prisma.thread.findFirst({
     where: { scrapeId: scrape.id, isDefault: true },

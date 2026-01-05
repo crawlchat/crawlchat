@@ -1,7 +1,14 @@
 import type { Route } from "./+types/items";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "~/prisma";
-import { TbCheck, TbRefresh, TbX, TbStack, TbChevronLeft, TbChevronRight } from "react-icons/tb";
+import {
+  TbCheck,
+  TbRefresh,
+  TbX,
+  TbStack,
+  TbChevronLeft,
+  TbChevronRight,
+} from "react-icons/tb";
 import { Link, Outlet, useLoaderData } from "react-router";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { EmptyState } from "~/components/empty-state";
@@ -188,7 +195,11 @@ export default function ScrapeLinks({ loaderData }: Route.ComponentProps) {
                           ) : (
                             <TbRefresh />
                           )}
-                          {item.status === "completed" ? "Success" : "Failed"}
+                          {item.status === "completed"
+                            ? "Success"
+                            : item.status === "failed"
+                            ? "Failed"
+                            : "Pendings"}
                         </div>
                       </div>
                     </td>

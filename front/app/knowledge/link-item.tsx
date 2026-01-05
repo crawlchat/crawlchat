@@ -71,19 +71,25 @@ export async function action({ params, request }: Route.ActionArgs) {
   if (intent === "refresh") {
     const scrapeItem = await prisma.scrapeItem.findUnique({
       where: { id: params.itemId, scrapeId },
+      include: {
+        knowledgeGroup: true,
+      },
     });
 
     if (!scrapeItem) {
       return redirect("/knowledge");
     }
 
-    await prisma.knowledgeGroup.update({
-      where: { id: scrapeItem.knowledgeGroupId, scrapeId },
-      data: { status: "processing" },
+    await prisma.scrapeItem.update({
+      where: { id: scrapeItem.id },
+      data: { status: "pending" },
     });
 
     const token = createToken(user!.id);
-    await fetch(`${process.env.VITE_SERVER_URL}/scrape`, {
+    const endpoint = ["scrape_web"].includes(scrapeItem.knowledgeGroup!.type)
+      ? "/update-item"
+      : "/scrape";
+    await fetch(`${process.env.VITE_SERVER_URL}${endpoint}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -93,6 +99,7 @@ export async function action({ params, request }: Route.ActionArgs) {
         scrapeId: scrapeItem.scrapeId,
         url: scrapeItem.url,
         knowledgeGroupId: scrapeItem.knowledgeGroupId,
+        scrapeItemId: scrapeItem.id,
       }),
     });
 
