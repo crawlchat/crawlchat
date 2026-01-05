@@ -3,6 +3,9 @@ import Redis from "ioredis";
 
 export const redis = new Redis(process.env.REDIS_URL!, {
   maxRetriesPerRequest: null,
+  tls: {
+    rejectUnauthorized: false,
+  },
 });
 
 export const GROUP_QUEUE_NAME = process.env.GROUP_QUEUE_NAME!;

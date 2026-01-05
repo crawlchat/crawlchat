@@ -82,10 +82,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     const token = createToken(user!.id);
     const host = ["scrape_web"].includes(group.type)
-      ? process.env.VITE_SERVER_URL
+      ? process.env.VITE_SOURCE_SYNC_URL
       : process.env.VITE_SERVER_URL;
     const endpoint = ["scrape_web"].includes(group.type)
-      ? "/scrape"
+      ? "/update-group"
       : "/scrape";
 
     await fetch(`${host}${endpoint}`, {
