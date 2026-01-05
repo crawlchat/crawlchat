@@ -7,7 +7,7 @@ import { prisma } from "libs/prisma";
 import { makeSource } from "./source/factory";
 import { splitMarkdown } from "./scrape/markdown-splitter";
 import { makeIndexer } from "./indexer/factory";
-import { deleteByIds, makeRecordId } from "./scrape/pinecone";
+import { deleteByIds, makeRecordId } from "./pinecone";
 import { v4 as uuidv4 } from "uuid";
 import {
   ITEM_QUEUE_NAME,
