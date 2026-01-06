@@ -127,6 +127,43 @@ app.post(
   }
 );
 
+app.post(
+  "/text-page",
+  authenticate,
+  async function (req: Request, res: Response) {
+    const { title, text, knowledgeGroupId, pageId } = req.body;
+
+    const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+      where: { id: knowledgeGroupId },
+      include: {
+        scrape: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    authoriseScrapeUser(req.user!.scrapeUsers, knowledgeGroup.scrapeId, res);
+
+    const processId = "default";
+
+    await prisma.knowledgeGroup.update({
+      where: { id: knowledgeGroupId },
+      data: { status: "processing", updateProcessId: processId },
+    });
+
+    await scheduleUrl(knowledgeGroup, processId, pageId, pageId, {
+      textPage: {
+        title,
+        text,
+      },
+    });
+
+    res.json({ message: "ok" });
+  }
+);
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

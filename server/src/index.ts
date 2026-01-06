@@ -356,13 +356,6 @@ app.post(
       return;
     }
 
-    const scrape = await prisma.scrape.findFirstOrThrow({
-      where: { id: scrapeId },
-      include: {
-        user: true,
-      },
-    });
-
     let knowledgeGroup = await prisma.knowledgeGroup.findFirst({
       where: { scrapeId, type: knowledgeGroupType },
     });
@@ -378,21 +371,6 @@ app.post(
       return;
     }
 
-    const chunks = await splitMarkdown(markdown);
-
-    try {
-      await assertLimit(
-        new Date().toISOString(),
-        chunks.length,
-        scrape.id,
-        scrape.userId,
-        scrape.user.plan
-      );
-    } catch (error) {
-      res.status(400).json({ message: "Pages limit reached for the plan" });
-      return;
-    }
-
     if (!knowledgeGroup) {
       knowledgeGroup = await prisma.knowledgeGroup.create({
         data: {
@@ -405,57 +383,26 @@ app.post(
       });
     }
 
-    const indexer = makeIndexer({ key: scrape.indexer });
-    const documents = chunks.map((chunk) => ({
-      id: makeRecordId(scrape.id, uuidv4()),
-      text: chunk,
-      metadata: { content: chunk },
-    }));
-
-    await indexer.upsert(scrape.id, documents);
-
-    const existingItem = await prisma.scrapeItem.findFirst({
-      where: { scrapeId: scrape.id, url },
+    const response = await fetch(`${process.env.SOURCE_SYNC_URL}/text-page`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${createToken(req.user!.id)}`,
+      },
+      body: JSON.stringify({
+        title,
+        text: markdown,
+        knowledgeGroupId,
+        pageId: url,
+      }),
     });
-    if (existingItem) {
-      await deleteByIds(
-        indexer.getKey(),
-        existingItem.embeddings.map((embedding) => embedding.id)
-      );
+
+    if (!response.ok) {
+      res.status(500).json({ message: "Failed to add page" });
+      return;
     }
 
-    const scrapeItem = await prisma.scrapeItem.upsert({
-      where: {
-        knowledgeGroupId_url: {
-          knowledgeGroupId: knowledgeGroup.id,
-          url,
-        },
-      },
-      update: {
-        markdown,
-        title,
-        metaTags: [],
-        embeddings: documents.map((doc) => ({
-          id: doc.id,
-        })),
-        status: "completed",
-      },
-      create: {
-        userId: req.user!.id,
-        scrapeId: scrape.id,
-        knowledgeGroupId: knowledgeGroup.id,
-        url,
-        markdown,
-        title,
-        metaTags: [],
-        embeddings: documents.map((doc) => ({
-          id: doc.id,
-        })),
-        status: "completed",
-      },
-    });
-
-    res.json({ scrapeItem });
+    res.json({ status: "ok" });
   }
 );
 
