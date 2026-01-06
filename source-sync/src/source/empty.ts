@@ -6,10 +6,6 @@ import {
 import { GroupData, ItemData } from "./queue";
 
 export class EmptySource implements Source {
-  getDelay(): number {
-    return 0;
-  }
-
   async updateGroup(
     jobData: GroupData,
     group: GroupForSource,

@@ -9,10 +9,6 @@ import { GroupData, ItemData } from "./queue";
 import { scheduleGroup, scheduleUrl } from "./schedule";
 
 export class GithubIssuesSource implements Source {
-  getDelay(): number {
-    return 0;
-  }
-
   async updateGroup(jobData: GroupData, group: GroupForSource): Promise<void> {
     const match = group.url!.match("https://(www.)?github.com/(.+)/(.+)");
     if (!match) {

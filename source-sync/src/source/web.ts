@@ -12,10 +12,6 @@ export class WebSource implements Source {
     return url;
   }
 
-  getDelay(): number {
-    return 0;
-  }
-
   async updateGroup(jobData: GroupData, group: GroupForSource): Promise<void> {
     if (!group.url) {
       throw new Error("Group url is required");

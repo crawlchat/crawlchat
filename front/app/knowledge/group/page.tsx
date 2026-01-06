@@ -85,6 +85,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       "scrape_web",
       "notion",
       "github_issues",
+      "confluence",
     ].includes(group.type);
     const host = shouldUseSourceSync
       ? process.env.VITE_SOURCE_SYNC_URL

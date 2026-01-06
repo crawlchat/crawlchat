@@ -2,6 +2,8 @@ import { KnowledgeGroupType } from "libs/dist/prisma";
 import { WebSource } from "./web";
 import { NotionSource } from "./notion";
 import { GithubIssuesSource } from "./github-issues";
+import { TextSource } from "./text";
+import { ConfluenceSource } from "./confluence";
 
 export function makeSource(type: KnowledgeGroupType) {
   switch (type) {
@@ -11,6 +13,10 @@ export function makeSource(type: KnowledgeGroupType) {
       return new NotionSource();
     case "github_issues":
       return new GithubIssuesSource();
+    case "upload":
+      return new TextSource();
+    case "confluence":
+      return new ConfluenceSource();
     default:
       throw new Error(`Unknown source type: ${type}`);
   }

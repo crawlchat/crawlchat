@@ -17,14 +17,22 @@ export type GroupData = {
   userId: string;
   processId: string;
   githubIssuesPagination?: string;
+  confluenceCursor?: string;
 };
 
 export type ItemData = {
   knowledgeGroupId: string;
   processId: string;
   url: string;
+
   justThis?: boolean;
   githubIssuesPagination?: string;
+  textPage?: {
+    title: string;
+    text: string;
+  }
+  sourePageId?: string;
+  confluenceCursor?: string;
 };
 
 export const groupQueue = new Queue<GroupData>(GROUP_QUEUE_NAME, {

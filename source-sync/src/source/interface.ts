@@ -43,5 +43,4 @@ export interface Source {
     jobData: ItemData,
     group: GroupForSource,
   ) => Promise<UpdateItemResponse>;
-  getDelay: () => number;
 }

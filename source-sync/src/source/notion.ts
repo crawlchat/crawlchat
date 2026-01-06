@@ -65,10 +65,6 @@ export async function getComments(page: any, client: Client) {
 }
 
 export class NotionSource implements Source {
-  getDelay(): number {
-    return 3000;
-  }
-
   async updateGroup(
     jobData: GroupData,
     group: GroupForSource
