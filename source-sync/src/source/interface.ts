@@ -13,6 +13,7 @@ export type ScrapeItemResponse = {
 
 export type GroupStartReponse = {
   itemIds: string[];
+  pages?: Array<PageContent & { url: string }>;
 };
 
 export type GroupForSource = Prisma.KnowledgeGroupGetPayload<{
@@ -48,4 +49,5 @@ export interface Source {
     item: ItemForSource,
     jobData: ItemWebData
   ) => Promise<ScrapeItemResponse>;
+  getDelay: () => number;
 }

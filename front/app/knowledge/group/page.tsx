@@ -81,9 +81,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
 
     const token = createToken(user!.id);
-    const shouldUseSourceSync =
-      ["scrape_web"].includes(group.type) &&
-      group.userId === "67af3a40d81c3547d5bc4b56";
+    const shouldUseSourceSync = ["scrape_web", "notion"].includes(group.type);
     const host = shouldUseSourceSync
       ? process.env.VITE_SOURCE_SYNC_URL
       : process.env.VITE_SERVER_URL;

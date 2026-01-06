@@ -1,11 +1,6 @@
 import { Worker, Job, QueueEvents } from "bullmq";
-import { assertLimit } from "./assert-limit";
 import { prisma } from "libs/prisma";
 import { makeSource } from "./source/factory";
-import { splitMarkdown } from "./scrape/markdown-splitter";
-import { makeIndexer } from "./indexer/factory";
-import { deleteByIds, makeRecordId } from "./pinecone";
-import { v4 as uuidv4 } from "uuid";
 import {
   ITEM_QUEUE_NAME,
   GROUP_QUEUE_NAME,
@@ -14,6 +9,7 @@ import {
   ItemWebData,
   redis,
 } from "./source/queue";
+import { upsertItem } from "./source/upsert-item";
 
 const itemEvents = new QueueEvents(ITEM_QUEUE_NAME, {
   connection: redis,
@@ -32,6 +28,7 @@ async function checkCompletion(knowledgeGroupId: string) {
       where: { id: knowledgeGroupId },
       data: { status: "done" },
     });
+    console.log(`Knowledge group ${knowledgeGroupId} completed`);
   }
 
   const knowledgeGroup = await prisma.knowledgeGroup.findFirst({
@@ -120,13 +117,31 @@ const groupWorker = new Worker<GroupData>(
     });
 
     const source = makeSource(knowledgeGroup.type);
-    const { itemIds } = await source.updateGroup(knowledgeGroup, data);
+    const { itemIds, pages } = await source.updateGroup(knowledgeGroup, data);
+
+    if (pages && pages.length > 0) {
+      for (const page of pages) {
+        await upsertItem(
+          knowledgeGroup.scrape,
+          knowledgeGroup,
+          knowledgeGroup.scrape.user.plan,
+          page.url,
+          page.title,
+          page.text
+        );
+      }
+    }
+
     for (const itemId of itemIds) {
-      await itemQueue.add("item", {
-        scrapeItemId: itemId,
-        processId: data.processId,
-        knowledgeGroupId: data.knowledgeGroupId,
-      });
+      await itemQueue.add(
+        "item",
+        {
+          scrapeItemId: itemId,
+          processId: data.processId,
+          knowledgeGroupId: data.knowledgeGroupId,
+        },
+        { delay: source.getDelay() }
+      );
     }
   },
   {
@@ -160,71 +175,35 @@ const itemWorker = new Worker<ItemWebData>(
     if (!item.knowledgeGroup) {
       throw new Error("Item has no knowledge group");
     }
+    if (!item.url) {
+      throw new Error("Item has no url");
+    }
 
     const source = makeSource(item.knowledgeGroup.type);
     const { itemIds, page } = await source.updateItem(item, data);
 
     if (page) {
-      const { text, title } = page;
-      const chunks = await splitMarkdown(text, {
-        context: item.knowledgeGroup.itemContext ?? undefined,
-      });
-
-      const path = item.url;
-
-      if (!path) {
-        throw new Error("Item has no url");
-      }
-
-      await assertLimit(
-        path,
-        chunks.length,
-        item.scrapeId,
-        item.userId,
-        item.knowledgeGroup.scrape.user.plan
+      await upsertItem(
+        item.knowledgeGroup.scrape,
+        item.knowledgeGroup,
+        item.knowledgeGroup.scrape.user.plan,
+        item.url,
+        page.title,
+        page.text
       );
-
-      const indexer = makeIndexer({ key: item.knowledgeGroup.scrape.indexer });
-
-      const documents = chunks.map((chunk) => ({
-        id: makeRecordId(item.scrapeId, uuidv4()),
-        text: chunk,
-        metadata: { content: chunk, url: path },
-      }));
-      await indexer.upsert(item.scrapeId, documents);
-
-      const existingItem = await prisma.scrapeItem.findFirst({
-        where: { scrapeId: item.scrapeId, url: path },
-      });
-      if (existingItem) {
-        await deleteByIds(
-          indexer.getKey(),
-          existingItem.embeddings.map((embedding) => embedding.id)
-        );
-      }
-
-      await prisma.scrapeItem.update({
-        where: { id: item.id },
-        data: {
-          markdown: text,
-          title,
-          metaTags: [],
-          embeddings: documents.map((doc) => ({
-            id: doc.id,
-          })),
-          status: "completed",
-          willUpdate: false,
-        },
-      });
     }
 
     if (itemIds && !data.justThis && itemIds.length > 0) {
       for (const itemId of itemIds) {
-        await itemQueue.add("item", {
-          scrapeItemId: itemId,
-          processId: data.processId,
-          knowledgeGroupId: data.knowledgeGroupId,
-        });
+        await itemQueue.add(
+          "item",
+          {
+            scrapeItemId: itemId,
+            processId: data.processId,
+            knowledgeGroupId: data.knowledgeGroupId,
+          },
+          { delay: source.getDelay() }
+        );
       }
     }
   },

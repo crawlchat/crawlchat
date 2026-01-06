@@ -10,14 +10,12 @@ export async function scrapePw(
   options?: { scrollSelector?: string; maxWait?: number }
 ) {
   const page = await getPage();
-  console.log("Navigating to", url);
+  console.log("Playwright scraping", url);
   const response = await page.goto(url);
 
   if (options?.maxWait) {
-    console.log("Waiting for maxWait", options.maxWait);
     await page.waitForTimeout(options.maxWait);
   } else {
-    console.log("Waiting for networkidle");
     await page.waitForLoadState("networkidle");
   }
 
@@ -52,12 +50,10 @@ export async function scrapePw(
       scrollElement.scrollTo(0, scrollElement.scrollHeight);
     }, scrollSelector);
 
-    console.log("Waiting for networkidle after scroll");
     await page.waitForLoadState("networkidle");
     await page.waitForTimeout(1000);
   }
 
-  console.log("Getting html");
   const html = await page.content();
   return { text: html, statusCode: response?.status() ?? -1 };
 }

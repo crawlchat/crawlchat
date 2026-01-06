@@ -55,7 +55,6 @@ function isSameHost(base: string, url: string) {
 export async function scrapeFetch(
   url: string
 ): Promise<{ text: string; statusCode: number }> {
-  console.log("Scraping", url);
   const headers = {
     "User-Agent":
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",

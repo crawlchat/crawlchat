@@ -18,6 +18,10 @@ export class WebSource implements Source {
     return url;
   }
 
+  getDelay(): number {
+    return 0;
+  }
+
   async updateGroup(
     group: GroupForSource,
     jobData: GroupData
