@@ -1,14 +1,13 @@
-import { prisma } from "libs/prisma";
 import { Client, ListCommentsResponse } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
 import {
   GroupForSource,
-  GroupStartReponse,
-  ItemForSource,
-  ScrapeItemResponse,
+  UpdateGroupReponse,
+  UpdateItemResponse,
   Source,
 } from "./interface";
-import { GroupData, ItemWebData } from "./queue";
+import { GroupData, ItemData } from "./queue";
+import { scheduleUrl } from "./schedule-url";
 
 function getPageTitle(page: any): string | undefined {
   if (!page.properties) {
@@ -76,9 +75,9 @@ export class NotionSource implements Source {
   }
 
   async updateGroup(
+    jobData: GroupData,
     group: GroupForSource,
-    jobData: GroupData
-  ): Promise<GroupStartReponse> {
+  ): Promise<UpdateGroupReponse> {
     const client = new Client({
       auth: group.notionSecret as string,
     });
@@ -101,47 +100,22 @@ export class NotionSource implements Source {
       });
     });
 
-    const itemIds = [];
     for (const page of filteredPages) {
       const url = (page as any).url;
-      const itemId = await prisma.scrapeItem.upsert({
-        where: {
-          knowledgeGroupId_url: {
-            knowledgeGroupId: group.id,
-            url,
-          },
-        },
-        update: {
-          willUpdate: true,
-          updatedByProcessId: jobData.processId,
-        },
-        create: {
-          knowledgeGroupId: group.id,
-          scrapeId: group.scrape.id,
-          userId: group.scrape.userId,
-          url,
-          status: "pending",
-          title: "Pending",
-          markdown: "Not yet available",
-          updatedByProcessId: jobData.processId,
-          willUpdate: true,
-        },
-      });
-      itemIds.push(itemId.id);
+      await scheduleUrl(group, jobData.processId, url);
     }
-    return {
-      itemIds,
-    };
+
+    return {};
   }
 
   async updateItem(
-    item: ItemForSource,
-    jobData: ItemWebData
-  ): Promise<ScrapeItemResponse> {
-    const pageId = item.url!.split("/").pop()?.split("-").pop() as string;
+    jobData: ItemData,
+    group: GroupForSource,
+  ): Promise<UpdateItemResponse> {
+    const pageId = jobData.url.split("/").pop()?.split("-").pop() as string;
 
     const client = new Client({
-      auth: item.knowledgeGroup!.notionSecret as string,
+      auth: group.notionSecret as string,
     });
 
     const page = await client.pages.retrieve({
@@ -180,7 +154,6 @@ export class NotionSource implements Source {
     const text = contentParts.filter(Boolean).join("\n\n");
 
     return {
-      itemIds: [],
       page: {
         title: title ?? "Untitled",
         text,

@@ -59,7 +59,6 @@ export async function upsertItem(
         id: doc.id,
       })),
       status: "completed",
-      willUpdate: false,
     },
     create: {
       userId: knowledgeGroup.userId,

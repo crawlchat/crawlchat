@@ -412,8 +412,6 @@ model ScrapeItem {
   embeddings              Embedding[]
   status                  ScrapeItemStatus?
   error                   String?
-  updatedByProcessId      String?
-  willUpdate              Boolean?
 
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
@@ -557,6 +555,7 @@ model KnowledgeGroup {
   linearApiKey                              String?
   linearSkipIssueStatuses                   String?
   linearSkipProjectStatuses                 String?
+  updateProcessId                           String?
 
   allowedGithubIssueStates                  String?
 

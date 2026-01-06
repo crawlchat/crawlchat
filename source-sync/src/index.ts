@@ -41,11 +41,18 @@ app.post(
 
     authoriseScrapeUser(req.user!.scrapeUsers, knowledgeGroup.scrapeId, res);
 
+    const processId = uuidv4();
+
+    await prisma.knowledgeGroup.update({
+      where: { id: knowledgeGroup.id },
+      data: { updateProcessId: processId },
+    });
+
     groupQueue.add("group", {
       scrapeId: knowledgeGroup.scrapeId,
       knowledgeGroupId: knowledgeGroup.id,
       userId: knowledgeGroup.userId,
-      processId: uuidv4(),
+      processId,
     });
 
     res.json({ message: "ok" });
@@ -62,11 +69,22 @@ app.post(
 
     authoriseScrapeUser(req.user!.scrapeUsers, scrapeItem.scrapeId, res);
 
+    if (!scrapeItem.url) {
+      return res.status(400).json({ message: "Item has no url" });
+    }
+
+    const processId = uuidv4();
+
+    await prisma.knowledgeGroup.update({
+      where: { id: scrapeItem.knowledgeGroupId },
+      data: { updateProcessId: processId },
+    });
+
     itemQueue.add("item", {
-      scrapeItemId: scrapeItem.id,
-      processId: uuidv4(),
+      processId,
       justThis: true,
       knowledgeGroupId: scrapeItem.knowledgeGroupId,
+      url: scrapeItem.url,
     });
 
     res.json({ message: "ok" });
@@ -82,6 +100,18 @@ app.post(
     });
 
     authoriseScrapeUser(req.user!.scrapeUsers, scrapeItem.scrapeId, res);
+
+    await prisma.knowledgeGroup.update({
+      where: { id: scrapeItem.knowledgeGroupId },
+      data: { updateProcessId: null },
+    });
+
+    await prisma.scrapeItem.deleteMany({
+      where: {
+        knowledgeGroupId: scrapeItem.knowledgeGroupId,
+        status: "pending",
+      },
+    });
 
     res.json({ message: "ok" });
   }

@@ -1,14 +1,13 @@
-import { GroupData, ItemWebData } from "src/source/queue";
+import { GroupData, ItemData } from "src/source/queue";
 import { scrapeWithLinks } from "../scrape/crawl";
 import { getMetaTitle } from "../scrape/parse";
 import {
   GroupForSource,
   Source,
-  GroupStartReponse,
-  ItemForSource,
-  ScrapeItemResponse,
+  UpdateGroupReponse,
+  UpdateItemResponse,
 } from "./interface";
-import { prisma } from "libs/dist/prisma";
+import { scheduleUrl } from "./schedule-url";
 
 export class WebSource implements Source {
   cleanUrl(url: string) {
@@ -23,115 +22,51 @@ export class WebSource implements Source {
   }
 
   async updateGroup(
+    jobData: GroupData,
     group: GroupForSource,
-    jobData: GroupData
-  ): Promise<GroupStartReponse> {
+  ): Promise<UpdateGroupReponse> {
     if (!group.url) {
       throw new Error("Group url is required");
     }
 
-    const item = await prisma.scrapeItem.upsert({
-      where: {
-        knowledgeGroupId_url: {
-          knowledgeGroupId: group.id,
-          url: group.url,
-        },
-      },
-      update: {
-        status: "pending",
-      },
-      create: {
-        knowledgeGroupId: group.id,
-        scrapeId: group.scrape.id,
-        url: group.url,
-        status: "pending",
-        title: "Untitled",
-        userId: group.scrape.userId,
-        markdown: "Not yet available",
-      },
-    });
+    await scheduleUrl(group, jobData.processId, group.url);
 
-    return {
-      itemIds: [item.id],
-    };
+    return {};
   }
 
   async updateItem(
-    item: ItemForSource,
-    jobData: ItemWebData
-  ): Promise<ScrapeItemResponse> {
-    if (!item.url || !item.knowledgeGroup?.url) {
-      throw new Error("Item url is required");
+    jobData: ItemData,
+    group: GroupForSource,
+  ): Promise<UpdateItemResponse> {
+    if (!group.url) {
+      throw new Error("Group url is required");
     }
 
     const { markdown, links, metaTags } = await scrapeWithLinks(
-      item.url,
-      item.knowledgeGroup.url,
+      jobData.url,
+      group.url!,
       {
-        removeHtmlTags: item.knowledgeGroup.removeHtmlTags ?? undefined,
+        removeHtmlTags: group.removeHtmlTags ?? undefined,
         dynamicFallbackContentLength:
-          item.knowledgeGroup.staticContentThresholdLength ?? undefined,
+          group.staticContentThresholdLength ?? undefined,
         allowOnlyRegex:
-          item.knowledgeGroup.matchPrefix && item.knowledgeGroup.url
-            ? new RegExp(`^${item.knowledgeGroup.url.replace(/\/$/, "")}.*`)
+          group.matchPrefix
+            ? new RegExp(`^${group.url.replace(/\/$/, "")}.*`)
             : undefined,
-        skipRegex: item.knowledgeGroup.skipPageRegex
-          ? item.knowledgeGroup.skipPageRegex
-              .split(",")
-              .map((r) => new RegExp(r))
+        skipRegex: group.skipPageRegex
+          ? group.skipPageRegex.split(",").map((r) => new RegExp(r))
           : undefined,
       }
     );
 
-    const itemIds = [];
-
     if (!jobData.justThis) {
       for (const linkUrl of links) {
         const url = this.cleanUrl(linkUrl);
-
-        const existingItem = await prisma.scrapeItem.findUnique({
-          where: {
-            knowledgeGroupId_url: {
-              knowledgeGroupId: item.knowledgeGroupId,
-              url,
-            },
-          },
-        });
-
-        if (existingItem?.updatedByProcessId === jobData.processId) {
-          continue;
-        }
-
-        const newItem = await prisma.scrapeItem.upsert({
-          where: {
-            knowledgeGroupId_url: {
-              knowledgeGroupId: item.knowledgeGroupId,
-              url,
-            },
-          },
-          update: {
-            updatedByProcessId: jobData.processId,
-            willUpdate: true,
-          },
-          create: {
-            knowledgeGroupId: item.knowledgeGroupId,
-            scrapeId: item.scrapeId,
-            url,
-            status: "pending",
-            title: "Pending",
-            userId: item.userId,
-            markdown: "Not yet available",
-            updatedByProcessId: jobData.processId,
-            willUpdate: true,
-          },
-        });
-
-        itemIds.push(newItem.id);
+        await scheduleUrl(group, jobData.processId, url);
       }
     }
 
     return {
-      itemIds,
       page: {
         text: markdown,
         title: getMetaTitle(metaTags) ?? "Untitled",
