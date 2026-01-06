@@ -11,7 +11,7 @@ import {
   groupQueue,
 } from "./source/queue";
 import { upsertItem } from "./source/upsert-item";
-import { decrementPendingUrls, getPendingUrls } from "./source/schedule-url";
+import { decrementPendingUrls, getPendingUrls } from "./source/schedule";
 
 const itemEvents = new QueueEvents(ITEM_QUEUE_NAME, {
   connection: redis,
@@ -24,7 +24,7 @@ const groupEvents = new QueueEvents(GROUP_QUEUE_NAME, {
 async function checkCompletion(processId: string, knowledgeGroupId: string) {
   await decrementPendingUrls(processId);
   const pendingUrls = await getPendingUrls(processId);
-  console.log("Pending urls: ", pendingUrls);
+  console.log(`Pending urls for process ${processId}: ${pendingUrls}`);
 
   if (pendingUrls === 0) {
     await prisma.knowledgeGroup.update({
@@ -80,8 +80,6 @@ itemEvents.on("completed", async ({ jobId }) => {
 const groupWorker = new Worker<GroupData>(
   GROUP_QUEUE_NAME,
   async (job: Job<GroupData>) => {
-    console.log(`Processing job ${job.id} of type ${job.name}`);
-
     const data = job.data;
 
     const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
@@ -100,26 +98,7 @@ const groupWorker = new Worker<GroupData>(
     }
 
     const source = makeSource(knowledgeGroup.type);
-    const { pages, groupJobs } = await source.updateGroup(data, knowledgeGroup);
-
-    if (pages) {
-      for (const page of pages) {
-        await upsertItem(
-          knowledgeGroup.scrape,
-          knowledgeGroup,
-          knowledgeGroup.scrape.user.plan,
-          page.url,
-          page.title,
-          page.text
-        );
-      }
-    }
-
-    if (groupJobs) {
-      for (const groupJob of groupJobs) {
-        await groupQueue.add("group", groupJob, { delay: source.getDelay() });
-      }
-    }
+    await source.updateGroup(data, knowledgeGroup);
   },
   {
     connection: redis,
@@ -130,8 +109,6 @@ const groupWorker = new Worker<GroupData>(
 const itemWorker = new Worker<ItemData>(
   ITEM_QUEUE_NAME,
   async (job: Job<ItemData>) => {
-    console.log(`Processing job ${job.id} of type ${job.name}`);
-
     const data = job.data;
 
     const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
@@ -169,10 +146,10 @@ const itemWorker = new Worker<ItemData>(
   }
 );
 
-console.log("KB Worker started, waiting for jobs...");
+console.log("sync-worker started");
 
 process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, closing worker...");
+  console.log("sync-worker shutting down");
   await groupWorker.close();
   await itemWorker.close();
   await itemEvents.close();

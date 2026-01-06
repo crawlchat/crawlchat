@@ -10,11 +10,6 @@ export type UpdateItemResponse = {
   page?: PageContent;
 };
 
-export type UpdateGroupReponse = {
-  pages?: Array<PageContent & { url: string }>;
-  groupJobs?: GroupData[];
-};
-
 export type GroupForSource = Prisma.KnowledgeGroupGetPayload<{
   include: {
     scrape: {
@@ -43,7 +38,7 @@ export interface Source {
   updateGroup: (
     jobData: GroupData,
     group: GroupForSource,
-  ) => Promise<UpdateGroupReponse>;
+  ) => Promise<void>;
   updateItem: (
     jobData: ItemData,
     group: GroupForSource,

@@ -1,4 +1,4 @@
-const ISSUES_PER_PAGE = 100;
+const ISSUES_PER_PAGE = 10;
 
 type GithubIssue = {
   url: string;
@@ -55,7 +55,6 @@ export async function getIssues({
   state?: "open" | "closed" | "all";
   pageUrl?: string;
 }): Promise<{ issues: GithubIssue[]; pagination: GithubPagination }> {
-  console.log(`Fetching issues for ${username}/${repo}...`);
   const url =
     pageUrl ??
     `https://api.github.com/repos/${username}/${repo}/issues?per_page=${perPage}&page=${page}&state=${state}`;
@@ -86,7 +85,6 @@ export async function getIssue({
   username: string;
   issueNumber: number;
 }): Promise<GithubIssue> {
-  console.log(`Fetching issue ${issueNumber} for ${username}/${repo}...`);
   const response = await fetch(
     `https://api.github.com/repos/${username}/${repo}/issues/${issueNumber}`,
     {
@@ -114,9 +112,6 @@ export async function getIssueTimeline({
   username: string;
   issueNumber: number;
 }): Promise<GithubTimelineEvent[]> {
-  console.log(
-    `Fetching timeline for issue ${issueNumber} for ${username}/${repo}...`
-  );
   const response = await fetch(
     `https://api.github.com/repos/${username}/${repo}/issues/${issueNumber}/timeline?per_page=100`,
     {

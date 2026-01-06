@@ -22,8 +22,9 @@ export type GroupData = {
 export type ItemData = {
   knowledgeGroupId: string;
   processId: string;
-  justThis?: boolean;
   url: string;
+  justThis?: boolean;
+  githubIssuesPagination?: string;
 };
 
 export const groupQueue = new Queue<GroupData>(GROUP_QUEUE_NAME, {

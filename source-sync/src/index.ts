@@ -6,8 +6,8 @@ import type { Express, Request, Response } from "express";
 import { authenticate, AuthMode, authoriseScrapeUser } from "libs/express-auth";
 import "./worker";
 import { Prisma, prisma } from "libs/dist/prisma";
-import { groupQueue, itemQueue } from "./source/queue";
 import { v4 as uuidv4 } from "uuid";
+import { scheduleGroup, scheduleUrl } from "./source/schedule";
 
 declare global {
   namespace Express {
@@ -37,6 +37,13 @@ app.post(
   async function (req: Request, res: Response) {
     const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
       where: { id: req.body.knowledgeGroupId },
+      include: {
+        scrape: {
+          include: {
+            user: true,
+          },
+        },
+      },
     });
 
     authoriseScrapeUser(req.user!.scrapeUsers, knowledgeGroup.scrapeId, res);
@@ -48,12 +55,7 @@ app.post(
       data: { updateProcessId: processId },
     });
 
-    groupQueue.add("group", {
-      scrapeId: knowledgeGroup.scrapeId,
-      knowledgeGroupId: knowledgeGroup.id,
-      userId: knowledgeGroup.userId,
-      processId,
-    });
+    await scheduleGroup(knowledgeGroup, processId);
 
     res.json({ message: "ok" });
   }
@@ -65,6 +67,17 @@ app.post(
   async function (req: Request, res: Response) {
     const scrapeItem = await prisma.scrapeItem.findFirstOrThrow({
       where: { id: req.body.scrapeItemId },
+      include: {
+        knowledgeGroup: {
+          include: {
+            scrape: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     authoriseScrapeUser(req.user!.scrapeUsers, scrapeItem.scrapeId, res);
@@ -80,12 +93,7 @@ app.post(
       data: { updateProcessId: processId },
     });
 
-    itemQueue.add("item", {
-      processId,
-      justThis: true,
-      knowledgeGroupId: scrapeItem.knowledgeGroupId,
-      url: scrapeItem.url,
-    });
+    await scheduleUrl(scrapeItem.knowledgeGroup!, processId, scrapeItem.url);
 
     res.json({ message: "ok" });
   }
@@ -104,13 +112,6 @@ app.post(
     await prisma.knowledgeGroup.update({
       where: { id: scrapeItem.knowledgeGroupId },
       data: { updateProcessId: null },
-    });
-
-    await prisma.scrapeItem.deleteMany({
-      where: {
-        knowledgeGroupId: scrapeItem.knowledgeGroupId,
-        status: "pending",
-      },
     });
 
     res.json({ message: "ok" });

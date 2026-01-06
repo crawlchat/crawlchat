@@ -1,7 +1,5 @@
 import {
   GroupForSource,
-  UpdateGroupReponse,
-  ItemForSource,
   UpdateItemResponse,
   Source,
 } from "./interface";
@@ -15,7 +13,7 @@ export class EmptySource implements Source {
   async updateGroup(
     jobData: GroupData,
     group: GroupForSource,
-  ): Promise<UpdateGroupReponse> {
+  ): Promise<void> {
     throw new Error("Not implemented");
   }
 

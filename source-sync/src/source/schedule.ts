@@ -1,6 +1,6 @@
 import { prisma } from "libs/dist/prisma";
 import { GroupForSource } from "./interface";
-import { itemQueue, redis } from "./queue";
+import { GroupData, groupQueue, ItemData, itemQueue, redis } from "./queue";
 
 function cleanUrl(url: string) {
   return url.replace(/https?:\/\//, "").replace(/\/$/, "");
@@ -44,7 +44,8 @@ export async function getPendingUrls(processId: string) {
 export async function scheduleUrl(
   group: GroupForSource,
   processId: string,
-  url: string
+  url: string,
+  jobData?: Partial<ItemData>
 ) {
   const knowledgeGroup = await prisma.knowledgeGroup.findFirst({
     where: { id: group.id },
@@ -66,10 +67,25 @@ export async function scheduleUrl(
   await itemQueue.add(
     "item",
     {
+      ...jobData,
       processId: processId,
       knowledgeGroupId: group.id,
       url,
     },
     { delay: 0 }
   );
+}
+
+export async function scheduleGroup(
+  group: GroupForSource,
+  processId: string,
+  jobData?: Partial<GroupData>
+) {
+  await groupQueue.add("group", {
+    ...jobData,
+    scrapeId: group.scrapeId,
+    knowledgeGroupId: group.id,
+    userId: group.userId,
+    processId,
+  });
 }

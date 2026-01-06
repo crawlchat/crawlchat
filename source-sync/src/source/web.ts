@@ -1,13 +1,8 @@
 import { GroupData, ItemData } from "src/source/queue";
 import { scrapeWithLinks } from "../scrape/crawl";
 import { getMetaTitle } from "../scrape/parse";
-import {
-  GroupForSource,
-  Source,
-  UpdateGroupReponse,
-  UpdateItemResponse,
-} from "./interface";
-import { scheduleUrl } from "./schedule-url";
+import { GroupForSource, Source, UpdateItemResponse } from "./interface";
+import { scheduleUrl } from "./schedule";
 
 export class WebSource implements Source {
   cleanUrl(url: string) {
@@ -21,22 +16,16 @@ export class WebSource implements Source {
     return 0;
   }
 
-  async updateGroup(
-    jobData: GroupData,
-    group: GroupForSource,
-  ): Promise<UpdateGroupReponse> {
+  async updateGroup(jobData: GroupData, group: GroupForSource): Promise<void> {
     if (!group.url) {
       throw new Error("Group url is required");
     }
-
     await scheduleUrl(group, jobData.processId, group.url);
-
-    return {};
   }
 
   async updateItem(
     jobData: ItemData,
-    group: GroupForSource,
+    group: GroupForSource
   ): Promise<UpdateItemResponse> {
     if (!group.url) {
       throw new Error("Group url is required");
@@ -49,10 +38,9 @@ export class WebSource implements Source {
         removeHtmlTags: group.removeHtmlTags ?? undefined,
         dynamicFallbackContentLength:
           group.staticContentThresholdLength ?? undefined,
-        allowOnlyRegex:
-          group.matchPrefix
-            ? new RegExp(`^${group.url.replace(/\/$/, "")}.*`)
-            : undefined,
+        allowOnlyRegex: group.matchPrefix
+          ? new RegExp(`^${group.url.replace(/\/$/, "")}.*`)
+          : undefined,
         skipRegex: group.skipPageRegex
           ? group.skipPageRegex.split(",").map((r) => new RegExp(r))
           : undefined,

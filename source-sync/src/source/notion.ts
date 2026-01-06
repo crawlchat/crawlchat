@@ -1,13 +1,8 @@
 import { Client, ListCommentsResponse } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
-import {
-  GroupForSource,
-  UpdateGroupReponse,
-  UpdateItemResponse,
-  Source,
-} from "./interface";
+import { GroupForSource, UpdateItemResponse, Source } from "./interface";
 import { GroupData, ItemData } from "./queue";
-import { scheduleUrl } from "./schedule-url";
+import { scheduleUrl } from "./schedule";
 
 function getPageTitle(page: any): string | undefined {
   if (!page.properties) {
@@ -76,8 +71,8 @@ export class NotionSource implements Source {
 
   async updateGroup(
     jobData: GroupData,
-    group: GroupForSource,
-  ): Promise<UpdateGroupReponse> {
+    group: GroupForSource
+  ): Promise<void> {
     const client = new Client({
       auth: group.notionSecret as string,
     });
@@ -101,16 +96,13 @@ export class NotionSource implements Source {
     });
 
     for (const page of filteredPages) {
-      const url = (page as any).url;
-      await scheduleUrl(group, jobData.processId, url);
+      await scheduleUrl(group, jobData.processId, (page as any).url);
     }
-
-    return {};
   }
 
   async updateItem(
     jobData: ItemData,
-    group: GroupForSource,
+    group: GroupForSource
   ): Promise<UpdateItemResponse> {
     const pageId = jobData.url.split("/").pop()?.split("-").pop() as string;
 
