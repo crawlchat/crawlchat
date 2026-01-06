@@ -16,8 +16,7 @@ export type GroupData = {
   scrapeId: string;
   userId: string;
   processId: string;
-  githubIssuesPagination?: string;
-  confluenceCursor?: string;
+  cursor?: string;
 };
 
 export type ItemData = {
@@ -26,13 +25,12 @@ export type ItemData = {
   url: string;
 
   justThis?: boolean;
-  githubIssuesPagination?: string;
   textPage?: {
     title: string;
     text: string;
-  }
+  };
   sourePageId?: string;
-  confluenceCursor?: string;
+  cursor?: string;
 };
 
 export const groupQueue = new Queue<GroupData>(GROUP_QUEUE_NAME, {
@@ -56,5 +54,3 @@ export const itemQueue = new Queue<ItemData>(ITEM_QUEUE_NAME, {
     },
   },
 });
-
-itemQueue.drain();

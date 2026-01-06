@@ -1,6 +1,6 @@
 import { LinearClient, PaginationOrderBy } from "@linear/sdk";
 
-export { LinearClient };
+export { LinearClient, PaginationOrderBy };
 
 export async function getLinearIssues(
   client: LinearClient,

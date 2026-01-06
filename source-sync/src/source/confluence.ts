@@ -27,7 +27,7 @@ export class ConfluenceSource implements Source {
     const client = this.getClient(group);
     const rawPages = await client.content.searchContentByCQL({
       cql: "type = 'page'",
-      cursor: jobData.confluenceCursor,
+      cursor: jobData.cursor,
     });
     const pages = rawPages.results.map((page) => ({
       id: page.id,
@@ -47,7 +47,7 @@ export class ConfluenceSource implements Source {
       const page = filteredPages[i];
       await scheduleUrl(group, jobData.processId, page.url, {
         sourePageId: page.id,
-        confluenceCursor:
+        cursor:
           i === filteredPages.length - 1
             ? getCursor(rawPages._links?.next)
             : undefined,
@@ -79,9 +79,9 @@ export class ConfluenceSource implements Source {
       throw new Error("Page content not found");
     }
 
-    if (jobData.confluenceCursor) {
+    if (jobData.cursor) {
       await scheduleGroup(group, jobData.processId, {
-        confluenceCursor: jobData.confluenceCursor,
+        cursor: jobData.cursor,
       });
     }
 

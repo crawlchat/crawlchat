@@ -21,10 +21,17 @@ const groupEvents = new QueueEvents(GROUP_QUEUE_NAME, {
   connection: redis,
 });
 
+groupEvents.on("added", async ({ jobId }) => {
+  console.log(`Group job added: ${jobId}`);
+});
+
+groupEvents.on("failed", async ({ jobId, failedReason }) => {
+  console.log(`Group job failed: ${jobId}, failed reason: ${failedReason}`);
+});
+
 async function checkCompletion(processId: string, knowledgeGroupId: string) {
   await decrementPendingUrls(processId);
   const pendingUrls = await getPendingUrls(processId);
-  console.log(`Pending urls for process ${processId}: ${pendingUrls}`);
 
   if (pendingUrls === 0) {
     await prisma.knowledgeGroup.update({

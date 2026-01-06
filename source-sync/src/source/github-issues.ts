@@ -28,7 +28,7 @@ export class GithubIssuesSource implements Source {
       repo,
       username,
       state: stateToFetch,
-      pageUrl: jobData.githubIssuesPagination,
+      pageUrl: jobData.cursor,
     });
 
     for (let i = 0; i < issues.length; i++) {
@@ -42,9 +42,7 @@ export class GithubIssuesSource implements Source {
         group,
         jobData.processId,
         issue.html_url,
-        i === issues.length - 1
-          ? { githubIssuesPagination: pagination.nextUrl }
-          : undefined
+        i === issues.length - 1 ? { cursor: pagination.nextUrl } : undefined
       );
     }
   }
@@ -72,9 +70,9 @@ export class GithubIssuesSource implements Source {
       issueNumber,
     });
 
-    if (jobData.githubIssuesPagination) {
+    if (jobData.cursor) {
       await scheduleGroup(group, jobData.processId, {
-        githubIssuesPagination: jobData.githubIssuesPagination,
+        cursor: jobData.cursor,
       });
     }
 

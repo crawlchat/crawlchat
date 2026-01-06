@@ -4,6 +4,8 @@ import { NotionSource } from "./notion";
 import { GithubIssuesSource } from "./github-issues";
 import { TextSource } from "./text";
 import { ConfluenceSource } from "./confluence";
+import { LinearIssuesSource } from "./linear";
+import { YoutubeChannelSource } from "./youtube-channel";
 
 export function makeSource(type: KnowledgeGroupType) {
   switch (type) {
@@ -17,6 +19,10 @@ export function makeSource(type: KnowledgeGroupType) {
       return new TextSource();
     case "confluence":
       return new ConfluenceSource();
+    case "linear":
+      return new LinearIssuesSource();
+    case "youtube_channel":
+      return new YoutubeChannelSource();
     default:
       throw new Error(`Unknown source type: ${type}`);
   }
