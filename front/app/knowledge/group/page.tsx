@@ -81,15 +81,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
 
     const token = createToken(user!.id);
-    const shouldUseSourceSync = [
-      "scrape_web",
-      "notion",
-      "github_issues",
-      "confluence",
-      "linear",
-      "youtube_channel",
-      "youtube",
-    ].includes(group.type);
+    const shouldUseSourceSync = ["scrape_web", "upload"].includes(group.type);
     const host = shouldUseSourceSync
       ? process.env.VITE_SOURCE_SYNC_URL
       : process.env.VITE_SERVER_URL;
