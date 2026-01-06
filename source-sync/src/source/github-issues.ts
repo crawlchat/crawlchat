@@ -20,20 +20,28 @@ export class GithubIssuesSource implements Source {
     }
 
     const [, , username, repo] = match;
-
-    console.log(
-      `Fetching issues for ${username}/${repo} with pagination ${jobData.githubIssuesPagination}`
-    );
+    const allowedStates = group.allowedGithubIssueStates
+      ?.split(",")
+      .filter(Boolean) ?? ["closed"];
+    const stateToFetch =
+      allowedStates.length === 1
+        ? (allowedStates[0] as "open" | "closed" | "all")
+        : "all";
 
     const { issues, pagination } = await getIssues({
       repo,
       username,
-      state: "open",
+      state: stateToFetch,
       pageUrl: jobData.githubIssuesPagination,
     });
 
     for (let i = 0; i < issues.length; i++) {
       const issue = issues[i];
+
+      if (!allowedStates.includes(issue.state)) {
+        continue;
+      }
+
       await scheduleUrl(
         group,
         jobData.processId,
