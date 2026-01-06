@@ -8,9 +8,8 @@ import {
   itemQueue,
   ItemData,
   redis,
-  groupQueue,
 } from "./source/queue";
-import { upsertItem } from "./source/upsert-item";
+import { upsertFailedItem, upsertItem } from "./source/upsert-item";
 import { decrementPendingUrls, getPendingUrls } from "./source/schedule";
 
 const itemEvents = new QueueEvents(ITEM_QUEUE_NAME, {
@@ -29,58 +28,39 @@ groupEvents.on("failed", async ({ jobId, failedReason }) => {
   console.log(`Group job failed: ${jobId}, failed reason: ${failedReason}`);
 });
 
-async function checkCompletion(processId: string, knowledgeGroupId: string) {
-  await decrementPendingUrls(processId);
-  const pendingUrls = await getPendingUrls(processId);
+async function checkGroupCompletion(job: Job<ItemData>) {
+  await decrementPendingUrls(job.data.processId);
+  const pendingUrls = await getPendingUrls(job.data.processId);
 
   if (pendingUrls === 0) {
     await prisma.knowledgeGroup.update({
-      where: { id: knowledgeGroupId },
+      where: { id: job.data.knowledgeGroupId },
       data: { status: "done" },
     });
-    console.log(`Knowledge group ${knowledgeGroupId} completed`);
+    console.log(`Knowledge group ${job.data.knowledgeGroupId} completed`);
   }
 }
+
+itemEvents.on("added", async ({ jobId }) => {
+  console.log(`Item job added: ${jobId}`);
+});
 
 itemEvents.on("failed", async ({ jobId, failedReason }) => {
   const job = await itemQueue.getJob(jobId);
   if (job) {
-    const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
-      where: { id: job.data.knowledgeGroupId },
-      include: {
-        scrape: true,
-      },
-    });
-
-    await prisma.scrapeItem.upsert({
-      where: {
-        knowledgeGroupId_url: {
-          knowledgeGroupId: job.data.knowledgeGroupId,
-          url: job.data.url,
-        },
-      },
-      update: {
-        status: "failed",
-        error: failedReason,
-      },
-      create: {
-        userId: knowledgeGroup.scrape.userId,
-        scrapeId: knowledgeGroup.scrape.id,
-        knowledgeGroupId: job.data.knowledgeGroupId,
-        url: job.data.url,
-        status: "failed",
-        error: failedReason,
-      },
-    });
-
-    await checkCompletion(job.data.processId, job.data.knowledgeGroupId);
+    await upsertFailedItem(
+      job.data.knowledgeGroupId,
+      job.data.url,
+      failedReason
+    );
+    await checkGroupCompletion(job);
   }
 });
 
 itemEvents.on("completed", async ({ jobId }) => {
   const job = await itemQueue.getJob(jobId);
   if (job) {
-    await checkCompletion(job.data.processId, job.data.knowledgeGroupId);
+    await checkGroupCompletion(job);
   }
 });
 

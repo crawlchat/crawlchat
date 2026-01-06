@@ -86,9 +86,14 @@ export async function action({ params, request }: Route.ActionArgs) {
     });
 
     const token = createToken(user!.id);
-    const shouldUseSourceSync = ["scrape_web", "notion"].includes(
-      scrapeItem.knowledgeGroup!.type
-    );
+    const shouldUseSourceSync = [
+      "scrape_web",
+      "notion",
+      "youtube",
+      "youtube_channel",
+      "confluence",
+      "linear",
+    ].includes(scrapeItem.knowledgeGroup!.type);
     const host = shouldUseSourceSync
       ? process.env.VITE_SOURCE_SYNC_URL
       : process.env.VITE_SERVER_URL;
@@ -206,9 +211,7 @@ export default function ScrapeItem({ loaderData }: Route.ComponentProps) {
 
   const canRefresh =
     loaderData.item?.knowledgeGroup &&
-    ["scrape_web", "scrape_github", "github_issues", "notion"].includes(
-      loaderData.item.knowledgeGroup.type
-    );
+    !["upload", "custom"].includes(loaderData.item.knowledgeGroup.type);
 
   return (
     <Page

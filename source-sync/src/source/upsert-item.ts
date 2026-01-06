@@ -26,6 +26,17 @@ export async function upsertItem(
     userPlan
   );
 
+  const group = await prisma.knowledgeGroup.findUniqueOrThrow({
+    where: { id: knowledgeGroup.id },
+    include: {
+      scrape: true,
+    },
+  });
+
+  if (group.status !== "processing") {
+    return;
+  }
+
   console.log(`Upserting item ${url} with ${chunks.length} chunks`);
 
   const indexer = makeIndexer({ key: scrape.indexer });
@@ -69,6 +80,44 @@ export async function upsertItem(
       title,
       markdown: text,
       metaTags: [],
+    },
+  });
+}
+
+export async function upsertFailedItem(
+  knowledgeGroupId: string,
+  url: string,
+  error: string
+) {
+  const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+    where: { id: knowledgeGroupId },
+    include: {
+      scrape: true,
+    },
+  });
+
+  if (knowledgeGroup.status !== "processing") {
+    return;
+  }
+
+  await prisma.scrapeItem.upsert({
+    where: {
+      knowledgeGroupId_url: {
+        knowledgeGroupId: knowledgeGroupId,
+        url,
+      },
+    },
+    update: {
+      status: "failed",
+      error,
+    },
+    create: {
+      userId: knowledgeGroup.scrape.userId,
+      scrapeId: knowledgeGroup.scrape.id,
+      knowledgeGroupId: knowledgeGroupId,
+      url,
+      status: "failed",
+      error,
     },
   });
 }
