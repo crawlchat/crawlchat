@@ -88,6 +88,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       "confluence",
       "linear",
       "youtube_channel",
+      "youtube",
     ].includes(group.type);
     const host = shouldUseSourceSync
       ? process.env.VITE_SOURCE_SYNC_URL

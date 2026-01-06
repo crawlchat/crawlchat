@@ -6,6 +6,7 @@ import { TextSource } from "./text";
 import { ConfluenceSource } from "./confluence";
 import { LinearIssuesSource } from "./linear";
 import { YoutubeChannelSource } from "./youtube-channel";
+import { YoutubeVideosSource } from "./youtube-videos";
 
 export function makeSource(type: KnowledgeGroupType) {
   switch (type) {
@@ -23,6 +24,8 @@ export function makeSource(type: KnowledgeGroupType) {
       return new LinearIssuesSource();
     case "youtube_channel":
       return new YoutubeChannelSource();
+    case "youtube":
+      return new YoutubeVideosSource();
     default:
       throw new Error(`Unknown source type: ${type}`);
   }
