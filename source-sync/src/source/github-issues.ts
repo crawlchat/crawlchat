@@ -34,9 +34,9 @@ export class GithubIssuesSource implements Source {
     await scheduleUrls(
       group,
       jobData.processId,
-      issues.map((issue) => ({
-        url: issue.html_url,
-        sourcePageId: issue.number.toString(),
+      issues.map(({ html_url, number }) => ({
+        url: html_url,
+        sourcePageId: number.toString(),
       })),
       pagination.nextUrl
     );

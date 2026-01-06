@@ -29,9 +29,9 @@ export class YoutubeChannelSource implements Source {
     await scheduleUrls(
       group,
       jobData.processId,
-      filteredVideos.map((video) => ({
-        url: video.url,
-        sourcePageId: video.url,
+      filteredVideos.map(({ url }) => ({
+        url,
+        sourcePageId: url,
       })),
       nextPageToken
     );

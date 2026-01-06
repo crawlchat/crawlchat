@@ -46,9 +46,9 @@ export class ConfluenceSource implements Source {
     await scheduleUrls(
       group,
       jobData.processId,
-      filteredPages.map((page) => ({
-        url: page.url,
-        sourcePageId: page.id,
+      filteredPages.map(({ url, id }) => ({
+        url,
+        sourcePageId: id,
       })),
       getCursor(rawPages._links?.next)
     );

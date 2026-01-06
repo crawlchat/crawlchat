@@ -29,9 +29,9 @@ export class LinearIssuesSource implements Source {
     await scheduleUrls(
       group,
       jobData.processId,
-      issues.nodes.map((issue) => ({
-        url: issue.url,
-        sourcePageId: issue.id,
+      issues.nodes.map(({ url, id }) => ({
+        url,
+        sourcePageId: id,
       })),
       issues.pageInfo.endCursor
     );
