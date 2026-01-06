@@ -1,7 +1,7 @@
 import { GroupForSource, UpdateItemResponse, Source } from "./interface";
 import { GroupData, ItemData } from "./queue";
 import { ConfluenceClient } from "libs/confluence";
-import { scheduleGroup, scheduleUrl } from "./schedule";
+import { scheduleUrls } from "./schedule";
 import { parseHtml } from "src/scrape/parse";
 
 function getCursor(next?: string | null) {
@@ -43,28 +43,27 @@ export class ConfluenceSource implements Source {
       });
     });
 
-    for (let i = 0; i < filteredPages.length; i++) {
-      const page = filteredPages[i];
-      await scheduleUrl(group, jobData.processId, page.url, {
-        sourePageId: page.id,
-        cursor:
-          i === filteredPages.length - 1
-            ? getCursor(rawPages._links?.next)
-            : undefined,
-      });
-    }
+    await scheduleUrls(
+      group,
+      jobData.processId,
+      filteredPages.map((page) => ({
+        url: page.url,
+        sourcePageId: page.id,
+      })),
+      getCursor(rawPages._links?.next)
+    );
   }
 
   async updateItem(
     jobData: ItemData,
     group: GroupForSource
   ): Promise<UpdateItemResponse> {
-    if (!jobData.sourePageId) {
+    if (!jobData.sourcePageId) {
       throw new Error("Source page ID is required");
     }
 
     const client = this.getClient(group);
-    const pageId = jobData.sourePageId;
+    const pageId = jobData.sourcePageId;
 
     const pageContent = await client.content.getContentById({
       id: pageId,
@@ -77,12 +76,6 @@ export class ConfluenceSource implements Source {
 
     if (!pageContent.body?.view?.value) {
       throw new Error("Page content not found");
-    }
-
-    if (jobData.cursor) {
-      await scheduleGroup(group, jobData.processId, {
-        cursor: jobData.cursor,
-      });
     }
 
     return {

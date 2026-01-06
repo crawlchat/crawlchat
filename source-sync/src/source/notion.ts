@@ -2,7 +2,7 @@ import { Client, ListCommentsResponse } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
 import { GroupForSource, UpdateItemResponse, Source } from "./interface";
 import { GroupData, ItemData } from "./queue";
-import { scheduleUrl } from "./schedule";
+import { scheduleUrl, scheduleUrls } from "./schedule";
 
 function getPageTitle(page: any): string | undefined {
   if (!page.properties) {
@@ -65,10 +65,7 @@ export async function getComments(page: any, client: Client) {
 }
 
 export class NotionSource implements Source {
-  async updateGroup(
-    jobData: GroupData,
-    group: GroupForSource
-  ): Promise<void> {
+  async updateGroup(jobData: GroupData, group: GroupForSource): Promise<void> {
     const client = new Client({
       auth: group.notionSecret as string,
     });
@@ -91,16 +88,21 @@ export class NotionSource implements Source {
       });
     });
 
-    for (const page of filteredPages) {
-      await scheduleUrl(group, jobData.processId, (page as any).url);
-    }
+    await scheduleUrls(
+      group,
+      jobData.processId,
+      filteredPages.map((page) => ({
+        url: (page as any).url,
+        sourcePageId: page.id,
+      }))
+    );
   }
 
   async updateItem(
     jobData: ItemData,
     group: GroupForSource
   ): Promise<UpdateItemResponse> {
-    const pageId = jobData.url.split("/").pop()?.split("-").pop() as string;
+    const pageId = jobData.sourcePageId;
 
     const client = new Client({
       auth: group.notionSecret as string,

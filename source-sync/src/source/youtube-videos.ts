@@ -6,7 +6,7 @@ import { scheduleUrl } from "./schedule";
 export class YoutubeVideosSource implements Source {
   async updateGroup(jobData: GroupData, group: GroupForSource): Promise<void> {
     for (const videoUrl of group.urls) {
-      await scheduleUrl(group, jobData.processId, videoUrl.url);
+      await scheduleUrl(group, jobData.processId, videoUrl.url, videoUrl.url);
     }
   }
 

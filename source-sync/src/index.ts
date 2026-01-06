@@ -93,7 +93,16 @@ app.post(
       data: { updateProcessId: processId },
     });
 
-    await scheduleUrl(scrapeItem.knowledgeGroup!, processId, scrapeItem.url);
+    if (!scrapeItem.sourcePageId) {
+      return res.status(400).json({ message: "Item has no source page id" });
+    }
+
+    await scheduleUrl(
+      scrapeItem.knowledgeGroup!,
+      processId,
+      scrapeItem.url,
+      scrapeItem.sourcePageId
+    );
 
     res.json({ message: "ok" });
   }

@@ -45,6 +45,7 @@ export async function scheduleUrl(
   group: GroupForSource,
   processId: string,
   url: string,
+  sourcePageId: string,
   jobData?: Partial<ItemData>
 ) {
   const knowledgeGroup = await prisma.knowledgeGroup.findFirst({
@@ -71,6 +72,7 @@ export async function scheduleUrl(
       processId: processId,
       knowledgeGroupId: group.id,
       url,
+      sourcePageId,
     },
     { delay: 0 }
   );
@@ -88,4 +90,23 @@ export async function scheduleGroup(
     userId: group.userId,
     processId,
   });
+}
+
+export async function scheduleUrls(
+  group: GroupForSource,
+  processId: string,
+  urls: Array<{
+    url: string;
+    sourcePageId: string;
+    jobData?: Partial<ItemData>;
+  }>,
+  cursor?: string
+) {
+  for (let i = 0; i < urls.length; i++) {
+    const { url, sourcePageId, jobData } = urls[i];
+    await scheduleUrl(group, processId, url, sourcePageId, {
+      ...jobData,
+      cursor: i === urls.length - 1 ? cursor : undefined,
+    });
+  }
 }

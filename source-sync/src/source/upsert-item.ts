@@ -11,6 +11,7 @@ export async function upsertItem(
   knowledgeGroup: KnowledgeGroup,
   userPlan: UserPlan | null,
   url: string,
+  sourcePageId: string,
   title: string,
   text: string
 ) {
@@ -70,12 +71,14 @@ export async function upsertItem(
         id: doc.id,
       })),
       status: "completed",
+      sourcePageId,
     },
     create: {
       userId: knowledgeGroup.userId,
       knowledgeGroupId: knowledgeGroup.id,
       scrapeId: scrape.id,
       url,
+      sourcePageId,
       status: "completed",
       title,
       markdown: text,

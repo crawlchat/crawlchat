@@ -16,7 +16,7 @@ export class WebSource implements Source {
     if (!group.url) {
       throw new Error("Group url is required");
     }
-    await scheduleUrl(group, jobData.processId, group.url);
+    await scheduleUrl(group, jobData.processId, group.url, group.url);
   }
 
   async updateItem(
@@ -46,7 +46,7 @@ export class WebSource implements Source {
     if (!jobData.justThis) {
       for (const linkUrl of links) {
         const url = this.cleanUrl(linkUrl);
-        await scheduleUrl(group, jobData.processId, url);
+        await scheduleUrl(group, jobData.processId, url, url);
       }
     }
 

@@ -23,13 +23,13 @@ export type ItemData = {
   knowledgeGroupId: string;
   processId: string;
   url: string;
+  sourcePageId: string;
 
   justThis?: boolean;
   textPage?: {
     title: string;
     text: string;
   };
-  sourePageId?: string;
   cursor?: string;
 };
 

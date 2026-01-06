@@ -6,7 +6,7 @@ import {
 } from "src/github-api";
 import { GroupForSource, UpdateItemResponse, Source } from "./interface";
 import { GroupData, ItemData } from "./queue";
-import { scheduleGroup, scheduleUrl } from "./schedule";
+import { scheduleUrls } from "./schedule";
 
 export class GithubIssuesSource implements Source {
   async updateGroup(jobData: GroupData, group: GroupForSource): Promise<void> {
@@ -31,20 +31,15 @@ export class GithubIssuesSource implements Source {
       pageUrl: jobData.cursor,
     });
 
-    for (let i = 0; i < issues.length; i++) {
-      const issue = issues[i];
-
-      if (!allowedStates.includes(issue.state)) {
-        continue;
-      }
-
-      await scheduleUrl(
-        group,
-        jobData.processId,
-        issue.html_url,
-        i === issues.length - 1 ? { cursor: pagination.nextUrl } : undefined
-      );
-    }
+    await scheduleUrls(
+      group,
+      jobData.processId,
+      issues.map((issue) => ({
+        url: issue.html_url,
+        sourcePageId: issue.number.toString(),
+      })),
+      pagination.nextUrl
+    );
   }
 
   async updateItem(
@@ -56,7 +51,7 @@ export class GithubIssuesSource implements Source {
       throw new Error("Invalid GitHub URL");
     }
     const [, , username, repo] = match;
-    const issueNumber = parseInt(jobData.url.split("/").pop()!);
+    const issueNumber = parseInt(jobData.sourcePageId);
 
     const issue = await getIssue({
       repo,
@@ -69,12 +64,6 @@ export class GithubIssuesSource implements Source {
       username,
       issueNumber,
     });
-
-    if (jobData.cursor) {
-      await scheduleGroup(group, jobData.processId, {
-        cursor: jobData.cursor,
-      });
-    }
 
     return {
       page: {

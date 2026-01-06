@@ -10,7 +10,11 @@ import {
   redis,
 } from "./source/queue";
 import { upsertFailedItem, upsertItem } from "./source/upsert-item";
-import { decrementPendingUrls, getPendingUrls } from "./source/schedule";
+import {
+  decrementPendingUrls,
+  getPendingUrls,
+  scheduleGroup,
+} from "./source/schedule";
 
 const itemEvents = new QueueEvents(ITEM_QUEUE_NAME, {
   connection: redis,
@@ -116,12 +120,19 @@ const itemWorker = new Worker<ItemData>(
     const source = makeSource(knowledgeGroup.type);
     const { page } = await source.updateItem(data, knowledgeGroup);
 
+    if (job.data.cursor) {
+      await scheduleGroup(knowledgeGroup, job.data.processId, {
+        cursor: job.data.cursor,
+      });
+    }
+
     if (page) {
       await upsertItem(
         knowledgeGroup.scrape,
         knowledgeGroup,
         knowledgeGroup.scrape.user.plan,
         data.url,
+        data.sourcePageId,
         page.title,
         page.text
       );

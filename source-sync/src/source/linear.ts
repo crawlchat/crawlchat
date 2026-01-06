@@ -1,7 +1,7 @@
 import { GroupForSource, UpdateItemResponse, Source } from "./interface";
 import { GroupData, ItemData } from "./queue";
 import { LinearClient, PaginationOrderBy } from "libs/linear";
-import { scheduleGroup, scheduleUrl } from "./schedule";
+import { scheduleUrls } from "./schedule";
 
 export class LinearIssuesSource implements Source {
   private getClient(group: GroupForSource) {
@@ -26,21 +26,22 @@ export class LinearIssuesSource implements Source {
       after: jobData.cursor,
     });
 
-    for (let i = 0; i < issues.nodes.length; i++) {
-      const issue = issues.nodes[i];
-      await scheduleUrl(group, jobData.processId, issue.url, {
-        cursor:
-          i === issues.nodes.length - 1 ? issues.pageInfo.endCursor : undefined,
-        sourePageId: issue.id,
-      });
-    }
+    await scheduleUrls(
+      group,
+      jobData.processId,
+      issues.nodes.map((issue) => ({
+        url: issue.url,
+        sourcePageId: issue.id,
+      })),
+      issues.pageInfo.endCursor
+    );
   }
 
   async updateItem(
     jobData: ItemData,
     group: GroupForSource
   ): Promise<UpdateItemResponse> {
-    const issueId = jobData.sourePageId;
+    const issueId = jobData.sourcePageId;
     const client = this.getClient(group);
     const result = await client.issues({
       filter: {
@@ -84,12 +85,6 @@ export class LinearIssuesSource implements Source {
     }
 
     const text = parts.join("\n\n");
-
-    if (jobData.cursor) {
-      await scheduleGroup(group, jobData.processId, {
-        cursor: jobData.cursor,
-      });
-    }
 
     return {
       page: {

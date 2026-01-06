@@ -1,6 +1,6 @@
 import { GroupForSource, UpdateItemResponse, Source } from "./interface";
 import { GroupData, ItemData } from "./queue";
-import { scheduleGroup, scheduleUrl } from "./schedule";
+import { scheduleUrls } from "./schedule";
 import { fetchChannelVideos, fetchYouTubeVideoData } from "../youtube";
 
 export class YoutubeChannelSource implements Source {
@@ -26,12 +26,15 @@ export class YoutubeChannelSource implements Source {
       });
     });
 
-    for (let i = 0; i < filteredVideos.length; i++) {
-      const video = filteredVideos[i];
-      await scheduleUrl(group, jobData.processId, video.url, {
-        cursor: i === filteredVideos.length - 1 ? nextPageToken : undefined,
-      });
-    }
+    await scheduleUrls(
+      group,
+      jobData.processId,
+      filteredVideos.map((video) => ({
+        url: video.url,
+        sourcePageId: video.url,
+      })),
+      nextPageToken
+    );
   }
 
   async updateItem(
@@ -42,12 +45,6 @@ export class YoutubeChannelSource implements Source {
 
     if (!transcript || transcript.trim().length === 0) {
       throw new Error("No transcript available for this video");
-    }
-
-    if (jobData.cursor) {
-      await scheduleGroup(group, jobData.processId, {
-        cursor: jobData.cursor,
-      });
     }
 
     return {

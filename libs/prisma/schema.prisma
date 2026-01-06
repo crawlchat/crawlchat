@@ -412,6 +412,7 @@ model ScrapeItem {
   embeddings              Embedding[]
   status                  ScrapeItemStatus?
   error                   String?
+  sourcePageId            String?
 
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
@@ -422,6 +423,7 @@ model ScrapeItem {
   correctetdMessages      Message[]
 
   @@unique([knowledgeGroupId, url])
+  @@unique([knowledgeGroupId, sourcePageId])
 }
 
 enum UserPlanProvider {
