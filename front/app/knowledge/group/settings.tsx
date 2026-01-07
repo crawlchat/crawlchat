@@ -28,7 +28,6 @@ import {
   getLinearProjectStatuses,
   LinearClient,
 } from "libs/linear";
-import moment from "moment";
 import { Timestamp } from "~/components/timestamp";
 
 function getNotionPageTitle(page: any): string | undefined {
@@ -214,6 +213,9 @@ export async function action({ request, params }: Route.ActionArgs) {
     update.allowedGithubIssueStates = formData.get(
       "allowedGithubIssueStates"
     ) as string;
+  }
+  if (formData.has("onlyAnsweredDiscussions")) {
+    (update as any).onlyAnsweredDiscussions = formData.get("onlyAnsweredDiscussions") === "on";
   }
   if (formData.has("youtubeUrls")) {
     const urlsString = formData.get("youtubeUrls") as string;
@@ -481,6 +483,57 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
+function GithubDiscussionsSettings({ group }: { group: KnowledgeGroup }) {
+  const onlyAnsweredFetcher = useFetcher();
+  const [onlyAnswered, setOnlyAnswered] = useState<boolean>(
+    (group as any).onlyAnsweredDiscussions ?? false
+  );
+
+  const details = useMemo(() => {
+    return [
+      {
+        label: "Repo",
+        value: group.url,
+      },
+      {
+        label: "Updated at",
+        value: <Timestamp date={group.updatedAt} />,
+      },
+      {
+        label: "Status",
+        value: <GroupStatus status={group.status} />,
+      },
+    ];
+  }, [group]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <DataList data={details} />
+      <SettingsSection
+        id="only-answered-discussions"
+        fetcher={onlyAnsweredFetcher}
+        title="Only answered"
+        description="If enabled, only fetch discussions that have been marked as answered. By default, all discussions are fetched."
+      >
+        <input
+          type="hidden"
+          name="onlyAnsweredDiscussions"
+          value={onlyAnswered ? "on" : ""}
+        />
+        <label className="label cursor-pointer justify-start gap-4">
+          <input
+            type="checkbox"
+            checked={onlyAnswered}
+            onChange={(e) => setOnlyAnswered(e.target.checked)}
+            className="toggle"
+          />
+          <span className="label-text">Only fetch answered discussions</span>
+        </label>
+      </SettingsSection>
+    </div>
+  );
+}
+
 function NotionSettings({
   group,
   notionPages,
@@ -700,6 +753,9 @@ export default function KnowledgeGroupSettings({
         )}
         {loaderData.knowledgeGroup.type === "github_issues" && (
           <GithubIssuesSettings group={loaderData.knowledgeGroup} />
+        )}
+        {loaderData.knowledgeGroup.type === "github_discussions" && (
+          <GithubDiscussionsSettings group={loaderData.knowledgeGroup} />
         )}
         {loaderData.knowledgeGroup.type === "notion" && (
           <NotionSettings

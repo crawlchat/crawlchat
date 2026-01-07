@@ -17,6 +17,8 @@ export type GroupData = {
   userId: string;
   processId: string;
   cursor?: string;
+
+  githubDiscussionCategoryId?: string;
 };
 
 export type ItemData = {

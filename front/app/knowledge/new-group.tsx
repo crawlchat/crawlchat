@@ -112,6 +112,10 @@ export async function action({ request }: { request: Request }) {
       url = githubRepoUrl as string;
     }
 
+    if (type === "github_discussions") {
+      url = githubRepoUrl as string;
+    }
+
     if (
       !url &&
       type !== "notion" &&
@@ -306,6 +310,14 @@ export function NewKnowledgeGroupForm({
         icon: <TbBrandGithub />,
         longDescription:
           "Fetch GitHub issues from the provided repository and turns them into the knowledge. The repository must be public (for now).",
+      },
+      {
+        title: "GitHub Discussions",
+        value: "github_discussions",
+        description: "Fetch GitHub discussions",
+        icon: <TbBrandGithub />,
+        longDescription:
+          "Fetch GitHub discussions from the provided repository and turns them into the knowledge. The repository must be public (for now).",
       },
       {
         title: "Upload",
@@ -517,6 +529,22 @@ export function NewKnowledgeGroupForm({
       )}
 
       {type === "github_issues" && (
+        <>
+          <fieldset className="fieldset">
+            <legend className="fieldset-legend">GitHub Repo URL</legend>
+            <input
+              type="url"
+              className="input w-full"
+              name="githubRepoUrl"
+              placeholder="https://github.com/user/repo"
+              pattern="^https://github.com/.+$"
+              required
+            />
+          </fieldset>
+        </>
+      )}
+
+      {type === "github_discussions" && (
         <>
           <fieldset className="fieldset">
             <legend className="fieldset-legend">GitHub Repo URL</legend>

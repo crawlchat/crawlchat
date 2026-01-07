@@ -81,7 +81,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
 
     const token = createToken(user!.id);
-    const shouldUseSourceSync = ["scrape_web", "upload"].includes(group.type);
+    const shouldUseSourceSync = ["scrape_web", "upload", "github_discussions"].includes(group.type);
     const host = shouldUseSourceSync
       ? process.env.VITE_SOURCE_SYNC_URL
       : process.env.VITE_SERVER_URL;
@@ -167,6 +167,12 @@ export default function KnowledgeGroupPage({
     }
     if (loaderData.knowledgeGroup.type === "notion") {
       return <TbBrandNotion />;
+    }
+    if (loaderData.knowledgeGroup.type === "github_issues") {
+      return <TbBrandGithub />;
+    }
+    if (loaderData.knowledgeGroup.type === "github_discussions") {
+      return <TbBrandGithub />;
     }
     if (loaderData.knowledgeGroup.type === "linear") {
       return <SiLinear />;

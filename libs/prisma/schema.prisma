@@ -492,6 +492,7 @@ enum KnowledgeGroupType {
   learn_discord
   learn_slack
   github_issues
+  github_discussions
   answer_corrections
   upload
   notion
@@ -560,6 +561,7 @@ model KnowledgeGroup {
   updateProcessId                           String?
 
   allowedGithubIssueStates                  String?
+  onlyAnsweredDiscussions                   Boolean?
 
   fetchError                                String?
   urls                                      KnowledgeGroupUrlItem[]

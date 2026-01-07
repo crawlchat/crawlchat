@@ -2,6 +2,7 @@ import { KnowledgeGroupType } from "libs/dist/prisma";
 import { WebSource } from "./web";
 import { NotionSource } from "./notion";
 import { GithubIssuesSource } from "./github-issues";
+import { GithubDiscussionsSource } from "./github-discussions";
 import { TextSource } from "./text";
 import { ConfluenceSource } from "./confluence";
 import { LinearIssuesSource } from "./linear";
@@ -16,6 +17,8 @@ export function makeSource(type: KnowledgeGroupType) {
       return new NotionSource();
     case "github_issues":
       return new GithubIssuesSource();
+    case "github_discussions":
+      return new GithubDiscussionsSource();
     case "upload":
       return new TextSource();
     case "confluence":
