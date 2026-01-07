@@ -65,7 +65,7 @@
     "./express-auth": {
       "default": "./dist/express-auth.js",
       "types": "./dist/express-auth.d.ts"
-    },
+    }
   },
   "typesVersions": {
     "*": {
@@ -110,7 +110,7 @@
       ],
       "express-auth": [
         "./dist/express-auth.d.ts"
-      ],
+      ]
     }
   },
   "scripts": {
