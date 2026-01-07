@@ -8,7 +8,6 @@ export type IndexDocument = {
 
 export interface Indexer {
   getKey(): string;
-  upsert(scrapeId: string, documents: IndexDocument[]): Promise<void>;
   search(
     scrapeId: string,
     query: string,

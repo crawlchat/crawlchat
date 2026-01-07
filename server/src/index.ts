@@ -6,7 +6,7 @@ import type { Express, NextFunction, Request, Response } from "express";
 import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "./prisma";
-import { deleteByIds, deleteScrape } from "./scrape/pinecone";
+import { deleteByIds, deleteScrape } from "./pinecone";
 import { authenticate, AuthMode, authoriseScrapeUser } from "libs/express-auth";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -26,8 +26,6 @@ import {
   RAGAgentCustomMessage,
 } from "./llm/flow-jasmine";
 import { extractCitations } from "libs/citation";
-import { assertLimit, makeKbProcesserListener } from "./kb/listener";
-import { makeKbProcesser } from "./kb/factory";
 import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
 import { chunk } from "libs/chunk";
 import { Flow } from "./llm/flow";
@@ -42,11 +40,9 @@ import {
   siteUseCaseRateLimiter,
   wsRateLimiter,
 } from "./rate-limiter";
-import { scrape } from "./scrape/crawl";
 import { getConfig } from "./llm/config";
 import { getNextNumber } from "libs/mongo-counter";
 import { randomUUID } from "crypto";
-import { extractSiteUseCase } from "./site-use-case";
 import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
@@ -106,54 +102,10 @@ app.get("/test", async function (req: Request, res: Response) {
 
 app.post("/scrape", authenticate, async function (req: Request, res: Response) {
   const scrapeId = req.body.scrapeId!;
-  const knowledgeGroupId = req.body.knowledgeGroupId!;
 
   authoriseScrapeUser(req.user!.scrapeUsers, scrapeId, res);
 
-  const scrape = await prisma.scrape.findFirstOrThrow({
-    where: { id: scrapeId },
-    include: {
-      user: true,
-    },
-  });
-
-  const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
-    where: { id: knowledgeGroupId },
-  });
-
-  console.log("Scraping for", scrape.id);
-
-  const url = req.body.url ? cleanUrl(req.body.url) : req.body.url;
-
-  (async function () {
-    function getLimit() {
-      if (req.body.maxLinks) {
-        return parseInt(req.body.maxLinks);
-      }
-      if (url) {
-        return 1;
-      }
-      if (knowledgeGroup.maxPages !== null) {
-        return knowledgeGroup.maxPages;
-      }
-      return undefined;
-    }
-
-    const listener = makeKbProcesserListener(scrape, knowledgeGroup);
-
-    const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {
-      limit: getLimit(),
-      url,
-    });
-
-    try {
-      await processer.start();
-    } catch (error: any) {
-      await listener.onComplete(error.message);
-    }
-  })();
-
-  res.json({ message: "ok" });
+  throw new Error("Not implemented");
 });
 
 app.delete(
@@ -1267,23 +1219,6 @@ app.post("/fix-message", authenticate, async (req, res) => {
   res.json({ content: correctAnswer, title });
 });
 
-app.post("/scrape-url", authenticate, async (req, res) => {
-  if (req.user?.email !== "pramodkumar.damam73@gmail.com") {
-    res.status(400).json({ message: "Unauthorised" });
-    return;
-  }
-
-  const url = req.body.url as string;
-
-  const result = await scrape(url);
-  if (result.error) {
-    res.status(400).json({ message: result.error });
-    return;
-  }
-
-  res.json({ markdown: result.parseOutput.markdown });
-});
-
 app.get("/test-api", authenticate, async (req, res) => {
   const memberships = await prisma.scrapeUser.findMany({
     where: {
@@ -1300,17 +1235,6 @@ app.get("/test-api", authenticate, async (req, res) => {
       title: m.scrape.title,
     })),
   });
-});
-
-app.post("/site-use-case", async (req, res) => {
-  siteUseCaseRateLimiter.check();
-  try {
-    const result = await extractSiteUseCase(req.body.url as string);
-    res.json(result);
-  } catch (error) {
-    console.error("Error extracting site use case:", error);
-    res.status(400).json({ message: "Internal server error" });
-  }
 });
 
 app.post("/extract-facts/:scrapeId", authenticate, async (req, res) => {

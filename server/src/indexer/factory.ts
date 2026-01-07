@@ -1,4 +1,3 @@
-import { EarthIndexer } from "./earth-indexer";
 import { Indexer } from "./indexer";
 import { MarsIndexer } from "./mars-indexer";
 
@@ -9,8 +8,7 @@ export function makeIndexer({
   key: string | null;
   topN?: number;
 }): Indexer {
-  const defaultIndexer = new EarthIndexer();
-  const indexers = [defaultIndexer, new MarsIndexer({ topN })];
+  const indexers = [new MarsIndexer({ topN })];
   const indexMap = new Map<string, Indexer>();
   for (const indexer of indexers) {
     indexMap.set(indexer.getKey(), indexer);
@@ -19,5 +17,5 @@ export function makeIndexer({
     return indexMap.get(key)!;
   }
 
-  return defaultIndexer;
+  throw new Error(`Indexer ${key} not found`);
 }

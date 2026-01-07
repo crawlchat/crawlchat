@@ -2,8 +2,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { prisma } from "libs/prisma";
-import { makeKbProcesser } from "./kb/factory";
-import { makeKbProcesserListener } from "./kb/listener";
 import { exit } from "process";
 import { cleanupMessages } from "./scripts/thread-cleanup";
 import { createToken } from "libs/jwt";
@@ -34,14 +32,20 @@ async function updateKnowledgeGroup(groupId: string) {
     throw new Error(`Scrape ${knowledgeGroup.scrapeId} not found`);
   }
 
-  const listener = makeKbProcesserListener(scrape, knowledgeGroup);
+  const response = await fetch(`${process.env.SOURCE_SYNC_URL}/update-group`, {
+    method: "POST",
+    body: JSON.stringify({
+      scrapeId: knowledgeGroup.scrapeId,
+      knowledgeGroupId: knowledgeGroup.id,
+      userId: scrape.userId,
+    }),
+    headers: {
+      Authorization: `Bearer ${createToken(scrape.userId)}`,
+    },
+  });
 
-  const processer = makeKbProcesser(listener, scrape, knowledgeGroup, {});
-
-  try {
-    await processer.start();
-  } catch (error: any) {
-    await listener.onComplete(error.message);
+  if (!response.ok) {
+    throw new Error(`Failed to update knowledge group ${knowledgeGroup.id}`);
   }
 }
 

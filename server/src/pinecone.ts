@@ -4,10 +4,6 @@ const pc = new Pinecone({
   apiKey: process.env.PINECONE_API_KEY!,
 });
 
-export function makeRecordId(scrapeId: string, id: string) {
-  return `${scrapeId}/${id}`;
-}
-
 export async function deleteScrape(indexerKey: string, scrapeId: string) {
   const index = pc.index(indexerKey);
 
