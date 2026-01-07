@@ -86,7 +86,7 @@ export async function action({ params, request }: Route.ActionArgs) {
     });
 
     const token = createToken(user!.id);
-    const shouldUseSourceSync = ["scrape_web", "upload"].includes(
+    const shouldUseSourceSync = ["scrape_web", "upload", "github_discussions"].includes(
       scrapeItem.knowledgeGroup!.type
     );
     const host = shouldUseSourceSync

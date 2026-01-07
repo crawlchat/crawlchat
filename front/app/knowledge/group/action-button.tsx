@@ -32,6 +32,7 @@ export function ActionButton({
       "scrape_web",
       "scrape_github",
       "github_issues",
+      "github_discussions",
       "notion",
       "confluence",
       "linear",

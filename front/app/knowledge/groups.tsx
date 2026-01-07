@@ -110,6 +110,9 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       } else if (group.type === "github_issues") {
         icon = <TbBrandGithub />;
         typeText = "GH Issues";
+      } else if (group.type === "github_discussions") {
+        icon = <TbBrandGithub />;
+        typeText = "GH Discussions";
       } else if (group.type === "upload") {
         icon = <TbFile />;
         typeText = "File";
@@ -254,6 +257,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                         "scrape_web",
                         "scrape_github",
                         "github_issues",
+                        "github_discussions",
                         "notion",
                         "confluence",
                         "linear",
