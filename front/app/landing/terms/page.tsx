@@ -1,20 +1,20 @@
-import type { Route } from "./+types/terms";
+import type { Route } from "./+types/page";
 import { marked } from "marked";
-import { LandingPage } from "./page";
-import { Container } from "./page";
+import { LandingPage } from "../page";
+import { Container } from "../page";
 import fs from "fs";
 import path from "path";
 import { makeMeta } from "~/meta";
 
 export function meta() {
   return makeMeta({
-    title: "Privacy Policy - CrawlChat",
+    title: "Terms of Service - CrawlChat",
   });
 }
 
 export async function loader() {
   const htmlContent = await marked.parse(
-    fs.readFileSync(path.join(process.cwd(), "app/landing/policy.md"), "utf8")
+    fs.readFileSync(path.join(process.cwd(), "app/landing/terms/content.md"), "utf8")
   );
 
   return { htmlContent };

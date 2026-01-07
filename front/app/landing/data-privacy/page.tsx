@@ -1,26 +1,29 @@
-import type { Route } from "./+types/terms";
 import { marked } from "marked";
-import { LandingPage } from "./page";
-import { Container } from "./page";
+import { LandingPage } from "../page";
+import { Container } from "../page";
 import fs from "fs";
 import path from "path";
 import { makeMeta } from "~/meta";
+import type { Route } from "./+types/page";
 
 export function meta() {
   return makeMeta({
-    title: "Terms of Service - CrawlChat",
+    title: "Data Privacy - CrawlChat",
   });
 }
 
 export async function loader() {
   const htmlContent = await marked.parse(
-    fs.readFileSync(path.join(process.cwd(), "app/landing/terms.md"), "utf8")
+    fs.readFileSync(
+      path.join(process.cwd(), "app/landing/data-privacy/content.md"),
+      "utf8"
+    )
   );
 
   return { htmlContent };
 }
 
-export default function Terms({ loaderData }: Route.ComponentProps) {
+export default function DataPrivacy({ loaderData }: Route.ComponentProps) {
   return (
     <LandingPage>
       <div className="flex flex-col py-12">

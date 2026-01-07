@@ -15,16 +15,14 @@ export default [
   route("auth/google", "auth/google.ts"),
   route("auth/google/callback", "auth/google-callback.ts"),
 
-  route("terms", "landing/terms.tsx"),
-  route("policy", "landing/policy.tsx"),
-  route("data-privacy", "landing/data-privacy.tsx"),
-  layout("embed-demo/layout.tsx", [
-    route("embed-demo", "embed-demo/page.tsx"),
-    route("embed-demo/pricing", "embed-demo/pricing.tsx"),
-    route("embed-demo/docs", "embed-demo/docs.tsx"),
+  route("terms", "landing/terms/page.tsx"),
+  route("policy", "landing/policy/page.tsx"),
+  route("data-privacy", "landing/data-privacy/page.tsx"),
+  layout("landing/embed-demo/layout.tsx", [
+    route("embed-demo", "landing/embed-demo/page.tsx"),
+    route("embed-demo/pricing", "landing/embed-demo/pricing.tsx"),
+    route("embed-demo/docs", "landing/embed-demo/docs.tsx"),
   ]),
-
-  route("shopify-app-bot", "landing/shopify-app-bot.tsx"),
 
   route("payment/lemonsqueezy-webhook", "payment/lemonsqueezy-webhook.ts"),
   route("payment/dodo-webhook", "payment/dodo-webhook.ts"),
@@ -83,7 +81,6 @@ export default [
     route("data-gaps", "data-gaps/page.tsx"),
 
     route("assistance", "assistance.tsx"),
-    route("draft", "draft.tsx"),
 
     ...prefix("tool", [
       route("compose", "compose.tsx"),
@@ -110,8 +107,6 @@ export default [
     route("ai-models", "landing/ai-models.tsx"),
 
     route("pricing", "landing/pricing.tsx"),
-
-    ...prefix("tool", [route("draft", "tool/draft-page.tsx")]),
 
     ...prefix("use-case", [
       route("community-support", "landing/use-case/community-support.tsx"),

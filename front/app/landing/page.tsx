@@ -67,7 +67,6 @@ import { FaConfluence, FaMicrophone } from "react-icons/fa";
 import { Logo } from "~/dashboard/logo";
 import { MCPIcon } from "~/mcp-icon";
 import toast, { Toaster } from "react-hot-toast";
-import { SiteUseCase } from "./site-use-case";
 
 export function meta() {
   return makeMeta({
@@ -2686,10 +2685,6 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
       <Container>
         <UsedBy />
       </Container>
-
-      {/* <Container>
-        <SiteUseCase />
-      </Container> */}
 
       <CustomTestimonials />
 
