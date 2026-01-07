@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { prisma } from "../prisma";
+import { prisma } from "libs/prisma";
 import { adminAuthenticate } from "libs/express-auth";
 import { PLAN_FREE, planMap } from "libs/user-plan";
 

@@ -5,7 +5,7 @@ import express from "express";
 import type { Express, NextFunction, Request, Response } from "express";
 import ws from "express-ws";
 import cors from "cors";
-import { prisma } from "./prisma";
+import { prisma } from "libs/prisma";
 import { deleteByIds, deleteScrape } from "./pinecone";
 import { authenticate, AuthMode, authoriseScrapeUser } from "libs/express-auth";
 import { v4 as uuidv4 } from "uuid";
@@ -37,7 +37,6 @@ import { MultimodalContent, getQueryString } from "libs/llm-message";
 import {
   draftRateLimiter,
   mcpRateLimiter,
-  siteUseCaseRateLimiter,
   wsRateLimiter,
 } from "./rate-limiter";
 import { getConfig } from "./llm/config";
@@ -77,13 +76,6 @@ app.use(cors());
 
 app.use("/api", apiRouter);
 app.use("/admin", adminRouter);
-
-function cleanUrl(url: string) {
-  if (!url.startsWith("http")) {
-    url = "https://" + url;
-  }
-  return url;
-}
 
 async function updateLastMessageAt(threadId: string) {
   await prisma.thread.update({
