@@ -54,7 +54,7 @@ app.post(
 
     await prisma.knowledgeGroup.update({
       where: { id: knowledgeGroup.id },
-      data: { updateProcessId: processId },
+      data: { updateProcessId: processId, status: "processing" },
     });
 
     await scheduleGroup(knowledgeGroup, processId);
