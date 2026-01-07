@@ -3,7 +3,7 @@ dotenv.config();
 
 import { prisma } from "libs/prisma";
 import { exit } from "process";
-import { cleanupMessages } from "./scripts/thread-cleanup";
+import { cleanupMessages } from "./cleanup";
 import { createToken } from "libs/jwt";
 
 async function updateKnowledgeGroup(groupId: string) {
