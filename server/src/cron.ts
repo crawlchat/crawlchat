@@ -5,6 +5,7 @@ import { prisma } from "libs/prisma";
 import { exit } from "process";
 import { cleanupMessages } from "./cleanup";
 import { createToken } from "libs/jwt";
+import { getNextUpdateTime } from "libs/knowledge-group";
 
 async function updateKnowledgeGroup(groupId: string) {
   console.log(`Updating knowledge group ${groupId}`);
@@ -41,12 +42,27 @@ async function updateKnowledgeGroup(groupId: string) {
     }),
     headers: {
       Authorization: `Bearer ${createToken(scrape.userId)}`,
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to update knowledge group ${knowledgeGroup.id}`);
+    throw new Error(
+      `Failed to update knowledge group ${
+        knowledgeGroup.id
+      } - ${await response.text()}`
+    );
   }
+
+  await prisma.knowledgeGroup.update({
+    where: { id: knowledgeGroup.id },
+    data: {
+      nextUpdateAt: getNextUpdateTime(
+        knowledgeGroup.updateFrequency,
+        new Date()
+      ),
+    },
+  });
 }
 
 async function updateKnowledgeBase() {
