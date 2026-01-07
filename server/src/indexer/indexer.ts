@@ -8,7 +8,6 @@ export type IndexDocument = {
 
 export interface Indexer {
   getKey(): string;
-  upsert(scrapeId: string, documents: IndexDocument[]): Promise<void>;
   search(
     scrapeId: string,
     query: string,
@@ -29,13 +28,4 @@ export interface Indexer {
       query?: string;
     }[]
   >;
-}
-
-export function randomFetchId() {
-  const chars = "01234567890";
-  let result = "";
-  for (let i = 0; i < 5; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
 }

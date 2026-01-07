@@ -1,4 +1,4 @@
-import { prisma } from "../prisma";
+import { prisma } from "libs/prisma";
 import { createToken, verifyToken } from "libs/jwt";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
 import { wsRateLimiter } from "../rate-limiter";

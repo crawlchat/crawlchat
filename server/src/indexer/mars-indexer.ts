@@ -3,8 +3,16 @@ import {
   RecordMetadata,
   QueryResponse,
 } from "@pinecone-database/pinecone";
-import { Indexer, randomFetchId } from "./indexer";
-import { IndexDocument } from "./indexer";
+import { Indexer } from "./indexer";
+
+function randomFetchId() {
+  const chars = "01234567890";
+  let result = "";
+  for (let i = 0; i < 5; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 export class MarsIndexer implements Indexer {
   private pinecone: Pinecone;
@@ -30,34 +38,6 @@ export class MarsIndexer implements Indexer {
 
   getMinBestScore(): number {
     return 10;
-  }
-
-  async upsert(scrapeId: string, documents: IndexDocument[]): Promise<void> {
-    if (documents.length === 0) {
-      return;
-    }
-    const index = this.pinecone.index(this.indexName);
-    await index.upsert(
-      await Promise.all(
-        documents.map(async (document) => {
-          const sparseData = await this.makeSparseEmbedding(document.text);
-
-          return {
-            id: document.id,
-            values: (await this.makeEmbedding(document.text))[0].values!,
-            sparseValues: {
-              indices: sparseData.data[0].sparse_indices,
-              values: sparseData.data[0].sparse_values,
-            },
-            metadata: {
-              ...document.metadata,
-              scrapeId,
-              id: document.id,
-            },
-          };
-        })
-      )
-    );
   }
 
   makeRecordId(scrapeId: string, id: string) {

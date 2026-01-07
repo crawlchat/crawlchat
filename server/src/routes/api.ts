@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { prisma } from "../prisma";
+import { prisma } from "libs/prisma";
 import { authenticate, authoriseScrapeUser } from "libs/express-auth";
 import { LlmModel } from "libs/prisma";
 
