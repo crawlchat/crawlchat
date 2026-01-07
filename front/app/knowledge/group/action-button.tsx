@@ -123,7 +123,15 @@ export function ActionButton({
               <span
                 className={cn("loading loading-sm", small && "loading-xs")}
               />
-              <span>{processStatus.pending}</span>
+              <span className="countdown text-xl">
+                <span
+                  style={{ "--value": processStatus.pending } as React.CSSProperties}
+                  aria-live="polite"
+                  aria-label={processStatus.pending.toString()}
+                >
+                  {processStatus.pending}
+                </span>
+              </span>
             </div>
           )}
           <stopFetcher.Form
