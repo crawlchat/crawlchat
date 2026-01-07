@@ -10,7 +10,7 @@ import {
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { Link, useFetcher } from "react-router";
 import { fetchDataGaps } from "./fetch";

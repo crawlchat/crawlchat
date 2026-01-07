@@ -1,5 +1,5 @@
 import type { Route } from "./+types/link-item";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { useEffect, useState } from "react";
 import { redirect, useFetcher } from "react-router";
@@ -8,8 +8,8 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { createToken } from "libs/jwt";
 import type { Prisma, ScrapeItem } from "libs/prisma";
-import { SettingsSection } from "~/settings-section";
-import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
+import { SettingsSection } from "~/components/settings-section";
+import { useFetcherToast } from "~/components/use-fetcher-toast";
 import cn from "@meltdownjs/cn";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";

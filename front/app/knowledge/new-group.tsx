@@ -18,7 +18,7 @@ import { Page } from "~/components/page";
 import { createToken } from "libs/jwt";
 import { parseFormData } from "@mjackson/form-data-parser";
 import { useEffect, useMemo, useState } from "react";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { RadioCard } from "~/components/radio-card";
 import toast from "react-hot-toast";

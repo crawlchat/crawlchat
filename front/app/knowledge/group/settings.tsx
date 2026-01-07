@@ -12,7 +12,7 @@ import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
-} from "~/settings-section";
+} from "~/components/settings-section";
 import { useEffect, useMemo, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { GroupStatus } from "./status";

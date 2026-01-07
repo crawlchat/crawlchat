@@ -1,5 +1,5 @@
 import { readPosts } from "./posts";
-import { Cache } from "~/cache";
+import { Cache } from "~/components/cache";
 import type { Route } from "./+types/list";
 import { TbClock, TbSignature } from "react-icons/tb";
 import { Container } from "~/landing/page";

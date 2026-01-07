@@ -5,7 +5,7 @@ import { commitSession, getSession } from "~/session";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TbArrowRight, TbCircleCheck, TbCircleX } from "react-icons/tb";
 import { getAuthUser } from "./middleware";
-import { Logo } from "~/dashboard/logo";
+import { Logo } from "~/components/logo";
 import { makeMeta } from "~/meta";
 import {
   AntonTestimonial,

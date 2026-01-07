@@ -6,11 +6,11 @@ import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
-} from "~/settings-section";
+} from "~/components/settings-section";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { getSession } from "~/session";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { getSessionScrapeId } from "~/scrapes/util";
 
 export async function loader({ request }: Route.LoaderArgs) {

@@ -17,7 +17,7 @@ import {
 import { makeMeta } from "~/meta";
 import { Channels, Connectors, UseCaseHero, UseCaseIssues } from "./component";
 import { SiDocusaurus, SiLinear } from "react-icons/si";
-import { MCPIcon } from "~/mcp-icon";
+import { MCPIcon } from "~/components/mcp-icon";
 
 export function meta() {
   return makeMeta({

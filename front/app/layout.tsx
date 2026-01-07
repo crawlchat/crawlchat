@@ -1,8 +1,8 @@
 import type { Route } from "./+types/layout";
 import { Outlet, useFetcher } from "react-router";
-import { AppContext, useApp } from "./context";
+import { AppContext, useApp } from "~/components/app-context";
 import { getAuthUser } from "~/auth/middleware";
-import { SideMenu } from "./side-menu";
+import { SideMenu } from "~/components/side-menu";
 import { useEffect } from "react";
 import { getPagesCount, PLAN_FREE, allActivePlans } from "libs/user-plan";
 import { planMap } from "libs/user-plan";
@@ -12,10 +12,9 @@ import { fetchDataGaps } from "~/data-gaps/fetch";
 import { Toaster } from "react-hot-toast";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
-import { UpgradeModal } from "./upgrade-modal";
+import { UpgradeModal } from "~/components/upgrade-modal";
 import { showModal } from "~/components/daisy-utils";
 import { createToken } from "libs/jwt";
-import { ChatModal } from "./chat-modal";
 
 export function meta() {
   return makeMeta({
@@ -167,7 +166,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       </div>
       <Toaster position="bottom-right" />
       <UpgradeModal plans={loaderData.plans} />
-      {/* <ChatModal token={loaderData.token} /> */}
     </AppContext.Provider>
   );
 }

@@ -28,7 +28,7 @@ import {
   TbFile,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
-import { track } from "~/track";
+import { track } from "~/components/track";
 import { extractCitations } from "libs/citation";
 import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp/setup";
 import { useChatBoxContext } from "./use-chat-box";

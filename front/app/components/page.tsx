@@ -3,7 +3,7 @@ import type { LlmModel } from "libs/prisma";
 import { useContext, useEffect, useRef } from "react";
 import { TbAlertTriangle, TbArrowRight, TbMenu2, TbX } from "react-icons/tb";
 import { Link } from "react-router";
-import { AppContext } from "~/dashboard/context";
+import { AppContext } from "~/components/app-context";
 
 const LlmNameMap: Record<LlmModel, string> = {
   gpt_4o_mini: "OpenAI 4o-mini",

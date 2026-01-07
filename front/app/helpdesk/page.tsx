@@ -1,5 +1,5 @@
 import type { Route } from "./+types/page";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { useContext } from "react";
 import cn from "@meltdownjs/cn";
 import { TbBook2 } from "react-icons/tb";

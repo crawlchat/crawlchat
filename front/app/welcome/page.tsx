@@ -14,9 +14,9 @@ import { TbArrowRight, TbCheck } from "react-icons/tb";
 import { getSession } from "~/session";
 import { useFetcher, useLoaderData } from "react-router";
 import { NewKnowledgeGroupForm } from "~/knowledge/new-group";
-import { Logo } from "~/dashboard/logo";
+import { Logo } from "~/components/logo";
 import Confetti from "react-confetti-boom";
-import { track } from "~/track";
+import { track } from "~/components/track";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

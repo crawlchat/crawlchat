@@ -7,7 +7,7 @@ import type {
   Thread,
   User,
 } from "libs/prisma";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { createToken } from "libs/jwt";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, type Session } from "react-router";

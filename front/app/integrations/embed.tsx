@@ -1,11 +1,11 @@
 import type { Route } from "./+types/embed";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
-} from "~/settings-section";
+} from "~/components/settings-section";
 import { useMemo } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { MarkdownProse } from "~/widget/markdown-prose";

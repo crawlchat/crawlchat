@@ -6,7 +6,7 @@ import { getAuthUser } from "./auth/middleware";
 import { prisma } from "libs/prisma";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { useFetcher } from "react-router";
-import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
+import { useFetcherToast } from "~/components/use-fetcher-toast";
 import cn from "@meltdownjs/cn";
 
 export async function loader({ request }: Route.LoaderArgs) {

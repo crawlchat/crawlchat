@@ -1,4 +1,4 @@
-import type { Route } from "./+types/page";
+import type { Route } from "./+types/summary";
 import {
   TbChartLine,
   TbCheck,
@@ -15,7 +15,7 @@ import {
   TbThumbDown,
 } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { Page } from "~/components/page";
 import {
   XAxis,
@@ -27,7 +27,7 @@ import {
   Bar,
 } from "recharts";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { numberToKMB } from "~/number-util";
+import { numberToKMB } from "~/components/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
 import { Link, redirect, useFetcher } from "react-router";
@@ -39,7 +39,7 @@ import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import { dodoGateway } from "~/payment/gateway-dodo";
-import { track } from "~/track";
+import { track } from "~/components/track";
 import { getMessagesSummary, type MessagesSummary } from "~/messages-summary";
 import type { Payload } from "recharts/types/component/DefaultTooltipContent";
 
@@ -382,16 +382,6 @@ function CategoryCard({
       </div>
     </div>
   );
-}
-
-function findLastBarIndex<T>(values: T[], predicate: (value: T) => boolean) {
-  let index = -1;
-  for (let i = 0; i < values.length; i++) {
-    if (predicate(values[i])) {
-      index = i;
-    }
-  }
-  return index;
 }
 
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {

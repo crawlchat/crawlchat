@@ -28,12 +28,12 @@ export default [
   route("payment/dodo-webhook", "payment/dodo-webhook.ts"),
 
   route("/logout", "auth/logout.tsx"),
-  layout("dashboard/layout.tsx", [
-    route("app", "dashboard/page.tsx"),
-    route("profile", "dashboard/profile.tsx"),
+  layout("layout.tsx", [
+    route("app", "summary.tsx"),
+    route("profile", "profile.tsx"),
 
-    route("settings", "scrapes/settings.tsx"),
-    route("settings/helpdesk", "dashboard/settings/helpdesk.tsx"),
+    route("settings", "settings/scrape.tsx"),
+    route("settings/helpdesk", "settings/helpdesk.tsx"),
     route("tickets", "tickets/list.tsx"),
     route("tickets/settings", "tickets/settings.tsx"),
 
@@ -69,7 +69,7 @@ export default [
 
     route("team", "team/page.tsx"),
 
-    route("setup-progress", "dashboard/setup-progress-api.ts"),
+    route("setup-progress", "setup-progress/api.ts"),
 
     route("actions", "actions/list.tsx"),
     route("actions/new", "actions/new.tsx"),

@@ -3,7 +3,6 @@ import type { MessageChannel } from "libs/prisma";
 import { useMemo } from "react";
 import {
   TbBrandDiscord,
-  TbBrandGoogle,
   TbBrandGoogleFilled,
   TbBrandSlack,
   TbCode,

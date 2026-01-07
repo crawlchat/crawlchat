@@ -8,7 +8,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
 import { TbCheck } from "react-icons/tb";
-import { SettingsSection } from "~/settings-section";
+import { SettingsSection } from "~/components/settings-section";
 
 type FactWithScore = {
   fact: string;

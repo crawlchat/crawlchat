@@ -5,12 +5,12 @@ import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
-} from "~/settings-section";
-import { prisma } from "~/prisma";
+} from "~/components/settings-section";
+import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { TbArrowRight, TbBrandSlack } from "react-icons/tb";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
-import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
+import { useFetcherToast } from "~/components/use-fetcher-toast";
 import { makeMeta } from "~/meta";
 
 export async function loader({ request }: Route.LoaderArgs) {

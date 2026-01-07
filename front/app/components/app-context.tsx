@@ -1,6 +1,6 @@
 import type { Prisma, Scrape, ScrapeUser, User } from "libs/prisma";
 import { createContext, useEffect, useMemo, useState } from "react";
-import type { SetupProgressAction } from "./setup-progress";
+import type { SetupProgressAction } from "../setup-progress/config";
 
 export const useApp = ({
   user,

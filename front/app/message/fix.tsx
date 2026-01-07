@@ -1,14 +1,13 @@
 import type { Route } from "./+types/fix";
 import {
   TbAlertTriangle,
-  TbArrowRight,
   TbCheck,
   TbEye,
   TbMessage,
   TbSettingsBolt,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import {
@@ -22,8 +21,8 @@ import { makeMeta } from "~/meta";
 import { makeMessagePairs } from "./analyse";
 import type { ApiAction, ScrapeItem } from "libs/prisma";
 import { QuestionAnswer } from "./message";
-import { SettingsSection } from "~/settings-section";
-import { useFetcherToast } from "~/dashboard/use-fetcher-toast";
+import { SettingsSection } from "~/components/settings-section";
+import { useFetcherToast } from "~/components/use-fetcher-toast";
 import { ComposerSection, useComposer } from "~/compose";
 
 export async function loader({ params, request }: Route.LoaderArgs) {

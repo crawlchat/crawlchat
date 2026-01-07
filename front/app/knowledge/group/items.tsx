@@ -1,6 +1,6 @@
 import type { Route } from "./+types/items";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import {
   TbCheck,
   TbRefresh,

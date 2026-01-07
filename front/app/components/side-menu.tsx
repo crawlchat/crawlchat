@@ -25,18 +25,18 @@ import {
   TbUsers,
   TbX,
 } from "react-icons/tb";
-import { Link, NavLink, useFetcher, useLocation } from "react-router";
-import { numberToKMB } from "~/number-util";
+import { Link, NavLink, useFetcher } from "react-router";
+import { numberToKMB } from "~/components/number-util";
 import { useContext, useEffect, useMemo, useState } from "react";
 import {
   getPendingActions,
   getSkippedActions,
   setSkippedActions,
   type SetupProgressInput,
-} from "./setup-progress";
+} from "../setup-progress/config";
 import { Logo } from "./logo";
-import { AppContext } from "./context";
-import { track } from "~/track";
+import { AppContext } from "./app-context";
+import { track } from "~/components/track";
 import { ScrapePrivacyBadge } from "~/components/scrape-type-badge";
 import { PlanIconBadge } from "~/components/plan-icon-badge";
 import cn from "@meltdownjs/cn";

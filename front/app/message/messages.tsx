@@ -11,7 +11,7 @@ import {
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { makeMessagePairs } from "./analyse";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import {

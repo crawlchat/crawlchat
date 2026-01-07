@@ -6,9 +6,9 @@ import type {
   WidgetQuestion,
   WidgetSize,
 } from "libs/prisma";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
-import { SettingsSection } from "~/settings-section";
+import { SettingsSection } from "~/components/settings-section";
 import { useFetcher } from "react-router";
 import { authoriseScrapeUser, getSessionScrapeId } from "../scrapes/util";
 import { useEffect, useMemo, useState } from "react";

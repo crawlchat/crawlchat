@@ -1,5 +1,5 @@
 import { prisma } from "libs/prisma";
-import type { SetupProgressInput } from "./setup-progress";
+import type { SetupProgressInput } from "./config";
 
 export async function getSetupProgressInput(
   userId: string,

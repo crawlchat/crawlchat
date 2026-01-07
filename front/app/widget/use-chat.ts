@@ -1,6 +1,5 @@
 import type { Message } from "libs/prisma";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { makeMessage } from "~/dashboard/socket-util";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 
 export type AskStage =
@@ -9,6 +8,10 @@ export type AskStage =
   | "answering"
   | "searching"
   | "action-call";
+
+function makeMessage(type: string, data: any) {
+  return JSON.stringify({ type, data });
+}
 
 export function useScrapeChat({
   token,

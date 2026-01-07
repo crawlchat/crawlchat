@@ -1,12 +1,12 @@
 import type { Route } from "./+types/helpdesk";
 import { makeMeta } from "~/meta";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { getSessionScrapeId, authoriseScrapeUser } from "~/scrapes/util";
 import { Page } from "~/components/page";
 import { TbSettings } from "react-icons/tb";
 import { useState, useMemo } from "react";
-import { SettingsSection } from "~/settings-section";
+import { SettingsSection } from "~/components/settings-section";
 import { useFetcher } from "react-router";
 import { Helpdesk } from "~/helpdesk/layout";
 import type { HelpdeskConfig } from "libs/prisma";

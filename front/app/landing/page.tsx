@@ -56,7 +56,7 @@ import {
 } from "react-icons/tb";
 import { prisma } from "libs/prisma";
 import type { User } from "libs/prisma";
-import { track } from "~/track";
+import { track } from "~/components/track";
 import { type Plan, allActivePlans } from "libs/user-plan";
 import { Link, useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
@@ -64,8 +64,8 @@ import { makeMeta } from "~/meta";
 import cn from "@meltdownjs/cn";
 import { SiDocusaurus, SiLinear, SiN8N, SiOpenai } from "react-icons/si";
 import { FaConfluence, FaMicrophone } from "react-icons/fa";
-import { Logo } from "~/dashboard/logo";
-import { MCPIcon } from "~/mcp-icon";
+import { Logo } from "~/components/logo";
+import { MCPIcon } from "~/components/mcp-icon";
 import toast, { Toaster } from "react-hot-toast";
 
 export function meta() {

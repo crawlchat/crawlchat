@@ -4,12 +4,12 @@ import { Page } from "~/components/page";
 import { TbArrowRight, TbCrown, TbSettings } from "react-icons/tb";
 import { redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
-} from "~/settings-section";
+} from "~/components/settings-section";
 import { getPagesCount, planMap } from "libs/user-plan";
 import { makeMeta } from "~/meta";
 import { getPaymentGateway } from "~/payment/factory";

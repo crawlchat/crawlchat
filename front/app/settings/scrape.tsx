@@ -1,4 +1,4 @@
-import type { Route } from "./+types/settings";
+import type { Route } from "./+types/scrape";
 import type {
   LlmModel,
   Prisma,
@@ -11,8 +11,8 @@ import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
-} from "~/settings-section";
-import { prisma } from "~/prisma";
+} from "~/components/settings-section";
+import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import {
   TbBolt,
@@ -31,7 +31,7 @@ import {
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { useEffect, useRef, useState } from "react";
-import { authoriseScrapeUser, getSessionScrapeId } from "./util";
+import { authoriseScrapeUser, getSessionScrapeId } from "~/scrapes/util";
 import { createToken } from "libs/jwt";
 import { RadioCard } from "~/components/radio-card";
 import { DataList } from "~/components/data-list";

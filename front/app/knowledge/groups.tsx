@@ -1,6 +1,6 @@
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "~/prisma";
+import { prisma } from "libs/prisma";
 import moment from "moment";
 import {
   TbAutomation,
@@ -26,6 +26,7 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { FaConfluence } from "react-icons/fa";
 import { Timestamp } from "~/components/timestamp";
+import { createToken } from "libs/jwt";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -75,7 +76,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     citationCounts[group.id] = links.length;
   }
 
-  return { scrape, knowledgeGroups, counts, citationCounts };
+  const token = createToken(user!.id);
+
+  return { scrape, knowledgeGroups, counts, citationCounts, token };
 }
 
 export function meta() {
@@ -267,7 +270,11 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                         "youtube",
                         "youtube_channel",
                       ].includes(item.group.type) && (
-                        <ActionButton group={item.group} small />
+                        <ActionButton
+                          group={item.group}
+                          token={loaderData.token}
+                          small
+                        />
                       )}
                     </div>
                   </td>

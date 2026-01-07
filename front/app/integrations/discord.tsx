@@ -5,8 +5,8 @@ import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
-} from "~/settings-section";
-import { prisma } from "~/prisma";
+} from "~/components/settings-section";
+import { prisma } from "libs/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import {
   TbArrowRight,
