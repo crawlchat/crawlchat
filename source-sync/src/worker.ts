@@ -69,10 +69,20 @@ itemEvents.on("added", async ({ jobId }) => {
 itemEvents.on("failed", async ({ jobId, failedReason }) => {
   const job = await itemQueue.getJob(jobId);
   if (job) {
+    const isErrorFromApp = failedReason.startsWith("APP:");
+    
+    if (!isErrorFromApp) {
+      console.error(failedReason);
+    }
+
+    const safeFailedReason = isErrorFromApp
+      ? failedReason.replace("APP:", "")
+      : "Unknown error. Contact support.";
+
     await upsertFailedItem(
       job.data.knowledgeGroupId,
       job.data.url,
-      failedReason
+      safeFailedReason
     );
     await checkGroupCompletion(job);
   }
