@@ -149,7 +149,7 @@ app.post(
 
     authoriseScrapeUser(req.user!.scrapeUsers, knowledgeGroup.scrapeId, res);
 
-    const processId = "default";
+    const processId = uuidv4();
 
     await prisma.knowledgeGroup.update({
       where: { id: knowledgeGroupId },
