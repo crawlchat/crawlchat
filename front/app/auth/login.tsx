@@ -23,12 +23,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const session = await getSession(request.headers.get("cookie"));
-  const error = session.get("error");
   const searchParams = new URL(request.url).searchParams;
 
   return {
     mailSent: !!searchParams.has("mail-sent"),
-    error: error || null,
+    error: session.get("error"),
   };
 }
 
