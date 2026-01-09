@@ -61,10 +61,7 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.meta.outputs.commit_sha }}
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.meta.outputs.release_tag }}
-            ${{ steps.meta.outputs.is_prerelease == 'false' && format('{0}/{1}/{2}:latest', env.REGISTRY, github.repository_owner, matrix.image_name) || '' }}
+          tags: ${{ join(fromJSON(steps.meta.outputs.is_prerelease == 'false' && format('["{0}/{1}/{2}:{3}","{0}/{1}/{2}:{4}","{0}/{1}/{2}:latest"]', env.REGISTRY, github.repository_owner, matrix.image_name, steps.meta.outputs.commit_sha, steps.meta.outputs.release_tag) || format('["{0}/{1}/{2}:{3}","{0}/{1}/{2}:{4}"]', env.REGISTRY, github.repository_owner, matrix.image_name, steps.meta.outputs.commit_sha, steps.meta.outputs.release_tag)), '\n') }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
