@@ -59,7 +59,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://crawlchat.app/og-1.png" />
+        <meta property="og:image" content="/og-1.png" />
         {shouldTrack && (
           <script
             defer
@@ -71,14 +71,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <script>
           {"window.lemonSqueezyAffiliateConfig = { store: 'beestack' };"}
         </script>
-        <script src="https://lmsqueezy.com/affiliate.js" defer></script>
-        <script
-          async
-          defer
-          src="https://affonso.io/js/pixel.min.js"
-          data-affonso="cmffjjn7l0055yo9yqofummw1"
-          data-cookie_duration="30"
-        ></script>
         <Meta />
         <Links />
         <script
@@ -94,9 +86,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Scripts />
         {isLandingPage && (
           <script
-            src="https://crawlchat.app/embed.js"
+            src="/embed.js"
             id="crawlchat-script"
-            data-id="67dbfc7258ed87c571a04b83"
+            data-id="crawlchat"
             data-ask-ai="true"
             data-ask-ai-background-color="#7b2cbf"
             data-ask-ai-color="#ffffff"

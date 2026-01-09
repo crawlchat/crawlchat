@@ -9,6 +9,7 @@ function getContent() {
         ? "public/embed-script.js"
         : "build/client/embed-script.js";
     content = fs.readFileSync(path, "utf8");
+    content = content.replace("{{VITE_APP_URL}}", process.env.VITE_APP_URL!);
   }
   return content;
 }
