@@ -30,4 +30,4 @@ Feel free to raise a **Pull request** if you find any improvement, interesting f
 
 ## License
 
-It is available on a O'Saasy license. Go to [LICENSE](https://github.com/pskd73/crawlchat/blob/main/LICENSE)
+It is available on a O'Saasy license. Go to [LICENSE](https://github.com/pskd73/crawlchat/blob/main/LICENSE.md)
