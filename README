@@ -1,0 +1,32 @@
+# CrawlChat
+
+[CrawlChat](https://crawlchat.app) is an open sourced AI-powered platform that transforms your technical documentation into intelligent chatbots. Connect your documentation from various sources and deploy AI assistants that understand your content and answer questions across multiple channels including websites, Discord, Slack, and as an MCP server for integration with AI development tools.
+
+You can self host it yourself or let [CrawlChat](https://crawlchat.app/pricing) handle it for you!
+
+## Services
+
+Here are the services it consists of. They are mostly simple **Node** + **TypeScript** apps.
+
+| Name | Purpose | Run |
+| -- | -- | -- |
+| [front](tree/main/front)  | The front facing [React Router 7](https://reactrouter.com) app | `npm run dev` |
+| [server](tree/main/server) | LLM interacting [Express](https://expressjs.com) app | `npm run dev` |
+| [source-sync](tree/main/source-sync) | A [BullMQ](http://bullmq.io) app for syncing the sources and KB | `npm run dev` |
+| [discord-bot](tree/main/discord-bot) | [Discord](https://discord.com) bot to answer questions | `npm run dev` |
+| [slack-app](tree/main/slack-app) | [Slack](https://slack.com) app to answer questions | `npm run dev` |
+
+## Self-host
+
+There are **Dockerfile**s for all the above mentioned services. You can instantly host on platforms like [Coolify](https://coolify.io), [Railway](https://railway.com), etc. by just setting up the **environment variables**
+
+
+## Contribution
+
+It should be pretty straight forward process. Clone the repository locally and start the **front**, **server**, **source-sync** to get started. Make sure you add the `.env` files in the services with appropriate values as mentioned in `env.example` files respectively.
+
+Feel free to rais a **Pull request** if you find any improvement, interesting feature addition, fixes for bugs!
+
+## License
+
+It is available on a O'Saasy license. Go to [LICENSE](https://github.com/pskd73/crawlchat/blob/main/LICENSE)

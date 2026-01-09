@@ -29,10 +29,6 @@ export function multiLinePrompt(prompt: string[]) {
   return prompt.join("\n");
 }
 
-export function logMessage(message: any) {
-  console.log(JSON.stringify(message, null, 2));
-}
-
 export class Agent<CustomState = {}, CustomMessage = {}> {
   public id: string;
   private openai: OpenAI;
