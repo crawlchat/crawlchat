@@ -6,6 +6,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
   useLocation,
   useMatches,
 } from "react-router";
@@ -18,6 +19,7 @@ declare global {
     ENV: {
       VITE_SERVER_WS_URL: string;
       VITE_SOURCE_SYNC_URL: string;
+      VITE_DATAFAST_ID: string;
     };
   }
 }
@@ -41,16 +43,20 @@ export function loader() {
     ENV: {
       VITE_SERVER_WS_URL: process.env.VITE_SERVER_WS_URL,
       VITE_SOURCE_SYNC_URL: process.env.VITE_SOURCE_SYNC_URL,
+      VITE_DATAFAST_ID: process.env.VITE_DATAFAST_ID,
     },
   };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { ENV } = useLoaderData<typeof loader>();
   const location = useLocation();
   const matches = useMatches();
-  const shouldTrack = useMemo(() => {
-    return !/\/w\/[0-9a-fA-F]{24}/.test(location.pathname);
-  }, [location]);
+  const datafastId = useMemo(() => {
+    return (
+      ENV.VITE_DATAFAST_ID && !/\/w\/[0-9a-fA-F]{24}/.test(location.pathname)
+    );
+  }, [location, ENV.VITE_DATAFAST_ID]);
   const isLandingPage = matches.some((match) => match.id === "landing/page");
 
   return (
@@ -60,17 +66,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:type" content="website" />
         <meta property="og:image" content="/og-1.png" />
-        {shouldTrack && (
+        {datafastId && (
           <script
             defer
-            data-website-id="68d97a639da288cbda55587a"
+            data-website-id={datafastId}
             data-domain="crawlchat.app"
             src="https://datafa.st/js/script.js"
-          ></script>
+          />
         )}
-        <script>
-          {"window.lemonSqueezyAffiliateConfig = { store: 'beestack' };"}
-        </script>
         <Meta />
         <Links />
         <script
@@ -90,11 +93,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
             id="crawlchat-script"
             data-id="crawlchat"
             data-ask-ai="true"
-            data-ask-ai-background-color="#7b2cbf"
-            data-ask-ai-color="#ffffff"
-            data-ask-ai-text="💬 Ask AI"
-            data-ask-ai-position="br"
-            data-ask-ai-radius="20px"
           />
         )}
       </body>
