@@ -282,7 +282,6 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
 
             description: "Base model, not for production.",
             summary: "1 credit / message",
-            disabled: !isAllowed(["free", "starter", "pro"]),
             content: (
               <div className="badge badge-accent badge-soft">
                 <TbBolt /> Fast
@@ -296,14 +295,10 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             description:
               "Best for complex use cases, programming docs, better searches.",
             summary: "2 credits / message",
-            disabled: !isAllowed(["hobby", "starter", "pro"]),
             content: (
               <div className="flex gap-2 flex-wrap">
                 <div className="badge badge-accent badge-soft">
                   <TbBrain /> Good + Fast
-                </div>
-                <div className="badge badge-soft badge-primary">
-                  <TbCrown /> Hobby
                 </div>
               </div>
             ),
@@ -315,14 +310,10 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             description:
               "Best for complex use cases, programming docs, better searches.",
             summary: "4 credits / message",
-            disabled: !isAllowed(["pro"]),
             content: (
               <div className="flex gap-2">
                 <div className="badge badge-accent badge-soft">
                   <TbStar /> Takes time & Best
-                </div>
-                <div className="badge badge-soft badge-primary">
-                  <TbCrown /> Pro
                 </div>
               </div>
             ),
@@ -334,14 +325,10 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
             description:
               "Best for technical use cases, programming docs. Can take more context.",
             summary: "6 credits / message",
-            disabled: !isAllowed(["pro"]),
             content: (
               <div className="flex gap-2 flex-wrap">
                 <div className="badge badge-accent badge-soft">
                   <TbStar /> Fast & Best
-                </div>
-                <div className="badge badge-soft badge-primary">
-                  <TbCrown /> Pro
                 </div>
               </div>
             ),
@@ -359,7 +346,16 @@ function ShowSourcesSetting({ scrape, user }: { scrape: Scrape; user: User }) {
   const showSourcesFetcher = useFetcher();
 
   function isAllowed() {
-    return ["starter", "pro"].includes(user.plan?.planId ?? "free");
+    return [
+      "starter",
+      "pro",
+      "starter-yearly",
+      "pro-yearly",
+      "grow",
+      "accelerate",
+      "grow-yearly",
+      "accelerate-yearly",
+    ].includes(user.plan?.planId ?? "free");
   }
 
   return (
@@ -382,7 +378,7 @@ function ShowSourcesSetting({ scrape, user }: { scrape: Scrape; user: User }) {
           Active
         </label>
         <div className="badge badge-soft badge-primary">
-          <TbCrown /> Starter
+          <TbCrown /> Grow
         </div>
       </div>
     </SettingsSection>
@@ -399,7 +395,16 @@ function AnalyseMessageSettings({
   const fetcher = useFetcher();
 
   function isAllowed() {
-    return ["starter", "pro"].includes(user.plan?.planId ?? "free");
+    return [
+      "starter",
+      "pro",
+      "starter-yearly",
+      "pro-yearly",
+      "grow",
+      "accelerate",
+      "grow-yearly",
+      "accelerate-yearly",
+    ].includes(user.plan?.planId ?? "free");
   }
 
   return (
@@ -422,7 +427,7 @@ function AnalyseMessageSettings({
           Active
         </label>
         <div className="badge badge-soft badge-primary">
-          <TbCrown /> Starter
+          <TbCrown /> Grow
         </div>
       </div>
     </SettingsSection>
