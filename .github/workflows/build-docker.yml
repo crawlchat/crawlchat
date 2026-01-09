@@ -51,11 +51,7 @@ jobs:
       - name: Extract metadata
         id: meta
         run: |
-<<<<<<< HEAD
-          echo "commit_sha=${{ github.sha }}" >> $GITHUB_OUTPUT
-=======
           echo "commit_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
->>>>>>> b9198c5314e04b5faf705177f5b4cdf15197d883
           echo "release_tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
           echo "is_prerelease=${{ github.event.release.prerelease }}" >> $GITHUB_OUTPUT
 
@@ -65,14 +61,10 @@ jobs:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
-<<<<<<< HEAD
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.meta.outputs.commit_sha }}
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.meta.outputs.release_tag }}
             ${{ steps.meta.outputs.is_prerelease == 'false' && format('{0}/{1}/{2}:latest', env.REGISTRY, github.repository_owner, matrix.image_name) || '' }}
-=======
-          tags: ${{ join(fromJSON(steps.meta.outputs.is_prerelease == 'false' && format('["{0}/{1}/{2}:{3}","{0}/{1}/{2}:{4}","{0}/{1}/{2}:latest"]', env.REGISTRY, github.repository_owner, matrix.image_name, steps.meta.outputs.commit_sha, steps.meta.outputs.release_tag) || format('["{0}/{1}/{2}:{3}","{0}/{1}/{2}:{4}"]', env.REGISTRY, github.repository_owner, matrix.image_name, steps.meta.outputs.commit_sha, steps.meta.outputs.release_tag)), '\n') }}
->>>>>>> b9198c5314e04b5faf705177f5b4cdf15197d883
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
