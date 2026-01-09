@@ -46,6 +46,7 @@ services:
     image: ghcr.io/crawlchat/crawlchat-source-sync:latest
     depends_on:
       - redis
+      - database
     networks:
       - crawlchat-net
     environment:
