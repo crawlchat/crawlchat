@@ -53,9 +53,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const matches = useMatches();
   const datafastId = useMemo(() => {
-    return (
-      ENV.VITE_DATAFAST_ID && !/\/w\/[0-9a-fA-F]{24}/.test(location.pathname)
-    );
+    if (/\/w\/[0-9a-fA-F]{24}/.test(location.pathname)) return null;
+    return ENV.VITE_DATAFAST_ID;
   }, [location, ENV.VITE_DATAFAST_ID]);
   const isLandingPage = matches.some((match) => match.id === "landing/page");
 
