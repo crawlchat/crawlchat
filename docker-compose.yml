@@ -3,6 +3,8 @@ services:
     image: ghcr.io/crawlchat/crawlchat-front:latest
     networks:
       - crawlchat-net
+    depends_on:
+      - database
     ports:
       - "3001:3000"
     environment:
