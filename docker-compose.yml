@@ -64,9 +64,7 @@ services:
     networks:
       - crawlchat-net
     environment:
-      # Discord App ID
       APP_ID: ""
-      # Discord App / Bot Token
       DISCORD_TOKEN: ""
       PUBLIC_KEY: ""
       BOT_USER_ID: ""
