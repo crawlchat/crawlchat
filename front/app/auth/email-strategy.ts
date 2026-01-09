@@ -236,7 +236,9 @@ export class EmailLinkStrategy<
     if (request.method === "POST") {
       // get the email address from the request body
       const emailAddress = form.get(this.emailField);
+      console.log("email adress from request body successful");
 
+      
       // if it doesn't have an email address,
       if (!emailAddress || typeof emailAddress !== "string") {
         const message = "Missing email address.";
