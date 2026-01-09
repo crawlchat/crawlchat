@@ -1,5 +1,5 @@
 import { Prisma, prisma } from "libs/prisma";
-import { PLAN_FREE, activatePlan } from "libs/user-plan";
+import { PLAN_FREE, activatePlan, planMap } from "libs/user-plan";
 import { sendTeamJoinEmail, sendWelcomeEmail } from "~/email";
 import { DodoPayments } from "dodopayments";
 import { productIdPlanMap } from "~/payment/gateway-dodo";
@@ -70,6 +70,13 @@ export async function signUpNewUser(
     }
 
     await sendWelcomeEmail(email);
+
+    if (process.env.DEFAULT_SIGNUP_PLAN_ID) {
+      await activatePlan(user.id, planMap[process.env.DEFAULT_SIGNUP_PLAN_ID], {
+        provider: "CUSTOM",
+        subscriptionId: "default",
+      });
+    }
   }
 
   const update: Prisma.UserUpdateInput = {};
