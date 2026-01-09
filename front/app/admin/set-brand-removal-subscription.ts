@@ -2,11 +2,12 @@ import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/set-brand-removal-subscription";
 import { redirect } from "react-router";
 import { prisma } from "libs/prisma";
+import { adminEmails } from "./emails";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
-  if (user?.email !== "pramodkumar.damam73@gmail.com") {
+  if (!adminEmails.includes(user!.email)) {
     throw redirect("/app");
   }
 

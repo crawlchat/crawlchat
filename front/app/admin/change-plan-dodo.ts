@@ -5,6 +5,7 @@ import { DodoPayments } from "dodopayments";
 import { prisma } from "libs/prisma";
 import { planMap, activatePlan } from "libs/user-plan";
 import { planProductIdMap } from "~/payment/gateway-dodo";
+import { adminEmails } from "./emails";
 
 const client = new DodoPayments({
   bearerToken: process.env.DODO_API_KEY!,
@@ -16,7 +17,7 @@ const client = new DodoPayments({
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
-  if (user?.email !== "pramodkumar.damam73@gmail.com") {
+  if (!adminEmails.includes(user!.email)) {
     throw redirect("/app");
   }
 
@@ -32,7 +33,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (!email || !planId) {
     return new Response(
-      JSON.stringify({ error: "email and planId query parameters are required" }),
+      JSON.stringify({
+        error: "email and planId query parameters are required",
+      }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -65,10 +68,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const subscriptionId = targetUser.plan?.subscriptionId;
   if (!subscriptionId) {
-    return new Response(JSON.stringify({ error: "User has no subscriptionId" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "User has no subscriptionId" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const updatedSubscription = await client.subscriptions.changePlan(
@@ -97,4 +103,3 @@ export async function loader({ request }: Route.LoaderArgs) {
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }
-

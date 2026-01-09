@@ -15,11 +15,12 @@ import {
 } from "recharts";
 import { useEffect, useRef, useState } from "react";
 import moment from "moment";
+import { adminEmails } from "./emails";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const loggedInUser = await getAuthUser(request);
 
-  if (loggedInUser?.email !== "pramodkumar.damam73@gmail.com") {
+  if (!adminEmails.includes(loggedInUser!.email)) {
     throw redirect("/app");
   }
 

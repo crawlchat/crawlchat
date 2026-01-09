@@ -2,6 +2,7 @@ import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/update-customer";
 import { redirect } from "react-router";
 import { DodoPayments } from "dodopayments";
+import { adminEmails } from "./emails";
 
 const client = new DodoPayments({
   bearerToken: process.env.DODO_API_KEY!,
@@ -13,7 +14,7 @@ const client = new DodoPayments({
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
-  if (user?.email !== "pramodkumar.damam73@gmail.com") {
+  if (!adminEmails.includes(user!.email)) {
     throw redirect("/app");
   }
 

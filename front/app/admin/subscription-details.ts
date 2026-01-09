@@ -3,11 +3,12 @@ import type { Route } from "./+types/subscription-details";
 import { redirect } from "react-router";
 import { prisma } from "libs/prisma";
 import { getPaymentGateway } from "~/payment/factory";
+import { adminEmails } from "./emails";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
-  if (user?.email !== "pramodkumar.damam73@gmail.com") {
+  if (!adminEmails.includes(user!.email)) {
     throw redirect("/app");
   }
 

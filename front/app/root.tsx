@@ -11,7 +11,7 @@ import {
 } from "react-router";
 import { useMemo } from "react";
 import stylesheet from "./app.css?url";
-import { crawlChatSchema } from "./schema";
+import { crawlChatSchema } from "./landing/schema";
 
 declare global {
   interface Window {

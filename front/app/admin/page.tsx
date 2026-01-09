@@ -27,6 +27,7 @@ import {
 } from "recharts";
 import { useEffect, useRef, useState } from "react";
 import moment from "moment";
+import { adminEmails } from "./emails";
 
 type UserDetail = {
   user: User;
@@ -51,7 +52,7 @@ function cleanName(name: string) {
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
 
-  if (user?.email !== "pramodkumar.damam73@gmail.com") {
+  if (!adminEmails.includes(user!.email)) {
     throw redirect("/app");
   }
 

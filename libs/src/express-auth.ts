@@ -68,7 +68,7 @@ export async function adminAuthenticate(
   next: any
 ): Promise<void> {
   await authenticate(req, res, () => {
-    const adminEmails = ["pramodkumar.damam73@gmail.com"];
+    const adminEmails = process.env.ADMIN_EMAILS?.split(",") ?? [];
     if (!req.user?.email || !adminEmails.includes(req.user.email)) {
       res.status(403).json({ message: "Forbidden: Admin access only" });
       return;

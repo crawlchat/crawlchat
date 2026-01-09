@@ -6,11 +6,12 @@ import type { Route } from "./+types/user";
 import { DataList } from "~/components/data-list";
 import { makeMeta } from "~/meta";
 import { PLAN_FREE, planMap } from "libs/user-plan";
+import { adminEmails } from "./emails";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const loggedInUser = await getAuthUser(request);
 
-  if (loggedInUser?.email !== "pramodkumar.damam73@gmail.com") {
+  if (!adminEmails.includes(loggedInUser!.email)) {
     throw redirect("/app");
   }
 
