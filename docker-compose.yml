@@ -1,0 +1,120 @@
+services:
+  front:
+    image: ghcr.io/egelhaus/crawlchat-front:latest
+    networks:
+      - crawlchat-net
+    ports:
+      - "3001:3000"
+    environment:
+      # Remember to change these variables in production!
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+      RESEND_KEY: ""
+      VITE_SERVER_WS_URL: ""
+      VITE_SERVER_URL: ""
+      # Put random characters here (at least 32 characters); Has to be the in all services
+      JWT_SECRET: ""
+      LEMONSQUEEZY_WEBHOOK_SECRET: ""
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+      GOOGLE_REDIRECT_URI: ""
+      DODO_WEBHOOK_SECRET: ""
+      DODO_API_KEY: ""
+      DATAFAST_API_KEY: ""
+      VITE_SOURCE_SYNC_URL: ""
+      ADMIN_EMAILS: ""
+
+  server:
+    image: ghcr.io/egelhaus/crawlchat-server:latest
+    networks:
+      - crawlchat-net
+    ports:
+      - "3002:3000"
+    environment:
+      OPENAI_API_KEY: ""
+      # Remember to change these variables in production!
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+      PINECONE_API_KEY: ""
+      # Put random characters here (at least 32 characters); Has to be the in all services
+      JWT_SECRET: ""
+      SOURCE_SYNC_URL: "http://source_sync:3000"
+      ADMIN_EMAILS: ""
+
+  source_sync:
+    image: ghcr.io/egelhaus/crawlchat-source-sync:latest
+    networks:
+      - crawlchat-net
+    environment:
+      # Remember to change these variables in production!
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+      PINECONE_API_KEY: ""
+      # Put random characters here (at least 32 characters)
+      JWT_SECRET: ""
+      SCRAPECREATORS_API_KEY: ""
+      REDIS_URL: "redis://redis:6379"
+      GROUP_QUEUE_NAME: "crawlchat_source_sync_groups"
+      ITEM_QUEUE_NAME: "crawlchat_source_sync_items"
+
+  discord_bot:
+    image: ghcr.io/egelhaus/crawlchat-discord:latest
+    networks:
+      - crawlchat-net
+    environment:
+      # Discord App ID
+      APP_ID: ""
+      # Discord App / Bot Token
+      DISCORD_TOKEN: ""
+      PUBLIC_KEY: ""
+      BOT_USER_ID: ""
+      SERVER_HOST: ""
+      # Put random characters here (at least 32 characters)
+      JWT_SECRET: ""
+      # Remember to change these variables in production!
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+
+  slack_app:
+    image: ghcr.io/egelhaus/crawlchat-slack:latest
+    networks:
+      - crawlchat-net
+    environment:
+      SERVER_HOST: ""
+      SLACK_SIGNING_SECRET: ""
+      SLACK_CLIENT_ID: ""
+      SLACK_CLIENT_SECRET: ""
+      SLACK_STATE_SECRET: ""
+      HOST: ""
+      # Put random characters here (at least 32 characters)
+      JWT_SECRET: ""
+      # Remember to change these variables in production!
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+
+
+# Redis & MongoDB
+  database:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      # Change these credentials with production use!
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: supersecret
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - crawlchat-net
+
+  redis:
+    image: redis:7
+    container_name: crawlchat-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - crawlchat-net
+
+networks:
+  crawlchat-net:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  redis_data:

@@ -24,7 +24,7 @@ There are **Dockerfile**s for all the above mentioned services. You can instantl
 
 It should be pretty straight forward process. Clone the repository locally and start the **front**, **server**, **source-sync** to get started. Make sure you add the `.env` files in the services with appropriate values as mentioned in `env.example` files respectively.
 
-Feel free to rais a **Pull request** if you find any improvement, interesting feature addition, fixes for bugs!
+Feel free to raise a **Pull request** if you find any improvement, interesting feature addition, fixes for bugs!
 
 ## License
 
