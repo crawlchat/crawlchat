@@ -7,8 +7,10 @@ services:
       - "3001:3000"
     environment:
       # Remember to change these variables in production!
-      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017/crawlchat?authSource=admin"
+      RESEND_FROM_EMAIL: ""
       RESEND_KEY: ""
+      VITE_APP_URL: "http://localhost:3001"
       VITE_SERVER_WS_URL: ""
       VITE_SERVER_URL: ""
       # Put random characters here (at least 32 characters); Has to be the in all services
@@ -32,7 +34,7 @@ services:
     environment:
       OPENAI_API_KEY: ""
       # Remember to change these variables in production!
-      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017/crawlchat?authSource=admin"
       PINECONE_API_KEY: ""
       # Put random characters here (at least 32 characters); Has to be the in all services
       JWT_SECRET: ""
@@ -45,7 +47,7 @@ services:
       - crawlchat-net
     environment:
       # Remember to change these variables in production!
-      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017/crawlchat?authSource=admin"
       PINECONE_API_KEY: ""
       # Put random characters here (at least 32 characters)
       JWT_SECRET: ""
@@ -65,11 +67,12 @@ services:
       DISCORD_TOKEN: ""
       PUBLIC_KEY: ""
       BOT_USER_ID: ""
+      ALL_BOT_USER_IDS: ""
       SERVER_HOST: ""
       # Put random characters here (at least 32 characters)
       JWT_SECRET: ""
       # Remember to change these variables in production!
-      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017/crawlchat?authSource=admin"
 
   slack_app:
     image: ghcr.io/egelhaus/crawlchat-slack:latest
@@ -85,7 +88,7 @@ services:
       # Put random characters here (at least 32 characters)
       JWT_SECRET: ""
       # Remember to change these variables in production!
-      DATABASE_URL: "mongodb://admin:supersecret@database:27017"
+      DATABASE_URL: "mongodb://admin:supersecret@database:27017/crawlchat"
 
 
 # Redis & MongoDB
