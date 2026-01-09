@@ -258,14 +258,6 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
     scrape.llmModel ?? "gpt_4o_mini"
   );
 
-  function isAllowed(plans: string[]) {
-    if (plans.includes("free")) {
-      return true;
-    }
-
-    return plans.some((plan) => user.plan?.planId === plan);
-  }
-
   return (
     <SettingsSection
       id="ai-model"
@@ -346,16 +338,9 @@ function ShowSourcesSetting({ scrape, user }: { scrape: Scrape; user: User }) {
   const showSourcesFetcher = useFetcher();
 
   function isAllowed() {
-    return [
-      "starter",
-      "pro",
-      "starter-yearly",
-      "pro-yearly",
-      "grow",
-      "accelerate",
-      "grow-yearly",
-      "accelerate-yearly",
-    ].includes(user.plan?.planId ?? "free");
+    return ["starter", "pro", "grow", "accelerate"].includes(
+      (user.plan?.planId ?? "free").replace("-yearly", "")
+    );
   }
 
   return (
@@ -395,16 +380,9 @@ function AnalyseMessageSettings({
   const fetcher = useFetcher();
 
   function isAllowed() {
-    return [
-      "starter",
-      "pro",
-      "starter-yearly",
-      "pro-yearly",
-      "grow",
-      "accelerate",
-      "grow-yearly",
-      "accelerate-yearly",
-    ].includes(user.plan?.planId ?? "free");
+    return ["starter", "pro", "grow", "accelerate"].includes(
+      (user.plan?.planId ?? "free").replace("-yearly", "")
+    );
   }
 
   return (

@@ -415,7 +415,6 @@ export function SideMenu({
     (document.activeElement as HTMLElement)?.blur();
   }
 
-  const planId = scrapeOwner?.plan?.planId;
   const visibleName = loggedInUser.name || loggedInUser.email;
 
   return (
@@ -428,7 +427,7 @@ export function SideMenu({
               {scrape && (
                 <ScrapePrivacyBadge private={scrape.private ?? false} />
               )}
-              <PlanIconBadge planId={planId} />
+              <PlanIconBadge userPlan={scrapeOwner.plan ?? loggedInUser.plan} />
             </div>
           </div>
         </div>
