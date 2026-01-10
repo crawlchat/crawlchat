@@ -49,13 +49,13 @@ export function loader() {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { ENV } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
   const location = useLocation();
   const matches = useMatches();
   const datafastId = useMemo(() => {
     if (/\/w\/[0-9a-fA-F]{24}/.test(location.pathname)) return null;
-    return ENV.VITE_DATAFAST_ID;
-  }, [location, ENV.VITE_DATAFAST_ID]);
+    return loaderData?.ENV.VITE_DATAFAST_ID;
+  }, [location, loaderData?.ENV.VITE_DATAFAST_ID]);
   const isLandingPage = matches.some((match) => match.id === "landing/page");
 
   return (
