@@ -28,15 +28,12 @@ export async function getAuthUser(
     };
   }> | null = null;
   if (sessionUser) {
-    const t1 = performance.now();
     user = await prisma.user.findUnique({
       where: { id: sessionUser?.id },
       include: {
         scrapeUsers: true,
       },
     });
-    const t2 = performance.now();
-    console.log(`Time taken for session user fetch: ${t2 - t1}ms`);
   }
 
   return user;
