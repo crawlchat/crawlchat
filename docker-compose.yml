@@ -61,6 +61,7 @@ services:
       ITEM_QUEUE_NAME: "crawlchat_source_sync_items"
       # optional
       SCRAPECREATORS_API_KEY: ""
+      GITHUB_TOKEN: ""
 
   discord_bot:
     image: ghcr.io/crawlchat/crawlchat-discord:latest
