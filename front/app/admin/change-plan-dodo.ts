@@ -1,18 +1,10 @@
 import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/change-plan-dodo";
 import { redirect } from "react-router";
-import { DodoPayments } from "dodopayments";
 import { prisma } from "libs/prisma";
 import { planMap, activatePlan } from "libs/user-plan";
-import { planProductIdMap } from "~/payment/gateway-dodo";
+import { getDodoClient, planProductIdMap } from "~/payment/gateway-dodo";
 import { adminEmails } from "./emails";
-
-const client = new DodoPayments({
-  bearerToken: process.env.DODO_API_KEY!,
-  environment:
-    (process.env.DODO_ENVIRONMENT as "live_mode" | "test_mode" | undefined) ??
-    "live_mode",
-});
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -77,7 +69,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
-  const updatedSubscription = await client.subscriptions.changePlan(
+  const updatedSubscription = await getDodoClient().subscriptions.changePlan(
     subscriptionId,
     {
       product_id: productId,
