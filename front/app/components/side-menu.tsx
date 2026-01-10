@@ -270,7 +270,7 @@ export function SideMenu({
   usedPages,
   pathname,
 }: {
-  scrapeOwner: User;
+  scrapeOwner?: User;
   loggedInUser: User;
   contentRef?: React.RefObject<HTMLDivElement | null>;
   plan: Plan;
@@ -427,7 +427,9 @@ export function SideMenu({
               {scrape && (
                 <ScrapePrivacyBadge private={scrape.private ?? false} />
               )}
-              <PlanIconBadge userPlan={scrapeOwner.plan ?? loggedInUser.plan} />
+              <PlanIconBadge
+                userPlan={scrapeOwner?.plan ?? loggedInUser.plan}
+              />
             </div>
           </div>
         </div>

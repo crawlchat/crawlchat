@@ -25,10 +25,21 @@ export async function loader({ request }: Route.LoaderArgs) {
   const session = await getSession(request.headers.get("cookie"));
   const searchParams = new URL(request.url).searchParams;
 
-  return {
+  const error = session.get("error");
+  if (error) {
+    session.unset("error" as any);
+  }
+
+  const cookie = await commitSession(session);
+
+  return Response.json({
     mailSent: !!searchParams.has("mail-sent"),
-    error: session.get("error"),
-  };
+    error,
+  }, {
+    headers: {
+      "Set-Cookie": cookie,
+    },
+  });
 }
 
 export function meta() {

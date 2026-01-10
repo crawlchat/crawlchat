@@ -151,7 +151,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           >
             <SideMenu
               loggedInUser={user}
-              scrapeOwner={loaderData.scrape?.user!}
+              scrapeOwner={loaderData.scrape?.user}
               plan={loaderData.plan}
               scrapes={loaderData.scrapes}
               scrapeId={loaderData.scrapeId}
