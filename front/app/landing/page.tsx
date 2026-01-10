@@ -149,48 +149,6 @@ export async function loader() {
   };
 }
 
-function sanitiseUrl(url: string) {
-  if (!url.startsWith("http")) {
-    url = "https://" + url;
-  }
-  return url;
-}
-
-function isUrlValid(url: string) {
-  try {
-    new URL(url);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const intent = formData.get("intent");
-
-  if (intent === "site-use-case") {
-    const url = formData.get("url") as string;
-    const sanitisedUrl = sanitiseUrl(url);
-    if (!isUrlValid(sanitisedUrl)) {
-      return { error: "Invalid URL" };
-    }
-    const result = await fetch(`${process.env.VITE_SERVER_URL}/site-use-case`, {
-      method: "POST",
-      body: JSON.stringify({ url: sanitisedUrl }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const json = await result.json();
-    console.log(json);
-    if (!result.ok) {
-      return { error: json.error };
-    }
-    return { result: json };
-  }
-}
-
 export function Container({ children }: PropsWithChildren) {
   return (
     <div className="flex justify-center">
@@ -205,9 +163,16 @@ function NavLink({
   children,
   href,
   tooltip,
-}: PropsWithChildren<{ href: string; tooltip?: string }>) {
+  className,
+}: PropsWithChildren<{ href: string; tooltip?: string; className?: string }>) {
   return (
-    <a href={href} className="hover:underline relative">
+    <a
+      href={href}
+      className={cn(
+        "hover:underline relative flex items-center gap-2",
+        className
+      )}
+    >
       {children}
       {tooltip && (
         <div
@@ -1193,7 +1158,13 @@ export function Footer() {
   );
 }
 
-export function Nav({ user }: { user?: User | null }) {
+export function Nav({
+  user,
+  githubStars,
+}: {
+  user?: User | null;
+  githubStars?: number;
+}) {
   return (
     <div
       className={cn(
@@ -1214,6 +1185,15 @@ export function Nav({ user }: { user?: User | null }) {
 
         <div className="flex items-center gap-8">
           <div className="items-center gap-8 hidden md:flex">
+            {githubStars && (
+              <NavLink
+                href="https://github.com/crawlchat/crawlchat"
+                className={cn("text-primary")}
+              >
+                <TbBrandGithub />
+                <span>{githubStars} stars</span>
+              </NavLink>
+            )}
             <div className="dropdown">
               <div
                 tabIndex={0}
@@ -1325,9 +1305,6 @@ export function Nav({ user }: { user?: User | null }) {
                 <li>
                   <a href="/blog">Blog</a>
                 </li>
-                <li>
-                  <a href="/public-bots">Public bots</a>
-                </li>
               </ul>
             </div>
           </div>
@@ -1342,16 +1319,16 @@ function Hero() {
 
   const features = [
     {
-      text: "Works on your website, Discord, and Slack",
+      text: "Works on your website, Discord, and Slack, or MCP",
       icon: <TbCode />,
+    },
+    {
+      text: "Shows you questions being asked and ways to improve your docs",
+      icon: <TbChartBar />,
     },
     {
       text: "Automatically creates support tickets when AI can't help",
       icon: <TbRobotFace />,
-    },
-    {
-      text: "Shows you what questions users ask to improve your docs",
-      icon: <TbChartBar />,
     },
   ];
 
@@ -1414,7 +1391,7 @@ function Hero() {
           through pages.
         </p>
 
-        <ul className="mt-6 flex flex-col gap-3">
+        <ul className="mt-6 flex flex-col gap-2">
           {features.map((feature, index) => (
             <li key={index} className="flex gap-3 items-start">
               <div className="text-primary rounded-box p-1 mt-0.5">
