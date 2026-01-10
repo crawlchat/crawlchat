@@ -9,12 +9,16 @@ const MINS_5 = 5 * 60 * 1000;
 
 async function getGithubStars() {
   if (githubStarsUpdatedAt < Date.now() - MINS_5) {
-    const result = await fetch(
-      "https://api.github.com/repos/crawlchat/crawlchat"
-    );
-    const json = await result.json();
-    githubStars = json.stargazers_count;
-    githubStarsUpdatedAt = Date.now();
+    try {
+      const result = await fetch(
+        "https://api.github.com/repos/crawlchat/crawlchat"
+      );
+      const json = await result.json();
+      githubStars = json.stargazers_count;
+      githubStarsUpdatedAt = Date.now();
+    } catch (error) {
+      console.warn("Failed to get GitHub stars", error);
+    }
   }
   return githubStars;
 }
