@@ -19,13 +19,9 @@ services:
       # optional
       RESEND_FROM_EMAIL: ""
       RESEND_KEY: ""
-      LEMONSQUEEZY_WEBHOOK_SECRET: ""
       GOOGLE_CLIENT_ID: ""
       GOOGLE_CLIENT_SECRET: ""
       GOOGLE_REDIRECT_URI: ""
-      DODO_WEBHOOK_SECRET: ""
-      DODO_API_KEY: ""
-      DATAFAST_API_KEY: ""
       ADMIN_EMAILS: ""
 
   server:
@@ -59,8 +55,8 @@ services:
     environment:
       SELF_HOSTED: "true"
       DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
-      PINECONE_API_KEY: "<PINECONE_API_KEY>"
       JWT_SECRET: "a-long-secret"
+      PINECONE_API_KEY: "<PINECONE_API_KEY>"
       REDIS_URL: "redis://redis:6379"
       GROUP_QUEUE_NAME: "crawlchat_source_sync_groups"
       ITEM_QUEUE_NAME: "crawlchat_source_sync_items"
