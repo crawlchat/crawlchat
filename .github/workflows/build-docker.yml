@@ -67,4 +67,4 @@ jobs:
             ${{ steps.meta.outputs.is_prerelease == 'false' && format('{0}/{1}/{2}:latest', env.REGISTRY, github.repository_owner, matrix.image_name) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
