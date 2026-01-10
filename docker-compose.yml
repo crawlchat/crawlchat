@@ -39,13 +39,13 @@ services:
     environment:
       SELF_HOSTED: "true"
       DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
-      PINECONE_API_KEY: "<PINECONE_API_KEY>"
       JWT_SECRET: "a-long-secret"
       SOURCE_SYNC_URL: "http://source_sync:3000"
+      PINECONE_API_KEY: "<PINECONE_API_KEY>"
+      OPENROUTER_API_KEY: "<OPENROUTER_API_KEY>"
       # optional
       ADMIN_EMAILS: ""
       OPENAI_API_KEY: ""
-      OPENROUTER_API_KEY: ""
 
   source_sync:
     image: ghcr.io/crawlchat/crawlchat-source-sync:latest
