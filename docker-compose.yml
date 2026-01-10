@@ -41,7 +41,6 @@ services:
       OPENROUTER_API_KEY: "<OPENROUTER_API_KEY>"
       # optional
       ADMIN_EMAILS: ""
-      OPENAI_API_KEY: ""
 
   source_sync:
     image: ghcr.io/crawlchat/crawlchat-source-sync:latest
