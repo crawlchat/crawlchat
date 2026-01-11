@@ -1,4 +1,5 @@
 import type { KnowledgeGroup, ScrapeItem } from "libs/prisma";
+import { useEffect } from "react";
 import { TbSearch } from "react-icons/tb";
 import { Link, useFetcher } from "react-router";
 import { ScoreBadge } from "~/components/score-badge";
@@ -9,8 +10,14 @@ export type ItemSearchResult = {
   score: number;
 };
 
-export default function KnowledgeSearch() {
+export default function KnowledgeSearch({ query }: { query?: string | null }) {
   const fetcher = useFetcher<{ results: ItemSearchResult[] }>();
+
+  useEffect(() => {
+    if (query) {
+      fetcher.submit({ search: query, intent: "search" }, { method: "post" });
+    }
+  }, [query]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -21,6 +28,7 @@ export default function KnowledgeSearch() {
           className="input input-bordered flex-1"
           placeholder="Search the knowledge base by any query"
           name="search"
+          defaultValue={query ?? undefined}
         />
         <button
           className="btn btn-primary"
