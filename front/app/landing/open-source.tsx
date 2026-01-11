@@ -3,6 +3,7 @@ import {
   Container,
   CustomTestimonials,
   FAQ,
+  OpenSource,
   Pricing,
   PricingFeatures,
 } from "./page";
@@ -26,7 +27,7 @@ export default function Landing() {
   return (
     <>
       <Container>
-        <Pricing noMarginTop />
+        <OpenSource />
       </Container>
 
       <Container>

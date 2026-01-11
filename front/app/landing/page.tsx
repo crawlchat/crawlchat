@@ -1152,14 +1152,9 @@ export function Footer() {
               <li>
                 <FooterLink href="/discord-bot">Discord bot</FooterLink>
               </li>
-              {/* <li>
-                <FooterLink href="https://crawlchat.affonso.io" external>
-                  Affiliate program{" "}
-                  <span className="whitespace-nowrap text-primary text-sm">
-                    30% commission!
-                  </span>
-                </FooterLink>
-              </li> */}
+              <li>
+                <FooterLink href="/open-source">Open source</FooterLink>
+              </li>
             </ul>
           </div>
           <div className="flex-[1]">
@@ -2692,7 +2687,7 @@ function Why() {
   );
 }
 
-function OpenSource() {
+export function OpenSource() {
   return (
     <div
       className={cn(

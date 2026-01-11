@@ -100,6 +100,7 @@ export default [
     route("ai-models", "landing/ai-models.tsx"),
 
     route("pricing", "landing/pricing.tsx"),
+    route("open-source", "landing/open-source.tsx"),
 
     ...prefix("use-case", [
       route("community-support", "landing/use-case/community-support.tsx"),
