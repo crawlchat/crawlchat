@@ -1,5 +1,5 @@
 import type { Route } from "./+types/page";
-import type { PropsWithChildren, ReactNode } from "react";
+import type { HTMLAttributes, PropsWithChildren, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
   TbArrowRight,
@@ -67,6 +67,7 @@ import { FaConfluence, FaMicrophone } from "react-icons/fa";
 import { Logo } from "~/components/logo";
 import { MCPIcon } from "~/components/mcp-icon";
 import toast, { Toaster } from "react-hot-toast";
+import { RiChatVoiceAiFill } from "react-icons/ri";
 
 export function meta() {
   return makeMeta({
@@ -232,6 +233,29 @@ function Stats({
   );
 }
 
+function UsedByItem({
+  children,
+  ...props
+}: HTMLAttributes<HTMLAnchorElement> & {
+  href: string;
+  target?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      {...props}
+      className={cn(
+        "flex items-center gap-2 shrink-0 grayscale",
+        "hover:grayscale-0 transition-all",
+        props.className
+      )}
+    >
+      {children}
+    </a>
+  );
+}
+
 export function UsedBy() {
   return (
     <div className="flex flex-col gap-8">
@@ -239,55 +263,72 @@ export function UsedBy() {
         Trusted by leading companies
       </h3>
 
-      <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
-        <img
-          src="/used-by/remotion.png"
-          alt="Remotion"
-          className="max-h-[38px] shrink-0"
-        />
+      <div
+        className={cn(
+          "flex justify-center items-center gap-8 md:gap-16",
+          "flex-wrap"
+        )}
+      >
+        <UsedByItem href="https://remotion.dev" target="_blank">
+          <img
+            src="/used-by/remotion.png"
+            alt="Remotion"
+            className="max-h-[38px] shrink-0 grayscale hover:grayscale-0 transition-all"
+          />
+        </UsedByItem>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <UsedByItem href="https://konvajs.org" target="_blank">
           <img
             src="/used-by/konvajs.png"
             alt="Konva"
             className="max-h-[38px]"
           />
           <div className="font-medium text-xl">Konvajs</div>
-        </div>
+        </UsedByItem>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <UsedByItem href="https://270degrees.nl" target="_blank">
           <img
             src="/used-by/270logo.svg"
             alt="270Degrees.nl"
             className="max-h-[38px]"
           />
           <div className="font-medium text-xl">270Degrees</div>
-        </div>
+        </UsedByItem>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <UsedByItem href="https://polotno.com" target="_blank">
           <img
             src="/used-by/polotno.png"
             alt="Polotno"
             className="max-h-[38px]"
           />
           <div className="font-medium text-xl">Polotno</div>
-        </div>
+        </UsedByItem>
 
-        <img
-          src="/used-by/backpack-laravel.png"
-          alt="Backpack for Laravel"
-          className="max-h-[38px]"
-        />
-
-        <div className="bg-gray-900 rounded-box p-4 px-6 pb-3 rounded-full shrink-0">
+        <UsedByItem href="https://backpackforlaravel.com" target="_blank">
           <img
-            src="/used-by/postiz.svg"
-            alt="Postiz"
-            className="max-h-[24px]"
+            src="/used-by/backpack-laravel.png"
+            alt="Backpack for Laravel"
+            className="max-h-[38px]"
           />
-        </div>
+        </UsedByItem>
 
-        <img src="/used-by/nobl9.png" alt="Nobl9" className="max-h-[38px]" />
+        <UsedByItem href="https://postiz.com" target="_blank">
+          <div className="bg-gray-900 rounded-box p-3 px-4 pb-2 rounded-full shrink-0">
+            <img
+              src="/used-by/postiz.svg"
+              alt="Postiz"
+              className="max-h-[24px] grayscale"
+            />
+          </div>
+        </UsedByItem>
+
+        <UsedByItem href="https://nobl9.com" target="_blank">
+          <img
+            src="/used-by/nobl9.png"
+            alt="Nobl9"
+            className="max-h-[38px] grayscale"
+          />
+        </UsedByItem>
       </div>
     </div>
   );
@@ -1001,39 +1042,39 @@ export function Footer() {
                 <img
                   src="/used-by/remotion.png"
                   alt="Remotion"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <img
                   src="/used-by/konvajs.png"
                   alt="Konva"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <img
                   src="/used-by/270logo.svg"
                   alt="270Degrees"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <img
                   src="/used-by/polotno.png"
                   alt="Polotno"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <img
                   src="/used-by/backpack-laravel.png"
                   alt="Backpack for Laravel"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <div className="bg-black px-2 rounded-full">
                   <img
                     src="/used-by/postiz.svg"
                     alt="Postiz"
-                    className="max-h-4 inline-block"
+                    className="max-h-4 inline-block grayscale"
                   />
                 </div>
                 <img
                   src="/used-by/nobl9.png"
                   alt="Nobl9"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
               </div>
             </div>
@@ -2215,18 +2256,22 @@ function SourcesChannels() {
       icon: <SiLinear />,
       title: "Linear",
       tooltip: "Import your Linear issues and projects securely",
-      isNew: true,
     },
     {
       icon: <TbVideo />,
       title: "YouTube",
       tooltip: "Extract transcript from YouTube videos",
-      isNew: true,
     },
     {
       icon: <TbCode />,
       title: "API",
       tooltip: "Add pages to the knowledge base using API",
+      isNew: true,
+    },
+    {
+      icon: <TbBrandGithub />,
+      title: "Discussions",
+      tooltip: "Fetch your GitHub discussions instantly",
       isNew: true,
     },
   ];
@@ -2647,6 +2692,57 @@ function Why() {
   );
 }
 
+function OpenSource() {
+  return (
+    <div
+      className={cn(
+        "mt-32 open-source-bg p-6 md:p-12 rounded-box",
+        "border border-primary/20 -rotate-1 shadow-xl",
+        "flex flex-col items-center gap-10"
+      )}
+    >
+      <h3
+        className={cn(
+          "text-4xl md:text-5xl font-radio-grotesk flex flex-wrap",
+          "items-center gap-x-4 justify-center"
+        )}
+      >
+        <span className="flex items-center gap-2 text-primary flex-nowrap">
+          <RiChatVoiceAiFill /> CrawlChat
+        </span>
+        <span>is</span>
+        <span className="font-bold text-accent">open source</span>
+        <span>now!</span>
+      </h3>
+
+      <p className="text-2xl text-center max-w-3xl">
+        Want to <span className="text-accent">self-host</span> it for yourself?
+        Now you can run the entire platform on your servers and customise it to
+        your needs. Or{" "}
+        <a
+          className="text-accent hover:underline"
+          href="https://github.com/crawlchat/crawlchat/pulls"
+          target="_blank"
+        >
+          submit a PR
+        </a>{" "}
+        to contribute to the project!
+      </p>
+
+      <div className="flex justify-center">
+        <a
+          href="https://github.com/crawlchat/crawlchat"
+          target="_blank"
+          className="btn btn-primary btn-xl"
+        >
+          View on GitHub
+          <TbBrandGithub />
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function Landing({ loaderData }: Route.ComponentProps) {
   return (
     <>
@@ -2690,6 +2786,10 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
 
       <Container>
         <Why />
+      </Container>
+
+      <Container>
+        <OpenSource />
       </Container>
 
       <Container>
