@@ -79,7 +79,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const token = createToken(user!.id);
 
-  return { scrape, knowledgeGroups, counts, citationCounts, token };
+  const url = new URL(request.url);
+  const query = url.searchParams.get("query");
+
+  return { scrape, knowledgeGroups, counts, citationCounts, token, query };
 }
 
 export function meta() {
@@ -257,7 +260,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
       )}
       {groups.length > 0 && (
         <div className="flex flex-col gap-4">
-          <KnowledgeSearch />
+          <KnowledgeSearch query={loaderData.query} />
           <div
             className={cn(
               "overflow-x-auto border border-base-300",
