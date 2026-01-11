@@ -27,6 +27,7 @@ import { makeMeta } from "~/meta";
 import { FaConfluence } from "react-icons/fa";
 import { Timestamp } from "~/components/timestamp";
 import { createToken } from "libs/jwt";
+import KnowledgeSearch, { type ItemSearchResult } from "./search";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -85,6 +86,74 @@ export function meta() {
   return makeMeta({
     title: "Knowledge - CrawlChat",
   });
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  const user = await getAuthUser(request);
+  const scrapeId = await getSessionScrapeId(request);
+  authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "search") {
+    const search = formData.get("search") as string;
+
+    const isUrl = search.startsWith("http");
+    const results: ItemSearchResult[] = [];
+
+    if (isUrl) {
+      const items = await prisma.scrapeItem.findMany({
+        where: {
+          scrapeId,
+          url: search,
+        },
+        include: {
+          knowledgeGroup: true,
+        },
+      });
+
+      for (const item of items) {
+        results.push({
+          item,
+          knowledgeGroup: item.knowledgeGroup!,
+          score: 1,
+        });
+      }
+    } else {
+      const token = createToken(user!.id);
+      const searchResponse = await fetch(
+        `${process.env.VITE_SERVER_URL}/search-items/${scrapeId}?query=${search}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await searchResponse.json();
+      for (const result of data.results) {
+        const url = result.url;
+        const item = await prisma.scrapeItem.findFirst({
+          where: {
+            scrapeId,
+            url,
+          },
+          include: {
+            knowledgeGroup: true,
+          },
+        });
+        if (item) {
+          results.push({
+            item,
+            knowledgeGroup: item.knowledgeGroup!,
+            score: result.score,
+          });
+        }
+      }
+    }
+
+    return { results: results.sort((a, b) => b.score - a.score) };
+  }
 }
 
 export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
@@ -187,101 +256,104 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
         </div>
       )}
       {groups.length > 0 && (
-        <div
-          className={cn(
-            "overflow-x-auto border border-base-300",
-            "rounded-box bg-base-200/50 shadow"
-          )}
-        >
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Title</th>
-                <th>Citation</th>
-                <th>Pages</th>
-                <th>Status</th>
-                <th>Updated</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groups.map((item) => (
-                <tr key={item.group.id}>
-                  <td>
-                    <div className="badge badge-soft badge-primary">
-                      {item.icon}
-                      {item.typeText}
-                    </div>
-                  </td>
-                  <td>
-                    <Link
-                      className="link link-hover line-clamp-1 max-w-40"
-                      to={`/knowledge/group/${item.group.id}`}
-                    >
-                      {item.group.title ?? "Untitled"}
-                    </Link>
-                  </td>
-                  <td className="min-w-38">
-                    <div className="flex gap-2 items-center">
-                      {item.citedNum} / {item.totalCited}
-                      <progress
-                        className="progress w-10"
-                        value={item.citationPct}
-                        max="100"
-                      />
-                    </div>
-                  </td>
-                  <td>
-                    <span className="badge badge-soft badge-primary">
-                      {loaderData.counts[item.group.id] ?? 0}
-                    </span>
-                  </td>
-                  <td className="min-w-38">
-                    <GroupStatus status={item.group.status} />
-                  </td>
-                  <td className="min-w-38">
-                    <div>
-                      <Timestamp date={item.group.updatedAt} />
-                      {item.group.nextUpdateAt && (
-                        <div
-                          className="tooltip"
-                          data-tip={`Next update at ${moment(
-                            item.group.nextUpdateAt
-                          ).format("DD/MM/YYYY HH:mm A")}`}
-                        >
-                          <span className="badge badge-soft badge-primary ml-1">
-                            <TbAutomation />
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <div className="flex gap-2">
-                      {[
-                        "scrape_web",
-                        "scrape_github",
-                        "github_issues",
-                        "github_discussions",
-                        "notion",
-                        "confluence",
-                        "linear",
-                        "youtube",
-                        "youtube_channel",
-                      ].includes(item.group.type) && (
-                        <ActionButton
-                          group={item.group}
-                          token={loaderData.token}
-                          small
-                        />
-                      )}
-                    </div>
-                  </td>
+        <div className="flex flex-col gap-4">
+          <KnowledgeSearch />
+          <div
+            className={cn(
+              "overflow-x-auto border border-base-300",
+              "rounded-box bg-base-200/50 shadow"
+            )}
+          >
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Title</th>
+                  <th>Citation</th>
+                  <th>Pages</th>
+                  <th>Status</th>
+                  <th>Updated</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {groups.map((item) => (
+                  <tr key={item.group.id}>
+                    <td>
+                      <div className="badge badge-soft badge-primary">
+                        {item.icon}
+                        {item.typeText}
+                      </div>
+                    </td>
+                    <td>
+                      <Link
+                        className="link link-hover line-clamp-1 max-w-40"
+                        to={`/knowledge/group/${item.group.id}`}
+                      >
+                        {item.group.title ?? "Untitled"}
+                      </Link>
+                    </td>
+                    <td className="min-w-38">
+                      <div className="flex gap-2 items-center">
+                        {item.citedNum} / {item.totalCited}
+                        <progress
+                          className="progress w-10"
+                          value={item.citationPct}
+                          max="100"
+                        />
+                      </div>
+                    </td>
+                    <td>
+                      <span className="badge badge-soft badge-primary">
+                        {loaderData.counts[item.group.id] ?? 0}
+                      </span>
+                    </td>
+                    <td className="min-w-38">
+                      <GroupStatus status={item.group.status} />
+                    </td>
+                    <td className="min-w-38">
+                      <div>
+                        <Timestamp date={item.group.updatedAt} />
+                        {item.group.nextUpdateAt && (
+                          <div
+                            className="tooltip"
+                            data-tip={`Next update at ${moment(
+                              item.group.nextUpdateAt
+                            ).format("DD/MM/YYYY HH:mm A")}`}
+                          >
+                            <span className="badge badge-soft badge-primary ml-1">
+                              <TbAutomation />
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex gap-2">
+                        {[
+                          "scrape_web",
+                          "scrape_github",
+                          "github_issues",
+                          "github_discussions",
+                          "notion",
+                          "confluence",
+                          "linear",
+                          "youtube",
+                          "youtube_channel",
+                        ].includes(item.group.type) && (
+                          <ActionButton
+                            group={item.group}
+                            token={loaderData.token}
+                            small
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </Page>

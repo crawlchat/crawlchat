@@ -2,9 +2,7 @@ import { allActivePlans } from "libs/user-plan";
 import {
   Container,
   CustomTestimonials,
-  FAQ,
   OpenSource,
-  Pricing,
   PricingFeatures,
 } from "./page";
 import { makeMeta } from "~/meta";

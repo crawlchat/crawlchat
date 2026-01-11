@@ -2697,16 +2697,18 @@ export function OpenSource() {
       )}
     >
       <h3
-        className={cn(
-          "text-4xl md:text-5xl font-radio-grotesk flex flex-wrap",
-          "items-center gap-x-4 justify-center"
-        )}
+        className={cn("text-4xl md:text-5xl font-radio-grotesk", "text-center")}
       >
-        <span className="flex items-center gap-2 text-primary flex-nowrap">
+        <span
+          className={cn(
+            "inline-flex items-center gap-2 text-primary flex-nowrap",
+            "translate-y-[5px] md:translate-y-2"
+          )}
+        >
           <RiChatVoiceAiFill /> CrawlChat
-        </span>
-        <span>is</span>
-        <span className="font-bold text-accent">open source</span>
+        </span>{" "}
+        <span>is</span>{" "}
+        <span className="font-bold text-accent">open source</span>{" "}
         <span>now!</span>
       </h3>
 
