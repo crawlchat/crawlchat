@@ -1394,6 +1394,25 @@ Fact to check: ${fact}`,
   res.json({ fact, score, reason });
 });
 
+app.get("/search-items/:scrapeId", authenticate, async (req, res) => {
+  const scrapeId = req.params.scrapeId;
+  const query = req.query.query as string;
+
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId },
+  });
+
+  authoriseScrapeUser(req.user!.scrapeUsers, scrape.id, res);
+
+  const indexer = makeIndexer({ key: scrape.indexer, topN: 20 });
+  const results = await indexer.search(scrape.id, query, {
+    topK: 50,
+  });
+  const processed = await indexer.process(query, results);
+
+  res.json({ results: processed });
+});
+
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   console.error("Express Error:", error);
   res.status(500).json({
