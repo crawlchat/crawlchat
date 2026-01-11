@@ -83,14 +83,24 @@ function ChatInputBadge({
   tooltip,
 }: PropsWithChildren<{ tooltip?: string }>) {
   return (
-    <div className="tooltip tooltip-right" data-tip={tooltip}>
+    <div className="group relative">
       <div
         className={cn(
-          "w-fit rounded-box text-base-content/70 hover:text-base-content",
-          "transition-all text-sm flex items-center gap-1"
+          "rounded-box text-base-content/70 hover:text-base-content",
+          "transition-all text-sm flex items-center gap-1 truncate",
+          "group-hover:opacity-20"
         )}
       >
         {children}
+      </div>
+      <div
+        className={cn(
+          "absolute top-0 right-0 bg-base-200 rounded-box pl-2",
+          "opacity-0 group-hover:opacity-100 transition-all",
+          "text-sm"
+        )}
+      >
+        {tooltip}
       </div>
     </div>
   );
@@ -216,9 +226,9 @@ function ChatInput() {
             sidePanel && "px-2 border-b border-base-300"
           )}
         >
-          <ChatInputBadge tooltip={"Asking about this page"}>
-            <TbFile />
-            {currentPage.title}
+          <ChatInputBadge tooltip={"← Asking about this page"}>
+            <TbFile className="shrink-0" />
+            <span className="truncate">{currentPage.title}</span>
           </ChatInputBadge>
         </div>
       )}
@@ -256,8 +266,8 @@ function ChatInput() {
           onClick={handleAsk}
           disabled={isDisabled}
           style={{
-            backgroundColor: !isDisabled ? bg ?? undefined : undefined,
-            color: !isDisabled ? color ?? undefined : undefined,
+            backgroundColor: !isDisabled ? (bg ?? undefined) : undefined,
+            color: !isDisabled ? (color ?? undefined) : undefined,
           }}
         >
           <TbArrowUp />
