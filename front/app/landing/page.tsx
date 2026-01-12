@@ -1170,20 +1170,25 @@ export function Footer() {
               </li>
             </ul>
 
-            <ul className="flex gap-6 mt-4">
+            <ul className="flex gap-4 mt-4">
               <li>
-                <a href="mailto:support@crawlchat.app">
-                  <TbMail />
+                <a href="https://github.com/crawlchat/crawlchat">
+                  <TbBrandGithub />
                 </a>
               </li>
               <li>
-                <a href="https://x.com/pramodk73">
+                <a href="https://x.com/crawlchat">
                   <TbBrandX />
                 </a>
               </li>
               <li>
                 <a href="https://discord.gg/zW3YmCRJkC">
                   <TbBrandDiscord />
+                </a>
+              </li>
+              <li>
+                <a href="mailto:support@crawlchat.app">
+                  <TbMail />
                 </a>
               </li>
             </ul>
