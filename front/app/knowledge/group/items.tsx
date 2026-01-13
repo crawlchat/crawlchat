@@ -17,7 +17,7 @@ import cn from "@meltdownjs/cn";
 import { Timestamp } from "~/components/timestamp";
 
 function isUrl(url: string) {
-  return url.startsWith("http") || url.startsWith("https");
+  url.startsWith("https");
 }
 
 export async function loader({ request, params }: Route.LoaderArgs) {
