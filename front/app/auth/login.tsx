@@ -53,6 +53,7 @@ export function meta() {
   });
 }
 
+const loginRateLimiter = new RateLimiter(10, "login");
 const rateLimiters: Record<string, RateLimiter> = {};
 
 export async function action({ request }: Route.ActionArgs) {
@@ -67,6 +68,14 @@ export async function action({ request }: Route.ActionArgs) {
   try {
     rateLimiters[email].check();
   } catch (error) {
+    console.warn("Spamming detected for email: ", email);
+    return { error: "Too many requests. Please try again later." };
+  }
+
+  try {
+    loginRateLimiter.check();
+  } catch (error) {
+    console.warn("Spamming detected for login");
     return { error: "Too many requests. Please try again later." };
   }
 
