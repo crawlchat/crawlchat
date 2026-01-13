@@ -24,7 +24,7 @@ See the [docker-compose.yml](https://github.com/pskd73/crawlchat/blob/main/docke
 
 ## Local development
 
-It takes few minutes to run it on your local machine so that you can develop on it and send PRs. It is explained in [LOCAL.md](https://github.com/pskd73/crawlchat/blob/main/LOCAL.md)
+It takes just a few minutes to run it on your local machine so that you can develop on it and send PRs. It is explained in [LOCAL.md](https://github.com/pskd73/crawlchat/blob/main/LOCAL.md)
 
 ## Environment variables
 
