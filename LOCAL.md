@@ -1,5 +1,10 @@
 # Run on local machine
 
+## Requirements
+
+1. `docker`
+2. `node 20.10.0`
+
 ## Required external services envs
 
 1. `PINECONE_API_KEY` in `server`, `source-sync`
