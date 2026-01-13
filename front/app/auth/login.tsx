@@ -14,6 +14,7 @@ import {
   MauritsTestimonial,
 } from "~/landing/page";
 import cn from "@meltdownjs/cn";
+import { RateLimiter } from "libs/rate-limiter";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request, { dontRedirect: true });
@@ -52,7 +53,23 @@ export function meta() {
   });
 }
 
+const rateLimiters: Record<string, RateLimiter> = {};
+
 export async function action({ request }: Route.ActionArgs) {
+  const clonedRequest = request.clone();
+  const formData = await clonedRequest.formData();
+  const email = formData.get("email") as string;
+
+  if (!rateLimiters[email]) {
+    rateLimiters[email] = new RateLimiter(3, email);
+  }
+
+  try {
+    rateLimiters[email].check();
+  } catch (error) {
+    return { error: "Too many requests. Please try again later." };
+  }
+
   const user = await authenticator.authenticate("magic-link", request);
 
   if (!user) {
