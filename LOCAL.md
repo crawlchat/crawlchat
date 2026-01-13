@@ -1,0 +1,16 @@
+# Run on local machine
+
+## Required external services envs
+
+1. `PINECONE_API_KEY` in `server`, `source-sync`
+2. `OPENROUTER_API_KEY` in `server`
+
+## Steps
+
+1. Clone the repo
+2. Copy `.env.example` -> `.env` and set above `envs`
+3. Run `databases` on Docker: `cd front`, `npm i`, `npm run db`
+4. Run `front` app [NEW TERMINAL]: `cd front`, `npm i`, `npm run dev`
+5. Run `server` app [NEW TERMINAL]: `cd server`, `npm i`, `npm run dev`
+6. Run `source-sync` app [NEW TERMINAL]: `cd source-sync`, `npm i`, `npm run dev`
+7. Navigate to [http://localhost:5173](http://localhost:5173)

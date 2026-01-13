@@ -1,0 +1,57 @@
+services:
+  database:
+    image: mongo:7
+    restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--noauth"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - crawlchat-net
+    healthcheck:
+      test: mongosh --eval "db.adminCommand('ping')" --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["sh", "-c", "
+      until mongosh --host database:27017 --eval 'db.runCommand({ ping: 1 })'; do
+      echo 'Waiting for Mongo...'; sleep 2;
+      done;
+      mongosh --host database:27017 --eval 'rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"database:27017\"}]})'
+      "]
+    networks:
+      - crawlchat-net
+
+  redis:
+    image: redis:7
+    container_name: crawlchat-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+    volumes:
+      - redis_data:/data
+    networks:
+      - crawlchat-net
+
+networks:
+  crawlchat-net:
+    driver: bridge
+
+volumes:
+  mongo_data:
+  redis_data:

@@ -22,6 +22,10 @@ There are **Dockerfile**s for all the above mentioned services. You can instantl
 
 See the [docker-compose.yml](https://github.com/pskd73/crawlchat/blob/main/docker-compose.yml) on how to set up all basic services automatically.
 
+## Local development
+
+It takes few minutes to run it on your local machine so that you can develop on it and send PRs. It is explained in [LOCAL.md](https://github.com/pskd73/crawlchat/blob/main/LOCAL.md)
+
 ## Environment variables
 
 | Service     | Key                      | Required | Note                                          |

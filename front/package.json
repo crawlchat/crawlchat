@@ -10,7 +10,8 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
-    "email": "email dev --port 3004"
+    "email": "email dev --port 3004",
+    "db": "docker compose -f ../docker-compose-local.yml up"
   },
   "dependencies": {
     "@11labs/react": "^0.0.4",
