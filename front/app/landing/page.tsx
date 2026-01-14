@@ -12,6 +12,7 @@ import {
   TbBrandNotion,
   TbBrandSlack,
   TbBrandX,
+  TbCalendar,
   TbChartBar,
   TbChartBarOff,
   TbCheck,
@@ -964,6 +965,22 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
       <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
         <PricingBoxes plans={plans} yearly={isYearly} />
       </div>
+
+      <div className="my-20 flex flex-col items-center">
+        <Heading>Still not sure?</Heading>
+        <HeadingDescription>
+          Book a demo with the maker - Pramod and understand how CrawlChat can
+          help you steamline your documentation and support processes
+        </HeadingDescription>
+        <Link
+          to="https://cal.com/crawlchat/demo"
+          target="_blank"
+          className="btn btn-primary btn-outline btn-xl w-full md:w-auto"
+        >
+          Book a demo
+          <TbCalendar />
+        </Link>
+      </div>
     </div>
   );
 }
@@ -1453,6 +1470,19 @@ function Hero() {
             Start free trial
             <TbArrowRight />
           </Link>
+          <div
+            className="tooltip"
+            data-tip="Connect with the maker - Pramod and understand how CrawlChat can help your business"
+          >
+            <Link
+              to="https://cal.com/crawlchat/demo"
+              target="_blank"
+              className="btn btn-primary btn-outline btn-xl w-full md:w-auto"
+            >
+              Book a demo
+              <TbCalendar />
+            </Link>
+          </div>
         </div>
       </div>
       <div className="flex-1 flex-col">
