@@ -15,6 +15,7 @@ import {
 } from "~/landing/page";
 import cn from "@meltdownjs/cn";
 import { RateLimiter } from "libs/rate-limiter";
+import { getClientIp } from "~/client-ip";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request, { dontRedirect: true });
@@ -38,6 +39,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       mailSent: !!searchParams.has("mail-sent"),
       error,
       selfHosted: process.env.SELF_HOSTED,
+      turnstileSiteKey: process.env.VITE_TURNSTILE_SITE_KEY,
     },
     {
       headers: {
@@ -56,9 +58,35 @@ export function meta() {
 const loginRateLimiter = new RateLimiter(10, "login");
 const rateLimiters: Record<string, RateLimiter> = {};
 
+async function verifyTurnstileToken(token: string, remoteip: string) {
+  const formData = new FormData();
+  formData.append("secret", process.env.TURNSTILE_SECRET_KEY!);
+  formData.append("response", token);
+  formData.append("remoteip", remoteip);
+  const response = await fetch(
+    `https://challenges.cloudflare.com/turnstile/v0/siteverify`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+  return await response.json();
+}
+
 export async function action({ request }: Route.ActionArgs) {
   const clonedRequest = request.clone();
   const formData = await clonedRequest.formData();
+
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    const turnstileResponse = await verifyTurnstileToken(
+      formData.get("cf-turnstile-response") as string,
+      getClientIp(request) || (formData.get("cf-connecting-ip") as string)
+    );
+    if (!turnstileResponse.success) {
+      return { error: "You cannot proceed further!" };
+    }
+  }
+
   const email = formData.get("email") as string;
 
   if (!rateLimiters[email]) {
@@ -96,15 +124,31 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function LoginPage() {
   const fetcher = useFetcher();
-  const { mailSent, error, selfHosted } = useLoaderData();
+  const { mailSent, error, selfHosted, turnstileSiteKey } = useLoaderData();
   const emailRef = useRef<HTMLInputElement>(null);
   const testiIndex = useMemo(() => Math.floor(Math.random() * 4), []);
+  const turnstileLoaded = useRef(false);
+  const [clientValidated, setClientValidated] = useState(!turnstileSiteKey);
 
   useEffect(() => {
     if (mailSent && emailRef.current) {
       emailRef.current.value = "";
     }
   }, [mailSent]);
+
+  useEffect(() => {
+    if (!turnstileSiteKey || turnstileLoaded.current) return;
+
+    turnstileLoaded.current = true;
+    (window as any).turnstile.render("#turnstile-container", {
+      sitekey: turnstileSiteKey,
+      callback: function (token: string) {
+        if (token) {
+          setClientValidated(true);
+        }
+      },
+    });
+  }, [turnstileSiteKey]);
 
   return (
     <div
@@ -134,7 +178,7 @@ export default function LoginPage() {
         <fetcher.Form method="post">
           <div
             className={cn(
-              "flex flex-col w-82 gap-4 items-center border",
+              "flex flex-col w-94 gap-4 items-center border",
               "border-base-300 rounded-box p-6 bg-base-200 shadow"
             )}
           >
@@ -152,7 +196,6 @@ export default function LoginPage() {
                 placeholder="myemail@example.com"
                 name="email"
                 required
-                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
               />
 
               {mailSent && (
@@ -169,10 +212,14 @@ export default function LoginPage() {
                 </div>
               )}
 
+              <div className="flex justify-center">
+                <div id="turnstile-container" />
+              </div>
+
               <button
                 className="btn btn-primary w-full"
                 type="submit"
-                disabled={fetcher.state !== "idle"}
+                disabled={!clientValidated || fetcher.state !== "idle"}
               >
                 {fetcher.state !== "idle" && (
                   <span className="loading loading-spinner loading-xs" />

@@ -57,6 +57,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     return loaderData?.ENV.VITE_DATAFAST_ID;
   }, [location, loaderData?.ENV.VITE_DATAFAST_ID]);
   const isLandingPage = matches.some((match) => match.id === "landing/page");
+  const isLoginPage = matches.some((match) => match.id === "auth/login");
 
   return (
     <html lang="en">
@@ -81,6 +82,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
             __html: JSON.stringify(crawlChatSchema),
           }}
         />
+        {isLoginPage && (
+          <link rel="preconnect" href="https://challenges.cloudflare.com" />
+        )}
+        {isLoginPage && (
+          <script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+            async
+            defer
+          />
+        )}
       </head>
       <body>
         {children}
