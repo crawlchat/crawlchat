@@ -91,6 +91,10 @@ class CrawlChatEmbed {
     if (secret) {
       params.set("secret", secret);
     }
+    const theme = this.getScriptElem()?.dataset.theme;
+    if (theme) {
+      params.set("theme", theme);
+    }
     const src = `${this.host}/w/${this.scrapeId}?${params.toString()}`;
 
     iframe.src = src;
@@ -305,6 +309,10 @@ class CrawlChatEmbed {
     const secret = this.getScriptElem()?.dataset.secret;
     if (secret) {
       params.set("secret", secret);
+    }
+    const theme = this.getScriptElem()?.dataset.theme;
+    if (theme) {
+      params.set("theme", theme);
     }
 
     const iframe = document.createElement("iframe");

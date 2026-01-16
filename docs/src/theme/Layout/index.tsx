@@ -15,7 +15,7 @@ export default function LayoutWrapper(props: Props): ReactNode {
     <>
       <Layout {...props} />
       <CrawlChatScript
-        id="67dbfc7258ed87c571a04b83"
+        id="crawlchat"
         selectionButtons={{
           explore: {
             name: "Explore",
