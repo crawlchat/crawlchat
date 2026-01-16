@@ -103,7 +103,7 @@ export default function CaseStudyLayout() {
             {company.title} uses the following sources to build their knowledge
             base:
           </p>
-          <div className="flex gap-4 mb-4">
+          <div className="flex gap-4 mb-4 flex-wrap">
             {company.sources.map((source, i) => (
               <SourceCard
                 key={i}
@@ -119,7 +119,7 @@ export default function CaseStudyLayout() {
             {company.title} integrates the CrawlChat chatbot into the following
             channels:
           </p>
-          <div className="flex gap-4 mb-4">
+          <div className="flex gap-4 mb-4 flex-wrap">
             {company.channels.map((channel, i) => (
               <ChannelCard
                 key={i}
