@@ -108,6 +108,8 @@ export default [
       route("discord-bot", "landing/use-case/discord-bot.tsx"),
       route("mcp", "landing/use-case/mcp.tsx"),
     ]),
+
+    route("case-study/:slug", "landing/case-study/page.tsx"),
   ]),
 
   ...prefix("admin-fowl", [
