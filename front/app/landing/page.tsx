@@ -988,15 +988,14 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
 export function CTA({ text }: { text?: string }) {
   return (
     <div className="mt-32" id="cta">
-      <div className="w-full py-16 px-10 relative border-t-4 border-b-4 border-dashed border-primary">
+      <div className="w-full py-16 px-10 relative border-t-4 border-dashed border-primary/20">
         <h2
           className={cn(
-            "font-radio-grotesk text-[42px] md:text-[54px] leading-[1.2]",
+            "font-radio-grotesk text-[42px] leading-[1.2]",
             "font-medium text-center max-w-[900px] mx-auto"
           )}
         >
-          {text ||
-            "Deliver AI powered technical documentation to your community and internal teams today!"}
+          {text || "Power up your tech documentation with AI today!"}
         </h2>
 
         <div className="flex justify-center mt-8">
@@ -1028,7 +1027,7 @@ function FooterLink({
 
 export function Footer() {
   return (
-    <footer className="bg-base-100">
+    <footer className="bg-base-100 border-t border-base-300">
       <Container>
         <div className="py-8 flex flex-col md:flex-row gap-8">
           <div className="flex-[2] flex flex-col gap-4">
@@ -1216,6 +1215,70 @@ export function Footer() {
   );
 }
 
+function CaseStudyDropdown() {
+  return (
+    <div className="dropdown">
+      <div
+        tabIndex={0}
+        role="button"
+        className="flex items-center gap-2 cursor-pointer"
+      >
+        Case studies
+        <TbChevronDown />
+      </div>
+      <ul
+        tabIndex={0}
+        className={cn(
+          "dropdown-content menu bg-base-200 rounded-box z-1 w-72 p-2",
+          "shadow-lg mt-4"
+        )}
+      >
+        <li>
+          <Link
+            className="flex gap-2 items-center group"
+            to="/case-study/remotion"
+          >
+            <img
+              src="https://raw.githubusercontent.com/remotion-dev/brand/main/logo.svg"
+              alt="Remotion"
+              className="max-h-5 inline-block grayscale group-hover:grayscale-0 transition-all"
+            />
+            Remotion
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            className="flex gap-2 items-center group"
+            to="/case-study/konva"
+          >
+            <img
+              src="https://konvajs.org/img/icon.png"
+              alt="Konva"
+              className="max-h-5 inline-block grayscale group-hover:grayscale-0 transition-all"
+            />
+            Konva
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            className="flex gap-2 items-center group"
+            to="/case-study/postiz"
+          >
+            <img
+              src="https://cms.postiz.com/wp-content/uploads/2024/06/newfav.png"
+              alt="Postiz"
+              className="max-h-5 inline-block grayscale group-hover:grayscale-0 transition-all"
+            />
+            Postiz
+          </Link>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
 export function Nav({
   user,
   githubStars,
@@ -1252,6 +1315,8 @@ export function Nav({
                 <span>{githubStars} stars</span>
               </NavLink>
             )}
+            <CaseStudyDropdown />
+
             <div className="dropdown">
               <div
                 tabIndex={0}
@@ -1301,9 +1366,9 @@ export function Nav({
                 </li>
               </ul>
             </div>
+
             <NavLink href="/pricing">Pricing</NavLink>
             <NavLink href="/changelog">Changelog</NavLink>
-            <NavLink href="/blog">Blog</NavLink>
           </div>
 
           <div>
@@ -1359,9 +1424,6 @@ export function Nav({
                 </li>
                 <li>
                   <a href="/changelog">Changelog</a>
-                </li>
-                <li>
-                  <a href="/blog">Blog</a>
                 </li>
               </ul>
             </div>
