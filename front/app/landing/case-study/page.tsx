@@ -1,11 +1,5 @@
-import { Link, Outlet, redirect, useLoaderData } from "react-router";
-import {
-  Badge,
-  ChannelCard,
-  Container,
-  JonnyTestimonial,
-  SourceCard,
-} from "../page";
+import { Link, redirect, useLoaderData } from "react-router";
+import { ChannelCard, Container, SourceCard } from "../page";
 import type { Route } from "./+types/page";
 import { companies } from "./companies";
 import {
@@ -13,7 +7,6 @@ import {
   TbCalendar,
   TbCheck,
   TbCircleFilled,
-  TbWorld,
   TbX,
 } from "react-icons/tb";
 import { useMemo, type PropsWithChildren, type ReactNode } from "react";
@@ -54,20 +47,29 @@ export default function CaseStudyLayout() {
 
   return (
     <Container>
-      <div className="flex gap-20 py-12">
-        <div className="w-[240px] shrink-0">
+      <div className="flex flex-col md:flex-row gap-20 py-12">
+        <div className="w-full md:w-[240px] shrink-0">
           <div className="sticky top-24">
             <div className="flex flex-col gap-4">
-              <div className="badge badge-secondary badge-soft">
-                <TbCircleFilled size={12} />
-                Case Study
+              <div className="flex items-center justify-center md:justify-start">
+                <div className="badge badge-secondary badge-soft">
+                  <TbCircleFilled size={12} />
+                  Case Study
+                </div>
               </div>
 
-              <img
-                src={company.logo}
-                alt={company.title}
-                className="w-full h-auto my-4"
-              />
+              <div
+                className={cn(
+                  "w-full h-auto my-4",
+                  company.darkLogo && "bg-black p-6 rounded-box"
+                )}
+              >
+                <img
+                  src={company.logo}
+                  alt={company.title}
+                  className="w-full h-auto"
+                />
+              </div>
 
               <div className="bg-base-200 border border-base-300 rounded-box">
                 {company.testimonial}
@@ -97,6 +99,10 @@ export default function CaseStudyLayout() {
           </ul>
 
           <Heading>Sources</Heading>
+          <p className="mb-2">
+            {company.title} uses the following sources to build their knowledge
+            base:
+          </p>
           <div className="flex gap-4 mb-4">
             {company.sources.map((source, i) => (
               <SourceCard
@@ -109,13 +115,17 @@ export default function CaseStudyLayout() {
           </div>
 
           <Heading>Channels</Heading>
+          <p className="mb-2">
+            {company.title} integrates the CrawlChat chatbot into the following
+            channels:
+          </p>
           <div className="flex gap-4 mb-4">
-            {company.sources.map((source, i) => (
+            {company.channels.map((channel, i) => (
               <ChannelCard
                 key={i}
-                icon={source.icon}
-                title={source.title}
-                tooltip={source.tooltip}
+                icon={channel.icon}
+                title={channel.title}
+                tooltip={channel.tooltip}
               />
             ))}
           </div>
@@ -148,7 +158,7 @@ export default function CaseStudyLayout() {
               CrawlChat is a powerful tool that can help you improve the
               accessibility of your documentation and your community.
             </p>
-            <p className="flex gap-4">
+            <p className="flex flex-col md:flex-row gap-4">
               <Link to="/pricing" className="btn btn-primary btn-lg">
                 Start free trial
                 <TbArrowRight />

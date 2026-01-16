@@ -1250,14 +1250,14 @@ function CaseStudyDropdown() {
         <li>
           <Link
             className="flex gap-2 items-center group"
-            to="/case-study/konva"
+            to="/case-study/polotno"
           >
             <img
-              src="https://konvajs.org/img/icon.png"
-              alt="Konva"
+              src="/used-by/polotno.png"
+              alt="Polotno"
               className="max-h-5 inline-block grayscale group-hover:grayscale-0 transition-all"
             />
-            Konva
+            Polotno
           </Link>
         </li>
 
@@ -1272,6 +1272,112 @@ function CaseStudyDropdown() {
               className="max-h-5 inline-block grayscale group-hover:grayscale-0 transition-all"
             />
             Postiz
+          </Link>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function BurgerMenu({
+  user,
+  githubStars,
+}: {
+  user?: User | null;
+  githubStars?: number;
+}) {
+  return (
+    <div className="dropdown dropdown-end">
+      <div tabIndex={0} role="button" className="btn btn-square">
+        <TbMenu2 />
+      </div>
+      <ul
+        tabIndex={-1}
+        className={cn(
+          "dropdown-content menu bg-base-200 rounded-box z-1 w-42 p-2 shadow-sm",
+          "mt-2"
+        )}
+      >
+        {githubStars && (
+          <li>
+            <a href="https://github.com/crawlchat/crawlchat" target="_blank">
+              <TbBrandGithub />
+              {githubStars} stars
+            </a>
+          </li>
+        )}
+        {!user && (
+          <li>
+            <Link to="/pricing">Start free trial</Link>
+          </li>
+        )}
+        {!user && (
+          <li>
+            <a href="/login">Login</a>
+          </li>
+        )}
+        {user && (
+          <li>
+            <a href="/app">Dashboard</a>
+          </li>
+        )}
+        <li>
+          <a href="/pricing">Pricing</a>
+        </li>
+        <li>
+          <a href="/changelog">Changelog</a>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function UseCasesDropdown() {
+  return (
+    <div className="dropdown">
+      <div
+        tabIndex={0}
+        role="button"
+        className="flex items-center gap-2 cursor-pointer"
+      >
+        Use cases
+        <TbChevronDown />
+      </div>
+      <ul
+        tabIndex={0}
+        className={cn(
+          "dropdown-content menu bg-base-200 rounded-box z-1 w-72 p-2",
+          "shadow-lg mt-4"
+        )}
+      >
+        <li>
+          <Link
+            className="flex flex-col gap-0 items-start"
+            to="/use-case/community-support"
+          >
+            <span className="flex items-center gap-2">
+              <TbUsers />
+              Community support
+            </span>
+            <span className="text-sm text-base-content/50">
+              Let your community get the answers from your docs instantly
+            </span>
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            className="flex flex-col gap-0 items-start"
+            to="/use-case/empower-gtm-teams"
+          >
+            <span className="flex items-center gap-2">
+              <TbRobotFace />
+              Internal assistant
+            </span>
+            <span className="text-sm text-base-content/50">
+              Let your internal teams have a unified knowledge base. Best for
+              GTM teams
+            </span>
           </Link>
         </li>
       </ul>
@@ -1304,129 +1410,53 @@ export function Nav({
           <Logo />
         </Link>
 
-        <div className="flex items-center gap-8">
-          <div className="items-center gap-8 hidden md:flex">
-            {githubStars && (
-              <NavLink
-                href="https://github.com/crawlchat/crawlchat"
-                className={cn("text-primary")}
-              >
-                <TbBrandGithub />
-                <span>{githubStars} stars</span>
-              </NavLink>
-            )}
+        <div className="flex items-center gap-6">
+          {githubStars && (
+            <NavLink
+              href="https://github.com/crawlchat/crawlchat"
+              className={cn("text-primary shrink-0 hidden md:flex")}
+            >
+              <TbBrandGithub />
+              <span>{githubStars} stars</span>
+            </NavLink>
+          )}
+
+          <div className="hidden md:block">
             <CaseStudyDropdown />
-
-            <div className="dropdown">
-              <div
-                tabIndex={0}
-                role="button"
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                Use cases
-                <TbChevronDown />
-              </div>
-              <ul
-                tabIndex={0}
-                className={cn(
-                  "dropdown-content menu bg-base-200 rounded-box z-1 w-72 p-2",
-                  "shadow-lg mt-4"
-                )}
-              >
-                <li>
-                  <Link
-                    className="flex flex-col gap-0 items-start"
-                    to="/use-case/community-support"
-                  >
-                    <span className="flex items-center gap-2">
-                      <TbUsers />
-                      Community support
-                    </span>
-                    <span className="text-sm text-base-content/50">
-                      Let your community get the answers from your docs
-                      instantly
-                    </span>
-                  </Link>
-                </li>
-
-                <li>
-                  <Link
-                    className="flex flex-col gap-0 items-start"
-                    to="/use-case/empower-gtm-teams"
-                  >
-                    <span className="flex items-center gap-2">
-                      <TbRobotFace />
-                      Internal assistant
-                    </span>
-                    <span className="text-sm text-base-content/50">
-                      Let your internal teams have a unified knowledge base.
-                      Best for GTM teams
-                    </span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <NavLink href="/pricing">Pricing</NavLink>
-            <NavLink href="/changelog">Changelog</NavLink>
           </div>
 
-          <div>
-            <div className="items-center gap-8 hidden md:flex">
-              {!user && <Link to="/login">Login</Link>}
-              {!user && (
-                <div className="hidden md:block">
-                  <Link to="/pricing" className="btn btn-primary">
-                    Start free trial
-                  </Link>
-                </div>
-              )}
-              {user && (
-                <a href="/app" className="btn btn-primary">
-                  Dashboard
-                  <TbArrowRight />
-                </a>
-              )}
+          <div className="hidden lg:block">
+            <UseCasesDropdown />
+          </div>
+
+          <NavLink href="/pricing" className="hidden md:flex">
+            Pricing
+          </NavLink>
+          <NavLink href="/changelog" className="hidden lg:flex">
+            Changelog
+          </NavLink>
+
+          {!user && (
+            <Link to="/login" className="hidden md:flex">
+              Login
+            </Link>
+          )}
+          {!user && (
+            <div className="hidden md:block">
+              <Link to="/pricing" className="btn btn-primary">
+                Start free trial
+              </Link>
             </div>
-            <div className="dropdown dropdown-end md:hidden">
-              <div tabIndex={0} role="button" className="btn btn-square">
-                <TbMenu2 />
-              </div>
-              <ul
-                tabIndex={-1}
-                className={cn(
-                  "dropdown-content menu bg-base-200 rounded-box z-1 w-42 p-2 shadow-sm",
-                  "mt-2"
-                )}
-              >
-                {!user && (
-                  <li>
-                    <Link
-                      to="/pricing"
-                      className="bg-primary text-primary-content"
-                    >
-                      Start free trial
-                    </Link>
-                  </li>
-                )}
-                {!user && (
-                  <li>
-                    <a href="/login">Login</a>
-                  </li>
-                )}
-                {user && (
-                  <li>
-                    <a href="/app">Dashboard</a>
-                  </li>
-                )}
-                <li>
-                  <a href="/pricing">Pricing</a>
-                </li>
-                <li>
-                  <a href="/changelog">Changelog</a>
-                </li>
-              </ul>
-            </div>
+          )}
+          {user && (
+            <a href="/app" className="btn btn-primary hidden md:flex">
+              Dashboard
+              <TbArrowRight />
+            </a>
+          )}
+
+          <div className="block md:hidden">
+            <BurgerMenu user={user} githubStars={githubStars} />
           </div>
         </div>
       </nav>
@@ -1625,6 +1655,7 @@ export function CustomTestimonial({
   authorLink,
   icon,
   authorCompany,
+  small,
 }: {
   text: string | ReactNode;
   author: string;
@@ -1632,10 +1663,18 @@ export function CustomTestimonial({
   authorLink: string;
   icon: ReactNode;
   authorCompany: string;
+  small?: boolean;
 }) {
   return (
     <div className="border-r-0 md:border-r border-b md:border-b-0 border-base-300 p-6 last:border-r-0 last:border-b-0">
-      <p className="text-xl font-radio-grotesk text-center italic">{text}</p>
+      <p
+        className={cn(
+          "font-radio-grotesk text-center italic",
+          !small && "text-xl"
+        )}
+      >
+        {text}
+      </p>
 
       <div className="flex flex-col justify-center gap-2 mt-8">
         <div className="flex flex-col items-center">
@@ -1667,7 +1706,7 @@ function CTHS({ children }: PropsWithChildren) {
   return <span className="text-primary font-bold">{children}</span>;
 }
 
-export function JonnyTestimonial() {
+export function JonnyTestimonial({ small }: { small?: boolean }) {
   return (
     <CustomTestimonial
       text={
@@ -1682,11 +1721,12 @@ export function JonnyTestimonial() {
       authorLink="https://x.com/JNYBGR/status/1899786274635927674"
       icon={<TbBrandX />}
       authorCompany="Remotion"
+      small={small}
     />
   );
 }
 
-export function EgelhausTestimonial() {
+export function EgelhausTestimonial({ small }: { small?: boolean }) {
   return (
     <CustomTestimonial
       text={
@@ -1701,11 +1741,12 @@ export function EgelhausTestimonial() {
       authorLink="https://github.com/egelhaus"
       icon={<TbBrandDiscord />}
       authorCompany="Postiz"
+      small={small}
     />
   );
 }
 
-export function AntonTestimonial() {
+export function AntonTestimonial({ small }: { small?: boolean }) {
   return (
     <CustomTestimonial
       text={
@@ -1721,11 +1762,12 @@ export function AntonTestimonial() {
       authorLink="https://x.com/lavrton/status/1915467775734350149"
       icon={<TbBrandX />}
       authorCompany="Konvajs & Polotno"
+      small={small}
     />
   );
 }
 
-export function MauritsTestimonial() {
+export function MauritsTestimonial({ small }: { small?: boolean }) {
   return (
     <CustomTestimonial
       text={
@@ -1740,6 +1782,7 @@ export function MauritsTestimonial() {
       authorLink="https://www.linkedin.com/feed/update/urn:li:activity:7353688013584977920?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7353688013584977920%2C7353699420036571137%29&dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287353699420036571137%2Curn%3Ali%3Aactivity%3A7353688013584977920%29"
       icon={<TbBrandLinkedin />}
       authorCompany="270 Degrees"
+      small={small}
     />
   );
 }
