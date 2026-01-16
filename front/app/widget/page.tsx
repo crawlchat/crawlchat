@@ -122,6 +122,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const sidePanel = searchParams.get("sidepanel") === "true";
   const secret = searchParams.get("secret");
   const defaultQuery = searchParams.get("q");
+  const theme = searchParams.get("theme") as "light" | "dark" | "system" | null;
 
   sanitizeScrape(scrape);
   sanitizeThread(thread);
@@ -139,6 +140,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       sidePanel,
       secret,
       defaultQuery,
+      theme,
     },
     {
       headers,
@@ -361,6 +363,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
       sidePanel={loaderData.sidePanel}
       secret={loaderData.secret}
       defaultQuery={loaderData.defaultQuery}
+      initialTheme={loaderData.theme}
     >
       <div
         className={cn(

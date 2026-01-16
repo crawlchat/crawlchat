@@ -8,6 +8,7 @@ export function CrawlChatScript({
   selectionButtons,
   noPrimaryColor,
   secret,
+  theme,
 }: {
   id: string;
   sidePanel?: boolean;
@@ -18,6 +19,7 @@ export function CrawlChatScript({
   selectionButtons?: Record<string, { name: string; queryPrefix: string }>;
   noPrimaryColor?: boolean;
   secret?: string;
+  theme?: "light" | "dark" | "system";
 }) {
   return (
     <script
@@ -34,6 +36,7 @@ export function CrawlChatScript({
       }
       data-no-primary-color={noPrimaryColor}
       data-secret={secret}
+      data-theme={theme}
     />
   );
 }
