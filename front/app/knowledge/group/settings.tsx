@@ -13,7 +13,7 @@ import {
   SettingsSection,
   SettingsSectionProvider,
 } from "~/components/settings-section";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { GroupStatus } from "./status";
 import { TbEraser, TbTrash } from "react-icons/tb";
@@ -29,6 +29,10 @@ import {
   LinearClient,
 } from "libs/linear";
 import { Timestamp } from "~/components/timestamp";
+import type { FileUpload } from "@mjackson/form-data-parser";
+import { parseFormData } from "@mjackson/form-data-parser";
+import { v4 as uuidv4 } from "uuid";
+import { useFetcherToast } from "~/components/use-fetcher-toast";
 
 function getNotionPageTitle(page: any): string | undefined {
   if (!page.properties) {
@@ -154,9 +158,76 @@ export async function action({ request, params }: Route.ActionArgs) {
     return redirect("/knowledge");
   }
 
-  const formData = await request.formData();
+  const contentType = request.headers.get("content-type") || "";
+  const isMultipart = contentType.includes("multipart/form-data");
 
+  if (isMultipart) {
+    const fileMarkdowns: { markdown: string; title: string }[] = [];
+
+    const uploadHandler = async (fileUpload: FileUpload) => {
+      const arrayBuffer = await fileUpload.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64 = buffer.toString("base64");
+
+      const response = await fetch(`${process.env.MARKER_HOST}/mark`, {
+        method: "POST",
+        body: JSON.stringify({
+          base64,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-KEY": process.env.MARKER_API_KEY as string,
+        },
+      });
+
+      const data = await response.json();
+      fileMarkdowns.push({ markdown: data.markdown, title: fileUpload.name });
+    };
+
+    const formData = await parseFormData(request, uploadHandler);
+    const intent = formData.get("intent") as string;
+
+    if (intent === "upload-files") {
+      const group = await prisma.knowledgeGroup.findUnique({
+        where: { id: groupId },
+        include: {
+          scrape: true,
+        },
+      });
+
+      if (!group || group.type !== "upload") {
+        return Response.json({ error: "Invalid group" }, { status: 400 });
+      }
+
+      if (fileMarkdowns.length > 0) {
+        await fetch(`${process.env.VITE_SERVER_URL}/page/${group.scrape.id}`, {
+          method: "POST",
+          body: JSON.stringify({
+            knowledgeGroupType: "upload",
+            defaultGroupTitle: "Upload",
+            knowledgeGroupId: group.id,
+            pages: fileMarkdowns.map((file) => ({
+              title: file.title,
+              text: file.markdown,
+              pageId: `default-${uuidv4()}`,
+            })),
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${createToken(user!.id)}`,
+          },
+        });
+      }
+
+      return { success: true };
+    }
+
+    return Response.json({ error: "Invalid intent for multipart request" }, { status: 400 });
+  }
+
+  const formData = await request.formData();
   const intent = formData.get("intent");
+
   if (intent === "clear-pages") {
     const token = createToken(user!.id);
     await fetch(`${process.env.VITE_SERVER_URL}/knowledge-group`, {
@@ -708,6 +779,45 @@ function YouTubeChannelSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
+function UploadSettings({ group }: { group: KnowledgeGroup }) {
+  const uploadFetcher = useFetcher();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useFetcherToast(uploadFetcher, {
+    title: "Files added to queue",
+  });
+
+  useEffect(() => {
+    if (uploadFetcher.data?.success && fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [uploadFetcher.state, uploadFetcher.data]);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <SettingsSection
+        id="upload-files"
+        fetcher={uploadFetcher}
+        title="Upload files"
+        description="Upload additional files to add to this knowledge group. Supported formats: PDF, DOCX, PPTX, TXT, MD, and code files."
+        multipart
+      >
+        <input type="hidden" name="intent" value="upload-files" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          name="file"
+          className="file-input w-full"
+          accept={
+            "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown,text/javascript,application/javascript,.tsx,.ts,.js,.jsx,.mdx"
+          }
+          multiple
+        />
+      </SettingsSection>
+    </div>
+  );
+}
+
 export default function KnowledgeGroupSettings({
   loaderData,
 }: Route.ComponentProps) {
@@ -786,6 +896,9 @@ export default function KnowledgeGroupSettings({
         )}
         {loaderData.knowledgeGroup.type === "youtube_channel" && (
           <YouTubeChannelSettings group={loaderData.knowledgeGroup} />
+        )}
+        {loaderData.knowledgeGroup.type === "upload" && (
+          <UploadSettings group={loaderData.knowledgeGroup} />
         )}
 
         <SettingsSection

@@ -16,6 +16,7 @@ export function SettingsSection({
   saveLabel = "Save",
   savePrimary = false,
   saveIcon,
+  multipart = false,
 }: {
   id?: string;
   children?: React.ReactNode;
@@ -29,6 +30,7 @@ export function SettingsSection({
   saveLabel?: string;
   savePrimary?: boolean;
   saveIcon?: React.ReactNode;
+  multipart?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [targeted, setTargeted] = useState(false);
@@ -125,7 +127,10 @@ export function SettingsSection({
   }
 
   return (
-    <fetcher.Form ref={formRef} method="post">
+    <fetcher.Form 
+      ref={formRef} 
+      method="post" 
+      encType={multipart ? "multipart/form-data" : "application/x-www-form-urlencoded"}>
       {render()}
     </fetcher.Form>
   );
