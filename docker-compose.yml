@@ -2,11 +2,11 @@ services:
   front:
     image: ghcr.io/crawlchat/crawlchat-front:latest
     networks:
-      - local-net
+      - crawlchat-net
     depends_on:
       - database
     ports:
-      - "localhost:3001:3000"
+      - "3001:3000"
     environment:
       SELF_HOSTED: "true"
       DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
@@ -27,11 +27,11 @@ services:
   server:
     image: ghcr.io/crawlchat/crawlchat-server:latest
     networks:
-      - local-net
+      - crawlchat-net
     depends_on:
       - database
     ports:
-      - "localhost:3002:3000"
+      - "3002:3000"
     environment:
       SELF_HOSTED: "true"
       DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
@@ -48,9 +48,9 @@ services:
       - redis
       - database
     ports:
-      - "localhost:3003:3000"
+      - "3003:3000"
     networks:
-      - local-net
+      - crawlchat-net
     environment:
       SELF_HOSTED: "true"
       DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
@@ -68,7 +68,7 @@ services:
     depends_on:
       - database
     networks:
-      - local-net
+      - crawlchat-net
     environment:
       SELF_HOSTED: "true"
       APP_ID: ""
@@ -84,9 +84,9 @@ services:
     depends_on:
       - database
     ports:
-      - "localhost:3004:3000"
+      - "3004:3000"
     networks:
-      - local-net
+      - crawlchat-net
     environment:
       SELF_HOSTED: "true"
       DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
@@ -109,9 +109,9 @@ services:
       retries: 5
       start_period: 40s
     volumes:
-      - local_mongo_data:/data/db
+      - crawlchat_mongo_data:/data/db
     networks:
-      - local-net
+      - crawlchat-net
 
   mongo-init:
     image: mongo:7
@@ -126,7 +126,7 @@ services:
       mongosh --host database:27017 --eval 'rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"database:27017\"}]})'
       "]
     networks:
-      - local-net
+      - crawlchat-net
 
   redis:
     image: redis:7
@@ -139,14 +139,14 @@ services:
       timeout: 2s
       retries: 12
     volumes:
-      - local_redis_data:/data
+      - crawlchat_redis_data:/data
     networks:
-      - local-net
+      - crawlchat-net
 
 networks:
-  local-net:
+  crawlchat-net:
     driver: bridge
 
 volumes:
-  local_mongo_data:
-  local_redis_data:
+  crawlchat_mongo_data:
+  crawlchat_redis_data:

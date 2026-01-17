@@ -190,7 +190,7 @@ These variables should be set consistently across all services:
   - Replica set name: `rs0`
   - No authentication enabled (for self-hosting)
   - Health checks enabled
-- **Volumes**: `mongo_data` (persistent storage)
+- **Volumes**: `crawlchat_mongo_data` (persistent storage)
 - **Initialization**: The `mongo-init` service automatically initializes the replica set
 
 ### Redis Service
@@ -200,7 +200,7 @@ These variables should be set consistently across all services:
 - **Configuration**:
   - AOF (Append Only File) persistence enabled
   - Health checks enabled
-- **Volumes**: `redis_data` (persistent storage)
+- **Volumes**: `crawlchat_redis_data` (persistent storage)
 - **Purpose**: Queue management for source-sync service
 
 ## Network Configuration
