@@ -93,21 +93,22 @@ async function updateKnowledgeBase() {
   exit(0);
 }
 
-function getCliArg(argName: string): string | null {
-  const args = process.argv;
-  const argIndex = args.indexOf(`--${argName}`);
-
-  if (argIndex !== -1 && argIndex + 1 < args.length) {
-    return args[argIndex + 1];
-  }
-
-  return null;
-}
-
 async function weeklyUpdate() {
-  const scrapes = await prisma.scrape.findMany({});
+  const scrapes = await prisma.scrape.findMany({
+    include: {
+      user: true,
+    },
+  });
 
   for (const scrape of scrapes) {
+    if (
+      !scrape.user.plan ||
+      !scrape.user.plan.subscriptionId ||
+      scrape.user.plan.status !== "ACTIVE"
+    ) {
+      continue;
+    }
+
     console.log(`Sending weekly update for scrape ${scrape.id}`);
     const response = await fetch(`${process.env.FRONT_URL}/email-alert`, {
       method: "POST",
@@ -124,6 +125,17 @@ async function weeklyUpdate() {
       console.error(response.statusText);
     }
   }
+}
+
+function getCliArg(argName: string): string | null {
+  const args = process.argv;
+  const argIndex = args.indexOf(`--${argName}`);
+
+  if (argIndex !== -1 && argIndex + 1 < args.length) {
+    return args[argIndex + 1];
+  }
+
+  return null;
 }
 
 async function main() {
