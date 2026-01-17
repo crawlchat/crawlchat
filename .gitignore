@@ -1,3 +1,6 @@
 .DS_Store
 .venv
 .vscode
+
+# Docker
+docker-compose.override.yml
