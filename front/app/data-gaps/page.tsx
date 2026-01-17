@@ -196,7 +196,7 @@ export default function DataGapsPage({ loaderData }: Route.ComponentProps) {
             significant information is found in the knowledge base. It is worth
             to take a look at these topics and either add it your knowledge base
             (or the external documentation) or delete it if it is not
-            appropriate or signification.
+            appropriate or significant.
           </div>
           <div className="flex flex-col gap-4">
             {loaderData.messages.map((message) => (

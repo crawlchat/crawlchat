@@ -1,7 +1,6 @@
 import { Prisma, prisma } from "libs/prisma";
-import { PLAN_FREE, activatePlan } from "libs/user-plan";
+import { PLAN_FREE, activatePlan, planMap } from "libs/user-plan";
 import { sendTeamJoinEmail, sendWelcomeEmail } from "~/email";
-import { Resend } from "resend";
 import { DodoPayments } from "dodopayments";
 import { productIdPlanMap } from "~/payment/gateway-dodo";
 
@@ -72,17 +71,11 @@ export async function signUpNewUser(
 
     await sendWelcomeEmail(email);
 
-    try {
-      const resend = new Resend(process.env.RESEND_KEY);
-      resend.contacts.create({
-        email: email,
-        firstName: user.name ?? "",
-        lastName: "",
-        unsubscribed: false,
-        audienceId: "d9f508e2-deda-412a-a675-563b65052113",
+    if (process.env.DEFAULT_SIGNUP_PLAN_ID) {
+      await activatePlan(user.id, planMap[process.env.DEFAULT_SIGNUP_PLAN_ID], {
+        provider: "CUSTOM",
+        subscriptionId: "default",
       });
-    } catch (e) {
-      console.error("Error adding to audience", e);
     }
   }
 

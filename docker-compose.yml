@@ -1,0 +1,152 @@
+services:
+  front:
+    image: ghcr.io/crawlchat/crawlchat-front:latest
+    networks:
+      - local-net
+    depends_on:
+      - database
+    ports:
+      - "localhost:3001:3000"
+    environment:
+      SELF_HOSTED: "true"
+      DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
+      JWT_SECRET: "a-long-secret"
+      VITE_APP_URL: "http://localhost:3001"
+      VITE_SERVER_WS_URL: "ws://localhost:3002"
+      VITE_SERVER_URL: "http://localhost:3002"
+      VITE_SOURCE_SYNC_URL: "http://localhost:3003"
+      DEFAULT_SIGNUP_PLAN_ID: "accelerate-yearly"
+      # optional
+      RESEND_FROM_EMAIL: ""
+      RESEND_KEY: ""
+      GOOGLE_CLIENT_ID: ""
+      GOOGLE_CLIENT_SECRET: ""
+      GOOGLE_REDIRECT_URI: ""
+      ADMIN_EMAILS: ""
+
+  server:
+    image: ghcr.io/crawlchat/crawlchat-server:latest
+    networks:
+      - local-net
+    depends_on:
+      - database
+    ports:
+      - "localhost:3002:3000"
+    environment:
+      SELF_HOSTED: "true"
+      DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
+      JWT_SECRET: "a-long-secret"
+      SOURCE_SYNC_URL: "http://source_sync:3000"
+      PINECONE_API_KEY: "<PINECONE_API_KEY>"
+      OPENROUTER_API_KEY: "<OPENROUTER_API_KEY>"
+      # optional
+      ADMIN_EMAILS: ""
+
+  source_sync:
+    image: ghcr.io/crawlchat/crawlchat-source-sync:latest
+    depends_on:
+      - redis
+      - database
+    ports:
+      - "localhost:3003:3000"
+    networks:
+      - local-net
+    environment:
+      SELF_HOSTED: "true"
+      DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
+      JWT_SECRET: "a-long-secret"
+      PINECONE_API_KEY: "<PINECONE_API_KEY>"
+      REDIS_URL: "redis://redis:6379"
+      GROUP_QUEUE_NAME: "crawlchat_source_sync_groups"
+      ITEM_QUEUE_NAME: "crawlchat_source_sync_items"
+      # optional
+      SCRAPECREATORS_API_KEY: ""
+      GITHUB_TOKEN: ""
+
+  discord_bot:
+    image: ghcr.io/crawlchat/crawlchat-discord:latest
+    depends_on:
+      - database
+    networks:
+      - local-net
+    environment:
+      SELF_HOSTED: "true"
+      APP_ID: ""
+      DISCORD_TOKEN: ""
+      PUBLIC_KEY: ""
+      BOT_USER_ID: ""
+      ALL_BOT_USER_IDS: ""
+      SERVER_HOST: ""
+      JWT_SECRET: "a-long-secret"
+      
+  slack_app:
+    image: ghcr.io/crawlchat/crawlchat-slack:latest
+    depends_on:
+      - database
+    ports:
+      - "localhost:3004:3000"
+    networks:
+      - local-net
+    environment:
+      SELF_HOSTED: "true"
+      DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
+      SERVER_HOST: "http://localhost:3002"
+      JWT_SECRET: "a-long-secret"
+      SLACK_SIGNING_SECRET: ""
+      SLACK_CLIENT_ID: ""
+      SLACK_CLIENT_SECRET: ""
+      SLACK_STATE_SECRET: ""
+      HOST: ""
+
+  database:
+    image: mongo:7
+    restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--noauth"]
+    healthcheck:
+      test: mongosh --eval "db.adminCommand('ping')" --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    volumes:
+      - local_mongo_data:/data/db
+    networks:
+      - local-net
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+    entrypoint: ["sh", "-c", "
+      until mongosh --host database:27017 --eval 'db.runCommand({ ping: 1 })'; do
+      echo 'Waiting for Mongo...'; sleep 2;
+      done;
+      mongosh --host database:27017 --eval 'rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"database:27017\"}]})'
+      "]
+    networks:
+      - local-net
+
+  redis:
+    image: redis:7
+    container_name: crawlchat-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+    volumes:
+      - local_redis_data:/data
+    networks:
+      - local-net
+
+networks:
+  local-net:
+    driver: bridge
+
+volumes:
+  local_mongo_data:
+  local_redis_data:

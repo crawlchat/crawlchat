@@ -24,6 +24,7 @@ export function useChatBox({
   sidePanel,
   secret,
   defaultQuery,
+  initialTheme,
 }: {
   scrape: Scrape;
   thread: Thread | null;
@@ -36,6 +37,7 @@ export function useChatBox({
   sidePanel?: boolean;
   secret?: string | null;
   defaultQuery?: string | null;
+  initialTheme?: "light" | "dark" | "system" | null;
 }) {
   const pinFetcher = useFetcher();
   const unpinFetcher = useFetcher();
@@ -76,7 +78,7 @@ export function useChatBox({
       null,
     [thread]
   );
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark" | "system">(initialTheme ?? "light");
   const [internalLinkHosts, setInternalLinkHosts] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState<{
     title: string;
@@ -107,7 +109,9 @@ export function useChatBox({
   }, []);
 
   useEffect(() => {
-    if (sidePanel) return;
+    if (initialTheme) {
+      return setTheme(initialTheme);
+    }
 
     const isDarkMode = window.matchMedia(
       "(prefers-color-scheme: dark)"
@@ -121,7 +125,7 @@ export function useChatBox({
 
     mediaQuery.addEventListener("change", handleThemeChange);
     return () => mediaQuery.removeEventListener("change", handleThemeChange);
-  }, [sidePanel]);
+  }, [sidePanel, initialTheme]);
 
   useEffect(() => {
     if (createThreadFetcher.data) {
@@ -439,6 +443,7 @@ export function ChatBoxProvider({
   sidePanel,
   secret,
   defaultQuery,
+  initialTheme,
 }: {
   children: React.ReactNode;
   scrape: Scrape;
@@ -452,6 +457,7 @@ export function ChatBoxProvider({
   sidePanel?: boolean;
   secret?: string | null;
   defaultQuery?: string | null;
+  initialTheme?: "light" | "dark" | "system" | null;
 }) {
   const chatBox = useChatBox({
     scrape,
@@ -465,6 +471,7 @@ export function ChatBoxProvider({
     sidePanel,
     secret,
     defaultQuery,
+    initialTheme,
   });
   return (
     <ChatBoxContext.Provider value={chatBox}>

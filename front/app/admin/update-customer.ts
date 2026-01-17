@@ -1,15 +1,8 @@
 import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/update-customer";
 import { redirect } from "react-router";
-import { DodoPayments } from "dodopayments";
 import { adminEmails } from "./emails";
-
-const client = new DodoPayments({
-  bearerToken: process.env.DODO_API_KEY!,
-  environment:
-    (process.env.DODO_ENVIRONMENT as "live_mode" | "test_mode" | undefined) ??
-    "live_mode",
-});
+import { getDodoClient } from "~/payment/gateway-dodo";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -24,7 +17,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (!email || !newName) {
     return new Response(
-      JSON.stringify({ error: "email and newName query parameters are required" }),
+      JSON.stringify({
+        error: "email and newName query parameters are required",
+      }),
       {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -32,18 +27,16 @@ export async function loader({ request }: Route.LoaderArgs) {
     );
   }
 
+  const client = getDodoClient();
   const customerList = await client.customers.list({
     email,
   });
 
   if (!customerList.items || customerList.items.length === 0) {
-    return new Response(
-      JSON.stringify({ error: "Customer not found" }),
-      {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Customer not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const customer = customerList.items[0];

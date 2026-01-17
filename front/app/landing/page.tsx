@@ -1,5 +1,5 @@
 import type { Route } from "./+types/page";
-import type { PropsWithChildren, ReactNode } from "react";
+import type { HTMLAttributes, PropsWithChildren, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
   TbArrowRight,
@@ -12,6 +12,7 @@ import {
   TbBrandNotion,
   TbBrandSlack,
   TbBrandX,
+  TbCalendar,
   TbChartBar,
   TbChartBarOff,
   TbCheck,
@@ -67,6 +68,7 @@ import { FaConfluence, FaMicrophone } from "react-icons/fa";
 import { Logo } from "~/components/logo";
 import { MCPIcon } from "~/components/mcp-icon";
 import toast, { Toaster } from "react-hot-toast";
+import { RiChatVoiceAiFill } from "react-icons/ri";
 
 export function meta() {
   return makeMeta({
@@ -149,48 +151,6 @@ export async function loader() {
   };
 }
 
-function sanitiseUrl(url: string) {
-  if (!url.startsWith("http")) {
-    url = "https://" + url;
-  }
-  return url;
-}
-
-function isUrlValid(url: string) {
-  try {
-    new URL(url);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-export async function action({ request }: Route.ActionArgs) {
-  const formData = await request.formData();
-  const intent = formData.get("intent");
-
-  if (intent === "site-use-case") {
-    const url = formData.get("url") as string;
-    const sanitisedUrl = sanitiseUrl(url);
-    if (!isUrlValid(sanitisedUrl)) {
-      return { error: "Invalid URL" };
-    }
-    const result = await fetch(`${process.env.VITE_SERVER_URL}/site-use-case`, {
-      method: "POST",
-      body: JSON.stringify({ url: sanitisedUrl }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const json = await result.json();
-    console.log(json);
-    if (!result.ok) {
-      return { error: json.error };
-    }
-    return { result: json };
-  }
-}
-
 export function Container({ children }: PropsWithChildren) {
   return (
     <div className="flex justify-center">
@@ -205,9 +165,16 @@ function NavLink({
   children,
   href,
   tooltip,
-}: PropsWithChildren<{ href: string; tooltip?: string }>) {
+  className,
+}: PropsWithChildren<{ href: string; tooltip?: string; className?: string }>) {
   return (
-    <a href={href} className="hover:underline relative">
+    <a
+      href={href}
+      className={cn(
+        "hover:underline relative flex items-center gap-2",
+        className
+      )}
+    >
       {children}
       {tooltip && (
         <div
@@ -267,6 +234,29 @@ function Stats({
   );
 }
 
+function UsedByItem({
+  children,
+  ...props
+}: HTMLAttributes<HTMLAnchorElement> & {
+  href: string;
+  target?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      {...props}
+      className={cn(
+        "flex items-center gap-2 shrink-0 grayscale",
+        "hover:grayscale-0 transition-all",
+        props.className
+      )}
+    >
+      {children}
+    </a>
+  );
+}
+
 export function UsedBy() {
   return (
     <div className="flex flex-col gap-8">
@@ -274,55 +264,72 @@ export function UsedBy() {
         Trusted by leading companies
       </h3>
 
-      <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-16">
-        <img
-          src="/used-by/remotion.png"
-          alt="Remotion"
-          className="max-h-[38px] shrink-0"
-        />
+      <div
+        className={cn(
+          "flex justify-center items-center gap-8 md:gap-16",
+          "flex-wrap"
+        )}
+      >
+        <UsedByItem href="https://remotion.dev" target="_blank">
+          <img
+            src="/used-by/remotion.png"
+            alt="Remotion"
+            className="max-h-[38px] shrink-0 grayscale hover:grayscale-0 transition-all"
+          />
+        </UsedByItem>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <UsedByItem href="https://konvajs.org" target="_blank">
           <img
             src="/used-by/konvajs.png"
             alt="Konva"
             className="max-h-[38px]"
           />
           <div className="font-medium text-xl">Konvajs</div>
-        </div>
+        </UsedByItem>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <UsedByItem href="https://270degrees.nl" target="_blank">
           <img
             src="/used-by/270logo.svg"
             alt="270Degrees.nl"
             className="max-h-[38px]"
           />
           <div className="font-medium text-xl">270Degrees</div>
-        </div>
+        </UsedByItem>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <UsedByItem href="https://polotno.com" target="_blank">
           <img
             src="/used-by/polotno.png"
             alt="Polotno"
             className="max-h-[38px]"
           />
           <div className="font-medium text-xl">Polotno</div>
-        </div>
+        </UsedByItem>
 
-        <img
-          src="/used-by/backpack-laravel.png"
-          alt="Backpack for Laravel"
-          className="max-h-[38px]"
-        />
-
-        <div className="bg-gray-900 rounded-box p-4 px-6 pb-3 rounded-full shrink-0">
+        <UsedByItem href="https://backpackforlaravel.com" target="_blank">
           <img
-            src="/used-by/postiz.svg"
-            alt="Postiz"
-            className="max-h-[24px]"
+            src="/used-by/backpack-laravel.png"
+            alt="Backpack for Laravel"
+            className="max-h-[38px]"
           />
-        </div>
+        </UsedByItem>
 
-        <img src="/used-by/nobl9.png" alt="Nobl9" className="max-h-[38px]" />
+        <UsedByItem href="https://postiz.com" target="_blank">
+          <div className="bg-gray-900 rounded-box p-3 px-4 pb-2 rounded-full shrink-0">
+            <img
+              src="/used-by/postiz.svg"
+              alt="Postiz"
+              className="max-h-[24px] grayscale"
+            />
+          </div>
+        </UsedByItem>
+
+        <UsedByItem href="https://nobl9.com" target="_blank">
+          <img
+            src="/used-by/nobl9.png"
+            alt="Nobl9"
+            className="max-h-[38px] grayscale"
+          />
+        </UsedByItem>
       </div>
     </div>
   );
@@ -901,6 +908,12 @@ export function PricingSwitch({
   yearly: boolean;
   setYearly: (yearly: boolean) => void;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   function handleYearlyChange(yearly: boolean) {
     setYearly(yearly);
     track("pricing_" + (yearly ? "yearly" : "monthly"), {});
@@ -914,12 +927,14 @@ export function PricingSwitch({
       >
         Monthly
       </span>
-      <input
-        type="checkbox"
-        checked={yearly}
-        onChange={() => handleYearlyChange(!yearly)}
-        className="toggle toggle-lg"
-      />
+      {mounted && (
+        <input
+          type="checkbox"
+          checked={yearly}
+          onChange={() => handleYearlyChange(!yearly)}
+          className="toggle toggle-lg"
+        />
+      )}
       <span
         className="text-lg relative cursor-pointer"
         onClick={() => handleYearlyChange(true)}
@@ -958,6 +973,22 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
       <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
         <PricingBoxes plans={plans} yearly={isYearly} />
       </div>
+
+      <div className="my-20 flex flex-col items-center">
+        <Heading>Still not sure?</Heading>
+        <HeadingDescription>
+          Book a demo with the maker - Pramod and understand how CrawlChat can
+          help you steamline your documentation and support processes
+        </HeadingDescription>
+        <Link
+          to="https://cal.com/crawlchat/demo"
+          target="_blank"
+          className="btn btn-primary btn-outline btn-xl w-full md:w-auto"
+        >
+          Book a demo
+          <TbCalendar />
+        </Link>
+      </div>
     </div>
   );
 }
@@ -965,15 +996,14 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
 export function CTA({ text }: { text?: string }) {
   return (
     <div className="mt-32" id="cta">
-      <div className="w-full py-16 px-10 relative border-t-4 border-b-4 border-dashed border-primary">
+      <div className="w-full py-16 px-10 relative border-t-4 border-dashed border-primary/20">
         <h2
           className={cn(
-            "font-radio-grotesk text-[42px] md:text-[54px] leading-[1.2]",
+            "font-radio-grotesk text-[42px] leading-[1.2]",
             "font-medium text-center max-w-[900px] mx-auto"
           )}
         >
-          {text ||
-            "Deliver AI powered technical documentation to your community and internal teams today!"}
+          {text || "Power up your tech documentation with AI today!"}
         </h2>
 
         <div className="flex justify-center mt-8">
@@ -1005,7 +1035,7 @@ function FooterLink({
 
 export function Footer() {
   return (
-    <footer className="bg-base-100">
+    <footer className="bg-base-100 border-t border-base-300">
       <Container>
         <div className="py-8 flex flex-col md:flex-row gap-8">
           <div className="flex-[2] flex flex-col gap-4">
@@ -1036,39 +1066,39 @@ export function Footer() {
                 <img
                   src="/used-by/remotion.png"
                   alt="Remotion"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <img
                   src="/used-by/konvajs.png"
                   alt="Konva"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <img
                   src="/used-by/270logo.svg"
                   alt="270Degrees"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <img
                   src="/used-by/polotno.png"
                   alt="Polotno"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <img
                   src="/used-by/backpack-laravel.png"
                   alt="Backpack for Laravel"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
                 <div className="bg-black px-2 rounded-full">
                   <img
                     src="/used-by/postiz.svg"
                     alt="Postiz"
-                    className="max-h-4 inline-block"
+                    className="max-h-4 inline-block grayscale"
                   />
                 </div>
                 <img
                   src="/used-by/nobl9.png"
                   alt="Nobl9"
-                  className="max-h-6 inline-block"
+                  className="max-h-6 inline-block grayscale"
                 />
               </div>
             </div>
@@ -1146,14 +1176,9 @@ export function Footer() {
               <li>
                 <FooterLink href="/discord-bot">Discord bot</FooterLink>
               </li>
-              {/* <li>
-                <FooterLink href="https://crawlchat.affonso.io" external>
-                  Affiliate program{" "}
-                  <span className="whitespace-nowrap text-primary text-sm">
-                    30% commission!
-                  </span>
-                </FooterLink>
-              </li> */}
+              <li>
+                <FooterLink href="/open-source">Open source</FooterLink>
+              </li>
             </ul>
           </div>
           <div className="flex-[1]">
@@ -1169,20 +1194,25 @@ export function Footer() {
               </li>
             </ul>
 
-            <ul className="flex gap-6 mt-4">
+            <ul className="flex gap-4 mt-4">
               <li>
-                <a href="mailto:support@crawlchat.app">
-                  <TbMail />
+                <a href="https://github.com/crawlchat/crawlchat">
+                  <TbBrandGithub />
                 </a>
               </li>
               <li>
-                <a href="https://x.com/pramodk73">
+                <a href="https://x.com/crawlchat">
                   <TbBrandX />
                 </a>
               </li>
               <li>
                 <a href="https://discord.gg/zW3YmCRJkC">
                   <TbBrandDiscord />
+                </a>
+              </li>
+              <li>
+                <a href="mailto:support@crawlchat.app">
+                  <TbMail />
                 </a>
               </li>
             </ul>
@@ -1193,7 +1223,183 @@ export function Footer() {
   );
 }
 
-export function Nav({ user }: { user?: User | null }) {
+function CaseStudyDropdown() {
+  return (
+    <div className="dropdown">
+      <div
+        tabIndex={0}
+        role="button"
+        className="flex items-center gap-2 cursor-pointer"
+      >
+        Case studies
+        <TbChevronDown />
+      </div>
+      <ul
+        tabIndex={0}
+        className={cn(
+          "dropdown-content menu bg-base-200 rounded-box z-1 w-72 p-2",
+          "shadow-lg mt-4"
+        )}
+      >
+        <li>
+          <Link
+            className="flex gap-2 items-center group"
+            to="/case-study/remotion"
+          >
+            <img
+              src="https://raw.githubusercontent.com/remotion-dev/brand/main/logo.svg"
+              alt="Remotion"
+              className="max-h-5 inline-block grayscale group-hover:grayscale-0 transition-all"
+            />
+            Remotion
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            className="flex gap-2 items-center group"
+            to="/case-study/polotno"
+          >
+            <img
+              src="/used-by/polotno.png"
+              alt="Polotno"
+              className="max-h-5 inline-block grayscale group-hover:grayscale-0 transition-all"
+            />
+            Polotno
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            className="flex gap-2 items-center group"
+            to="/case-study/postiz"
+          >
+            <img
+              src="https://cms.postiz.com/wp-content/uploads/2024/06/newfav.png"
+              alt="Postiz"
+              className="max-h-5 inline-block grayscale group-hover:grayscale-0 transition-all"
+            />
+            Postiz
+          </Link>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function BurgerMenu({
+  user,
+  githubStars,
+}: {
+  user?: User | null;
+  githubStars?: number;
+}) {
+  return (
+    <div className="dropdown dropdown-end">
+      <div tabIndex={0} role="button" className="btn btn-square">
+        <TbMenu2 />
+      </div>
+      <ul
+        tabIndex={-1}
+        className={cn(
+          "dropdown-content menu bg-base-200 rounded-box z-1 w-42 p-2 shadow-sm",
+          "mt-2"
+        )}
+      >
+        {githubStars && (
+          <li>
+            <a href="https://github.com/crawlchat/crawlchat" target="_blank">
+              <TbBrandGithub />
+              {githubStars} stars
+            </a>
+          </li>
+        )}
+        {!user && (
+          <li>
+            <Link to="/pricing">Start free trial</Link>
+          </li>
+        )}
+        {!user && (
+          <li>
+            <a href="/login">Login</a>
+          </li>
+        )}
+        {user && (
+          <li>
+            <a href="/app">Dashboard</a>
+          </li>
+        )}
+        <li>
+          <a href="/pricing">Pricing</a>
+        </li>
+        <li>
+          <a href="/changelog">Changelog</a>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+function UseCasesDropdown() {
+  return (
+    <div className="dropdown">
+      <div
+        tabIndex={0}
+        role="button"
+        className="flex items-center gap-2 cursor-pointer"
+      >
+        Use cases
+        <TbChevronDown />
+      </div>
+      <ul
+        tabIndex={0}
+        className={cn(
+          "dropdown-content menu bg-base-200 rounded-box z-1 w-72 p-2",
+          "shadow-lg mt-4"
+        )}
+      >
+        <li>
+          <Link
+            className="flex flex-col gap-0 items-start"
+            to="/use-case/community-support"
+          >
+            <span className="flex items-center gap-2">
+              <TbUsers />
+              Community support
+            </span>
+            <span className="text-sm text-base-content/50">
+              Let your community get the answers from your docs instantly
+            </span>
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            className="flex flex-col gap-0 items-start"
+            to="/use-case/empower-gtm-teams"
+          >
+            <span className="flex items-center gap-2">
+              <TbRobotFace />
+              Internal assistant
+            </span>
+            <span className="text-sm text-base-content/50">
+              Let your internal teams have a unified knowledge base. Best for
+              GTM teams
+            </span>
+          </Link>
+        </li>
+      </ul>
+    </div>
+  );
+}
+
+export function Nav({
+  user,
+  githubStars,
+}: {
+  user?: User | null;
+  githubStars?: number;
+}) {
   return (
     <div
       className={cn(
@@ -1212,124 +1418,53 @@ export function Nav({ user }: { user?: User | null }) {
           <Logo />
         </Link>
 
-        <div className="flex items-center gap-8">
-          <div className="items-center gap-8 hidden md:flex">
-            <div className="dropdown">
-              <div
-                tabIndex={0}
-                role="button"
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                Use cases
-                <TbChevronDown />
-              </div>
-              <ul
-                tabIndex={0}
-                className={cn(
-                  "dropdown-content menu bg-base-200 rounded-box z-1 w-72 p-2",
-                  "shadow-lg mt-4"
-                )}
-              >
-                <li>
-                  <Link
-                    className="flex flex-col gap-0 items-start"
-                    to="/use-case/community-support"
-                  >
-                    <span className="flex items-center gap-2">
-                      <TbUsers />
-                      Community support
-                    </span>
-                    <span className="text-sm text-base-content/50">
-                      Let your community get the answers from your docs
-                      instantly
-                    </span>
-                  </Link>
-                </li>
+        <div className="flex items-center gap-6">
+          {githubStars && (
+            <NavLink
+              href="https://github.com/crawlchat/crawlchat"
+              className={cn("text-primary shrink-0 hidden md:flex")}
+            >
+              <TbBrandGithub />
+              <span>{githubStars} stars</span>
+            </NavLink>
+          )}
 
-                <li>
-                  <Link
-                    className="flex flex-col gap-0 items-start"
-                    to="/use-case/empower-gtm-teams"
-                  >
-                    <span className="flex items-center gap-2">
-                      <TbRobotFace />
-                      Internal assistant
-                    </span>
-                    <span className="text-sm text-base-content/50">
-                      Let your internal teams have a unified knowledge base.
-                      Best for GTM teams
-                    </span>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <NavLink href="/pricing">Pricing</NavLink>
-            <NavLink href="/changelog">Changelog</NavLink>
-            <NavLink href="/blog">Blog</NavLink>
+          <div className="hidden md:block">
+            <CaseStudyDropdown />
           </div>
 
-          <div>
-            <div className="items-center gap-8 hidden md:flex">
-              {!user && <Link to="/login">Login</Link>}
-              {!user && (
-                <div className="hidden md:block">
-                  <Link to="/pricing" className="btn btn-primary">
-                    Start free trial
-                  </Link>
-                </div>
-              )}
-              {user && (
-                <a href="/app" className="btn btn-primary">
-                  Dashboard
-                  <TbArrowRight />
-                </a>
-              )}
+          <div className="hidden lg:block">
+            <UseCasesDropdown />
+          </div>
+
+          <NavLink href="/pricing" className="hidden md:flex">
+            Pricing
+          </NavLink>
+          <NavLink href="/changelog" className="hidden lg:flex">
+            Changelog
+          </NavLink>
+
+          {!user && (
+            <Link to="/login" className="hidden md:flex">
+              Login
+            </Link>
+          )}
+          {!user && (
+            <div className="hidden md:block">
+              <Link to="/pricing" className="btn btn-primary">
+                Start free trial
+              </Link>
             </div>
-            <div className="dropdown dropdown-end md:hidden">
-              <div tabIndex={0} role="button" className="btn btn-square">
-                <TbMenu2 />
-              </div>
-              <ul
-                tabIndex={-1}
-                className={cn(
-                  "dropdown-content menu bg-base-200 rounded-box z-1 w-42 p-2 shadow-sm",
-                  "mt-2"
-                )}
-              >
-                {!user && (
-                  <li>
-                    <Link
-                      to="/pricing"
-                      className="bg-primary text-primary-content"
-                    >
-                      Start free trial
-                    </Link>
-                  </li>
-                )}
-                {!user && (
-                  <li>
-                    <a href="/login">Login</a>
-                  </li>
-                )}
-                {user && (
-                  <li>
-                    <a href="/app">Dashboard</a>
-                  </li>
-                )}
-                <li>
-                  <a href="/pricing">Pricing</a>
-                </li>
-                <li>
-                  <a href="/changelog">Changelog</a>
-                </li>
-                <li>
-                  <a href="/blog">Blog</a>
-                </li>
-                <li>
-                  <a href="/public-bots">Public bots</a>
-                </li>
-              </ul>
-            </div>
+          )}
+          {user && (
+            <a href="/app" className="btn btn-primary hidden md:flex">
+              Dashboard
+              <TbArrowRight />
+            </a>
+          )}
+
+          <div className="block md:hidden">
+            <BurgerMenu user={user} githubStars={githubStars} />
           </div>
         </div>
       </nav>
@@ -1342,16 +1477,16 @@ function Hero() {
 
   const features = [
     {
-      text: "Works on your website, Discord, and Slack",
+      text: "Works on your website, Discord, and Slack, or MCP",
       icon: <TbCode />,
+    },
+    {
+      text: "Shows you questions being asked and ways to improve your docs",
+      icon: <TbChartBar />,
     },
     {
       text: "Automatically creates support tickets when AI can't help",
       icon: <TbRobotFace />,
-    },
-    {
-      text: "Shows you what questions users ask to improve your docs",
-      icon: <TbChartBar />,
     },
   ];
 
@@ -1414,7 +1549,7 @@ function Hero() {
           through pages.
         </p>
 
-        <ul className="mt-6 flex flex-col gap-3">
+        <ul className="mt-6 flex flex-col gap-2">
           {features.map((feature, index) => (
             <li key={index} className="flex gap-3 items-start">
               <div className="text-primary rounded-box p-1 mt-0.5">
@@ -1435,12 +1570,25 @@ function Hero() {
             Start free trial
             <TbArrowRight />
           </Link>
+          <div
+            className="tooltip"
+            data-tip="Connect with the maker - Pramod and understand how CrawlChat can help your business"
+          >
+            <Link
+              to="https://cal.com/crawlchat/demo"
+              target="_blank"
+              className="btn btn-primary btn-outline btn-xl w-full md:w-auto"
+            >
+              Book a demo
+              <TbCalendar />
+            </Link>
+          </div>
         </div>
       </div>
       <div className="flex-1 flex-col">
         <div className="relative">
           <div className="border-2 border-accent rounded-box overflow-hidden shadow">
-            <iframe src="/w/crawlchat" className="w-full h-[560px]" />
+            <iframe src="/w/crawlchat?theme=light" className="w-full h-[560px]" />
           </div>
 
           <img
@@ -1515,6 +1663,7 @@ export function CustomTestimonial({
   authorLink,
   icon,
   authorCompany,
+  small,
 }: {
   text: string | ReactNode;
   author: string;
@@ -1522,10 +1671,18 @@ export function CustomTestimonial({
   authorLink: string;
   icon: ReactNode;
   authorCompany: string;
+  small?: boolean;
 }) {
   return (
     <div className="border-r-0 md:border-r border-b md:border-b-0 border-base-300 p-6 last:border-r-0 last:border-b-0">
-      <p className="text-xl font-radio-grotesk text-center italic">{text}</p>
+      <p
+        className={cn(
+          "font-radio-grotesk text-center italic",
+          !small && "text-xl"
+        )}
+      >
+        {text}
+      </p>
 
       <div className="flex flex-col justify-center gap-2 mt-8">
         <div className="flex flex-col items-center">
@@ -1557,79 +1714,83 @@ function CTHS({ children }: PropsWithChildren) {
   return <span className="text-primary font-bold">{children}</span>;
 }
 
-export function JonnyTestimonial() {
+export function JonnyTestimonial({ small }: { small?: boolean }) {
   return (
     <CustomTestimonial
       text={
-        <div>
+        <span>
           MCP, llms.txt and remotion.ai are now live! Thanks to @pramodk73 and{" "}
           <CTHS>CrawlChat</CTHS> for getting us up to speed with{" "}
           <CTH>AI integrations.</CTH>
-        </div>
+        </span>
       }
       author="Jonny Burger"
       authorImage="/testi-profile/jonny.jpg"
       authorLink="https://x.com/JNYBGR/status/1899786274635927674"
       icon={<TbBrandX />}
       authorCompany="Remotion"
+      small={small}
     />
   );
 }
 
-export function EgelhausTestimonial() {
+export function EgelhausTestimonial({ small }: { small?: boolean }) {
   return (
     <CustomTestimonial
       text={
-        <div>
+        <span>
           We can definitely recommend using CrawlChat, it's{" "}
           <CTH>easy to set up</CTH>, really <CTH>affordable</CTH>, and has great
           support. Thank you <CTHS>@pramodk73</CTHS> for making this!
-        </div>
+        </span>
       }
       author="Egelhaus"
       authorImage="/testi-profile/egelhaus.png"
       authorLink="https://github.com/egelhaus"
       icon={<TbBrandDiscord />}
       authorCompany="Postiz"
+      small={small}
     />
   );
 }
 
-export function AntonTestimonial() {
+export function AntonTestimonial({ small }: { small?: boolean }) {
   return (
     <CustomTestimonial
       text={
-        <div>
+        <span>
           Integrated <CTHS>CrawlChat</CTHS> into the new Konva docs – hats off
           to @pramodk73 for making it insanely useful. It now powers{" "}
           <CTH>"Ask AI"</CTH> widget on site, <CTH>MCP server</CTH> for docs,{" "}
           <CTH>Discord bot</CTH> for community. Smarter docs. Better support.
-        </div>
+        </span>
       }
       author="Anton Lavrenov"
       authorImage="/testi-profile/anton.png"
       authorLink="https://x.com/lavrton/status/1915467775734350149"
       icon={<TbBrandX />}
       authorCompany="Konvajs & Polotno"
+      small={small}
     />
   );
 }
 
-export function MauritsTestimonial() {
+export function MauritsTestimonial({ small }: { small?: boolean }) {
   return (
     <CustomTestimonial
       text={
-        <div>
+        <span>
           Can wholeheartedly <CTH>recommend this</CTH>. The number of support
           calls to 270 Degrees significantly <CTH>dropped</CTH> after we
           implemented <CTHS>CrawlChat</CTHS>.
-        </div>
+        </span>
       }
       author="Maurits Koekoek"
       authorImage="/testi-profile/maurits.jpeg"
       authorLink="https://www.linkedin.com/feed/update/urn:li:activity:7353688013584977920?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7353688013584977920%2C7353699420036571137%29&dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287353699420036571137%2Curn%3Ali%3Aactivity%3A7353688013584977920%29"
       icon={<TbBrandLinkedin />}
       authorCompany="270 Degrees"
+      small={small}
     />
   );
 }
@@ -2238,18 +2399,22 @@ function SourcesChannels() {
       icon: <SiLinear />,
       title: "Linear",
       tooltip: "Import your Linear issues and projects securely",
-      isNew: true,
     },
     {
       icon: <TbVideo />,
       title: "YouTube",
       tooltip: "Extract transcript from YouTube videos",
-      isNew: true,
     },
     {
       icon: <TbCode />,
       title: "API",
       tooltip: "Add pages to the knowledge base using API",
+      isNew: true,
+    },
+    {
+      icon: <TbBrandGithub />,
+      title: "Discussions",
+      tooltip: "Fetch your GitHub discussions instantly",
       isNew: true,
     },
   ];
@@ -2312,7 +2477,7 @@ function SourcesChannels() {
 
       <div className="flex flex-col bg-base-100 py-8 gap-8">
         <div className="inline-flex gap-4 flex-nowrap infinite-scroll-container">
-          {Array.from(Array(4)).map((i) => (
+          {Array.from(Array(4)).map((_, i) => (
             <div key={i} className="flex gap-4 animate-infinite-scroll">
               {sources.map((source, index) => (
                 <div
@@ -2332,7 +2497,7 @@ function SourcesChannels() {
         </div>
 
         <div className="inline-flex gap-4 flex-nowrap infinite-scroll-container">
-          {Array.from(Array(4)).map((i) => (
+          {Array.from(Array(4)).map((_, i) => (
             <div key={i} className="flex gap-4 animate-infinite-scroll-reverse">
               {channels.map((channel, index) => (
                 <ChannelCard
@@ -2670,6 +2835,59 @@ function Why() {
   );
 }
 
+export function OpenSource() {
+  return (
+    <div
+      className={cn(
+        "mt-32 open-source-bg p-6 md:p-12 rounded-box",
+        "border border-primary/20 -rotate-1 shadow-xl",
+        "flex flex-col items-center gap-10"
+      )}
+    >
+      <h3
+        className={cn("text-4xl md:text-5xl font-radio-grotesk", "text-center")}
+      >
+        <span
+          className={cn(
+            "inline-flex items-center gap-2 text-primary flex-nowrap",
+            "translate-y-[5px] md:translate-y-2"
+          )}
+        >
+          <RiChatVoiceAiFill /> CrawlChat
+        </span>{" "}
+        <span>is</span>{" "}
+        <span className="font-bold text-accent">open source</span>{" "}
+        <span>now!</span>
+      </h3>
+
+      <p className="text-2xl text-center max-w-3xl">
+        Want to <span className="text-accent">self-host</span> it for yourself?
+        Now you can run the entire platform on your servers and customise it to
+        your needs. Or{" "}
+        <a
+          className="text-accent hover:underline"
+          href="https://github.com/crawlchat/crawlchat/pulls"
+          target="_blank"
+        >
+          submit a PR
+        </a>{" "}
+        to contribute to the project!
+      </p>
+
+      <div className="flex justify-center">
+        <a
+          href="https://github.com/crawlchat/crawlchat"
+          target="_blank"
+          className="btn btn-primary btn-xl"
+        >
+          View on GitHub
+          <TbBrandGithub />
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function Landing({ loaderData }: Route.ComponentProps) {
   return (
     <>
@@ -2713,6 +2931,10 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
 
       <Container>
         <Why />
+      </Container>
+
+      <Container>
+        <OpenSource />
       </Container>
 
       <Container>

@@ -80,15 +80,17 @@ const typeMap: Record<string, PaymentGatewayWebhookType> = {
   "payment.succeeded": "payment_success",
 };
 
-const client = new DodoPayments({
-  bearerToken: process.env.DODO_API_KEY!,
-  environment:
-    (process.env.DODO_ENVIRONMENT as "live_mode" | "test_mode" | undefined) ??
-    "live_mode",
-});
+export function getDodoClient() {
+  return new DodoPayments({
+    bearerToken: process.env.DODO_API_KEY!,
+    environment:
+      (process.env.DODO_ENVIRONMENT as "live_mode" | "test_mode" | undefined) ??
+      "live_mode",
+  });
+}
 
 async function getCustomer(email: string) {
-  const list = await client.customers.list({
+  const list = await getDodoClient().customers.list({
     email,
   });
   return list.items[0];
@@ -168,11 +170,13 @@ export const dodoGateway: PaymentGateway = {
         };
       }
     }
-    const checkoutSession = await client.checkoutSessions.create(body);
+
+    const checkoutSession = await getDodoClient().checkoutSessions.create(body);
 
     return { url: checkoutSession.checkout_url };
   },
   getCustomerPortalUrl: async (subscriptionId) => {
+    const client = getDodoClient();
     const subscription = await client.subscriptions.retrieve(subscriptionId);
     const session = await client.customers.customerPortal.create(
       subscription.customer.customer_id

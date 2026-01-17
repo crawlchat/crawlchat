@@ -224,7 +224,24 @@ function AssistantMessage({
                         {link.title || link.url}
                       </RouterLink>
                     </td>
-                    <td className="w-18 md:w-56">{link.searchQuery ?? "-"}</td>
+                    <td className="w-18 md:w-56">
+                      {link.searchQuery ? (
+                        <div
+                          className="tooltip"
+                          data-tip="Search in the knowledge base"
+                        >
+                          <Link
+                            className="link link-hover link-primary"
+                            to={`/knowledge?query=${link.searchQuery}`}
+                            target="_blank"
+                          >
+                            {link.searchQuery}
+                          </Link>
+                        </div>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
                     <td className="w-24">
                       {link.score && <ScoreBadge score={link.score} />}
                     </td>

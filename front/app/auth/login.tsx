@@ -14,6 +14,8 @@ import {
   MauritsTestimonial,
 } from "~/landing/page";
 import cn from "@meltdownjs/cn";
+import { RateLimiter } from "libs/rate-limiter";
+import { getClientIp } from "~/client-ip";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request, { dontRedirect: true });
@@ -22,9 +24,29 @@ export async function loader({ request }: Route.LoaderArgs) {
     return redirect("/app");
   }
 
+  const session = await getSession(request.headers.get("cookie"));
   const searchParams = new URL(request.url).searchParams;
 
-  return { mailSent: !!searchParams.has("mail-sent") };
+  const error = session.get("error");
+  if (error) {
+    session.unset("error" as any);
+  }
+
+  const cookie = await commitSession(session);
+
+  return Response.json(
+    {
+      mailSent: !!searchParams.has("mail-sent"),
+      error,
+      selfHosted: process.env.SELF_HOSTED,
+      turnstileSiteKey: process.env.VITE_TURNSTILE_SITE_KEY,
+    },
+    {
+      headers: {
+        "Set-Cookie": cookie,
+      },
+    }
+  );
 }
 
 export function meta() {
@@ -33,7 +55,58 @@ export function meta() {
   });
 }
 
+const loginRateLimiter = new RateLimiter(10, "login");
+const rateLimiters: Record<string, RateLimiter> = {};
+
+async function verifyTurnstileToken(token: string, remoteip: string) {
+  const formData = new FormData();
+  formData.append("secret", process.env.TURNSTILE_SECRET_KEY!);
+  formData.append("response", token);
+  formData.append("remoteip", remoteip);
+  const response = await fetch(
+    `https://challenges.cloudflare.com/turnstile/v0/siteverify`,
+    {
+      method: "POST",
+      body: formData,
+    }
+  );
+  return await response.json();
+}
+
 export async function action({ request }: Route.ActionArgs) {
+  const clonedRequest = request.clone();
+  const formData = await clonedRequest.formData();
+
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    const turnstileResponse = await verifyTurnstileToken(
+      formData.get("cf-turnstile-response") as string,
+      getClientIp(request) || (formData.get("cf-connecting-ip") as string)
+    );
+    if (!turnstileResponse.success) {
+      return { error: "You cannot proceed further!" };
+    }
+  }
+
+  const email = formData.get("email") as string;
+
+  if (!rateLimiters[email]) {
+    rateLimiters[email] = new RateLimiter(3, email);
+  }
+
+  try {
+    rateLimiters[email].check();
+  } catch (error) {
+    console.warn("Spamming detected for email: ", email);
+    return { error: "Too many requests. Please try again later." };
+  }
+
+  try {
+    loginRateLimiter.check();
+  } catch (error) {
+    console.warn("Spamming detected for login");
+    return { error: "Too many requests. Please try again later." };
+  }
+
   const user = await authenticator.authenticate("magic-link", request);
 
   if (!user) {
@@ -51,9 +124,11 @@ export async function action({ request }: Route.ActionArgs) {
 
 export default function LoginPage() {
   const fetcher = useFetcher();
-  const { mailSent } = useLoaderData();
+  const { mailSent, error, selfHosted, turnstileSiteKey } = useLoaderData();
   const emailRef = useRef<HTMLInputElement>(null);
   const testiIndex = useMemo(() => Math.floor(Math.random() * 4), []);
+  const turnstileLoaded = useRef(false);
+  const [clientValidated, setClientValidated] = useState(!turnstileSiteKey);
 
   useEffect(() => {
     if (mailSent && emailRef.current) {
@@ -61,33 +136,50 @@ export default function LoginPage() {
     }
   }, [mailSent]);
 
+  useEffect(() => {
+    if (!turnstileSiteKey || turnstileLoaded.current) return;
+
+    turnstileLoaded.current = true;
+    (window as any).turnstile.render("#turnstile-container", {
+      sitekey: turnstileSiteKey,
+      theme: "light",
+      callback: function (token: string) {
+        if (token) {
+          setClientValidated(true);
+        }
+      },
+    });
+  }, [turnstileSiteKey]);
+
   return (
     <div
       data-theme="brand"
       className="flex h-screen w-screen gap-2 items-stretch"
     >
-      <div
-        className={cn(
-          "flex-col items-center justify-center bg-base-200 flex-1",
-          "hidden md:flex px-4 gap-0 relative",
-          "border-r border-base-300"
-        )}
-      >
-        <div className="text-2xl font-bold text-center py-4">
-          People love <span className="font-radio-grotesk">CrawlChat</span> ❤️
+      {!selfHosted && (
+        <div
+          className={cn(
+            "flex-col items-center justify-center bg-base-200 flex-1",
+            "hidden md:flex px-4 gap-0 relative",
+            "border-r border-base-300"
+          )}
+        >
+          <div className="text-2xl font-bold text-center py-4">
+            People love <span className="font-radio-grotesk">CrawlChat</span> ❤️
+          </div>
+          <div className="max-w-500px overflow-y-auto no-scrollbar pb-4 max-w-96">
+            {testiIndex === 0 && <JonnyTestimonial />}
+            {testiIndex === 1 && <AntonTestimonial />}
+            {testiIndex === 2 && <MauritsTestimonial />}
+            {testiIndex === 3 && <EgelhausTestimonial />}
+          </div>
         </div>
-        <div className="max-w-500px overflow-y-auto no-scrollbar pb-4 max-w-96">
-          {testiIndex === 0 && <JonnyTestimonial />}
-          {testiIndex === 1 && <AntonTestimonial />}
-          {testiIndex === 2 && <MauritsTestimonial />}
-          {testiIndex === 3 && <EgelhausTestimonial />}
-        </div>
-      </div>
+      )}
       <div className="flex flex-col flex-1 gap-2 h-full justify-center items-center">
         <fetcher.Form method="post">
           <div
             className={cn(
-              "flex flex-col w-82 gap-4 items-center border",
+              "flex flex-col w-94 gap-4 items-center border",
               "border-base-300 rounded-box p-6 bg-base-200 shadow"
             )}
           >
@@ -105,7 +197,6 @@ export default function LoginPage() {
                 placeholder="myemail@example.com"
                 name="email"
                 required
-                pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
               />
 
               {mailSent && (
@@ -115,10 +206,21 @@ export default function LoginPage() {
                 </div>
               )}
 
+              {(error || fetcher.data?.error) && (
+                <div role="alert" className="alert alert-error">
+                  <TbCircleX />
+                  <span>{error || fetcher.data?.error}</span>
+                </div>
+              )}
+
+              <div className="flex justify-center">
+                <div id="turnstile-container" />
+              </div>
+
               <button
                 className="btn btn-primary w-full"
                 type="submit"
-                disabled={fetcher.state !== "idle"}
+                disabled={!clientValidated || fetcher.state !== "idle"}
               >
                 {fetcher.state !== "idle" && (
                   <span className="loading loading-spinner loading-xs" />
@@ -126,13 +228,6 @@ export default function LoginPage() {
                 Login
                 <TbArrowRight />
               </button>
-
-              {fetcher.data?.error && (
-                <div role="alert" className="alert alert-error">
-                  <TbCircleX />
-                  <span>{fetcher.data.error}</span>
-                </div>
-              )}
             </div>
 
             <div className="divider m-0">OR</div>

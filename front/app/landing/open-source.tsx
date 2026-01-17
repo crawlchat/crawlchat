@@ -2,15 +2,14 @@ import { allActivePlans } from "libs/user-plan";
 import {
   Container,
   CustomTestimonials,
-  FAQ,
-  Pricing,
+  OpenSource,
   PricingFeatures,
 } from "./page";
 import { makeMeta } from "~/meta";
 
 export function meta() {
   return makeMeta({
-    title: "Pricing - CrawlChat",
+    title: "Open source - CrawlChat",
     description:
       "Make AI chatbot from your documentation that handles your support queries. Embed it in your website, Discord, or Slack.",
   });
@@ -26,7 +25,7 @@ export default function Landing() {
   return (
     <>
       <Container>
-        <Pricing noMarginTop />
+        <OpenSource />
       </Container>
 
       <Container>

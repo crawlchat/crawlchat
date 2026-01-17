@@ -65,6 +65,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const scrape = scrapes.find((s) => s.id === scrapeId);
   const plan = scrape?.user.plan?.planId
     ? planMap[scrape.user.plan.planId]
+    : user!.plan?.planId
+    ? planMap[user!.plan.planId]
     : PLAN_FREE;
 
   const dataGapMessages = scrapeId ? await fetchDataGaps(scrapeId) : [];
@@ -149,7 +151,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           >
             <SideMenu
               loggedInUser={user}
-              scrapeOwner={loaderData.scrape?.user!}
+              scrapeOwner={loaderData.scrape?.user}
               plan={loaderData.plan}
               scrapes={loaderData.scrapes}
               scrapeId={loaderData.scrapeId}

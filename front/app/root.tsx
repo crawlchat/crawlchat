@@ -6,6 +6,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
   useLocation,
   useMatches,
 } from "react-router";
@@ -18,6 +19,7 @@ declare global {
     ENV: {
       VITE_SERVER_WS_URL: string;
       VITE_SOURCE_SYNC_URL: string;
+      VITE_DATAFAST_ID: string;
     };
   }
 }
@@ -41,17 +43,21 @@ export function loader() {
     ENV: {
       VITE_SERVER_WS_URL: process.env.VITE_SERVER_WS_URL,
       VITE_SOURCE_SYNC_URL: process.env.VITE_SOURCE_SYNC_URL,
+      VITE_DATAFAST_ID: process.env.VITE_DATAFAST_ID,
     },
   };
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const loaderData = useLoaderData<typeof loader>();
   const location = useLocation();
   const matches = useMatches();
-  const shouldTrack = useMemo(() => {
-    return !/\/w\/[0-9a-fA-F]{24}/.test(location.pathname);
-  }, [location]);
+  const datafastId = useMemo(() => {
+    if (/\/w\/[0-9a-fA-F]{24}/.test(location.pathname)) return null;
+    return loaderData?.ENV.VITE_DATAFAST_ID;
+  }, [location, loaderData?.ENV.VITE_DATAFAST_ID]);
   const isLandingPage = matches.some((match) => match.id === "landing/page");
+  const isLoginPage = matches.some((match) => match.id === "auth/login");
 
   return (
     <html lang="en">
@@ -59,26 +65,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://crawlchat.app/og-1.png" />
-        {shouldTrack && (
+        <meta property="og:image" content="/og-1.png" />
+        {datafastId && (
           <script
             defer
-            data-website-id="68d97a639da288cbda55587a"
+            data-website-id={datafastId}
             data-domain="crawlchat.app"
             src="https://datafa.st/js/script.js"
-          ></script>
+          />
         )}
-        <script>
-          {"window.lemonSqueezyAffiliateConfig = { store: 'beestack' };"}
-        </script>
-        <script src="https://lmsqueezy.com/affiliate.js" defer></script>
-        <script
-          async
-          defer
-          src="https://affonso.io/js/pixel.min.js"
-          data-affonso="cmffjjn7l0055yo9yqofummw1"
-          data-cookie_duration="30"
-        ></script>
         <Meta />
         <Links />
         <script
@@ -87,6 +82,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
             __html: JSON.stringify(crawlChatSchema),
           }}
         />
+        {isLoginPage && (
+          <link rel="preconnect" href="https://challenges.cloudflare.com" />
+        )}
+        {isLoginPage && (
+          <script
+            src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+            async
+            defer
+          />
+        )}
       </head>
       <body>
         {children}
@@ -94,15 +99,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Scripts />
         {isLandingPage && (
           <script
-            src="https://crawlchat.app/embed.js"
+            src="/embed.js"
             id="crawlchat-script"
-            data-id="67dbfc7258ed87c571a04b83"
+            data-id="crawlchat"
             data-ask-ai="true"
-            data-ask-ai-background-color="#7b2cbf"
-            data-ask-ai-color="#ffffff"
-            data-ask-ai-text="💬 Ask AI"
-            data-ask-ai-position="br"
-            data-ask-ai-radius="20px"
           />
         )}
       </body>

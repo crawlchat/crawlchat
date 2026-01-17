@@ -255,7 +255,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   };
   const links = await collectSourceLinks(scrape.id, [message]);
 
-  await prisma.message.create({
+  const answerMessage = await prisma.message.create({
     data: {
       threadId: thread.id,
       scrapeId: scrape.id,
@@ -266,6 +266,10 @@ app.get("/mcp/:scrapeId", async (req, res) => {
       creditsUsed,
       questionId: questionMessage.id,
     },
+  });
+  await prisma.message.update({
+    where: { id: questionMessage.id },
+    data: { answerId: answerMessage.id },
   });
   await updateLastMessageAt(thread.id);
   res.json(processed);
@@ -281,11 +285,12 @@ app.post(
     const markdown = req.body.markdown || req.body.content;
     const title = req.body.title;
     const knowledgeGroupId = req.body.knowledgeGroupId;
+    const pages = req.body.pages;
     const url = req.body.key ?? `default-${uuidv4()}`;
 
     authoriseScrapeUser(req.user!.scrapeUsers, scrapeId, res);
 
-    if (!scrapeId || !markdown || !title) {
+    if (!pages && (!markdown || !title)) {
       res.status(400).json({ message: "Missing content or title" });
       return;
     }
@@ -336,6 +341,7 @@ app.post(
         text: markdown,
         knowledgeGroupId: knowledgeGroup.id,
         pageId: url,
+        pages,
       }),
     });
 
@@ -514,6 +520,10 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       fingerprint,
       questionId: questionMessage.id,
     },
+  });
+  await prisma.message.update({
+    where: { id: questionMessage.id },
+    data: { answerId: newAnswerMessage.id },
   });
   await updateLastMessageAt(thread.id);
 
@@ -729,6 +739,10 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
       questionId: questionMessage.id,
       fingerprint: googleChatEvent.chat.user.email,
     },
+  });
+  await prisma.message.update({
+    where: { id: questionMessage.id },
+    data: { answerId: newAnswerMessage.id },
   });
   await updateLastMessageAt(thread.id);
 
@@ -1042,7 +1056,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   });
   flow.addNextAgents(["compose-agent"]);
 
-  while (await flow.stream()) {}
+  while (await flow.stream()) { }
 
   const response = flow.getLastMessage().llmMessage.content as string;
   const { slate: newSlate, details, title: newTitle } = JSON.parse(response);
@@ -1200,7 +1214,7 @@ app.post("/fix-message", authenticate, async (req, res) => {
 
   flow.addNextAgents(["fix-agent"]);
 
-  while (await flow.stream()) {}
+  while (await flow.stream()) { }
 
   const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
   const { correctAnswer, title } = JSON.parse(content);
@@ -1302,7 +1316,7 @@ ${text}`,
   });
   flow.addNextAgents(["extract-facts-agent"]);
 
-  while (await flow.stream()) {}
+  while (await flow.stream()) { }
 
   const response = flow.getLastMessage().llmMessage.content as string;
   const parsed = JSON.parse(response);
@@ -1379,7 +1393,7 @@ Fact to check: ${fact}`,
   });
   flow.addNextAgents(["fact-check-agent"]);
 
-  while (await flow.stream()) {}
+  while (await flow.stream()) { }
 
   const response = flow.getLastMessage().llmMessage.content as string;
   const parsed = JSON.parse(response);
@@ -1392,6 +1406,25 @@ Fact to check: ${fact}`,
   await consumeCredits(scrape.userId, "messages", llmConfig.creditsPerMessage);
 
   res.json({ fact, score, reason });
+});
+
+app.get("/search-items/:scrapeId", authenticate, async (req, res) => {
+  const scrapeId = req.params.scrapeId;
+  const query = req.query.query as string;
+
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId },
+  });
+
+  authoriseScrapeUser(req.user!.scrapeUsers, scrape.id, res);
+
+  const indexer = makeIndexer({ key: scrape.indexer, topN: 20 });
+  const results = await indexer.search(scrape.id, query, {
+    topK: 50,
+  });
+  const processed = await indexer.process(query, results);
+
+  res.json({ results: processed });
 });
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {

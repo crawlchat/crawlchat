@@ -100,6 +100,7 @@ export default [
     route("ai-models", "landing/ai-models.tsx"),
 
     route("pricing", "landing/pricing.tsx"),
+    route("open-source", "landing/open-source.tsx"),
 
     ...prefix("use-case", [
       route("community-support", "landing/use-case/community-support.tsx"),
@@ -107,6 +108,8 @@ export default [
       route("discord-bot", "landing/use-case/discord-bot.tsx"),
       route("mcp", "landing/use-case/mcp.tsx"),
     ]),
+
+    route("case-study/:slug", "landing/case-study/page.tsx"),
   ]),
 
   ...prefix("admin-fowl", [
