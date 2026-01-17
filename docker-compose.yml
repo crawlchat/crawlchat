@@ -23,6 +23,8 @@ services:
       GOOGLE_CLIENT_SECRET: ""
       GOOGLE_REDIRECT_URI: ""
       ADMIN_EMAILS: ""
+      MARKER_HOST: "http://localhost:3005"
+      MARKER_API_KEY: "" # Put random characters here (same as in marker service)
 
   server:
     image: ghcr.io/crawlchat/crawlchat-server:latest
@@ -62,6 +64,17 @@ services:
       # optional
       SCRAPECREATORS_API_KEY: ""
       GITHUB_TOKEN: ""
+
+  marker:
+    image: ghcr.io/crawlchat/crawlchat-marker:latest
+    depends_on:
+      - database
+    ports:
+      - "3005:80"
+    networks:
+      - crawlchat-net
+    environment:
+      API_KEY: "" # Put random characters here (same as in front service)
 
   discord_bot:
     image: ghcr.io/crawlchat/crawlchat-discord:latest
