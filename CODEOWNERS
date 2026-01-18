@@ -1,0 +1,11 @@
+# By default @pskd73
+* @pskd73
+
+# Docker & selfhosted related Files for @egelhaus
+docker-compose.yml @egelhaus
+docker-compose-local.yml @egelhaus
+Dockerfile.* @egelhaus
+/docs/docs/self-host.md @egelhaus
+
+# Github related configs
+/.github/ @egelhaus
