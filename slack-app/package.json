@@ -15,7 +15,7 @@
     "dotenv": "^16.4.7",
     "jsonwebtoken": "^9.0.2",
     "libs": "file:../libs",
-    "slackify-markdown": "^4.5.0"
+    "slackify-markdown": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
