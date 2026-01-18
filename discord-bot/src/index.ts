@@ -507,6 +507,7 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     member.permissions.has(PermissionsBitField.Flags.ManageMessages);
 
     if (!hasRequiredPermissions) {
+      console.warn(`Unauthorized 🧩 emoji usage by ${user.id}`);
       return;
     }
 
