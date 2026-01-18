@@ -27,7 +27,7 @@
     "bullmq": "^5.66.4",
     "cheerio": "^1.1.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "ioredis": "^5.8.2",
     "libs": "file:../libs",
