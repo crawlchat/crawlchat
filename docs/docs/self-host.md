@@ -164,7 +164,7 @@ These variables should be set consistently across all services:
 #### Marker Service
 
 - **Image**: `ghcr.io/crawlchat/crawlchat-marker:latest`
-- **Port**: 80 (mapped to container port 3000)
+- **Port**: 3005 (mapped to container port 80)
 - **Dependencies**: None
 - **Purpose**: A Python app to convert files to markdown
 
