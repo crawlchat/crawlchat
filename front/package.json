@@ -91,7 +91,7 @@
     "autoprefixer": "^10.4.20",
     "daisyui": "^5.0.50",
     "postcss": "^8.4.49",
-    "react-email": "3.0.7",
+    "react-email": "5.2.5",
     "schema-dts": "^1.1.5",
     "typescript": "^5.7.2",
     "vite": "^5.4.11",
