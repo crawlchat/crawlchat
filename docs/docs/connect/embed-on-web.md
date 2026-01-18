@@ -92,7 +92,7 @@ All configuration options are set via `data-*` attributes on the script tag. Her
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `data-selectionButtons` | JSON string | - | JSON string containing button configurations for text selection tooltips.
+| `data-selectionButtons` | JSON string | - | JSON string defining buttons shown in the text selection tooltip. Provide a JSON array of button objects, e.g. `[{"label":"Ask AI","action":"ask"},{"label":"Copy","action":"copy"}]`, where each object has a `label` (button text) and `action` (identifier used by the widget), plus optional fields such as `shortcut` or `icon`. |
 
 ### Custom Tags
 
