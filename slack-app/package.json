@@ -12,7 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@slack/bolt": "^4.2.1",
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.2.3",
     "jsonwebtoken": "^9.0.2",
     "libs": "file:../libs",
     "slackify-markdown": "^4.5.0"
