@@ -34,7 +34,7 @@
     "@react-router/serve": "^7.12.0",
     "@remix-run/express": "^2.15.3",
     "@rvf/react": "^7.0.2",
-    "@rvf/react-router": "^7.0.2",
+    "@rvf/react-router": "^8.1.1",
     "@rvf/zod": "^7.0.1",
     "@tailwindcss/vite": "^4.1.12",
     "@tuesdaycrowd/sentence-transformers": "^1.0.1",
