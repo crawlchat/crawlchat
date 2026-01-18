@@ -29,7 +29,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.2.1",
-    "ioredis": "^5.8.2",
+    "ioredis": "^5.9.2",
     "libs": "file:../libs",
     "lodash": "^4.17.21",
     "markdown-to-txt": "^2.0.1",
