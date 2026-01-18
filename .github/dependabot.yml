@@ -7,10 +7,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   - package-ecosystem: "npm"
@@ -19,10 +19,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   - package-ecosystem: "npm"
@@ -31,10 +31,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   - package-ecosystem: "npm"
@@ -43,10 +43,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   - package-ecosystem: "npm"
@@ -55,10 +55,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   - package-ecosystem: "npm"
@@ -67,10 +67,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   - package-ecosystem: "npm"
@@ -79,10 +79,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   - package-ecosystem: "npm"
@@ -91,10 +91,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   - package-ecosystem: "npm"
@@ -103,10 +103,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   # Python service
@@ -116,10 +116,10 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
 
   # GitHub Actions
@@ -129,8 +129,8 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
     reviewers:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
     assignees:
-      - "${{ github.repository_owner }}"
+      - "pskd73"
       - "egelhaus"
