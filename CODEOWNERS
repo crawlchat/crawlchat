@@ -9,3 +9,6 @@ Dockerfile.* @egelhaus
 
 # Github related configs
 /.github/ @egelhaus
+
+# Discord bot related files for @egelhaus
+discord-bot/ @egelhaus
