@@ -15,58 +15,17 @@ Here are the services it consists of. They are mostly simple **Node** + **TypeSc
 | source-sync | A [BullMQ](http://bullmq.io) app for syncing the sources and KB | `npm run dev` |
 | discord-bot | [Discord](https://discord.com) bot to answer questions          | `npm run dev` |
 | slack-app   | [Slack](https://slack.com) app to answer questions              | `npm run dev` |
+| marker      | Turn files into markdown                                        | `./start.sh`  |
 
 ## Self-host
 
-There are **Dockerfile**s for all the above mentioned services. You can instantly host on platforms like [Coolify](https://coolify.io), [Railway](https://railway.com), etc. by just setting up the **environment variables**
+Check out the [self-host](https://docs.crawlchat.app/self-host) guide for more details. There are **Dockerfile**s for all the above mentioned services. You can instantly host on platforms like [Coolify](https://coolify.io), [Railway](https://railway.com), etc. by just setting up the **environment variables**
 
 See the [docker-compose.yml](https://github.com/pskd73/crawlchat/blob/main/docker-compose.yml) on how to set up all basic services automatically.
 
 ## Local development
 
 It takes just a few minutes to run it on your local machine so that you can develop on it and send PRs. It is explained in [LOCAL.md](https://github.com/pskd73/crawlchat/blob/main/LOCAL.md)
-
-## Environment variables
-
-| Service     | Key                      | Required | Note                                          |
-| ----------- | ------------------------ | -------- | --------------------------------------------- |
-| all         | `SELF_HOSTED`            | No       | "true"                                        |
-| all         | `DATABASE_URL`           | Yes      | Mongo URL                                     |
-| all         | `JWT_SECRET`             | Yes      | A random secret string. Same for all services |
-| front       | `VITE_APP_URL`           | Yes      | `front` hosted URL                            |
-| front       | `VITE_SERVER_WS_URL`     | Yes      | WebSocket URL for server                      |
-| front       | `VITE_SERVER_URL`        | Yes      | HTTP URL for server                           |
-| front       | `VITE_SOURCE_SYNC_URL`   | Yes      | URL for source-sync service                   |
-| front       | `DEFAULT_SIGNUP_PLAN_ID` | Yes      | Default plan ID for signups                   |
-| front       | `RESEND_FROM_EMAIL`      | No       | Email address for Resend                      |
-| front       | `RESEND_KEY`             | No       | Resend API key                                |
-| front       | `GOOGLE_CLIENT_ID`       | No       | Google OAuth client ID                        |
-| front       | `GOOGLE_CLIENT_SECRET`   | No       | Google OAuth client secret                    |
-| front       | `GOOGLE_REDIRECT_URI`    | No       | Google OAuth redirect URI                     |
-| front       | `ADMIN_EMAILS`           | No       | Comma-separated admin email addresses         |
-| server      | `SOURCE_SYNC_URL`        | Yes      | URL for source-sync service                   |
-| server      | `PINECONE_API_KEY`       | Yes      | Pinecone API key                              |
-| server      | `OPENROUTER_API_KEY`     | Yes      | OpenRouter API key                            |
-| server      | `ADMIN_EMAILS`           | No       | Comma-separated admin email addresses         |
-| server      | `OPENAI_API_KEY`         | No       | OpenAI API key                                |
-| source-sync | `PINECONE_API_KEY`       | Yes      | Pinecone API key                              |
-| source-sync | `REDIS_URL`              | Yes      | Redis connection URL                          |
-| source-sync | `GROUP_QUEUE_NAME`       | Yes      | Queue name for groups                         |
-| source-sync | `ITEM_QUEUE_NAME`        | Yes      | Queue name for items                          |
-| source-sync | `GITHUB_TOKEN`           | No       | Github token to fetch issues and discussions  |
-| source-sync | `SCRAPECREATORS_API_KEY` | No       | ScrapeCreators API key                        |
-| discord-bot | `APP_ID`                 | Yes      | Discord application ID                        |
-| discord-bot | `DISCORD_TOKEN`          | Yes      | Discord bot token                             |
-| discord-bot | `PUBLIC_KEY`             | Yes      | Discord public key                            |
-| discord-bot | `BOT_USER_ID`            | Yes      | Discord bot user ID                           |
-| discord-bot | `ALL_BOT_USER_IDS`       | Yes      | All bot user IDs                              |
-| discord-bot | `SERVER_HOST`            | Yes      | Server host URL                               |
-| slack-app   | `SERVER_HOST`            | Yes      | Server host URL                               |
-| slack-app   | `SLACK_SIGNING_SECRET`   | Yes      | Slack signing secret                          |
-| slack-app   | `SLACK_CLIENT_ID`        | Yes      | Slack client ID                               |
-| slack-app   | `SLACK_CLIENT_SECRET`    | Yes      | Slack client secret                           |
-| slack-app   | `SLACK_STATE_SECRET`     | Yes      | Slack state secret                            |
-| slack-app   | `HOST`                   | Yes      | Host URL                                      |
 
 ## Contribution
 
