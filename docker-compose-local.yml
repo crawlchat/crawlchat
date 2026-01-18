@@ -1,10 +1,11 @@
+name: crawlchat-local
 services:
   database:
     image: mongo:7
     restart: unless-stopped
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--noauth"]
     ports:
-      - "localhost:27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - local_mongo_data:/data/db
     networks:
@@ -37,7 +38,7 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

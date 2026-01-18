@@ -19,6 +19,7 @@ CrawlChat is a multi-service application that consists of several Docker contain
 - **source_sync**: BullMQ-based service for syncing documentation sources (port 3003)
 - **discord_bot**: Discord bot integration (no exposed ports)
 - **slack_app**: Slack app integration (port 3004)
+- **github_issue_bot**: GitHub App integration for answering issues and discussions (port 3006)
 - **marker**: File to markdown service
 - **database**: MongoDB 7 with replica set configuration
 - **redis**: Redis 7 for queue management
@@ -37,6 +38,7 @@ Before you begin, ensure you have:
 4. **Optional Services** (for full functionality):
    - Discord bot credentials (if using Discord integration)
    - Slack app credentials (if using Slack integration)
+   - GitHub App credentials (if using GitHub issue/discussion bot)
    - Resend API key (for email functionality)
    - Google OAuth credentials (for Google sign-in)
    - GitHub token (for GitHub source syncing)
@@ -73,6 +75,7 @@ Before you begin, ensure you have:
    - Server API: http://localhost:3002
    - Source Sync API: http://localhost:3003
    - Slack App (if configured): http://localhost:3004
+   - GitHub Issue Bot (if configured): http://localhost:3006
 
 ### Environment Variables
 
@@ -102,6 +105,7 @@ These variables should be set consistently across all services:
 | `GOOGLE_CLIENT_ID` | No | Google OAuth client ID | `"xxxxx.apps.googleusercontent.com"` |
 | `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret | `"GOCSPX-xxxxx"` |
 | `GOOGLE_REDIRECT_URI` | No | Google OAuth redirect URI | `"https://yourdomain.com/auth/google/callback"` |
+| `GITHUB_APP_INSTALL_URL` | No | GitHub App installation URL for the GitHub integration | `"https://github.com/apps/crawlchat/installations/new"` |
 | `ADMIN_EMAILS` | No | Comma-separated list of admin email addresses | `"admin1@example.com,admin2@example.com"` |
 
 #### Marker Service
@@ -152,6 +156,15 @@ These variables should be set consistently across all services:
 | `SLACK_STATE_SECRET` | Yes | Slack state secret for OAuth flow | `""` |
 | `HOST` | Yes | Host URL where the Slack app is accessible | `"http://localhost:3004"` or `"https://slack.yourdomain.com"` |
 
+#### GitHub Issue Bot Service
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `SERVER_HOST` | Yes | Server host URL for GitHub bot to communicate with | `"http://localhost:3002"` or `"https://api.yourdomain.com"` |
+| `GITHUB_APP_ID` | Yes | GitHub App ID | `"123456"` |
+| `GITHUB_APP_PRIVATE_KEY` | Yes | GitHub App private key (PEM format, newlines as `\n`) | `"-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"` |
+| `GITHUB_WEBHOOK_SECRET` | Yes | Webhook secret configured in GitHub App | `"your-webhook-secret"` |
+
 ### Service Details
 
 #### Front Service
@@ -197,6 +210,14 @@ These variables should be set consistently across all services:
 - **Dependencies**: database
 - **Purpose**: Slack app integration for answering questions in Slack workspaces
 - **Note**: Requires Slack app setup and OAuth configuration
+
+#### GitHub Issue Bot Service
+
+- **Image**: `ghcr.io/crawlchat/crawlchat-github:latest`
+- **Port**: 3006 (mapped to container port 3000)
+- **Dependencies**: database
+- **Purpose**: GitHub App integration for automatically answering questions in GitHub issues and discussions
+- **Note**: Requires GitHub App setup, webhook configuration, and installation on target repositories/organizations
 
 #### Database Service (MongoDB)
 

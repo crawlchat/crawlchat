@@ -33,6 +33,8 @@ jobs:
             image_name: crawlchat-server
           - dockerfile: Dockerfile.source-sync
             image_name: crawlchat-source-sync
+          - dockerfile: Dockerfile.github
+            image_name: crawlchat-github
     
     steps:
       - name: Checkout code

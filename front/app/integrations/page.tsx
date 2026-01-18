@@ -8,6 +8,7 @@ import {
   TbPlug,
   TbBrandSlack,
   TbColorSwatch,
+  TbBrandGithub,
 } from "react-icons/tb";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import { useMemo } from "react";
@@ -43,6 +44,11 @@ const tabs = [
     value: "/connect/slack",
     icon: <TbBrandSlack />,
     label: "Slack",
+  },
+  {
+    value: "/connect/github",
+    icon: <TbBrandGithub />,
+    label: "GitHub",
   },
 ];
 

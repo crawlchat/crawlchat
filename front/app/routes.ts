@@ -52,6 +52,7 @@ export default [
       route("mcp", "integrations/mcp.tsx"),
       route("discord", "integrations/discord.tsx"),
       route("slack", "integrations/slack.tsx"),
+      route("github", "integrations/github.tsx"),
     ]),
 
     route("knowledge/group", "knowledge/new-group.tsx"),

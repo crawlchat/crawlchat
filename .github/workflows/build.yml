@@ -20,6 +20,7 @@ jobs:
           - slack-app
           - source-sync
           - mcp-server
+          - github-issue-bot
 
     steps:
       - name: Checkout code

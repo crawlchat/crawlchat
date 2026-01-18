@@ -111,6 +111,23 @@ services:
       SLACK_STATE_SECRET: ""
       HOST: ""
 
+  github_issue_bot:
+    image: ghcr.io/crawlchat/crawlchat-github:latest
+    depends_on:
+      - database
+    ports:
+      - "3006:3000"
+    networks:
+      - crawlchat-net
+    environment:
+      SELF_HOSTED: "true"
+      DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
+      SERVER_HOST: "http://localhost:3002"
+      JWT_SECRET: "a-long-secret"
+      GITHUB_APP_ID: ""
+      GITHUB_APP_PRIVATE_KEY: ""
+      GITHUB_WEBHOOK_SECRET: ""
+
   database:
     image: mongo:7
     restart: unless-stopped
