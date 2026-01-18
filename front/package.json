@@ -51,7 +51,7 @@
     "jsonwebtoken": "^9.0.2",
     "lexical": "^0.39.0",
     "libs": "file:../libs",
-    "marked": "^15.0.7",
+    "marked": "^17.0.1",
     "moment": "^2.30.1",
     "prisma": "^6.2.1",
     "qs": "^6.14.0",
