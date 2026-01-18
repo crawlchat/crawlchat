@@ -17,7 +17,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.14",
+    "@tailwindcss/cli": "^4.1.18",
     "@types/chrome": "^0.0.254",
     "autoprefixer": "^10.4.21",
     "daisyui": "^5.2.3",
