@@ -34,7 +34,7 @@
     "libs": "file:../libs",
     "openai": "^4.83.0",
     "prisma": "^6.2.1",
-    "uuid": "^11.0.5",
+    "uuid": "^13.0.0",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.3"
   }
