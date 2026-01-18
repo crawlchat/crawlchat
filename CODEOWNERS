@@ -7,7 +7,7 @@ docker-compose-local.yml @egelhaus
 Dockerfile.* @egelhaus
 /docs/docs/self-host.md @egelhaus
 
-# Github related configs
+# GitHub related configs
 /.github/ @egelhaus
 
 # Discord bot related files for @egelhaus
