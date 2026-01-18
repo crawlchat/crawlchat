@@ -4,13 +4,13 @@ sidebar_position: 50
 
 # Self host
 
-## ⚠️ Important Notice
+### ⚠️ Important Notice
 
 **This self-hosting guide is NOT production-ready.** The self-hosted version is provided as-is for development, testing, and evaluation purposes. For production use, we strongly recommend using the managed cloud service at [https://crawlchat.app/](https://crawlchat.app/).
 
 **Support is not guaranteed for self-hosting users.** If you encounter issues while self-hosting, you may need to troubleshoot independently or use the production cloud service.
 
-## Overview
+### Overview
 
 CrawlChat is a multi-service application that consists of several Docker containers working together. The main services include:
 
@@ -23,7 +23,7 @@ CrawlChat is a multi-service application that consists of several Docker contain
 - **database**: MongoDB 7 with replica set configuration
 - **redis**: Redis 7 for queue management
 
-## Prerequisites
+### Prerequisites
 
 Before you begin, ensure you have:
 
@@ -42,7 +42,7 @@ Before you begin, ensure you have:
    - GitHub token (for GitHub source syncing)
    - ScrapeCreators API key (for web scraping features)
 
-## Quick Start
+### Quick Start
 
 1. **Clone the repository** (if you haven't already):
    ```bash
@@ -74,9 +74,9 @@ Before you begin, ensure you have:
    - Source Sync API: http://localhost:3003
    - Slack App (if configured): http://localhost:3004
 
-## Environment Variables
+### Environment Variables
 
-### Common Variables (All Services)
+#### Common Variables (All Services)
 
 These variables should be set consistently across all services:
 
@@ -86,7 +86,7 @@ These variables should be set consistently across all services:
 | `DATABASE_URL` | Yes | MongoDB connection string with replica set | `"mongodb://database:27017/crawlchat?replicaSet=rs0"` |
 | `JWT_SECRET` | Yes | Secret key for JWT token signing. **Must be the same across all services** | `"a-long-random-secret-string"` |
 
-### Front Service
+#### Front Service
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
@@ -104,13 +104,13 @@ These variables should be set consistently across all services:
 | `GOOGLE_REDIRECT_URI` | No | Google OAuth redirect URI | `"https://yourdomain.com/auth/google/callback"` |
 | `ADMIN_EMAILS` | No | Comma-separated list of admin email addresses | `"admin1@example.com,admin2@example.com"` |
 
-### Marker Service
+#### Marker Service
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
 | API_KEY | Yes | A secret key other services to pass as an authentication | `a-secret-key-for-marker` |
 
-### Server Service
+#### Server Service
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
@@ -120,7 +120,7 @@ These variables should be set consistently across all services:
 | `ADMIN_EMAILS` | No | Comma-separated list of admin email addresses | `"admin1@example.com,admin2@example.com"` |
 | `OPENAI_API_KEY` | No | OpenAI API key (if using OpenAI directly instead of OpenRouter) | `"sk-xxxxxxxxxxxxx"` |
 
-### Source Sync Service
+#### Source Sync Service
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
@@ -131,7 +131,7 @@ These variables should be set consistently across all services:
 | `SCRAPECREATORS_API_KEY` | No | ScrapeCreators API key for web scraping features | `"YOUR_API_KEY"` |
 | `GITHUB_TOKEN` | No | GitHub personal access token for fetching GitHub issues and discussions | `"ghp_xxxxxxxxxxxxx"` |
 
-### Discord Bot Service
+#### Discord Bot Service
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
@@ -141,7 +141,7 @@ These variables should be set consistently across all services:
 | `ALL_BOT_USER_IDS` | Yes | All bot user IDs | `"123456789012345678,1234561327012345678"` |
 | `SERVER_HOST` | Yes | Server host URL for Discord bot to communicate with | `"http://localhost:3002"` or `"https://api.yourdomain.com"` |
 
-### Slack App Service
+#### Slack App Service
 
 | Variable | Required | Description | Example |
 |----------|----------|-------------|---------|
@@ -152,37 +152,37 @@ These variables should be set consistently across all services:
 | `SLACK_STATE_SECRET` | Yes | Slack state secret for OAuth flow | `""` |
 | `HOST` | Yes | Host URL where the Slack app is accessible | `"http://localhost:3004"` or `"https://slack.yourdomain.com"` |
 
-## Service Details
+### Service Details
 
-### Front Service
+#### Front Service
 
 - **Image**: `ghcr.io/crawlchat/crawlchat-front:latest`
 - **Port**: 3001 (mapped to container port 3000)
 - **Dependencies**: database
 - **Purpose**: React-based web interface for users to interact with CrawlChat
 
-### Marker Service
+#### Marker Service
 
 - **Image**: `ghcr.io/crawlchat/crawlchat-marker:latest`
 - **Port**: 3005 (mapped to container port 3000)
 - **Dependencies**: None
 - **Purpose**: A Python app to convert files to markdown
 
-### Server Service
+#### Server Service
 
 - **Image**: `ghcr.io/crawlchat/crawlchat-server:latest`
 - **Port**: 3002 (mapped to container port 3000)
 - **Dependencies**: database
 - **Purpose**: Main API server handling LLM interactions, user requests, and business logic
 
-### Source Sync Service
+#### Source Sync Service
 
 - **Image**: `ghcr.io/crawlchat/crawlchat-source-sync:latest`
 - **Port**: 3003 (mapped to container port 3000)
 - **Dependencies**: redis, database
 - **Purpose**: Background service for syncing documentation sources and maintaining the knowledge base using BullMQ queues
 
-### Discord Bot Service
+#### Discord Bot Service
 
 - **Image**: `ghcr.io/crawlchat/crawlchat-discord:latest`
 - **Port**: None exposed (internal only)
@@ -190,7 +190,7 @@ These variables should be set consistently across all services:
 - **Purpose**: Discord bot integration for answering questions in Discord servers
 - **Note**: Requires Discord bot setup and webhook configuration
 
-### Slack App Service
+#### Slack App Service
 
 - **Image**: `ghcr.io/crawlchat/crawlchat-slack:latest`
 - **Port**: 3004 (mapped to container port 3000)
@@ -198,7 +198,7 @@ These variables should be set consistently across all services:
 - **Purpose**: Slack app integration for answering questions in Slack workspaces
 - **Note**: Requires Slack app setup and OAuth configuration
 
-### Database Service (MongoDB)
+#### Database Service (MongoDB)
 
 - **Image**: `mongo:7`
 - **Port**: Not exposed externally (internal only)
@@ -209,7 +209,7 @@ These variables should be set consistently across all services:
 - **Volumes**: `crawlchat_mongo_data` (persistent storage)
 - **Initialization**: The `mongo-init` service automatically initializes the replica set
 
-### Redis Service
+#### Redis Service
 
 - **Image**: `redis:7`
 - **Port**: Not exposed externally (internal only)
@@ -219,7 +219,7 @@ These variables should be set consistently across all services:
 - **Volumes**: `crawlchat_redis_data` (persistent storage)
 - **Purpose**: Queue management for source-sync service
 
-## Network Configuration
+### Network Configuration
 
 All services run on a Docker bridge network named `crawlchat-net`. Services communicate using their service names as hostnames:
 
@@ -227,9 +227,9 @@ All services run on a Docker bridge network named `crawlchat-net`. Services comm
 - `redis` - Redis service
 - `source_sync` - Source sync service (internal name)
 
-## Troubleshooting
+### Troubleshooting
 
-### MongoDB Replica Set Not Initializing
+#### MongoDB Replica Set Not Initializing
 
 If MongoDB fails to initialize the replica set:
 
@@ -245,19 +245,19 @@ If MongoDB fails to initialize the replica set:
    docker-compose exec database mongosh --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"database:27017"}]})'
    ```
 
-### Services Can't Connect to Database
+#### Services Can't Connect to Database
 
 - Verify all services use the same `DATABASE_URL` format: `mongodb://database:27017/crawlchat?replicaSet=rs0`
 - Ensure services are on the same Docker network (`crawlchat-net`)
 - Check that the database service is running and healthy
 
-### Services Can't Connect to Redis
+#### Services Can't Connect to Redis
 
 - Verify `REDIS_URL` is set to `redis://redis:6379` in source-sync service
 - Ensure source-sync service depends on redis in docker-compose.yml
 - Check redis service health
 
-### Port Conflicts
+#### Port Conflicts
 
 If ports 3001-3004 are already in use, modify the port mappings in `docker-compose.yml`:
 
@@ -268,6 +268,6 @@ ports:
 
 Remember to update corresponding environment variables (e.g., `VITE_APP_URL`) to match.
 
-### JWT Secret Mismatch
+#### JWT Secret Mismatch
 
 All services must use the **exact same** `JWT_SECRET` value. If authentication fails between services, verify all services have identical `JWT_SECRET` values.
