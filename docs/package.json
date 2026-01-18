@@ -21,7 +21,7 @@
     "clsx": "^2.0.0",
     "crawlchat-client": "^1.2.1",
     "prism-react-renderer": "^2.3.0",
-    "react": "^19.0.0",
+    "react": "^19.2.3",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
