@@ -16,6 +16,8 @@ services:
       VITE_SERVER_URL: "http://localhost:3002"
       VITE_SOURCE_SYNC_URL: "http://localhost:3003"
       DEFAULT_SIGNUP_PLAN_ID: "accelerate-yearly"
+      MARKER_HOST: "http://localhost:3005"
+      MARKER_API_KEY: "a-secret-for-marker"
       # optional
       RESEND_FROM_EMAIL: ""
       RESEND_KEY: ""
@@ -23,8 +25,6 @@ services:
       GOOGLE_CLIENT_SECRET: ""
       GOOGLE_REDIRECT_URI: ""
       ADMIN_EMAILS: ""
-      MARKER_HOST: "http://localhost:3005"
-      MARKER_API_KEY: "" # Put random characters here (same as in marker service)
 
   server:
     image: ghcr.io/crawlchat/crawlchat-server:latest
@@ -74,7 +74,7 @@ services:
     networks:
       - crawlchat-net
     environment:
-      API_KEY: "" # Put random characters here (same as in front service)
+      API_KEY: "a-secret-for-marker"
 
   discord_bot:
     image: ghcr.io/crawlchat/crawlchat-discord:latest

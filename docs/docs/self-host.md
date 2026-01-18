@@ -2,7 +2,7 @@
 sidebar_position: 50
 ---
 
-# Selfhosting CrawlChat
+# Self host
 
 ## ⚠️ Important Notice
 
@@ -19,6 +19,7 @@ CrawlChat is a multi-service application that consists of several Docker contain
 - **source_sync**: BullMQ-based service for syncing documentation sources (port 3003)
 - **discord_bot**: Discord bot integration (no exposed ports)
 - **slack_app**: Slack app integration (port 3004)
+- **marker**: File to markdown service
 - **database**: MongoDB 7 with replica set configuration
 - **redis**: Redis 7 for queue management
 
@@ -94,12 +95,20 @@ These variables should be set consistently across all services:
 | `VITE_SERVER_URL` | Yes | HTTP URL for the server service | `"http://localhost:3002"` or `"https://api.yourdomain.com"` |
 | `VITE_SOURCE_SYNC_URL` | Yes | URL for the source-sync service | `"http://localhost:3003"` or `"https://sync.yourdomain.com"` |
 | `DEFAULT_SIGNUP_PLAN_ID` | Yes | Default subscription plan ID for new user signups | `"accelerate-yearly"` |
+| `MARKER_HOST` | Yes | Host of marker service to convert files into markdown | `"http://localhost:3005"` |
+| `MARKER_API_KEY` | Yes | A secret API Key configured in marker env | `a-secret-key-for-marker` |
 | `RESEND_FROM_EMAIL` | No | Email address for sending emails via Resend | `"noreply@yourdomain.com"` |
 | `RESEND_KEY` | No | Resend API key for email functionality | `"re_xxxxxxxxxxxxx"` |
 | `GOOGLE_CLIENT_ID` | No | Google OAuth client ID | `"xxxxx.apps.googleusercontent.com"` |
 | `GOOGLE_CLIENT_SECRET` | No | Google OAuth client secret | `"GOCSPX-xxxxx"` |
 | `GOOGLE_REDIRECT_URI` | No | Google OAuth redirect URI | `"https://yourdomain.com/auth/google/callback"` |
 | `ADMIN_EMAILS` | No | Comma-separated list of admin email addresses | `"admin1@example.com,admin2@example.com"` |
+
+### Marker Service
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| API_KEY | Yes | A secret key other services to pass as an authentication | `a-secret-key-for-marker` |
 
 ### Server Service
 
@@ -151,6 +160,13 @@ These variables should be set consistently across all services:
 - **Port**: 3001 (mapped to container port 3000)
 - **Dependencies**: database
 - **Purpose**: React-based web interface for users to interact with CrawlChat
+
+### Marker Service
+
+- **Image**: `ghcr.io/crawlchat/crawlchat-marker:latest`
+- **Port**: 3005 (mapped to container port 3000)
+- **Dependencies**: None
+- **Purpose**: A Python app to convert files to markdown
 
 ### Server Service
 

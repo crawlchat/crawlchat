@@ -2874,7 +2874,7 @@ export function OpenSource() {
         to contribute to the project!
       </p>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center gap-4">
         <a
           href="https://github.com/crawlchat/crawlchat"
           target="_blank"
@@ -2882,6 +2882,15 @@ export function OpenSource() {
         >
           View on GitHub
           <TbBrandGithub />
+        </a>
+
+        <a
+          href="https://docs.crawlchat.app/self-host"
+          target="_blank"
+          className="btn btn-outline btn-xl btn-primary"
+        >
+          Self host it
+          <TbArrowRight />
         </a>
       </div>
     </div>

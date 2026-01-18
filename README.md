@@ -15,6 +15,7 @@ Here are the services it consists of. They are mostly simple **Node** + **TypeSc
 | source-sync | A [BullMQ](http://bullmq.io) app for syncing the sources and KB | `npm run dev` |
 | discord-bot | [Discord](https://discord.com) bot to answer questions          | `npm run dev` |
 | slack-app   | [Slack](https://slack.com) app to answer questions              | `npm run dev` |
+| marker      | Turn files into markdown                                        | `./start.sh`  |
 
 ## Self-host
 
@@ -38,12 +39,15 @@ It takes just a few minutes to run it on your local machine so that you can deve
 | front       | `VITE_SERVER_URL`        | Yes      | HTTP URL for server                           |
 | front       | `VITE_SOURCE_SYNC_URL`   | Yes      | URL for source-sync service                   |
 | front       | `DEFAULT_SIGNUP_PLAN_ID` | Yes      | Default plan ID for signups                   |
+| front       | `MARKET_HOST`            | Yes      | Marker service host                           |
+| front       | `MARKET_API_KEY`         | Yes      | A secret key for Marker service               |
 | front       | `RESEND_FROM_EMAIL`      | No       | Email address for Resend                      |
 | front       | `RESEND_KEY`             | No       | Resend API key                                |
 | front       | `GOOGLE_CLIENT_ID`       | No       | Google OAuth client ID                        |
 | front       | `GOOGLE_CLIENT_SECRET`   | No       | Google OAuth client secret                    |
 | front       | `GOOGLE_REDIRECT_URI`    | No       | Google OAuth redirect URI                     |
 | front       | `ADMIN_EMAILS`           | No       | Comma-separated admin email addresses         |
+| marker      | `API_KEY`                | Yes      | A secret key for other services to pass       |
 | server      | `SOURCE_SYNC_URL`        | Yes      | URL for source-sync service                   |
 | server      | `PINECONE_API_KEY`       | Yes      | Pinecone API key                              |
 | server      | `OPENROUTER_API_KEY`     | Yes      | OpenRouter API key                            |
