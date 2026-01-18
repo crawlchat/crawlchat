@@ -32,7 +32,7 @@
     "@react-email/components": "0.0.34",
     "@react-router/node": "^7.12.0",
     "@react-router/serve": "^7.12.0",
-    "@remix-run/express": "^2.15.3",
+    "@remix-run/express": "^2.17.4",
     "@rvf/react": "^7.0.2",
     "@rvf/react-router": "^7.0.2",
     "@rvf/zod": "^7.0.1",
