@@ -1,0 +1,136 @@
+version: 2
+updates:
+  # Node.js services
+  - package-ecosystem: "npm"
+    directory: "/front"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  - package-ecosystem: "npm"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  - package-ecosystem: "npm"
+    directory: "/server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  - package-ecosystem: "npm"
+    directory: "/discord-bot"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  - package-ecosystem: "npm"
+    directory: "/crawlchat-client"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  - package-ecosystem: "npm"
+    directory: "/chrome-extension"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  - package-ecosystem: "npm"
+    directory: "/slack-app"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  - package-ecosystem: "npm"
+    directory: "/source-sync"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  - package-ecosystem: "npm"
+    directory: "/mcp-server"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  # Python service
+  - package-ecosystem: "pip"
+    directory: "/marker"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
+    assignees:
+      - "${{ github.repository_owner }}"
+      - "egelhaus"
