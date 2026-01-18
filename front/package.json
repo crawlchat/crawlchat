@@ -90,7 +90,7 @@
     "@types/turndown": "^5.0.5",
     "autoprefixer": "^10.4.20",
     "daisyui": "^5.0.50",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.6",
     "react-email": "3.0.7",
     "schema-dts": "^1.1.5",
     "typescript": "^5.7.2",
