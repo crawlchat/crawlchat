@@ -561,11 +561,11 @@ export function SideMenu({
               <div className="avatar avatar-placeholder">
                 <div
                   className={cn(
-                    "bg-neutral text-neutral-content w-10 rounded-full",
+                    "bg-neutral text-neutral-content w-8 rounded-full",
                     "flex items-center justify-center"
                   )}
                 >
-                  <span className="text-xl">
+                  <span className="text-lg">
                     {visibleName[0].toUpperCase()}
                   </span>
                 </div>
