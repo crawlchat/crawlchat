@@ -17,10 +17,6 @@ permissions:
 
 jobs:
   answer:
-    # Only run when:
-    # - New issues are opened
-    # - New discussions are created
-    # - Comments contain @crawlchat (but not from the bot itself)
     if: >
       (github.event_name == 'issues' && github.event.action == 'opened') ||
       (github.event_name == 'discussion' && github.event.action == 'created') ||
