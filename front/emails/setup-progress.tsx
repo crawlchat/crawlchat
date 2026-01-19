@@ -33,7 +33,7 @@ const sampleActions = [
     url: `${emailConfig.baseUrl}/login`,
     done: false,
   },
-]
+];
 
 export default function SetupProgressEmail({
   actions,

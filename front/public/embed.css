@@ -8,7 +8,9 @@
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
 }
 
 #crawlchat-embed.open {
@@ -32,7 +34,9 @@
   padding: 8px 20px;
   border-radius: 20px;
   cursor: pointer;
-  transition: scale 0.1s ease, opacity 0.3s ease;
+  transition:
+    scale 0.1s ease,
+    opacity 0.3s ease;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px;
   display: flex;
   flex-direction: column;

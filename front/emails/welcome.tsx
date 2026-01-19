@@ -16,12 +16,13 @@ export default function WelcomeEmail() {
       }}
       noEmailPreferences
     >
-
-      <Markdown markdownCustomStyles={{
-        p: {
-          lineHeight: "1.4"
-        }
-      }}>
+      <Markdown
+        markdownCustomStyles={{
+          p: {
+            lineHeight: "1.4",
+          },
+        }}
+      >
         {`Hello 👋
 
 Welcome to **CrawlChat**. You are at the right place to add AI support chatbot for your _website_, _Discord server_, _Slack_ workspace, or as _MCP_ server.

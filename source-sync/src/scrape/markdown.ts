@@ -30,5 +30,3 @@ export function removeEmptyLinks(markdown: string) {
 export function markdownToText(markdown: string) {
   return markdownToTxt(markdown);
 }
-
-

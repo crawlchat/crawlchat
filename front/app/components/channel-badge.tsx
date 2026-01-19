@@ -39,7 +39,7 @@ export function ChannelBadge({
           channel === "mcp" && "badge-success",
           channel === "api" && "badge-neutral",
           channel === "widget" && "badge-primary",
-          channel === "google_chat" && "badge-info",
+          channel === "google_chat" && "badge-info"
         )}
       >
         {!channel && <TbMessage />}

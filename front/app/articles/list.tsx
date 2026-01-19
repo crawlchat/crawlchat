@@ -47,10 +47,7 @@ function NoArticles() {
 
 export default function Articles({ loaderData }: Route.ComponentProps) {
   return (
-    <Page
-      title="Articles"
-      icon={<TbBook2 />}
-    >
+    <Page title="Articles" icon={<TbBook2 />}>
       {loaderData.articles.length === 0 && <NoArticles />}
       {loaderData.articles.length > 0 && (
         <div className="flex flex-col gap-4">
@@ -94,9 +91,7 @@ export default function Articles({ loaderData }: Route.ComponentProps) {
                       </Link>
                     </td>
                     <td>
-                      <div className="badge badge-soft">
-                        {article.purpose}
-                      </div>
+                      <div className="badge badge-soft">{article.purpose}</div>
                     </td>
                     <td className="text-end">
                       <Timestamp date={article.createdAt} />

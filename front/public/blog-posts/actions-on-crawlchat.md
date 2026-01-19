@@ -27,7 +27,7 @@ It is needless to say that the APIs take input data as request body or query par
 
 ![Add an action data & headers](/blog-images/action/add-action-data.png)
 
-For each Data item you add, you need to provide the type of the data item either **Dynamic** or **Value**. Dynamic data items are kind of placeholders and the actual value would be filled by chatbot based on the conversation with the user. For example, you may add email as a data item and explain about it in description, example, *"Customer email to fetch the plan details"*, so that the bot asks the user to provide the email and use it accordingly.
+For each Data item you add, you need to provide the type of the data item either **Dynamic** or **Value**. Dynamic data items are kind of placeholders and the actual value would be filled by chatbot based on the conversation with the user. For example, you may add email as a data item and explain about it in description, example, _"Customer email to fetch the plan details"_, so that the bot asks the user to provide the email and use it accordingly.
 
 Value data items, on other hand are constant values that would be used as it is. You can use them to send API keys, or other data items whose values are constant all the time. You also need to provide the data type of the field. You can choose one from **String**, **Number**, and **Boolean**.
 
@@ -43,6 +43,6 @@ This helps you in better monitoring and resolving issues if any. It also shows t
 
 ## Security
 
-The Actions are performed from the **server** and *not from the client side*. Also, the Value type data you provide is not shared with AI in any ways and the API calls are made from the CrawlChat's *application layer (servers)* so that no sensitive information is shared with AI. Currently, the response of the API calls is shared with AI as is.
+The Actions are performed from the **server** and _not from the client side_. Also, the Value type data you provide is not shared with AI in any ways and the API calls are made from the CrawlChat's _application layer (servers)_ so that no sensitive information is shared with AI. Currently, the response of the API calls is shared with AI as is.
 
 That summarises that the no sensitive information or the details about the URL is not shared with either the AI or the user and it is **secured**.

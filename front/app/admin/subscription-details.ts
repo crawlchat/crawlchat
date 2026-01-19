@@ -16,10 +16,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   const email = url.searchParams.get("email")?.toLowerCase();
 
   if (!email) {
-    return new Response(JSON.stringify({ error: "email query parameter is required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "email query parameter is required" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const targetUser = await prisma.user.findUnique({
@@ -35,18 +38,24 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const subscriptionId = targetUser.plan?.subscriptionId;
   if (!subscriptionId) {
-    return new Response(JSON.stringify({ error: "User has no subscriptionId" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "User has no subscriptionId" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const gateway = getPaymentGateway(targetUser.plan!.provider);
   if (!gateway) {
-    return new Response(JSON.stringify({ error: "Unsupported plan provider" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Unsupported plan provider" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
   const subscription = await gateway.getSubscription(subscriptionId);
@@ -61,4 +70,3 @@ export async function loader({ request }: Route.LoaderArgs) {
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }
-

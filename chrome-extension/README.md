@@ -16,16 +16,19 @@ A modern Chrome extension built with React, TypeScript, Tailwind CSS v4, and Dai
 ## Development
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Build the extension:
+
    ```bash
    npm run build
    ```
 
 3. Watch for changes during development:
+
    ```bash
    npm run watch
    ```
