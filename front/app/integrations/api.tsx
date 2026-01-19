@@ -12,6 +12,7 @@ import { MarkdownProse } from "~/widget/markdown-prose";
 import { makeMeta } from "~/meta";
 import { Page } from "~/components/page";
 import { TbCode, TbWorld } from "react-icons/tb";
+import { Link } from "react-router";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -138,10 +139,12 @@ print(result)`,
             </div>
 
             <p className="text-sm text-base-content/60">
-              Replace{" "}
-              <code className="text-primary">{`{{YOUR_COLLECTION_ID}}`}</code>{" "}
-              and <code className="text-primary">{`{{YOUR_API_KEY}}`}</code>{" "}
-              with your own values. Check{" "}
+              Replace <code>{`{{YOUR_COLLECTION_ID}}`}</code> and{" "}
+              <code>{`{{YOUR_API_KEY}}`}</code> with your own{" "}
+              <Link to="/api-key" className="link link-primary link-hover">
+                API Key
+              </Link>
+              . Check{" "}
               <a
                 href="https://docs.crawlchat.app/api/answer"
                 target="_blank"
