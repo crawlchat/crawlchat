@@ -18,6 +18,7 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { MultiSelect } from "~/components/multi-select";
 import { useState } from "react";
 import { makeMeta } from "~/meta";
+import { Page } from "~/components/page";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -40,7 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({ data }: Route.MetaArgs) {
   return makeMeta({
-    title: "Discord - CrawlChat",
+    title: "Discord bot - CrawlChat",
   });
 }
 
@@ -183,93 +184,96 @@ export default function DiscordIntegrations({
   const replyAsThreadFetcher = useFetcher();
 
   return (
-    <SettingsSectionProvider>
-      <SettingsContainer>
-        <div className="text-base-content/50">
-          You have two Discord bots that you can install on your server with
-          different bot names. Pick your favorite one from the following options
-          and install. You need to enter the server id below to make it work!
-        </div>
-        <div className="flex items-center gap-2">
-          <a
-            className="btn btn-neutral"
-            href="https://discord.com/oauth2/authorize?client_id=1346845279692918804"
-            target="_blank"
-          >
-            <TbBrandDiscord />
-            @CrawlChat
-            <TbArrowRight />
-          </a>
+    <Page title={"Discord bot"} icon={<TbBrandDiscord />}>
+      <SettingsSectionProvider>
+        <SettingsContainer>
+          <div className="text-base-content/50">
+            You have two Discord bots that you can install on your server with
+            different bot names. Pick your favorite one from the following
+            options and install. You need to enter the server id below to make
+            it work!
+          </div>
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
+            <a
+              className="btn btn-neutral"
+              href="https://discord.com/oauth2/authorize?client_id=1346845279692918804"
+              target="_blank"
+            >
+              <TbBrandDiscord />
+              @CrawlChat
+              <TbArrowRight />
+            </a>
 
-          <a
-            className="btn btn-neutral"
-            href="https://discord.com/oauth2/authorize?client_id=1353765834321039502"
-            target="_blank"
-          >
-            <TbBrandDiscord />
-            @AiBot-CrawlChat
-            <TbArrowRight />
-          </a>
-        </div>
+            <a
+              className="btn btn-neutral"
+              href="https://discord.com/oauth2/authorize?client_id=1353765834321039502"
+              target="_blank"
+            >
+              <TbBrandDiscord />
+              @AiBot-CrawlChat
+              <TbArrowRight />
+            </a>
+          </div>
 
-        <SettingsSection
-          id="discord-server-id"
-          plainTitle="Server Id"
-          title={
-            <div className="flex items-center gap-2">
-              <span>Discord Server Id</span>
-              <div className="dropdown">
-                <div tabIndex={0} role="button" className="btn btn-xs mb-1">
-                  <TbInfoCircle />
-                </div>
-                <div
-                  tabIndex={0}
-                  className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-4 shadow-sm"
-                >
-                  <ol className="list-decimal list-inside">
-                    <li>Go to "Server Settings"</li>
-                    <li>Click on "Widget"</li>
-                    <li>Copy the server ID</li>
-                  </ol>
+          <SettingsSection
+            id="discord-server-id"
+            plainTitle="Server Id"
+            title={
+              <div className="flex items-center gap-2">
+                <span>Discord Server ID</span>
+                <div className="dropdown">
+                  <div tabIndex={0} role="button" className="btn btn-xs mb-1">
+                    <TbInfoCircle />
+                  </div>
+                  <div
+                    tabIndex={0}
+                    className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-4 shadow-sm"
+                  >
+                    <ol className="list-decimal list-inside">
+                      <li>Go to "Server Settings"</li>
+                      <li>Click on "Widget"</li>
+                      <li>Copy the server ID</li>
+                    </ol>
+                  </div>
                 </div>
               </div>
-            </div>
-          }
-          description="Integrate CrawlChat with your Discord server to bother answer the queries and also to learn from the conversations."
-          fetcher={discordServerIdFetcher}
-        >
-          <input
-            className="input w-full"
-            name="discordServerId"
-            placeholder="Enter your Discord server ID"
-            defaultValue={loaderData.scrape.discordServerId ?? ""}
-          />
-        </SettingsSection>
-
-        <ChannelNames />
-
-        <SettingsSection
-          id="reply-as-thread"
-          title="Reply as thread"
-          description="Reply to messages as threads instead of just sending it as reply. Keeps the channel clutter free and better organization."
-          fetcher={replyAsThreadFetcher}
-        >
-          <input type="hidden" name="from-reply-as-thread" value="on" />
-          <label className="label">
+            }
+            description="Integrate CrawlChat with your Discord server to bother answer the queries and also to learn from the conversations."
+            fetcher={discordServerIdFetcher}
+          >
             <input
-              type="checkbox"
-              name="replyAsThread"
-              className="toggle"
-              defaultChecked={
-                loaderData.scrape.discordConfig?.replyAsThread ?? false
-              }
+              className="input w-full"
+              name="discordServerId"
+              placeholder="Enter your Discord server ID"
+              defaultValue={loaderData.scrape.discordServerId ?? ""}
             />
-            Active
-          </label>
-        </SettingsSection>
+          </SettingsSection>
 
-        <ImageAttachments />
-      </SettingsContainer>
-    </SettingsSectionProvider>
+          <ChannelNames />
+
+          <SettingsSection
+            id="reply-as-thread"
+            title="Reply as thread"
+            description="Reply to messages as threads instead of just sending it as reply. Keeps the channel clutter free and better organization."
+            fetcher={replyAsThreadFetcher}
+          >
+            <input type="hidden" name="from-reply-as-thread" value="on" />
+            <label className="label">
+              <input
+                type="checkbox"
+                name="replyAsThread"
+                className="toggle"
+                defaultChecked={
+                  loaderData.scrape.discordConfig?.replyAsThread ?? false
+                }
+              />
+              Active
+            </label>
+          </SettingsSection>
+
+          <ImageAttachments />
+        </SettingsContainer>
+      </SettingsSectionProvider>
+    </Page>
   );
 }

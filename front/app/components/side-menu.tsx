@@ -2,14 +2,16 @@ import type { Scrape, User } from "libs/prisma";
 import type { Plan } from "libs/user-plan";
 import type { FetcherWithComponents } from "react-router";
 import {
-  TbArrowDown,
-  TbArrowRight,
   TbBook,
+  TbBrandDiscord,
+  TbBrandSlack,
   TbChartBarOff,
   TbChartLine,
   TbChecks,
   TbChevronDown,
   TbChevronUp,
+  TbCode,
+  TbColorSwatch,
   TbCreditCard,
   TbKey,
   TbLogout,
@@ -17,26 +19,25 @@ import {
   TbPencil,
   TbPlug,
   TbPointer,
+  TbRobotFace,
   TbSettings,
   TbStarFilled,
   TbTicket,
   TbTools,
   TbUser,
   TbUsers,
-  TbX,
+  TbWorld,
 } from "react-icons/tb";
-import { Link, NavLink, useFetcher } from "react-router";
+import { Link, NavLink } from "react-router";
 import { numberToKMB } from "~/components/number-util";
-import { useContext, useEffect, useMemo, useState } from "react";
 import {
-  getPendingActions,
-  getSkippedActions,
-  setSkippedActions,
-  type SetupProgressInput,
-} from "../setup-progress/config";
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import { Logo } from "./logo";
-import { AppContext } from "./app-context";
-import { track } from "~/components/track";
 import { ScrapePrivacyBadge } from "~/components/scrape-type-badge";
 import { PlanIconBadge } from "~/components/plan-icon-badge";
 import cn from "@meltdownjs/cn";
@@ -48,6 +49,7 @@ type MenuItemType = {
   external?: boolean;
   items?: MenuItemType[];
   forScrape?: boolean;
+  isNew?: boolean;
 };
 
 function SideMenuItem({
@@ -137,93 +139,14 @@ function CreditProgress({
   );
 }
 
-function SetupProgress({ scrapeId }: { scrapeId: string }) {
-  const fetcher = useFetcher<{
-    input: SetupProgressInput;
-  }>();
-  const [skipped, setSkipped] = useState<string[] | undefined>(undefined);
-  const { progressActions, setProgressActions } = useContext(AppContext);
-  useEffect(() => {
-    if (skipped === undefined || fetcher.data === undefined) {
-      return;
-    }
-    const actions = getPendingActions(fetcher.data.input, skipped);
-    setProgressActions(actions);
-  }, [fetcher.data, skipped]);
-  const action = progressActions[0];
-
-  useEffect(() => {
-    fetcher.submit(null, {
-      method: "get",
-      action: "/setup-progress",
-    });
-  }, [scrapeId]);
-
-  useEffect(() => {
-    setSkipped(getSkippedActions(scrapeId));
-  }, []);
-
-  useEffect(() => {
-    if (skipped === undefined) {
-      return;
-    }
-    setSkippedActions(scrapeId, skipped);
-  }, [skipped]);
-
-  function handleSkip() {
-    if (skipped === undefined) {
-      return;
-    }
-    setSkipped([...skipped, action.id]);
-  }
-
-  if (!action) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col gap-1 w-full items-center">
-      <div className="flex gap-1 text-xs opacity-50 items-center">
-        Next step
-        <TbArrowDown />
-      </div>
-      <div className="flex gap-1 w-full">
-        {action.canSkip && (
-          <div className="tooltip" data-tip="Skip">
-            <button onClick={handleSkip} className="btn btn-square">
-              <TbX />
-            </button>
-          </div>
-        )}
-        <div
-          className="tooltip w-full before:max-w-[220px]"
-          data-tip={action.description}
-        >
-          <Link
-            className="btn btn-primary btn-block"
-            to={fetcher.data ? action.url(fetcher.data.input) : ""}
-            target={action.external ? "_blank" : undefined}
-            onClick={() =>
-              track("progress-next", {
-                id: action.id,
-              })
-            }
-          >
-            {action.title}
-            {action.icon ?? <TbArrowRight />}
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function WithSubMenuItems({
   item,
   pathname,
+  isNew,
 }: {
   item: MenuItemType;
   pathname: string;
+  isNew?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(pathname.startsWith(item.to));
 
@@ -234,10 +157,12 @@ function WithSubMenuItems({
         onClick={() => setIsExpanded(!isExpanded)}
         badge={
           <div className="flex items-center gap-2">
-            <span className="badge badge-success badge-soft badge-sm">
-              New
-              <TbStarFilled />
-            </span>
+            {isNew && (
+              <span className="badge badge-success badge-soft badge-sm">
+                New
+                <TbStarFilled />
+              </span>
+            )}
             <span className="text-base-content/40 group-hover:text-accent-content">
               {isExpanded ? <TbChevronUp /> : <TbChevronDown />}
             </span>
@@ -247,7 +172,7 @@ function WithSubMenuItems({
 
       <ul
         className={cn(
-          "ml-4 hidden flex-col gap-1 flex-1",
+          "ml-4 hidden flex-col gap-1",
           "border-l border-base-300",
           isExpanded && "flex"
         )}
@@ -257,6 +182,80 @@ function WithSubMenuItems({
         ))}
       </ul>
     </>
+  );
+}
+
+function MenuItemsScrollable({ children }: PropsWithChildren) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const topLayerRef = useRef<HTMLDivElement>(null);
+  const bottomLayerRef = useRef<HTMLDivElement>(null);
+  const LAYER_HEIGHT = 40;
+
+  useEffect(() => {
+    function handleScroll() {
+      updateLayerHeights();
+    }
+
+    if (scrollRef.current) {
+      scrollRef.current.addEventListener("scroll", handleScroll);
+    }
+    return () => {
+      if (scrollRef.current) {
+        scrollRef.current.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
+  function updateLayerHeights() {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight } = scrollRef.current;
+    const rect = scrollRef.current.getBoundingClientRect();
+    const height = rect.height;
+
+    const hiddenTop = scrollTop;
+    const hiddenBottom = scrollHeight - (scrollTop + height);
+
+    const topHeight = Math.min(LAYER_HEIGHT, hiddenTop);
+    const bottomHeight = Math.min(LAYER_HEIGHT, hiddenBottom);
+
+    if (topLayerRef.current) {
+      topLayerRef.current.style.height = `${topHeight}px`;
+    }
+    if (bottomLayerRef.current) {
+      bottomLayerRef.current.style.height = `${bottomHeight}px`;
+    }
+  }
+
+  return (
+    <div
+      className={cn("flex flex-col gap-1 px-3 w-full flex-1 relative min-h-0")}
+    >
+      <div
+        ref={topLayerRef}
+        className={cn(
+          "bg-gradient-to-b from-base-100 to-base-100/0",
+          "absolute top-0 left-0 w-full"
+        )}
+        style={{ height: 0 }}
+      />
+      <div
+        ref={scrollRef}
+        className={cn(
+          "overflow-y-auto min-h-0 flex-1 no-scrollbar",
+          "flex flex-col gap-1"
+        )}
+      >
+        {children}
+      </div>
+      <div
+        ref={bottomLayerRef}
+        className={cn(
+          "bg-gradient-to-t from-base-100 to-base-100/0",
+          "absolute bottom-0 left-0 w-full"
+        )}
+        style={{ height: 0 }}
+      />
+    </div>
   );
 }
 
@@ -302,6 +301,50 @@ export function SideMenu({
         forScrape: true,
       },
       {
+        label: "Integrate",
+        to: "/integrate",
+        icon: <TbPlug />,
+        forScrape: true,
+        items: [
+          {
+            label: "Customise",
+            to: "/integrate/customise",
+            icon: <TbColorSwatch />,
+            forScrape: true,
+          },
+          {
+            label: "Web embed",
+            to: "/integrate/web-embed",
+            icon: <TbWorld />,
+            forScrape: true,
+          },
+          {
+            label: "Discord bot",
+            to: "/integrate/discord-bot",
+            icon: <TbBrandDiscord />,
+            forScrape: true,
+          },
+          {
+            label: "Slack app",
+            to: "/integrate/slack-app",
+            icon: <TbBrandSlack />,
+            forScrape: true,
+          },
+          {
+            label: "MCP",
+            to: "/integrate/mcp",
+            icon: <TbRobotFace />,
+            forScrape: true,
+          },
+          {
+            label: "API",
+            to: "/integrate/api",
+            icon: <TbCode />,
+            forScrape: true,
+          },
+        ],
+      },
+      {
         label: "Questions",
         to: "/questions",
         icon: <TbMessage />,
@@ -319,12 +362,6 @@ export function SideMenu({
         icon: <TbTicket />,
         forScrape: true,
         ticketingEnabled: true,
-      },
-      {
-        label: "Connect",
-        to: "/connect",
-        icon: <TbPlug />,
-        forScrape: true,
       },
       {
         label: "Actions",
@@ -349,6 +386,7 @@ export function SideMenu({
         icon: <TbTools />,
         forScrape: true,
         to: "/tool",
+        isNew: true,
         items: [
           {
             label: "Compose",
@@ -472,36 +510,28 @@ export function SideMenu({
             </div>
           </div>
         )}
-
-        <div className="flex flex-col gap-1 px-3 w-full">
-          {links.map((link, index) =>
-            !link.items ? (
-              <SideMenuItem
-                key={index}
-                link={link}
-                badge={getMenuBadge(link.label)}
-              />
-            ) : (
-              <WithSubMenuItems key={index} item={link} pathname={pathname} />
-            )
-          )}
-          {/* <div
-            className={cn(
-              "flex pl-3 pr-2 py-1 w-full items-center gap-2 rounded-box",
-              "transition-all hover:bg-accent hover:text-accent-content",
-              "cursor-pointer"
-            )}
-            onClick={() => showModal("chat-modal")}
-          >
-            <TbRobotFace />
-            <span>Chat</span>
-            <span className="badge badge-primary badge-sm badge-soft">New</span>
-          </div> */}
-        </div>
       </div>
 
+      <MenuItemsScrollable>
+        {links.map((link, index) =>
+          !link.items ? (
+            <SideMenuItem
+              key={index}
+              link={link}
+              badge={getMenuBadge(link.label)}
+            />
+          ) : (
+            <WithSubMenuItems
+              key={index}
+              item={link}
+              pathname={pathname}
+              isNew={link.isNew}
+            />
+          )
+        )}
+      </MenuItemsScrollable>
+
       <div className="p-4 flex flex-col gap-2">
-        {/* {scrapeId && <SetupProgress scrapeId={scrapeId} />} */}
         <div
           className={cn(
             "flex flex-col gap-2 bg-base-200 rounded-box",
@@ -531,11 +561,11 @@ export function SideMenu({
               <div className="avatar avatar-placeholder">
                 <div
                   className={cn(
-                    "bg-neutral text-neutral-content w-10 rounded-full",
+                    "bg-neutral text-neutral-content w-8 rounded-full",
                     "flex items-center justify-center"
                   )}
                 >
-                  <span className="text-xl">
+                  <span className="text-lg">
                     {visibleName[0].toUpperCase()}
                   </span>
                 </div>

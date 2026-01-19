@@ -13,6 +13,8 @@ import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { makeCursorMcpJson, makeMcpName } from "~/mcp-command";
 import { makeMcpCommand } from "~/mcp-command";
 import { makeMeta } from "~/meta";
+import { Page } from "~/components/page";
+import { MCPIcon } from "~/components/mcp-icon";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -64,47 +66,49 @@ export default function ScrapeMcp({ loaderData }: Route.ComponentProps) {
   const cursorMcpCommand = makeCursorMcpJson(loaderData.scrape.id, name);
 
   return (
-    <SettingsSectionProvider>
-      <SettingsContainer>
-        <SettingsSection
-          title="MCP Command"
-          description="MCP (Model Context Protocol) is a standard protocol to connect with
+    <Page title={"MCP server"} icon={<MCPIcon />}>
+      <SettingsSectionProvider>
+        <SettingsContainer>
+          <SettingsSection
+            title="MCP Command"
+            description="MCP (Model Context Protocol) is a standard protocol to connect with
           LLM applications like Claude App, Cursor, Windsurf or more such
           applications. Use this MCP server so that you (& your customers) can
           consume your collection right from their favorite AI apps."
-          id="mcp-command"
-        >
-          <MarkdownProse noMarginCode>
-            {`\`\`\`sh\n${mcpCommand}\n\`\`\``}
-          </MarkdownProse>
-        </SettingsSection>
+            id="mcp-command"
+          >
+            <MarkdownProse noMarginCode>
+              {`\`\`\`sh\n${mcpCommand}\n\`\`\``}
+            </MarkdownProse>
+          </SettingsSection>
 
-        <SettingsSection
-          title="Cursor MCP Command"
-          description="Cursor needs a JSON snippet to be added to the Cursor settings. Copy and paste the following snippet"
-          id="cursor-mcp-command"
-        >
-          <MarkdownProse noMarginCode>
-            {`\`\`\`json\n${cursorMcpCommand}\n\`\`\``}
-          </MarkdownProse>
-        </SettingsSection>
+          <SettingsSection
+            title="Cursor MCP Command"
+            description="Cursor needs a JSON snippet to be added to the Cursor settings. Copy and paste the following snippet"
+            id="cursor-mcp-command"
+          >
+            <MarkdownProse noMarginCode>
+              {`\`\`\`json\n${cursorMcpCommand}\n\`\`\``}
+            </MarkdownProse>
+          </SettingsSection>
 
-        <SettingsSection
-          title="Search tool name"
-          description="MCP clients rely on this name to identify when to use this tool. Give it a descriptive name. Should be alphanumeric and _ only."
-          fetcher={toolNameFetcher}
-          id="search-tool-name"
-        >
-          <input
-            type="text"
-            className="input"
-            name="mcpToolName"
-            defaultValue={loaderData.scrape.mcpToolName ?? ""}
-            placeholder="Ex: search_mytool_documentation"
-            pattern="^[a-zA-Z0-9_]+$"
-          />
-        </SettingsSection>
-      </SettingsContainer>
-    </SettingsSectionProvider>
+          <SettingsSection
+            title="Search tool name"
+            description="MCP clients rely on this name to identify when to use this tool. Give it a descriptive name. Should be alphanumeric and _ only."
+            fetcher={toolNameFetcher}
+            id="search-tool-name"
+          >
+            <input
+              type="text"
+              className="input"
+              name="mcpToolName"
+              defaultValue={loaderData.scrape.mcpToolName ?? ""}
+              placeholder="Ex: search_mytool_documentation"
+              pattern="^[a-zA-Z0-9_]+$"
+            />
+          </SettingsSection>
+        </SettingsContainer>
+      </SettingsSectionProvider>
+    </Page>
   );
 }
