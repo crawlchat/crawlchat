@@ -22,7 +22,11 @@ export class MarsIndexer implements Indexer {
     return this.indexName;
   }
 
-  async upsert(scrapeId: string, documents: IndexDocument[]): Promise<void> {
+  async upsert(
+    scrapeId: string,
+    knowledgeGroupId: string,
+    documents: IndexDocument[]
+  ): Promise<void> {
     if (documents.length === 0) {
       return;
     }
@@ -44,6 +48,7 @@ export class MarsIndexer implements Indexer {
               ...document.metadata,
               scrapeId,
               id: document.id,
+              knowledgeGroupId,
             },
           };
         })

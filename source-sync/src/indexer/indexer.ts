@@ -6,5 +6,5 @@ export type IndexDocument = {
 
 export interface Indexer {
   getKey(): string;
-  upsert(scrapeId: string, documents: IndexDocument[]): Promise<void>;
+  upsert(scrapeId: string, knowledgeGroupId: string, documents: IndexDocument[]): Promise<void>;
 }

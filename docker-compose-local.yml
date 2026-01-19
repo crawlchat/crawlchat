@@ -22,12 +22,16 @@ services:
       database:
         condition: service_healthy
     restart: "no"
-    entrypoint: ["sh", "-c", "
-      until mongosh --host database:27017 --eval 'db.runCommand({ ping: 1 })'; do
-      echo 'Waiting for Mongo...'; sleep 2;
-      done;
-      mongosh --host database:27017 --eval 'rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"database:27017\"}]})'
-      "]
+    entrypoint: [
+        "sh",
+        "-c",
+        '
+        until mongosh --host database:27017 --eval ''db.runCommand({ ping: 1 })''; do
+        echo ''Waiting for Mongo...''; sleep 2;
+        done;
+        mongosh --host database:27017 --eval ''rs.initiate({_id:"rs0",members:[{_id:0,host:"database:27017"}]})''
+        ',
+      ]
     networks:
       - local_net
 

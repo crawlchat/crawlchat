@@ -47,7 +47,7 @@ export async function upsertItem(
     text: chunk,
     metadata: { content: chunk, url: url },
   }));
-  await indexer.upsert(scrape.id, documents);
+  await indexer.upsert(scrape.id, knowledgeGroup.id, documents);
 
   const existingItem = await prisma.scrapeItem.findFirst({
     where: { scrapeId: scrape.id, url },
