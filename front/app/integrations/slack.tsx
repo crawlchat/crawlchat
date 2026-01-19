@@ -80,8 +80,8 @@ export default function SlackIntegrations({
       <SettingsSectionProvider>
         <SettingsContainer>
           <div className="text-base-content/50">
-            You can install CrawlChat bot on your Slack workspace. You need to
-            first set the team id below to make it work!
+            You can install the CrawlChat bot on your Slack workspace. You need
+            to first set the team id below to make it work!
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center gap-2">
@@ -106,7 +106,7 @@ export default function SlackIntegrations({
           <SettingsSection
             id="slack-team-id"
             title={"Slack Team Id"}
-            description="Slack team id is unique to your workspace. You can find it in the URL of your workspace."
+            description="Slack team ID is unique to your workspace. You can find it in the URL of your workspace."
             fetcher={teamIdFetcher}
           >
             <input
