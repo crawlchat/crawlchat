@@ -2,7 +2,10 @@ export class Cache<T> {
   private cache: T;
   private updatedAt: Date | undefined;
 
-  constructor(private readonly setter: () => T, private readonly ttl: number) {
+  constructor(
+    private readonly setter: () => T,
+    private readonly ttl: number
+  ) {
     this.setter = setter;
     this.cache = setter();
   }

@@ -7,13 +7,13 @@ image: /blog-images/post/add-ask-ai-to-docusaurus.png
 
 If you're using [Docusaurus](https://docusaurus.io/) for your documentation, there’s a really smart and easy way to level up the experience for your readers — by adding an AI-powered chatbot with [CrawlChat](https://crawlchat.app/).
 
-In just a few minutes, you can let your users *ask questions* directly on your docs site and get instant answers, powered by your own content. Sounds cool? Let’s walk through how to do it step-by-step.
+In just a few minutes, you can let your users _ask questions_ directly on your docs site and get instant answers, powered by your own content. Sounds cool? Let’s walk through how to do it step-by-step.
 
 ---
 
 ## Step 1: Add Your Docs as a Knowledge Base
 
-Before the bot can answer questions, it needs to *know* your documentation. Here's how to make that happen:
+Before the bot can answer questions, it needs to _know_ your documentation. Here's how to make that happen:
 
 ![Docusaurs based knowledge group](/blog-images/docusaurus-based-group.png)
 

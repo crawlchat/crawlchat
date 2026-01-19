@@ -105,7 +105,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     const data = await response.json();
 
-    const error = response.status !== 200 ? data.error ?? data.message : null;
+    const error = response.status !== 200 ? (data.error ?? data.message) : null;
 
     return Response.json({ content: data.content, title: data.title, error });
   }

@@ -36,7 +36,6 @@ export function meta() {
   });
 }
 
-
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);

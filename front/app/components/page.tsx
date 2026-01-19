@@ -26,9 +26,9 @@ const release = {
   description: (
     <p>
       You can now enable <strong>Current page context</strong> for your widget.
-      When enabled, the widget includes the current page (URL, content and title)
-      as part of the conversation context so answers can be more relevant to what
-      the user is looking at.
+      When enabled, the widget includes the current page (URL, content and
+      title) as part of the conversation context so answers can be more relevant
+      to what the user is looking at.
     </p>
   ),
   date: "2025-12-17T00:00:00.000Z",

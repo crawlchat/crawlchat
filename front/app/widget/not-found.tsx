@@ -24,7 +24,9 @@ export default function NotFound() {
         <div className="text-8xl text-base-content/70">
           <TbMoodSad />
         </div>
-        <div className="text-base-content/50">Chat not found. Contact the owner.</div>
+        <div className="text-base-content/50">
+          Chat not found. Contact the owner.
+        </div>
         <button className="btn btn-primary" onClick={handleClose}>
           Close <TbX />
         </button>

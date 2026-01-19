@@ -129,7 +129,7 @@ export async function action({ request }: Route.LoaderArgs) {
       thread.scrape.title ?? "CrawlChat",
       thread.ticketNumber,
       thread.ticketKey,
-      thread.title,
+      thread.title
     );
 
     for (const scrapeUser of thread.scrape.scrapeUsers) {

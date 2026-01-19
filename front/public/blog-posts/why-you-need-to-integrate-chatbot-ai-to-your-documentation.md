@@ -26,8 +26,8 @@ Why? Because users don’t always know where to look. They don’t know the exac
 
 Even with detailed help centers, PDFs, changelogs, and community threads, users still ask questions like:
 
-- “How do I invite my team?”  
-- “Why is this feature not working?”  
+- “How do I invite my team?”
+- “Why is this feature not working?”
 - “Can I change my plan later?”
 
 You’ve probably already written the answers—but the user never found them.
@@ -69,9 +69,9 @@ The most underrated part of CrawlChat isn’t the chatbot—it’s the insight.
 
 Every user question is logged and scored. You get a dashboard showing:
 
-- What people are asking  
-- Which answers worked  
-- Where the AI struggled  
+- What people are asking
+- Which answers worked
+- Where the AI struggled
 - Which sources it used (docs, changelogs, forums, GitHub)
 
 This turns your documentation into a two-way system. You’re not just publishing content—you’re getting feedback in real-time.

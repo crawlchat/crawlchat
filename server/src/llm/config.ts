@@ -110,7 +110,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       ragTopN: 4,
       creditsPerMessage: 2,
       baseURL: "https://openrouter.ai/api/v1",
-      supportsImages: true
+      supportsImages: true,
     };
   }
   return {
