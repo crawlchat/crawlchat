@@ -72,7 +72,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
         <SettingsContainer>
           <SettingsSection
             id="embed"
-            title="Embed Ask AI"
+            title="Embed - Ask AI"
             description="Copy paste the <script> tag below to your website."
           >
             <div className="flex flex-col gap-2 flex-1">

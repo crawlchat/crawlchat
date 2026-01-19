@@ -220,7 +220,7 @@ export default function DiscordIntegrations({
             plainTitle="Server Id"
             title={
               <div className="flex items-center gap-2">
-                <span>Discord Server Id</span>
+                <span>Discord Server ID</span>
                 <div className="dropdown">
                   <div tabIndex={0} role="button" className="btn btn-xs mb-1">
                     <TbInfoCircle />
