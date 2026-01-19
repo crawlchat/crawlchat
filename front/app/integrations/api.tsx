@@ -141,7 +141,16 @@ print(result)`,
               Replace{" "}
               <code className="text-primary">{`{{YOUR_COLLECTION_ID}}`}</code>{" "}
               and <code className="text-primary">{`{{YOUR_API_KEY}}`}</code>{" "}
-              with your own values.
+              with your own values. Check{" "}
+              <a
+                href="https://docs.crawlchat.app/api/answer"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link link-primary link-hover"
+              >
+                documentation
+              </a>{" "}
+              for more details.
             </p>
           </SettingsSection>
         </SettingsContainer>
