@@ -9,6 +9,7 @@ import {
   GatewayIntentBits,
   Message,
   Partials,
+  PermissionsBitField,
   PublicThreadChannel,
   TextChannel,
   ThreadAutoArchiveDuration,
@@ -498,6 +499,18 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   const emojiStr = reaction.emoji.toString();
 
   if (emojiStr === "🧩") {
+    const member = await reaction.message.guild!.members.fetch(user.id);
+    const hasRequiredPermissions = member.permissions.has(
+      PermissionsBitField.Flags.Administrator
+    ) ||
+    member.permissions.has(PermissionsBitField.Flags.ManageGuild) ||
+    member.permissions.has(PermissionsBitField.Flags.ManageMessages);
+
+    if (!hasRequiredPermissions) {
+      console.warn(`Unauthorized 🧩 emoji usage by ${user.id} in server ${reaction.message.guildId}`);
+      return;
+    }
+
     return learnMessage(await reaction.message.fetch(), true);
   }
 

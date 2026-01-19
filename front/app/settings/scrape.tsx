@@ -748,7 +748,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
                   value: "private",
                   icon: <TbLock />,
                   description:
-                    "It will be private bot and only work with Discrod and Slack bots and team members.",
+                    "It will be private bot and only work with Discord Bots, Slack bots and team members.",
                 },
               ]}
               value={_private ? "private" : "public"}
