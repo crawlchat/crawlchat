@@ -193,7 +193,7 @@ export default function DiscordIntegrations({
             options and install. You need to enter the server id below to make
             it work!
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
             <a
               className="btn btn-neutral"
               href="https://discord.com/oauth2/authorize?client_id=1346845279692918804"

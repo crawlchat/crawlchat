@@ -84,7 +84,7 @@ export default function SlackIntegrations({
             first set the team id below to make it work!
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
             <a
               className="btn btn-neutral"
               href="https://slack.crawlchat.app/install"
