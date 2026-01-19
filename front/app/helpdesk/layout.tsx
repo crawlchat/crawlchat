@@ -92,8 +92,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     return redirect("/");
   }
 
-  sanitizeScrape(scrape)
-  sanitizeThread(thread)
+  sanitizeScrape(scrape);
+  sanitizeThread(thread);
 
   return {
     scrape,

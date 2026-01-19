@@ -62,9 +62,7 @@ export function UseCaseIssues({ issues }: { issues: UseCaseIssueItem[] }) {
           )}
         >
           <div className="flex-4 flex flex-col gap-4">
-            <div className="text-base-content/50">
-              {issue.question}
-            </div>
+            <div className="text-base-content/50">{issue.question}</div>
             <h3 className="text-3xl font-medium">{issue.shortAnswer}</h3>
             <p>{issue.answer}</p>
             <ul className="flex flex-col gap-4 md:flex-row md:gap-4 flex-wrap">

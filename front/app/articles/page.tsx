@@ -91,10 +91,7 @@ export default function Article({ loaderData }: Route.ComponentProps) {
         <div className="flex gap-2 items-center">
           <deleteFetcher.Form method="post">
             <input type="hidden" name="intent" value="delete" />
-            <div
-              className="tooltip tooltip-left"
-              data-tip="Delete article"
-            >
+            <div className="tooltip tooltip-left" data-tip="Delete article">
               <button
                 className="btn btn-error btn-soft btn-square"
                 type="submit"

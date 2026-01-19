@@ -77,7 +77,9 @@ function Home() {
           <legend className="fieldset-legend pt-0">Collection</legend>
           <select
             value={
-              scrapes === undefined ? "loading" : config?.scrapeId ?? undefined
+              scrapes === undefined
+                ? "loading"
+                : (config?.scrapeId ?? undefined)
             }
             className="select"
             onChange={(e) => handleChangeScrape(e.target.value)}

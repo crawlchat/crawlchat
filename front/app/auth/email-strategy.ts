@@ -167,7 +167,7 @@ const verifyEmailAddress: VerifyEmailFunction = async (email) => {
 export class EmailLinkStrategy<
   User,
   SessionData,
-  SessionFlashData
+  SessionFlashData,
 > extends Strategy<User, EmailLinkStrategyVerifyParams> {
   public name = "email-link";
 
@@ -291,7 +291,7 @@ export class EmailLinkStrategy<
         request.url,
         await this.decrypt(magicLink as string)
       );
-      
+
       // now that we have the user email we can call verify to get the user
       user = await this.verify({ email, form, magicLinkVerify: true });
     } catch (error) {
@@ -339,7 +339,7 @@ export class EmailLinkStrategy<
     const protocol =
       host.includes("localhost") || host.includes("127.0.0.1")
         ? "http"
-        : request.headers.get("X-Forwarded-Proto") ?? "https";
+        : (request.headers.get("X-Forwarded-Proto") ?? "https");
 
     return `${protocol}://${host}`;
   }

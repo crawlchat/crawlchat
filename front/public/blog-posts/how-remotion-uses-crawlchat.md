@@ -4,7 +4,7 @@ date: 2025-03-29
 description: Remotion uses CrawlChat to let the community have better access to it using AI. Understand how it is done
 ---
 
-[Remotion](https://remotion.dev) is an open source library to make videos programmatically. It is powering amazing apps such as [Submagic](https://submagic.co), [AIVideo.com](https://aivideo.com), [Icon.me](https://icon.me), [MotionShot](https://motionshot.app) and more. They have a very strong documentation so that the community can easily build applications around Remotion. 
+[Remotion](https://remotion.dev) is an open source library to make videos programmatically. It is powering amazing apps such as [Submagic](https://submagic.co), [AIVideo.com](https://aivideo.com), [Icon.me](https://icon.me), [MotionShot](https://motionshot.app) and more. They have a very strong documentation so that the community can easily build applications around Remotion.
 
 Remotion also has a Discord server where the developers interact and get help from the makers and the experts in the eco system. Both the documentation and the Discord servers have been the places where the developers get help. The best way to let people search the documents is to have a keyword search option, where people enter a keyword and get matching web pages. [Algolia](https://www.algolia.com) has been the de-facto method of adding such search functionality.
 
@@ -16,7 +16,7 @@ As the technology kept evolving and with a strong penetration of **AI** in how w
 
 ## Advantages
 
-Generally people consider embedding a regular *AI of any LLM*. That's a very wrong approach as every LLM is trained on a set of data and up to a cut off time. It might know about some popular libraries or content but for sure it doesn't know about your documentation. Apart from that the chances of it hallucinating are super high.
+Generally people consider embedding a regular _AI of any LLM_. That's a very wrong approach as every LLM is trained on a set of data and up to a cut off time. It might know about some popular libraries or content but for sure it doesn't know about your documentation. Apart from that the chances of it hallucinating are super high.
 
 That is the reason you need a solution like **CrawlChat** that digests your documentation and uses it as a context for LLMs. That is what CrawlChat exactly does under the hood and provides you
 
@@ -28,7 +28,7 @@ That is the reason you need a solution like **CrawlChat** that digests your docu
 
 ## Ask AI
 
-Embedding the chatbot was the first step in Remotion's integration process. It let's Remotion community to ask any questions, issues that they are facing while building stuff around Remotion. 
+Embedding the chatbot was the first step in Remotion's integration process. It let's Remotion community to ask any questions, issues that they are facing while building stuff around Remotion.
 
 On the other side, the Remotion team also get to see the queries that are being answered by the chatbot for further improvement on the documentation itself.
 
@@ -36,7 +36,7 @@ On the other side, the Remotion team also get to see the queries that are being 
 
 ## Discord bot
 
-Remotion Discord server has over 5000 members at the time of me writing this post. There are dedicated channels for seeking help. It is one of the most active Discord servers I've seen. Jonny wanted to take their documentation to this Discord server as well using **Discord bot**. 
+Remotion Discord server has over 5000 members at the time of me writing this post. There are dedicated channels for seeking help. It is one of the most active Discord servers I've seen. Jonny wanted to take their documentation to this Discord server as well using **Discord bot**.
 
 The community now is able to get answers to the queries they have by just tagging **@crawlchat** and the bot answers in seconds. It also provides the resourses that it uses to answer in the message.
 

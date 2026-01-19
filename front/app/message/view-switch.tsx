@@ -14,7 +14,10 @@ export function ViewSwitch() {
 
   if (view === "messages") {
     return (
-      <Link to={"/questions/conversations"} className="btn btn-primary btn-soft">
+      <Link
+        to={"/questions/conversations"}
+        className="btn btn-primary btn-soft"
+      >
         <TbMessages />
         <span className="hidden md:block">Conversations</span>
       </Link>

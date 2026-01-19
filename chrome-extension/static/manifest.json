@@ -8,13 +8,8 @@
     "48": "logo.png",
     "128": "logo.png"
   },
-  "permissions": [
-    "activeTab",
-    "storage"
-  ],
-  "host_permissions": [
-    "https://wings.crawlchat.app/*"
-  ],
+  "permissions": ["activeTab", "storage"],
+  "host_permissions": ["https://wings.crawlchat.app/*"],
   "web_accessible_resources": [
     {
       "resources": ["inject.css", "sticky-button.css"],

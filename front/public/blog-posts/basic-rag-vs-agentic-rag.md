@@ -20,10 +20,12 @@ Traditional RAG works like this:
 4. The LLM generates a response.
 
 ### ✅ Pros:
+
 - Simple and fast.
 - Works well for direct, fact-based questions.
 
 ### ❌ Cons:
+
 - Prone to hallucinations, especially with vague or multi-part questions.
 - The LLM may miss important parts of context.
 - No internal reasoning—just one pass from input to output.
@@ -54,20 +56,22 @@ Let’s say someone asks a question on Discord about Remotion’s API. Basic RAG
 
 With Agentic RAG, CrawlChat:
 
-- Breaks the query into:  
-  - *What is the API used for?*  
-  - *How do I configure it in project X?*
+- Breaks the query into:
+  - _What is the API used for?_
+  - _How do I configure it in project X?_
 
 - Finds precise documentation for each.
 - Answers both clearly.
 - Merges them into a single, accurate reply.
 
 ### ✅ Pros:
+
 - Much higher accuracy.
 - Reduced hallucination risk.
 - Better handling of complex or vague queries.
 
 ### ❌ Cons:
+
 - Slightly slower (multiple steps).
 - More compute-intensive.
 - Needs smarter orchestration (which we’re building).

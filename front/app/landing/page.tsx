@@ -1588,7 +1588,10 @@ function Hero() {
       <div className="flex-1 flex-col">
         <div className="relative">
           <div className="border-2 border-accent rounded-box overflow-hidden shadow">
-            <iframe src="/w/crawlchat?theme=light" className="w-full h-[560px]" />
+            <iframe
+              src="/w/crawlchat?theme=light"
+              className="w-full h-[560px]"
+            />
           </div>
 
           <img

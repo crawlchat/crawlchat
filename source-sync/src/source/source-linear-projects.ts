@@ -90,4 +90,3 @@ export class LinearProjectsSource implements Source {
     };
   }
 }
-

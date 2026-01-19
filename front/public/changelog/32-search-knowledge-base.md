@@ -8,6 +8,7 @@ tags: focus
 You can now **search your knowledge base** directly from the Knowledge page. Simply enter any query to find relevant pages across all your knowledge groups. This helps you in debugging pages against search queries and fine tune your documentation pages. You can also just pass the page `URL` to quickly navigate to it.
 
 The search results display:
+
 - **Group** - The knowledge group the page belongs to
 - **URL** - Direct link to the page
 - **Title** - The page title

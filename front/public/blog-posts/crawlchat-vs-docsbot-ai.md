@@ -41,14 +41,14 @@ SaaS founders and DevRel teams often want to **chat with documentation** – let
 
 ## Feature Comparison Table
 
-| Feature | CrawlChat | DocsBot AI |
-|----------|------------|------------|
-| **Channels/Platforms** | Website “Ask AI” widget; Slack app; Discord bot; MCP server | Website chat widget; Slack app (paid plans); API/Zapier |
-| **Sources Supported** | Websites, Docusaurus, GitHub, Notion, Confluence, PDF/files, etc. | 37+ sources (websites, PDFs, Docs, RSS, cloud storage, support tickets, etc.) |
-| **Integrations/Actions** | Public API; n8n node; built-in support tickets; MCP tools | Zapier/Make; REST API; Helpdesk integrations (HelpScout, Zendesk) |
-| **Analytics & AI** | Answer relevance scores; conversation metrics; **data gap** detection; category usage | Usage stats; conversation & question analytics; topic/sentiment reports (higher tiers) |
-| **Setup & UI** | 3-step setup (no code); customizable widget (UI and response prompts) | 4-step setup; widget customization (colors/CSS on paid plans) |
-| **Pricing (entry)** | $21/mo (2K pages, 800 msgs); $45 Starter includes Slack/Discord | Free (50 pages, 100 msgs); $49/mo Personal (5K pages, 5K msgs) |
+| Feature                  | CrawlChat                                                                             | DocsBot AI                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Channels/Platforms**   | Website “Ask AI” widget; Slack app; Discord bot; MCP server                           | Website chat widget; Slack app (paid plans); API/Zapier                                |
+| **Sources Supported**    | Websites, Docusaurus, GitHub, Notion, Confluence, PDF/files, etc.                     | 37+ sources (websites, PDFs, Docs, RSS, cloud storage, support tickets, etc.)          |
+| **Integrations/Actions** | Public API; n8n node; built-in support tickets; MCP tools                             | Zapier/Make; REST API; Helpdesk integrations (HelpScout, Zendesk)                      |
+| **Analytics & AI**       | Answer relevance scores; conversation metrics; **data gap** detection; category usage | Usage stats; conversation & question analytics; topic/sentiment reports (higher tiers) |
+| **Setup & UI**           | 3-step setup (no code); customizable widget (UI and response prompts)                 | 4-step setup; widget customization (colors/CSS on paid plans)                          |
+| **Pricing (entry)**      | $21/mo (2K pages, 800 msgs); $45 Starter includes Slack/Discord                       | Free (50 pages, 100 msgs); $49/mo Personal (5K pages, 5K msgs)                         |
 
 ---
 

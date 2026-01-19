@@ -1,6 +1,4 @@
-import {
-  Container,
-} from "~/landing/page";
+import { Container } from "~/landing/page";
 import type { Route } from "./+types/public-bots";
 import { TbArrowRight } from "react-icons/tb";
 import cn from "@meltdownjs/cn";
@@ -69,9 +67,7 @@ export default function PublicBots({ loaderData }: Route.ComponentProps) {
                 <a
                   href={bot.url}
                   target="_blank"
-                  className={cn(
-                    "btn btn-primary"
-                  )}
+                  className={cn("btn btn-primary")}
                 >
                   Chat now
                   <TbArrowRight />

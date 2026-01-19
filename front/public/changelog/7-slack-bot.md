@@ -5,7 +5,7 @@ type: changelog
 tags: focus
 ---
 
-Released the public version of Slack Bot that will answer the queries on your workspace. 
+Released the public version of Slack Bot that will answer the queries on your workspace.
 
 - Install the bot from [here](https://slack.crawlchat.app/install)
 - Tag `@crawlchat` and ask the questions

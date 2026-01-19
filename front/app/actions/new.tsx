@@ -43,7 +43,6 @@ export function meta() {
   });
 }
 
-
 export default function NewAction() {
   const fetcher = useFetcher();
 

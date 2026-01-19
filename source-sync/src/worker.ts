@@ -70,7 +70,7 @@ itemEvents.on("failed", async ({ jobId, failedReason }) => {
   const job = await itemQueue.getJob(jobId);
   if (job) {
     const isErrorFromApp = failedReason.startsWith("APP:");
-    
+
     if (!isErrorFromApp) {
       console.error(failedReason);
     }
