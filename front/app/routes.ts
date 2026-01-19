@@ -46,12 +46,13 @@ export default [
       "message/make-guide.tsx"
     ),
 
-    route("connect", "integrations/page.tsx", [
-      index("integrations/customise.tsx"),
-      route("embed", "integrations/embed.tsx"),
+    ...prefix("integrate", [
+      route("customise", "integrations/customise.tsx"),
+      route("web-embed", "integrations/embed.tsx"),
       route("mcp", "integrations/mcp.tsx"),
-      route("discord", "integrations/discord.tsx"),
-      route("slack", "integrations/slack.tsx"),
+      route("discord-bot", "integrations/discord.tsx"),
+      route("slack-app", "integrations/slack.tsx"),
+      route("api", "integrations/api.tsx"),
     ]),
 
     route("knowledge/group", "knowledge/new-group.tsx"),

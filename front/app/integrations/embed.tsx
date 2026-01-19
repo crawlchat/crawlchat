@@ -10,6 +10,8 @@ import { useMemo } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { makeMeta } from "~/meta";
+import { Page } from "~/components/page";
+import { TbWorld } from "react-icons/tb";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -65,49 +67,51 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
   );
 
   return (
-    <SettingsSectionProvider>
-      <SettingsContainer>
-        <SettingsSection
-          id="embed"
-          title="Embed Ask AI"
-          description="Copy paste the <script> tag below to your website."
-        >
-          <div className="flex flex-col gap-2 flex-1">
-            <div className="tabs tabs-lift">
-              <input
-                type="radio"
-                name="embed-code"
-                className="tab"
-                aria-label="Code"
-                defaultChecked
-              />
-              <div className="tab-content bg-base-100 border-base-300 p-6">
-                <MarkdownProse>
-                  {`\`\`\`json
+    <Page title={"Web embed"} icon={<TbWorld />}>
+      <SettingsSectionProvider>
+        <SettingsContainer>
+          <SettingsSection
+            id="embed"
+            title="Embed Ask AI"
+            description="Copy paste the <script> tag below to your website."
+          >
+            <div className="flex flex-col gap-2 flex-1">
+              <div className="tabs tabs-lift">
+                <input
+                  type="radio"
+                  name="embed-code"
+                  className="tab"
+                  aria-label="Code"
+                  defaultChecked
+                />
+                <div className="tab-content bg-base-100 border-base-300 p-4">
+                  <MarkdownProse>
+                    {`\`\`\`json
 ${scriptCode.script}
 \`\`\`
 `}
-                </MarkdownProse>
-              </div>
+                  </MarkdownProse>
+                </div>
 
-              <input
-                type="radio"
-                name="embed-code"
-                className="tab"
-                aria-label="Docusaurus"
-              />
-              <div className="tab-content bg-base-100 border-base-300 p-6">
-                <MarkdownProse>
-                  {`\`\`\`json
+                <input
+                  type="radio"
+                  name="embed-code"
+                  className="tab"
+                  aria-label="Docusaurus"
+                />
+                <div className="tab-content bg-base-100 border-base-300 p-4">
+                  <MarkdownProse>
+                    {`\`\`\`json
 ${scriptCode.docusaurusConfig}
 \`\`\`
 `}
-                </MarkdownProse>
+                  </MarkdownProse>
+                </div>
               </div>
             </div>
-          </div>
-        </SettingsSection>
-      </SettingsContainer>
-    </SettingsSectionProvider>
+          </SettingsSection>
+        </SettingsContainer>
+      </SettingsSectionProvider>
+    </Page>
   );
 }

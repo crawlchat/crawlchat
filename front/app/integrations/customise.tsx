@@ -17,9 +17,17 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { ChatBoxProvider } from "~/widget/use-chat-box";
 import ChatBox, { ChatboxContainer } from "~/widget/chat-box";
-import { TbHome, TbMessage, TbPlus, TbTrash, TbX } from "react-icons/tb";
+import {
+  TbColorSwatch,
+  TbHome,
+  TbMessage,
+  TbPlus,
+  TbTrash,
+  TbX,
+} from "react-icons/tb";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
+import { Page } from "~/components/page";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -183,6 +191,7 @@ const DEFAULT_MESSAGE: Message = {
   attachments: [],
   fingerprint: "test",
   url: null,
+  answerId: "test",
 };
 
 function AskAIButton({
@@ -365,330 +374,332 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="flex items-start gap-4">
-      <div className="flex flex-col gap-4 flex-1">
-        <SettingsSection
-          id="button-chatbox"
-          title="Button & Chatbox"
-          description="Customise the Ask AI button and the chatbox appearance"
-          fetcher={widgetConfigFetcher}
-        >
-          <input type="hidden" name="from-widget" value={"true"} />
+    <Page title={"Customise"} icon={<TbColorSwatch />}>
+      <div className="flex items-start gap-4">
+        <div className="flex flex-col gap-4 flex-1">
+          <SettingsSection
+            id="button-chatbox"
+            title="Button & Chatbox"
+            description="Customise the Ask AI button and the chatbox appearance"
+            fetcher={widgetConfigFetcher}
+          >
+            <input type="hidden" name="from-widget" value={"true"} />
 
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2 items-center">
-              <ColorPicker
-                name="primaryColor"
-                label="Background"
-                color={primaryColor}
-                setColor={setPrimaryColor}
-                onClear={clearPrimaryColor}
-              />
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center">
+                <ColorPicker
+                  name="primaryColor"
+                  label="Background"
+                  color={primaryColor}
+                  setColor={setPrimaryColor}
+                  onClear={clearPrimaryColor}
+                />
 
-              <ColorPicker
-                name="buttonTextColor"
-                label="Text color"
-                color={buttonTextColor}
-                setColor={setButtonTextColor}
-                onClear={clearButtonTextColor}
-              />
-            </div>
+                <ColorPicker
+                  name="buttonTextColor"
+                  label="Text color"
+                  color={buttonTextColor}
+                  setColor={setButtonTextColor}
+                  onClear={clearButtonTextColor}
+                />
+              </div>
 
-            <div className="flex gap-2">
+              <div className="flex gap-2">
+                <fieldset className="fieldset flex-1">
+                  <legend className="fieldset-legend">Button text</legend>
+                  <input
+                    className="input w-full"
+                    type="text"
+                    placeholder="Button text"
+                    name="buttonText"
+                    value={buttonText ?? ""}
+                    onChange={(e) => setButtonText(e.target.value)}
+                  />
+                </fieldset>
+
+                <fieldset className="fieldset flex-1">
+                  <legend className="fieldset-legend">Logo URL</legend>
+                  <input
+                    className="input w-full"
+                    type="text"
+                    placeholder="Logo URL"
+                    name="logoUrl"
+                    value={logoUrl ?? ""}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                  />
+                </fieldset>
+              </div>
+
               <fieldset className="fieldset flex-1">
-                <legend className="fieldset-legend">Button text</legend>
+                <legend className="fieldset-legend">Title</legend>
                 <input
                   className="input w-full"
                   type="text"
-                  placeholder="Button text"
-                  name="buttonText"
-                  value={buttonText ?? ""}
-                  onChange={(e) => setButtonText(e.target.value)}
+                  placeholder="Ex: Assistant"
+                  name="title"
+                  value={title ?? ""}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
               </fieldset>
 
-              <fieldset className="fieldset flex-1">
-                <legend className="fieldset-legend">Logo URL</legend>
+              <label className="label">
+                <input
+                  type="checkbox"
+                  className="toggle"
+                  name="applyColorsToChatbox"
+                  checked={applyColorsToChatbox}
+                  onChange={(e) => setApplyColorsToChatbox(e.target.checked)}
+                />
+                Apply colors to chatbox
+              </label>
+            </div>
+          </SettingsSection>
+
+          <SettingsSection
+            id="widget-size"
+            title="Widget size"
+            description="Set the size of the widget to be when it's embedded on your website"
+            fetcher={sizeFetcher}
+          >
+            <select
+              className="select w-full max-w-xs"
+              name="size"
+              value={size}
+              onChange={(e) => setSize(e.target.value as WidgetSize)}
+            >
+              <option value="small">Small</option>
+              <option value="large">Large</option>
+            </select>
+          </SettingsSection>
+
+          <SettingsSection
+            id="welcome-message"
+            title="Welcome message"
+            description="Add your custom welcome message to the widget. Supports markdown."
+            fetcher={welcomeMessageFetcher}
+          >
+            <textarea
+              className="textarea textarea-bordered w-full"
+              name="welcomeMessage"
+              value={welcomeMessage ?? ""}
+              onChange={(e) => setWelcomeMessage(e.target.value)}
+              placeholder="Hi, I'm the CrawlChat bot. How can I help you today?"
+              rows={4}
+            />
+          </SettingsSection>
+
+          <SettingsSection
+            id="example-questions"
+            title="Example questions"
+            description="Show few example questions when a user visits the widget for the first time"
+            fetcher={questionsFetcher}
+          >
+            <input type="hidden" name="from-questions" value={"true"} />
+            {questions.map((question, i) => (
+              <div key={i} className="flex gap-2 items-center">
                 <input
                   className="input w-full"
                   type="text"
-                  placeholder="Logo URL"
-                  name="logoUrl"
-                  value={logoUrl ?? ""}
-                  onChange={(e) => setLogoUrl(e.target.value)}
+                  name={"questions"}
+                  placeholder={"Ex: How to use the product?"}
+                  value={question.text}
+                  onChange={(e) => {
+                    const newQuestions = [...questions];
+                    newQuestions[i].text = e.target.value;
+                    setQuestions(newQuestions);
+                  }}
                 />
-              </fieldset>
+                <button
+                  className="btn btn-error btn-soft btn-square"
+                  type="button"
+                  onClick={() => removeQuestion(i)}
+                >
+                  <TbTrash />
+                </button>
+              </div>
+            ))}
+            <div>
+              <button className="btn" type="button" onClick={addQuestion}>
+                <TbPlus />
+                Add question
+              </button>
             </div>
+          </SettingsSection>
 
-            <fieldset className="fieldset flex-1">
-              <legend className="fieldset-legend">Title</legend>
-              <input
-                className="input w-full"
-                type="text"
-                placeholder="Ex: Assistant"
-                name="title"
-                value={title ?? ""}
-                onChange={(e) => setTitle(e.target.value)}
-              />
-            </fieldset>
+          <SettingsSection
+            id="text-input-placeholder"
+            title="Text input placeholder"
+            description="Set the placeholder text for the text input field"
+            fetcher={textInputPlaceholderFetcher}
+          >
+            <input
+              className="input w-full"
+              type="text"
+              name="textInputPlaceholder"
+              value={textInputPlaceholder ?? ""}
+              onChange={(e) => setTextInputPlaceholder(e.target.value)}
+              placeholder="Ex: Ask me anything about the product"
+            />
+          </SettingsSection>
 
+          <SettingsSection
+            id="mcp-setup"
+            title="MCP setup instructions"
+            description="Show the MCP client setup instrctions on the widget"
+            fetcher={mcpSetupFetcher}
+          >
+            <input type="hidden" name="from-mcp-setup" value={"true"} />
             <label className="label">
               <input
                 type="checkbox"
                 className="toggle"
-                name="applyColorsToChatbox"
-                checked={applyColorsToChatbox}
-                onChange={(e) => setApplyColorsToChatbox(e.target.checked)}
+                name="showMcpSetup"
+                checked={showMcpSetup}
+                onChange={(e) => setShowMcpSetup(e.target.checked)}
               />
-              Apply colors to chatbox
+              Show it
             </label>
-          </div>
-        </SettingsSection>
+          </SettingsSection>
 
-        <SettingsSection
-          id="widget-size"
-          title="Widget size"
-          description="Set the size of the widget to be when it's embedded on your website"
-          fetcher={sizeFetcher}
-        >
-          <select
-            className="select w-full max-w-xs"
-            name="size"
-            value={size}
-            onChange={(e) => setSize(e.target.value as WidgetSize)}
+          <SettingsSection
+            id="current-page-context"
+            title="Current page context"
+            description="Include the current page in the context of the conversation"
+            fetcher={currentPageContextFetcher}
           >
-            <option value="small">Small</option>
-            <option value="large">Large</option>
-          </select>
-        </SettingsSection>
-
-        <SettingsSection
-          id="welcome-message"
-          title="Welcome message"
-          description="Add your custom welcome message to the widget. Supports markdown."
-          fetcher={welcomeMessageFetcher}
-        >
-          <textarea
-            className="textarea textarea-bordered w-full"
-            name="welcomeMessage"
-            value={welcomeMessage ?? ""}
-            onChange={(e) => setWelcomeMessage(e.target.value)}
-            placeholder="Hi, I'm the CrawlChat bot. How can I help you today?"
-            rows={4}
-          />
-        </SettingsSection>
-
-        <SettingsSection
-          id="example-questions"
-          title="Example questions"
-          description="Show few example questions when a user visits the widget for the first time"
-          fetcher={questionsFetcher}
-        >
-          <input type="hidden" name="from-questions" value={"true"} />
-          {questions.map((question, i) => (
-            <div key={i} className="flex gap-2 items-center">
+            <input
+              type="hidden"
+              name="from-current-page-context"
+              value={"true"}
+            />
+            <label className="label">
               <input
-                className="input w-full"
-                type="text"
-                name={"questions"}
-                placeholder={"Ex: How to use the product?"}
-                value={question.text}
-                onChange={(e) => {
-                  const newQuestions = [...questions];
-                  newQuestions[i].text = e.target.value;
-                  setQuestions(newQuestions);
-                }}
+                type="checkbox"
+                className="toggle"
+                name="currentPageContext"
+                checked={currentPageContext}
+                onChange={(e) => setCurrentPageContext(e.target.checked)}
               />
-              <button
-                className="btn btn-error btn-soft btn-square"
-                type="button"
-                onClick={() => removeQuestion(i)}
-              >
-                <TbTrash />
-              </button>
-            </div>
-          ))}
-          <div>
-            <button className="btn" type="button" onClick={addQuestion}>
-              <TbPlus />
-              Add question
-            </button>
-          </div>
-        </SettingsSection>
+              Enable
+            </label>
+          </SettingsSection>
 
-        <SettingsSection
-          id="text-input-placeholder"
-          title="Text input placeholder"
-          description="Set the placeholder text for the text input field"
-          fetcher={textInputPlaceholderFetcher}
-        >
-          <input
-            className="input w-full"
-            type="text"
-            name="textInputPlaceholder"
-            value={textInputPlaceholder ?? ""}
-            onChange={(e) => setTextInputPlaceholder(e.target.value)}
-            placeholder="Ex: Ask me anything about the product"
-          />
-        </SettingsSection>
-
-        <SettingsSection
-          id="mcp-setup"
-          title="MCP setup instructions"
-          description="Show the MCP client setup instrctions on the widget"
-          fetcher={mcpSetupFetcher}
-        >
-          <input type="hidden" name="from-mcp-setup" value={"true"} />
-          <label className="label">
-            <input
-              type="checkbox"
-              className="toggle"
-              name="showMcpSetup"
-              checked={showMcpSetup}
-              onChange={(e) => setShowMcpSetup(e.target.checked)}
-            />
-            Show it
-          </label>
-        </SettingsSection>
-
-        <SettingsSection
-          id="current-page-context"
-          title="Current page context"
-          description="Include the current page in the context of the conversation"
-          fetcher={currentPageContextFetcher}
-        >
-          <input
-            type="hidden"
-            name="from-current-page-context"
-            value={"true"}
-          />
-          <label className="label">
-            <input
-              type="checkbox"
-              className="toggle"
-              name="currentPageContext"
-              checked={currentPageContext}
-              onChange={(e) => setCurrentPageContext(e.target.checked)}
-            />
-            Enable
-          </label>
-        </SettingsSection>
-
-        <SettingsSection
-          id="hide-branding"
-          title="Hide branding"
-          description="Hide CrawlChat branding from the widget"
-          fetcher={hideBrandingFetcher}
-        >
-          <input type="hidden" name="from-hide-branding" value={"true"} />
-          <label className="label">
-            <input
-              type="checkbox"
-              className="toggle"
-              name="hideBranding"
-              checked={hideBranding}
-              disabled={!canHideBranding}
-              onChange={(e) => setHideBranding(e.target.checked)}
-            />
-            Hide branding
-            {!canHideBranding && (
-              <span className="text-sm text-base-content/60 ml-2">
-                Contact support
-              </span>
-            )}
-          </label>
-        </SettingsSection>
-      </div>
-
-      <div className="flex flex-col gap-4 w-[500px] sticky top-[80px]">
-        <div className="flex justify-center">
-          <div>
-            <div role="tablist" className="tabs tabs-box shadow-none p-0">
-              <a
-                role="tab"
-                className={cn(
-                  "tab gap-2",
-                  previewType === "home" && "tab-active"
-                )}
-                onClick={() => setPreviewType("home")}
-              >
-                <TbHome /> Home
-              </a>
-              <a
-                role="tab"
-                className={cn(
-                  "tab gap-2",
-                  previewType === "chat" && "tab-active"
-                )}
-                onClick={() => setPreviewType("chat")}
-              >
-                <TbMessage /> Chat
-              </a>
-            </div>
-          </div>
+          <SettingsSection
+            id="hide-branding"
+            title="Hide branding"
+            description="Hide CrawlChat branding from the widget"
+            fetcher={hideBrandingFetcher}
+          >
+            <input type="hidden" name="from-hide-branding" value={"true"} />
+            <label className="label">
+              <input
+                type="checkbox"
+                className="toggle"
+                name="hideBranding"
+                checked={hideBranding}
+                disabled={!canHideBranding}
+                onChange={(e) => setHideBranding(e.target.checked)}
+              />
+              Hide branding
+              {!canHideBranding && (
+                <span className="text-sm text-base-content/60 ml-2">
+                  Contact support
+                </span>
+              )}
+            </label>
+          </SettingsSection>
         </div>
 
-        <div className="flex justify-center">
-          <AskAIButton
-            bg={primaryColor}
-            color={buttonTextColor}
-            text={buttonText}
-          />
-        </div>
+        <div className="flex flex-col gap-4 w-[500px] sticky top-[80px]">
+          <div className="flex justify-center">
+            <div>
+              <div role="tablist" className="tabs tabs-box shadow-none p-0">
+                <a
+                  role="tab"
+                  className={cn(
+                    "tab gap-2",
+                    previewType === "home" && "tab-active"
+                  )}
+                  onClick={() => setPreviewType("home")}
+                >
+                  <TbHome /> Home
+                </a>
+                <a
+                  role="tab"
+                  className={cn(
+                    "tab gap-2",
+                    previewType === "chat" && "tab-active"
+                  )}
+                  onClick={() => setPreviewType("chat")}
+                >
+                  <TbMessage /> Chat
+                </a>
+              </div>
+            </div>
+          </div>
 
-        <div className="flex flex-col gap-2 rounded-box overflow-hidden w-full pb-8 pt-4">
-          <ChatBoxProvider
-            key={previewType}
-            admin={false}
-            readonly={true}
-            scrape={liveScrape as Scrape}
-            thread={null}
-            messages={
-              previewType === "home"
-                ? []
-                : [
-                    {
-                      ...DEFAULT_MESSAGE,
-                      llmMessage: {
-                        role: "user",
-                        content: "How to embed it?",
+          <div className="flex justify-center">
+            <AskAIButton
+              bg={primaryColor}
+              color={buttonTextColor}
+              text={buttonText}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2 rounded-box overflow-hidden w-full pb-8 pt-4">
+            <ChatBoxProvider
+              key={previewType}
+              admin={false}
+              readonly={true}
+              scrape={liveScrape as Scrape}
+              thread={null}
+              messages={
+                previewType === "home"
+                  ? []
+                  : [
+                      {
+                        ...DEFAULT_MESSAGE,
+                        llmMessage: {
+                          role: "user",
+                          content: "How to embed it?",
+                        },
                       },
-                    },
-                    {
-                      ...DEFAULT_MESSAGE,
-                      llmMessage: {
-                        role: "assistant",
-                        content: `To embed the AI chatbot on your docs site:
+                      {
+                        ...DEFAULT_MESSAGE,
+                        llmMessage: {
+                          role: "assistant",
+                          content: `To embed the AI chatbot on your docs site:
 
 1. Open your CrawlChat dashboard and go to Integrations → Embed.  
 2. Customize the widget’s look (colors, text, position).  
 3. Copy the generated \`<script>\` snippet.  
 4. Paste that snippet into the \`<head>\` section of your site’s pages. !!54660!!`,
-                      },
-                      links: [
-                        {
-                          url: "https://crawlchat.app",
-                          title: "CrawlChat docs",
-                          score: 1,
-                          scrapeItemId: "test",
-                          knowledgeGroupId: "test",
-                          fetchUniqueId: "54660",
-                          searchQuery: "test",
                         },
-                      ],
-                    },
-                  ]
-            }
-            embed={false}
-            token={null}
-            fullscreen={false}
-          >
-            <ChatboxContainer noShadow>
-              <ChatBox />
-            </ChatboxContainer>
-          </ChatBoxProvider>
+                        links: [
+                          {
+                            url: "https://crawlchat.app",
+                            title: "CrawlChat docs",
+                            score: 1,
+                            scrapeItemId: "test",
+                            knowledgeGroupId: "test",
+                            fetchUniqueId: "54660",
+                            searchQuery: "test",
+                          },
+                        ],
+                      },
+                    ]
+              }
+              embed={false}
+              token={null}
+              fullscreen={false}
+            >
+              <ChatboxContainer noShadow>
+                <ChatBox />
+              </ChatboxContainer>
+            </ChatBoxProvider>
+          </div>
         </div>
       </div>
-    </div>
+    </Page>
   );
 }

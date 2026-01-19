@@ -173,7 +173,7 @@ function WithSubMenuItems({
       <ul
         className={cn(
           "ml-4 hidden flex-col gap-1 flex-1",
-          "border-l border-base-300",
+          "border-l border-base-300 mt-1",
           isExpanded && "flex"
         )}
       >
