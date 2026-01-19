@@ -1,6 +1,9 @@
 # By default @pskd73
 * @pskd73
 
+# Docs
+/docs/docs @egelhaus
+
 # Docker & selfhosted related Files for @egelhaus
 docker-compose.yml @egelhaus
 docker-compose-local.yml @egelhaus
@@ -8,7 +11,7 @@ Dockerfile.* @egelhaus
 /docs/docs/self-host.md @egelhaus
 
 # GitHub related configs
-/.github/ @egelhaus
+/.github @egelhaus
 
 # Discord bot related files for @egelhaus
-discord-bot/ @egelhaus
+/discord-bot @egelhaus
