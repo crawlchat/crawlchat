@@ -8,7 +8,12 @@ import { authenticate, AuthMode, authoriseScrapeUser } from "libs/express-auth";
 import "./worker";
 import { Prisma, prisma } from "libs/dist/prisma";
 import { v4 as uuidv4 } from "uuid";
-import { getPendingUrls, scheduleGroup, scheduleUrl, scheduleUrls } from "./source/schedule";
+import {
+  getPendingUrls,
+  scheduleGroup,
+  scheduleUrl,
+  scheduleUrls,
+} from "./source/schedule";
 
 declare global {
   namespace Express {
@@ -167,19 +172,19 @@ app.post(
 
     if (pages) {
       await scheduleUrls(
-        knowledgeGroup, 
-        processId, 
-        pages.map((page: { title: string, text: string, pageId: string }) => ({ 
-          url: page.pageId, 
-          sourcePageId: page.pageId, 
-          jobData: { 
-            textPage: { 
-              title: page.title, 
-              text: page.text 
-            } 
-          } 
-        }
-      )));
+        knowledgeGroup,
+        processId,
+        pages.map((page: { title: string; text: string; pageId: string }) => ({
+          url: page.pageId,
+          sourcePageId: page.pageId,
+          jobData: {
+            textPage: {
+              title: page.title,
+              text: page.text,
+            },
+          },
+        }))
+      );
     }
 
     res.json({ message: "ok" });

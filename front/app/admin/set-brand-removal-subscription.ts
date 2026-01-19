@@ -17,7 +17,9 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   if (!subscriptionId || !email) {
     return new Response(
-      JSON.stringify({ error: "subscriptionId and email query parameters are required" }),
+      JSON.stringify({
+        error: "subscriptionId and email query parameters are required",
+      }),
       {
         status: 400,
         headers: { "Content-Type": "application/json" },
@@ -30,13 +32,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   if (!targetUser) {
-    return new Response(
-      JSON.stringify({ error: "User not found" }),
-      {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "User not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
   const currentPlan = targetUser.plan;
@@ -64,7 +63,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   return new Response(
-    JSON.stringify({ success: true, message: "Brand removal subscription updated" }),
+    JSON.stringify({
+      success: true,
+      message: "Brand removal subscription updated",
+    }),
     {
       status: 200,
       headers: { "Content-Type": "application/json" },

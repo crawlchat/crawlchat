@@ -11,7 +11,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const session = await getSession(request.headers.get("cookie"));
-  session.set("user", user)
+  session.set("user", user);
   return redirect("/app", {
     headers: {
       "Set-Cookie": await commitSession(session),

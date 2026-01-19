@@ -66,8 +66,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const plan = scrape?.user.plan?.planId
     ? planMap[scrape.user.plan.planId]
     : user!.plan?.planId
-    ? planMap[user!.plan.planId]
-    : PLAN_FREE;
+      ? planMap[user!.plan.planId]
+      : PLAN_FREE;
 
   const dataGapMessages = scrapeId ? await fetchDataGaps(scrapeId) : [];
 

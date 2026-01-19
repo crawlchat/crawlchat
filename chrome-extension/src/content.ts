@@ -220,7 +220,7 @@ async function openPanel(
         /\n/g,
         "<br>"
       );
-      
+
       simulateUserInput(latestFocusedElement);
     }
     closePanel(shadowHost);
@@ -276,17 +276,17 @@ if (document.readyState === "loading") {
 }
 
 function simulateUserInput(element: HTMLElement): void {
-  const inputEvent = new Event('input', { bubbles: true, cancelable: true });
-  const changeEvent = new Event('change', { bubbles: true, cancelable: true });
-  const keyupEvent = new KeyboardEvent('keyup', { 
-    bubbles: true, 
+  const inputEvent = new Event("input", { bubbles: true, cancelable: true });
+  const changeEvent = new Event("change", { bubbles: true, cancelable: true });
+  const keyupEvent = new KeyboardEvent("keyup", {
+    bubbles: true,
     cancelable: true,
-    key: 'Unidentified',
-    code: 'Unidentified',
+    key: "Unidentified",
+    code: "Unidentified",
     keyCode: 0,
-    which: 0
+    which: 0,
   });
-  
+
   element.dispatchEvent(inputEvent);
   element.dispatchEvent(changeEvent);
   element.dispatchEvent(keyupEvent);

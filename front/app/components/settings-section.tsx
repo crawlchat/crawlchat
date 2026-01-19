@@ -127,10 +127,13 @@ export function SettingsSection({
   }
 
   return (
-    <fetcher.Form 
-      ref={formRef} 
-      method="post" 
-      encType={multipart ? "multipart/form-data" : "application/x-www-form-urlencoded"}>
+    <fetcher.Form
+      ref={formRef}
+      method="post"
+      encType={
+        multipart ? "multipart/form-data" : "application/x-www-form-urlencoded"
+      }
+    >
       {render()}
     </fetcher.Form>
   );

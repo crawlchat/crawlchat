@@ -217,26 +217,23 @@ export async function action({ request }: { request: Request }) {
     });
 
     if (type === "upload") {
-      await fetch(
-        `${process.env.VITE_SERVER_URL}/page/${scrape.id}`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            knowledgeGroupType: "upload",
-            defaultGroupTitle: "Upload",
-            knowledgeGroupId: group.id,
-            pages: fileMarkdowns.map((file) => ({
-              title: file.title,
-              text: file.markdown,
-              pageId: `default-${uuidv4()}`,
-            })),
-          }),
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${createToken(user!.id)}`,
-          },
-        }
-      );
+      await fetch(`${process.env.VITE_SERVER_URL}/page/${scrape.id}`, {
+        method: "POST",
+        body: JSON.stringify({
+          knowledgeGroupType: "upload",
+          defaultGroupTitle: "Upload",
+          knowledgeGroupId: group.id,
+          pages: fileMarkdowns.map((file) => ({
+            title: file.title,
+            text: file.markdown,
+            pageId: `default-${uuidv4()}`,
+          })),
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${createToken(user!.id)}`,
+        },
+      });
     }
 
     const shouldRefresh = formData.get("shouldRefresh") === "on";

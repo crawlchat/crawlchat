@@ -107,7 +107,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   let linearIssueStatuses: Array<SelectValue> = [];
   let linearProjectStatuses: Array<SelectValue> = [];
-  if ((knowledgeGroup.type === "linear" || knowledgeGroup.type === "linear_projects") && knowledgeGroup.linearApiKey) {
+  if (
+    (knowledgeGroup.type === "linear" ||
+      knowledgeGroup.type === "linear_projects") &&
+    knowledgeGroup.linearApiKey
+  ) {
     const client = new LinearClient({
       apiKey: knowledgeGroup.linearApiKey,
     });
@@ -222,7 +226,10 @@ export async function action({ request, params }: Route.ActionArgs) {
       return { success: true };
     }
 
-    return Response.json({ error: "Invalid intent for multipart request" }, { status: 400 });
+    return Response.json(
+      { error: "Invalid intent for multipart request" },
+      { status: 400 }
+    );
   }
 
   const formData = await request.formData();
@@ -286,7 +293,8 @@ export async function action({ request, params }: Route.ActionArgs) {
     ) as string;
   }
   if (formData.has("onlyAnsweredDiscussions")) {
-    (update as any).onlyAnsweredDiscussions = formData.get("onlyAnsweredDiscussions") === "on";
+    (update as any).onlyAnsweredDiscussions =
+      formData.get("onlyAnsweredDiscussions") === "on";
   }
   if (formData.has("youtubeUrls")) {
     const urlsString = formData.get("youtubeUrls") as string;

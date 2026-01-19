@@ -8,7 +8,7 @@ This is an excerpt from Anton's [tweet](https://x.com/lavrton/status/19354134164
 
 Anton from the Polotno team recently shared how they’re using AI to dramatically improve the developer experience.
 
-About a month ago, Polotno migrated its discussions and support from Discord to a dedicated community platform. The motivation? To make Q\&A content *indexable, searchable,* and most importantly, *usable by AI agents*.
+About a month ago, Polotno migrated its discussions and support from Discord to a dedicated community platform. The motivation? To make Q\&A content _indexable, searchable,_ and most importantly, _usable by AI agents_.
 
 In this post, we’ll walk through how they integrated [CrawlChat](https://crawlchat.app), the benefits it brings to developers, and how you can set up your workflow to leverage AI while working with the [Polotno](https://polotno.com) SDK.
 
@@ -30,13 +30,13 @@ Polotno integrated the [CrawlChat Tool](https://crawlchat.app), which made a sig
 
 You can now ask the embedded AI widget questions like:
 
-*"How to change the size of the page?"*
+_"How to change the size of the page?"_
 
 CrawlChat will:
 
-* Search the documentation
-* Pull up relevant examples
-* Provide links to the right sections
+- Search the documentation
+- Pull up relevant examples
+- Provide links to the right sections
 
 This makes it a super-efficient way to find answers without digging through pages.
 
@@ -57,7 +57,7 @@ Here’s how Anton set it up:
 
 Then, he asked:
 
-*"Remove current component content and show Polotno editor instead."*
+_"Remove current component content and show Polotno editor instead."_
 
 Cursor parsed the request, searched the documentation, and returned helpful guidance. It created a custom side panel, rendered transform controls, and made the editor responsive to selections. Even when things weren’t perfect the first time, the loop was fast and iterative.
 

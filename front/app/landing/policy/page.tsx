@@ -14,7 +14,10 @@ export function meta() {
 
 export async function loader() {
   const htmlContent = await marked.parse(
-    fs.readFileSync(path.join(process.cwd(), "app/landing/policy/content.md"), "utf8")
+    fs.readFileSync(
+      path.join(process.cwd(), "app/landing/policy/content.md"),
+      "utf8"
+    )
   );
 
   return { htmlContent };

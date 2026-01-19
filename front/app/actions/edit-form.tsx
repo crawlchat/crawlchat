@@ -439,7 +439,7 @@ export function LinearCreateIssueForm() {
             </select>
           </fieldset>
         </div>
-        
+
         <EmailVerificationField />
       </div>
     </>

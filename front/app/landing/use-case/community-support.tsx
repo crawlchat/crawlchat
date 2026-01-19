@@ -22,7 +22,8 @@ import { MCPIcon } from "~/components/mcp-icon";
 export function meta() {
   return makeMeta({
     title: "Community support - CrawlChat",
-    description: "Transform your technical documentation into an instant answering system for your community.",
+    description:
+      "Transform your technical documentation into an instant answering system for your community.",
   });
 }
 

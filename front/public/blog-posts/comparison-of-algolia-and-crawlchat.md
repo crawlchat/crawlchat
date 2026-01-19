@@ -6,8 +6,8 @@ image: /blog-images/post/comparison-of-algolia-crawlchat.png
 ---
 
 ## Algolia
+
 - **Purpose**: Algolia is a search-as-a-service platform that enables businesses to incorporate robust search functionalities into their applications and websites. It focuses on providing fast, relevant search results powered by AI and analytics.
-  
 - **Key Features**:
   - **Instant and Relevant Search**: Delivers results from the first keystroke.
   - **Dynamic Synonym Suggestions & Re-ranking**: Utilizes AI to improve search relevance and result ranking based on user behavior.
@@ -17,8 +17,8 @@ image: /blog-images/post/comparison-of-algolia-crawlchat.png
 [Source](https://www.algolia.com/blog/ai/using-ai-to-deliver-smarter-search)
 
 ## CrawlChat
+
 - **Purpose**: CrawlChat focuses on improving the accessibility of documentation through an AI-driven chat interface, allowing users to interact with content across different platforms.
-  
 - **Key Features**:
   - **Documentation Scraping**: Automatically scrapes content from websites and transforms it for use in chat interfaces.
   - **Customization Control**: Users can set up custom rules and prompts for AI interactions.
@@ -28,6 +28,6 @@ image: /blog-images/post/comparison-of-algolia-crawlchat.png
 [Source](https://crawlchat.app)
 
 ## Summary of Comparison
+
 - **Focus**: Algolia offers comprehensive search solutions for various applications, while CrawlChat specializes in documentation accessibility and community interaction through AI chat capabilities.
 - **Target Audience**: Algolia targets businesses needing enhanced search capabilities. CrawlChat focuses on users managing documentation and community support.
-

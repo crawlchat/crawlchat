@@ -45,24 +45,24 @@ When it comes to understanding and organizing data, **Chatbase** allows you to u
 
 ## Pricing Snapshot
 
-| Tool | Entry Plan | Focus |
-|------|-------------|-------|
-| **Chatbase** | ~$40/month | Customer and support chatbots |
+| Tool          | Entry Plan | Focus                                        |
+| ------------- | ---------- | -------------------------------------------- |
+| **Chatbase**  | ~$40/month | Customer and support chatbots                |
 | **CrawlChat** | ~$21/month | Technical-doc assistants for developer teams |
 
 ---
 
 ## Summary Comparison
 
-| Feature | Chatbase | CrawlChat |
-|----------|-----------|------------|
-| **Primary Use Case** | Customer support, marketing chatbots | Technical documentation assistants |
-| **Actions / Integrations** | Broad integrations with APIs and CRMs | Developer-focused actions and workflows |
-| **Data Handling** | File and site uploads with manual setup | Automatic structured crawling (websites, GitHub, Notion, Confluence) |
-| **Analytics** | User behavior and message confidence tracking | Performance analytics with “data gap” insights |
-| **Ease of Setup** | Requires more setup for complex data | Quick setup tailored for doc-driven assistants |
-| **Ideal For** | Businesses automating customer communication | Developer teams improving technical documentation |
-| **Starting Price** | ~$40/month | ~$21/month |
+| Feature                    | Chatbase                                      | CrawlChat                                                            |
+| -------------------------- | --------------------------------------------- | -------------------------------------------------------------------- |
+| **Primary Use Case**       | Customer support, marketing chatbots          | Technical documentation assistants                                   |
+| **Actions / Integrations** | Broad integrations with APIs and CRMs         | Developer-focused actions and workflows                              |
+| **Data Handling**          | File and site uploads with manual setup       | Automatic structured crawling (websites, GitHub, Notion, Confluence) |
+| **Analytics**              | User behavior and message confidence tracking | Performance analytics with “data gap” insights                       |
+| **Ease of Setup**          | Requires more setup for complex data          | Quick setup tailored for doc-driven assistants                       |
+| **Ideal For**              | Businesses automating customer communication  | Developer teams improving technical documentation                    |
+| **Starting Price**         | ~$40/month                                    | ~$21/month                                                           |
 
 ---
 

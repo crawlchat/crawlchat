@@ -125,10 +125,10 @@ function CreditProgress({
           percentage > 80
             ? "progress-error"
             : percentage > 60
-            ? "progress-warning"
-            : percentage > 40
-            ? "progress-info"
-            : "progress-success"
+              ? "progress-warning"
+              : percentage > 40
+                ? "progress-info"
+                : "progress-success"
         )}
         value={value}
         max={total}
@@ -203,7 +203,11 @@ function SetupProgress({ scrapeId }: { scrapeId: string }) {
             className="btn btn-primary btn-block"
             to={fetcher.data ? action.url(fetcher.data.input) : ""}
             target={action.external ? "_blank" : undefined}
-            onClick={() => track("progress-next", { id: action.id })}
+            onClick={() =>
+              track("progress-next", {
+                id: action.id,
+              })
+            }
           >
             {action.title}
             {action.icon ?? <TbArrowRight />}
@@ -286,7 +290,11 @@ export function SideMenu({
 }) {
   const links: MenuItemType[] = useMemo(() => {
     const links = [
-      { label: "Summary", to: "/app", icon: <TbChartLine /> },
+      {
+        label: "Summary",
+        to: "/app",
+        icon: <TbChartLine />,
+      },
       {
         label: "Knowledge",
         to: "/knowledge",
@@ -362,7 +370,11 @@ export function SideMenu({
         icon: <TbKey />,
         forScrape: true,
       },
-      { label: "Profile", to: "/profile", icon: <TbUser /> },
+      {
+        label: "Profile",
+        to: "/profile",
+        icon: <TbUser />,
+      },
     ];
 
     return links

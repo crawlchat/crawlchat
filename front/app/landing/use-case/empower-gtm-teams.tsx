@@ -20,7 +20,8 @@ import { SiConfluence, SiLinear } from "react-icons/si";
 export function meta() {
   return makeMeta({
     title: "Empower GTM teams - CrawlChat",
-    description: "Empower your GTM teams with instant access to comprehensive product knowledge through AI powered documentation.",
+    description:
+      "Empower your GTM teams with instant access to comprehensive product knowledge through AI powered documentation.",
   });
 }
 
@@ -61,7 +62,8 @@ export default function CommunitySupport() {
               ],
             },
             {
-              question: "How do I ensure documentation remains internal and private?",
+              question:
+                "How do I ensure documentation remains internal and private?",
               shortAnswer: "Create a private answering assistant",
               answer:
                 "CrawlChat enables you to create a fully private chat assistant. Connect documentation from private content systems and integrate the assistant exclusively on private channels like Slack, Discord, or private links. Documentation is securely stored on CrawlChat's servers and shared with LLMs only when answering questions. Configure automatic synchronization to keep the assistant always up to date.",
@@ -82,7 +84,8 @@ export default function CommunitySupport() {
               ],
             },
             {
-              question: "How do I ensure answers are well researched and accurate?",
+              question:
+                "How do I ensure answers are well researched and accurate?",
               shortAnswer: "Advanced LLMs for research and accurate answers",
               answer:
                 "Documentation collected from different teams can be complex and requires thorough research before answering. CrawlChat uses advanced LLMs from OpenAI, Anthropic, Google, and Gemini to research and answer questions. It follows best practices in the RAG process to ensure LLMs accurately reference source documents.",

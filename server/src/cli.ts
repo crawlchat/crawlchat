@@ -1,8 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-async function main() {
-
-}
+async function main() {}
 
 main();
