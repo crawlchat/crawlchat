@@ -610,31 +610,35 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
           </SettingsSection>
         </div>
 
-        <div className="flex flex-col gap-4 w-[500px] sticky top-[80px]">
+        <div
+          className={cn(
+            "flex flex-col gap-4 w-[500px] sticky top-[76px]",
+            "bg-primary/5 p-4 border-base-300 border rounded-box",
+            "customise-preview"
+          )}
+        >
           <div className="flex justify-center">
-            <div>
-              <div role="tablist" className="tabs tabs-box shadow-none p-0">
-                <a
-                  role="tab"
-                  className={cn(
-                    "tab gap-2",
-                    previewType === "home" && "tab-active"
-                  )}
-                  onClick={() => setPreviewType("home")}
-                >
-                  <TbHome /> Home
-                </a>
-                <a
-                  role="tab"
-                  className={cn(
-                    "tab gap-2",
-                    previewType === "chat" && "tab-active"
-                  )}
-                  onClick={() => setPreviewType("chat")}
-                >
-                  <TbMessage /> Chat
-                </a>
-              </div>
+            <div role="tablist" className="tabs tabs-box shadow-none p-0">
+              <a
+                role="tab"
+                className={cn(
+                  "tab gap-2",
+                  previewType === "home" && "tab-active"
+                )}
+                onClick={() => setPreviewType("home")}
+              >
+                <TbHome /> Home
+              </a>
+              <a
+                role="tab"
+                className={cn(
+                  "tab gap-2",
+                  previewType === "chat" && "tab-active"
+                )}
+                onClick={() => setPreviewType("chat")}
+              >
+                <TbMessage /> Chat
+              </a>
             </div>
           </div>
 

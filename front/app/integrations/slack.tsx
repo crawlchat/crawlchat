@@ -86,14 +86,6 @@ export default function SlackIntegrations({
 
           <div className="flex items-center gap-2">
             <a
-              className="btn btn-outline"
-              href="https://guides.crawlchat.app/guide/get-the-team-id-for-slack-app-integration-28"
-              target="_blank"
-            >
-              How to find team id?
-            </a>
-
-            <a
               className="btn btn-neutral"
               href="https://slack.crawlchat.app/install"
               target="_blank"
@@ -101,6 +93,13 @@ export default function SlackIntegrations({
               <TbBrandSlack />
               Install @CrawlChat
               <TbArrowRight />
+            </a>
+            <a
+              className="btn btn-outline"
+              href="https://guides.crawlchat.app/guide/get-the-team-id-for-slack-app-integration-28"
+              target="_blank"
+            >
+              How to find team id?
             </a>
           </div>
 
