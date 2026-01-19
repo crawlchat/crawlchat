@@ -173,7 +173,7 @@ function WithSubMenuItems({
       <ul
         className={cn(
           "ml-4 hidden flex-col gap-1 flex-1",
-          "border-l border-base-300 mt-1",
+          "border-l border-base-300",
           isExpanded && "flex"
         )}
       >
@@ -240,7 +240,10 @@ function MenuItemsScrollable({ children }: PropsWithChildren) {
       />
       <div
         ref={scrollRef}
-        className="overflow-y-auto min-h-0 flex-1 no-scrollbar"
+        className={cn(
+          "overflow-y-auto min-h-0 flex-1 no-scrollbar",
+          "flex flex-col gap-1"
+        )}
       >
         {children}
       </div>
@@ -298,31 +301,6 @@ export function SideMenu({
         forScrape: true,
       },
       {
-        label: "Questions",
-        to: "/questions",
-        icon: <TbMessage />,
-        forScrape: true,
-      },
-      {
-        label: "Data gaps",
-        to: "/data-gaps",
-        icon: <TbChartBarOff />,
-        forScrape: true,
-      },
-      {
-        label: "Tickets",
-        to: "/tickets",
-        icon: <TbTicket />,
-        forScrape: true,
-        ticketingEnabled: true,
-      },
-      {
-        label: "Connect",
-        to: "/connect",
-        icon: <TbPlug />,
-        forScrape: true,
-      },
-      {
         label: "Integrate",
         to: "/integrate",
         icon: <TbPlug />,
@@ -365,6 +343,25 @@ export function SideMenu({
             forScrape: true,
           },
         ],
+      },
+      {
+        label: "Questions",
+        to: "/questions",
+        icon: <TbMessage />,
+        forScrape: true,
+      },
+      {
+        label: "Data gaps",
+        to: "/data-gaps",
+        icon: <TbChartBarOff />,
+        forScrape: true,
+      },
+      {
+        label: "Tickets",
+        to: "/tickets",
+        icon: <TbTicket />,
+        forScrape: true,
+        ticketingEnabled: true,
       },
       {
         label: "Actions",

@@ -29,7 +29,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({ data }: Route.MetaArgs) {
   return makeMeta({
-    title: "Embed - CrawlChat",
+    title: "Web embed - CrawlChat",
   });
 }
 

@@ -32,7 +32,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({ data }: Route.MetaArgs) {
   return makeMeta({
-    title: "Slack - CrawlChat",
+    title: "Slack app - CrawlChat",
   });
 }
 
