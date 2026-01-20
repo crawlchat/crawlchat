@@ -30,7 +30,7 @@ import {
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { track } from "~/components/track";
 import { extractCitations } from "libs/citation";
-import { makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp-command";
+import { makeClaudeDeepLink, makeClaudeMcpJson, makeCursorDeepLink, makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp-command";
 import { useChatBoxContext } from "./use-chat-box";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
@@ -628,6 +628,17 @@ function MCPSetup() {
         title: "Cursor",
         script: makeCursorMcpJson(scrape.id, makeMcpName(scrape)),
         language: "json",
+        hasDeepLink: true,
+        deepLink: makeCursorDeepLink(scrape.id, makeMcpName(scrape)),
+      },
+      {
+        value: "claude",
+        icon: <TbMessage />,
+        title: "Claude",
+        script: makeClaudeMcpJson(scrape.id, makeMcpName(scrape)),
+        language: "json",
+        hasDeepLink: true,
+        deepLink: makeClaudeDeepLink(scrape.id, makeMcpName(scrape)),
       },
     ],
     [scrape]
@@ -653,6 +664,18 @@ function MCPSetup() {
             <input type="radio" name={"mcp-section"} />
             <div className="collapse-title font-semibold">{item.title}</div>
             <div className="collapse-content text-sm">
+              {item.hasDeepLink && (
+                <div className="mb-4">
+                  <a
+                    href={item.deepLink}
+                    className="btn btn-primary btn-sm"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {`Add to ${item.title}`}
+                  </a>
+                </div>
+              )}
               <MarkdownProse noMarginCode>
                 {`\`\`\`${item.language}\n${item.script}\n\`\`\``}
               </MarkdownProse>

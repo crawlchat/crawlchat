@@ -32,3 +32,41 @@ export function makeCursorMcpConfig(scrapeId: string, name: string) {
     ]
 }`;
 }
+
+export function makeCursorDeepLink(scrapeId: string, name: string) {
+  const config = {
+    [name?.replaceAll("_", "-")]: {
+      command: "npx",
+      args: ["crawl-chat-mcp", `--id=${scrapeId}`, `--name=${name}`],
+    },
+  };
+
+  const configJson = JSON.stringify(config);
+  const base64Config = btoa(configJson);
+
+  return `cursor://anysphere.cursor-deeplink/mcp/install?name=${encodeURIComponent(
+    name?.replaceAll("_", "-")
+  )}&config=${encodeURIComponent(base64Config)}`;
+}
+
+export function makeClaudeMcpJson(scrapeId: string, name: string) {
+  return `"${name}": {
+    "command": "npx",
+    "args": ["crawl-chat-mcp", "--id=${scrapeId}", "--name=${name}"]
+}`;
+}
+
+export function makeClaudeDeepLink(scrapeId: string, name: string) {
+  const encodedName = encodeURIComponent(name);
+  const command = "npx";
+  const args = ["crawl-chat-mcp", `--id=${scrapeId}`, `--name=${name}`];
+
+  let url = `mcp-install://install-server?name=${encodedName}&command=${encodeURIComponent(command)}`;
+
+  // Add args
+  args.forEach(arg => {
+    url += `&args=${encodeURIComponent(arg)}`;
+  });
+
+  return url;
+}
