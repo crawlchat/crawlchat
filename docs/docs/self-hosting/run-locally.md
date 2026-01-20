@@ -45,7 +45,6 @@ Add these based on your needs:
 
 ### 1. Database and Redis Setup
 
-#### Option A: Docker Compose (Recommended)
 ```bash
 # Start MongoDB and Redis using the local compose file
 docker-compose -f docker-compose-local.yml up -d
@@ -59,99 +58,17 @@ This will start:
 - **Redis** on `localhost:6379` with AOF persistence enabled
 - **mongo-init** service that automatically initializes the replica set
 
-#### Option B: Local Installation
-```bash
-# Install and start MongoDB locally
-# Follow the MongoDB installation guide for your OS
-mongod --replSet rs0 --dbpath /path/to/data
-mongosh --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})'
-
-# Install and start Redis locally
-redis-server
-```
-
 ### 3. Environment Configuration
 
-Create environment files for each service. You can use the Docker Compose file as a reference for the required variables.
+Copy the `.env.example` from each service into `.env` with this command, and fill them out to your needs:
 
-**Common variables** (set these in each service's `.env` file):
 ```bash
-SELF_HOSTED=true
-DATABASE_URL=mongodb://localhost:27017/crawlchat?replicaSet=rs0
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+cp .env.example .env`
 ```
 
 ### 4. Start Services
 
-Open multiple terminals and start each service:
-
-#### Terminal 1: Server Service
-```bash
-cd server
-npm install
-npm run dev
-# Runs on http://localhost:3000 (dev) / 3002 (prod)
-```
-
-#### Terminal 2: Front Service
-```bash
-cd front
-npm install
-npm run dev
-# Runs on http://localhost:5173 (dev) / 3001 (prod)
-```
-
-#### Terminal 3: Source Sync Service (Optional)
-```bash
-cd source-sync
-npm install
-npx playwright install  # For web scraping
-npm run dev
-# Runs on http://localhost:3000 (dev) / 3003 (prod)
-```
-
-#### Terminal 4: Marker Service (Optional)
-```bash
-cd marker
-pip install -r requirements.txt
-fastapi run main.py --port 3005
-# Runs on http://localhost:3005
-```
-
-#### Terminal 5: Discord Bot (Optional)
-```bash
-cd discord-bot
-npm install
-npm run dev
-# No web port - connects to Discord
-```
-
-#### Terminal 6: Slack App (Optional)
-```bash
-cd slack-app
-npm install
-npm run dev
-# Runs on http://localhost:3000 (dev) / 3004 (prod)
-```
-
-## Development URLs
-
-When running locally, update your environment variables to use local development URLs:
-
-```bash
-# Front service .env
-VITE_APP_URL=http://localhost:5173
-VITE_SERVER_WS_URL=ws://localhost:3000
-VITE_SERVER_URL=http://localhost:3000
-VITE_SOURCE_SYNC_URL=http://localhost:3000
-MARKER_HOST=http://localhost:3005
-
-# Server service .env
-SOURCE_SYNC_URL=http://localhost:3000
-
-# Discord/Slack services .env
-SERVER_HOST=http://localhost:3000
-```
+See for each service it's respective page (here)[https://docs.crawlchat.com/category/services]
 
 ## Testing the Setup
 
@@ -159,24 +76,6 @@ SERVER_HOST=http://localhost:3000
 2. **Check server health**: http://localhost:3000/health (if implemented)
 3. **Test API endpoints**: Use tools like Postman or curl
 4. **Monitor logs**: Check each terminal for service logs
-
-## Development Tips
-
-### Hot Reload
-Most services support hot reload during development:
-- Front: Automatic with Vite
-- Server/Source-Sync/Bots: Automatic with nodemon
-- Marker: Manual restart required
-
-### Debugging
-- Use `console.log` for quick debugging
-- Most services support debugger attachment
-- Check individual service documentation for debugging setup
-
-### Database Management
-- Use MongoDB Compass for database inspection
-- Use Redis CLI for queue inspection: `redis-cli`
-- Reset data: `docker-compose -f docker-compose-local.yml down -v`
 
 ### Common Issues
 
@@ -211,14 +110,3 @@ To stop and remove volumes (reset all data):
 ```bash
 docker-compose -f docker-compose-local.yml down -v
 ```
-
-## Production Considerations
-
-When moving to production:
-- Use production builds (`npm run build`)
-- Set secure JWT secrets
-- Configure proper domain URLs
-- Set up SSL/TLS
-- Configure firewalls and security
-- Set up monitoring and logging
-- Consider using the full `docker-compose.yml` for consistency

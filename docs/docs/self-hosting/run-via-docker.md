@@ -10,19 +10,6 @@ sidebar_position: 1
 
 **Support is not guaranteed for self-hosting users.** If you encounter issues while self-hosting, you may need to troubleshoot independently or use the production cloud service.
 
-### Overview
-
-CrawlChat is a multi-service application that consists of several Docker containers working together. The main services include:
-
-- **front**: React-based web interface (port 3001)
-- **server**: Express API server handling LLM interactions (port 3002)
-- **source_sync**: BullMQ-based service for syncing documentation sources (port 3003)
-- **discord_bot**: Discord bot integration (no exposed ports)
-- **slack_app**: Slack app integration (port 3004)
-- **marker**: File to markdown service
-- **database**: MongoDB 7 with replica set configuration
-- **redis**: Redis 7 for queue management
-
 ### Prerequisites
 
 Before you begin, ensure you have:
