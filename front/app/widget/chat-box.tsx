@@ -11,8 +11,6 @@ import {
   TbArrowUp,
   TbHelp,
   TbMessage,
-  TbRobotFace,
-  TbPointer,
   TbThumbUp,
   TbThumbDown,
   TbShare2,
@@ -30,11 +28,19 @@ import {
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { track } from "~/components/track";
 import { extractCitations } from "libs/citation";
-import { makeClaudeDeepLink, makeClaudeMcpJson, makeCursorDeepLink, makeCursorMcpJson, makeMcpCommand, makeMcpName } from "~/mcp-command";
+import {
+  makeClaudeDeepLink,
+  makeCursorDeepLink,
+  makeMcpCommand,
+  makeMcpName,
+} from "~/mcp-command";
 import { useChatBoxContext } from "./use-chat-box";
 import cn from "@meltdownjs/cn";
 import toast from "react-hot-toast";
 import { RiChatVoiceAiFill } from "react-icons/ri";
+import { MCPIcon } from "~/components/mcp-icon";
+import { CursorIcon } from "~/components/cursor-icon";
+import { SiClaude } from "react-icons/si";
 
 export function useChatBoxDimensions(
   size: WidgetSize | null,
@@ -612,76 +618,58 @@ function LoadingMessage() {
 
 function MCPSetup() {
   const { scrape } = useChatBoxContext();
-  const [section, setSection] = useState<string>("mcp-command");
-  const sections = useMemo(
-    () => [
-      {
-        value: "mcp-command",
-        icon: <TbRobotFace />,
-        title: "MCP Command",
-        script: makeMcpCommand(scrape.id, makeMcpName(scrape)),
-        language: "sh",
-      },
-      {
-        value: "stats",
-        icon: <TbPointer />,
-        title: "Cursor",
-        script: makeCursorMcpJson(scrape.id, makeMcpName(scrape)),
-        language: "json",
-        hasDeepLink: true,
-        deepLink: makeCursorDeepLink(scrape.id, makeMcpName(scrape)),
-      },
-      {
-        value: "claude",
-        icon: <TbMessage />,
-        title: "Claude",
-        script: makeClaudeMcpJson(scrape.id, makeMcpName(scrape)),
-        language: "json",
-        hasDeepLink: true,
-        deepLink: makeClaudeDeepLink(scrape.id, makeMcpName(scrape)),
-      },
-    ],
+  const cursorLink = useMemo(
+    () => makeCursorDeepLink(scrape.id, makeMcpName(scrape)),
     [scrape]
   );
+  const claudeLink = useMemo(
+    () => makeClaudeDeepLink(scrape.id, makeMcpName(scrape)),
+    [scrape]
+  );
+  const mcpCommand = useMemo(
+    () => makeMcpCommand(scrape.id, makeMcpName(scrape)),
+    [scrape]
+  );
+
+  function handleCopyMcpCommand() {
+    navigator.clipboard.writeText(mcpCommand);
+    toast.success("MCP command copied to clipboard");
+  }
 
   return (
     <div className="flex flex-col gap-2 w-full h-full p-4">
       <div className="text-lg font-bold flex items-center gap-2">
-        <TbRobotFace />
-        Setup MCP client
+        <MCPIcon />
+        Add as MCP
       </div>
 
-      <div className="text-base-content/50 mb-4">
-        Model Context Protocol is a standard way for AI apps to extend the
-        ability to do custom actions. You can also use your own AI applications
-        to interact with the documentation such as Cursor, Windsurf, Claude or
-        ever growing list.
+      <div className="text-base-content/50">
+        Add the documentation as an MCP tool to your favorite AI apps.
       </div>
 
-      <div className="join join-vertical">
-        {sections.map((item) => (
-          <div className="collapse collapse-arrow join-item bg-base-100 border border-base-300">
-            <input type="radio" name={"mcp-section"} />
-            <div className="collapse-title font-semibold">{item.title}</div>
-            <div className="collapse-content text-sm">
-              {item.hasDeepLink && (
-                <div className="mb-4">
-                  <a
-                    href={item.deepLink}
-                    className="btn btn-primary btn-sm"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {`Add to ${item.title}`}
-                  </a>
-                </div>
-              )}
-              <MarkdownProse noMarginCode>
-                {`\`\`\`${item.language}\n${item.script}\n\`\`\``}
-              </MarkdownProse>
-            </div>
-          </div>
-        ))}
+      <div className="flex flex-col md:flex-row gap-2">
+        <a
+          href={cursorLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn"
+        >
+          <CursorIcon />
+          Add to Cursor
+        </a>
+        <a
+          href={claudeLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn"
+        >
+          <SiClaude />
+          Add to Claude
+        </a>
+        <button onClick={handleCopyMcpCommand} className="btn btn-soft">
+          <TbCopy />
+          MCP command
+        </button>
       </div>
     </div>
   );
@@ -730,8 +718,8 @@ function Toolbar() {
     if (scrape.widgetConfig?.showMcpSetup ?? true) {
       items.push({
         key: "mcp",
-        label: "As MCP",
-        icon: <TbRobotFace />,
+        label: "Add as MCP",
+        icon: <MCPIcon />,
         onClick: () => setScreen("mcp"),
       });
     }
@@ -845,7 +833,7 @@ function Toolbar() {
               tabIndex={0}
               className={cn(
                 "menu dropdown-content bg-base-100 rounded-box",
-                "z-1 w-34 p-2 shadow-sm text-base-content"
+                "z-1 w-42 p-2 shadow-sm text-base-content"
               )}
             >
               {menuItems.map((item) => (
