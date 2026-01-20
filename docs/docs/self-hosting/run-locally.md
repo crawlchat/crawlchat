@@ -58,17 +58,17 @@ This will start:
 - **Redis** on `localhost:6379` with AOF persistence enabled
 - **mongo-init** service that automatically initializes the replica set
 
-### 3. Environment Configuration
+### 2. Environment Configuration
 
 Copy the `.env.example` from each service into `.env` with this command, and fill them out to your needs:
 
 ```bash
-cp .env.example .env`
+`cp .env.example .env`
 ```
 
-### 4. Start Services
+### 3. Start Services
 
-See for each service it's respective page (here)[https://docs.crawlchat.com/category/services]
+See for each service it's respective page [here](https://docs.crawlchat.com/category/services)
 
 ## Testing the Setup
 

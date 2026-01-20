@@ -2888,7 +2888,7 @@ export function OpenSource() {
         </a>
 
         <a
-          href="http://localhost:3000/self-hosting/run-via-docker"
+          href="https://docs.crawlchat.app/self-hosting/run-via-docker"
           target="_blank"
           className="btn btn-outline btn-xl btn-primary"
         >
