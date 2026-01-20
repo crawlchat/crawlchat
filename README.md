@@ -19,7 +19,7 @@ Here are the services it consists of. They are mostly simple **Node** + **TypeSc
 
 ## Self-host
 
-Check out the [self-host]([https://docs.crawlchat.app/self-host](https://docs.crawlchat.app/self-hosting/run-via-docker)) guide for more details. There are **Dockerfile**s for all the above mentioned services. You can instantly host on platforms like [Coolify](https://coolify.io), [Railway](https://railway.com), etc. by just setting up the **environment variables**
+Check out the [self-host)[https://docs.crawlchat.app/self-hosting/run-via-docker] guide for more details. There are **Dockerfile**s for all the above mentioned services. You can instantly host on platforms like [Coolify](https://coolify.io), [Railway](https://railway.com), etc. by just setting up the **environment variables**
 
 See the [docker-compose.yml](https://github.com/pskd73/crawlchat/blob/main/docker-compose.yml) on how to set up all basic services automatically.
 
