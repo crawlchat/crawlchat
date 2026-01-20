@@ -458,7 +458,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
         </label>
       </SettingsSection>
 
-          <SettingsSection
+      <SettingsSection
         id="skip-404-pages"
         fetcher={skip404Pages}
         title="Skip 404 pages"
