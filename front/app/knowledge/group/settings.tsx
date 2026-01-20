@@ -469,7 +469,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           <input
             type="checkbox"
             name="include404"
-            defaultChecked={group.include404 ?? true}
+            defaultChecked={group.include404 ?? false}
             className="toggle"
           />
           Active
