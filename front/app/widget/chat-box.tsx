@@ -30,6 +30,7 @@ import { track } from "~/components/track";
 import { extractCitations } from "libs/citation";
 import {
   makeClaudeDeepLink,
+  makeClaudeMcpJson,
   makeCursorDeepLink,
   makeMcpCommand,
   makeMcpName,
@@ -616,24 +617,44 @@ function LoadingMessage() {
   );
 }
 
+type MCPApp = "cursor" | "claude" | "npx";
+
 function MCPSetup() {
   const { scrape } = useChatBoxContext();
-  const cursorLink = useMemo(
-    () => makeCursorDeepLink(scrape.id, makeMcpName(scrape)),
-    [scrape]
-  );
-  const claudeLink = useMemo(
-    () => makeClaudeDeepLink(scrape.id, makeMcpName(scrape)),
-    [scrape]
-  );
-  const mcpCommand = useMemo(
-    () => makeMcpCommand(scrape.id, makeMcpName(scrape)),
-    [scrape]
-  );
+  const [app, setApp] = useState<MCPApp>("cursor");
 
-  function handleCopyMcpCommand() {
-    navigator.clipboard.writeText(mcpCommand);
-    toast.success("MCP command copied to clipboard");
+  function handleBtn() {
+    if (app === "cursor") {
+      return window.open(
+        makeCursorDeepLink(scrape.id, makeMcpName(scrape)),
+        "_blank"
+      );
+    }
+    if (app === "claude") {
+      window.navigator.clipboard.writeText(
+        makeClaudeMcpJson(scrape.id, makeMcpName(scrape))
+      );
+      toast.success("Claude MCP JSON copied to clipboard");
+    }
+    if (app === "npx") {
+      navigator.clipboard.writeText(
+        makeMcpCommand(scrape.id, makeMcpName(scrape))
+      );
+      toast.success("MCP command copied to clipboard");
+    }
+  }
+
+  function renderIcon() {
+    if (app === "cursor") {
+      return <CursorIcon />;
+    }
+    if (app === "claude") {
+      return <SiClaude />;
+    }
+    if (app === "npx") {
+      return <TbCopy />;
+    }
+    return <MCPIcon />;
   }
 
   return (
@@ -647,28 +668,19 @@ function MCPSetup() {
         Add the documentation as an MCP tool to your favorite AI apps.
       </div>
 
-      <div className="flex flex-col md:flex-row gap-2">
-        <a
-          href={cursorLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn"
+      <div className="flex flex-col md:flex-row md:items-center gap-2 mt-2">
+        <select
+          className="select w-full md:flex-1"
+          value={app}
+          onChange={(e) => setApp(e.target.value as MCPApp)}
         >
-          <CursorIcon />
-          Add to Cursor
-        </a>
-        <a
-          href={claudeLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn"
-        >
-          <SiClaude />
-          Add to Claude
-        </a>
-        <button onClick={handleCopyMcpCommand} className="btn btn-soft">
-          <TbCopy />
-          MCP command
+          <option value="cursor">Cursor</option>
+          <option value="claude">Claude</option>
+          <option value="npx">npx</option>
+        </select>
+        <button onClick={handleBtn} className="btn">
+          {renderIcon()}
+          {app === "cursor" ? "Install" : "Copy"}
         </button>
       </div>
     </div>
