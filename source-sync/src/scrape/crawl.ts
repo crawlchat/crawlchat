@@ -126,6 +126,14 @@ export type ScrapeWithLinksOptions = {
   maxWait?: number;
 };
 
+export class StatusCodeError extends Error{
+  code: number
+  constructor(code: number){
+    super(`Failed with status code: ${code}`)
+    this.code = code
+  }
+}
+
 export async function scrapeWithLinks(
   url: string,
   baseUrl: string,
@@ -137,8 +145,9 @@ export async function scrapeWithLinks(
   const { parseOutput, statusCode } = await scrape(url, options);
   const { links: linkLinks, metaTags, text, markdown } = parseOutput;
 
+
   if (Math.floor(statusCode / 100) !== 2) {
-    throw new Error(`Failed with status code ${statusCode}`);
+    throw new StatusCodeError(statusCode);
   }
 
   const linksToScrape = new Set<string>();
