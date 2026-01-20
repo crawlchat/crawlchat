@@ -68,7 +68,7 @@ Copy the `.env.example` from each service into `.env` with this command, and fil
 
 ### 3. Start Services
 
-See for each service it's respective page [here](https://docs.crawlchat.com/category/services)
+See for each service it's respective page [here](https://docs.crawlchat.app/category/services)
 
 ## Testing the Setup
 
