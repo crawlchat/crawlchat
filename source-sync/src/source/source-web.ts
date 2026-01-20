@@ -41,8 +41,14 @@ export class WebSource implements Source {
           : undefined,
       });
     } catch (err) {
-      if (err instanceof StatusCodeError && err.code === 404 && group.skip404) {
-        console.log(`skipping 404 page ${jobData.url} because indicated in settings.`);
+      if (
+        err instanceof StatusCodeError &&
+        err.code === 404 &&
+        !group.include404
+      ) {
+        console.log(
+          `not including 404 page ${jobData.url} because indicated in settings.`
+        );
         return {
           page: undefined,
         };
