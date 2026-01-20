@@ -661,7 +661,7 @@ function MCPSetup() {
       <div className="join join-vertical">
         {sections.map((item) => (
           <div className="collapse collapse-arrow join-item bg-base-100 border border-base-300">
-            <input type="radio" name={"mcp-section"} />
+            <input type="radio" name={`mcp-section-${item.value}`} />
             <div className="collapse-title font-semibold">{item.title}</div>
             <div className="collapse-content text-sm">
               {item.hasDeepLink && (

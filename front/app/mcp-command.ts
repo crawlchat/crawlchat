@@ -35,10 +35,8 @@ export function makeCursorMcpConfig(scrapeId: string, name: string) {
 
 export function makeCursorDeepLink(scrapeId: string, name: string) {
   const config = {
-    [name?.replaceAll("_", "-")]: {
-      command: "npx",
-      args: ["crawl-chat-mcp", `--id=${scrapeId}`, `--name=${name}`],
-    },
+    command: "npx",
+    args: ["crawl-chat-mcp", `--id=${scrapeId}`, `--name=${name}`],
   };
 
   const configJson = JSON.stringify(config);
