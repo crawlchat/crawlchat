@@ -672,7 +672,7 @@ function MCPSetup() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Add to Cursor MCP
+                    {`Add to ${item.title}`}
                   </a>
                 </div>
               )}
