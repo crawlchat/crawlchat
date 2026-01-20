@@ -256,6 +256,9 @@ export async function action({ request, params }: Route.ActionArgs) {
   if (formData.has("from-match-prefix")) {
     update.matchPrefix = formData.get("matchPrefix") === "on";
   }
+  if (formData.has("from-include-404")) {
+    update.include404 = formData.get("include404") === "on";
+  }
   if (formData.has("removeHtmlTags")) {
     update.removeHtmlTags = formData.get("removeHtmlTags") as string;
   }
@@ -411,6 +414,7 @@ function SkipPagesRegex({
 function WebSettings({ group }: { group: KnowledgeGroup }) {
   const matchPrefixFetcher = useFetcher();
   const htmlTagsToRemoveFetcher = useFetcher();
+  const include404Pages = useFetcher();
   const skipRegexFetcher = useFetcher();
   const scrollSelectorFetcher = useFetcher();
 
@@ -448,6 +452,24 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
             type="checkbox"
             name="matchPrefix"
             defaultChecked={group.matchPrefix ?? false}
+            className="toggle"
+          />
+          Active
+        </label>
+      </SettingsSection>
+
+      <SettingsSection
+        id="include-404-pages"
+        fetcher={include404Pages}
+        title="Include 404 pages"
+        description="If disabled, it will not upsert the pages which respond with 404 not found."
+      >
+        <input type="hidden" name="from-include-404" value={"true"} />
+        <label className="label">
+          <input
+            type="checkbox"
+            name="include404"
+            defaultChecked={group.include404 ?? true}
             className="toggle"
           />
           Active

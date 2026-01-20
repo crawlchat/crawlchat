@@ -538,6 +538,7 @@ model KnowledgeGroup {
 
   url                                       String?
   matchPrefix                               Boolean?
+  include404                                Boolean?
   removeHtmlTags                            String?
   maxPages                                  Int?
   staticContentThresholdLength              Int?
