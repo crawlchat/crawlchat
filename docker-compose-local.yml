@@ -1,3 +1,4 @@
+name: crawlchat-local
 services:
   database:
     image: mongo:7
