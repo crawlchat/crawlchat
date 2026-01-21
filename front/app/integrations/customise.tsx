@@ -613,8 +613,8 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         <div
           className={cn(
             "flex flex-col gap-4 w-[500px] sticky top-[76px]",
-            "bg-primary/5 p-4 border-base-300 border rounded-box",
-            "customise-preview"
+            "bg-base-100/80 p-4 border-base-300 border rounded-box",
+            "customise-preview shadow"
           )}
         >
           <div className="flex justify-center">

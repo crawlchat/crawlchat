@@ -79,7 +79,7 @@ export function Page({
         className={cn(
           "flex flex-col p-4 h-[60px] bg-base-100",
           "justify-center sticky top-0 z-10",
-          "border-b border-base-300 shadow-xs"
+          "border-b border-base-300"
         )}
       >
         <div className="flex justify-between gap-2">
