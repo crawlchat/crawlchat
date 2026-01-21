@@ -278,7 +278,7 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
           <div
             className={cn(
               "overflow-x-auto border border-base-300",
-              "rounded-box bg-base-200/50 shadow"
+              "rounded-box bg-base-100 shadow"
             )}
           >
             <table className="table">

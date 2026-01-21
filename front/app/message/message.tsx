@@ -158,7 +158,7 @@ function AssistantMessage({
 
   return (
     <div className="flex flex-col gap-4 max-w-prose">
-      <div className="bg-base-200/50 rounded-box p-4 shadow border border-base-300">
+      <div className="bg-base-100 rounded-box p-4 shadow border border-base-300">
         <MarkdownProse
           sources={Object.values(citation.citedLinks).map((link) => ({
             title: link?.title ?? link?.url ?? "Source",
@@ -194,7 +194,7 @@ function AssistantMessage({
           <div
             className={cn(
               "overflow-x-auto border border-base-300",
-              "rounded-box bg-base-200/50 shadow"
+              "rounded-box bg-base-100 shadow"
             )}
           >
             <table className="table">
@@ -259,7 +259,7 @@ function AssistantMessage({
           {message.apiActionCalls.map((call, index) => (
             <div
               key={index}
-              className="flex flex-col gap-2 border border-base-300 rounded-box p-4 bg-base-200"
+              className="flex flex-col gap-2 border border-base-300 rounded-box p-4 bg-base-100"
             >
               <DataList
                 data={[
@@ -397,7 +397,7 @@ export function QuestionAnswer({
         messagePair.queryMessage.attachments.length > 0 && (
           <div
             className={cn(
-              "bg-base-200/50 rounded-box p-2 shadow border border-base-300",
+              "bg-base-100 rounded-box p-2 shadow border border-base-300",
               "max-w-prose flex flex-col gap-2"
             )}
           >
@@ -483,7 +483,7 @@ export default function Message({ loaderData }: Route.ComponentProps) {
               <div className="text-lg">Category Suggestions</div>
               <div
                 className={cn(
-                  "flex flex-col bg-base-200/50 rounded-box",
+                  "flex flex-col bg-base-100 rounded-box",
                   "shadow border border-base-300 max-w-prose"
                 )}
               >

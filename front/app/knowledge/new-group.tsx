@@ -5,6 +5,7 @@ import {
   TbBook2,
   TbBrandGithub,
   TbBrandNotion,
+  TbBrandYoutube,
   TbCheck,
   TbUpload,
   TbVideo,
@@ -406,18 +407,18 @@ export function NewKnowledgeGroupForm({
         ),
       },
       {
-        title: "YouTube Video",
+        title: "Video",
         value: "youtube",
         description: "Add YouTube video transcript",
-        icon: <TbVideo />,
+        icon: <TbBrandYoutube />,
         longDescription:
           "Extract transcript from a YouTube video and add it to the knowledge base. Provide the YouTube video URL.",
       },
       {
-        title: "YouTube Channel",
+        title: "Channel",
         value: "youtube_channel",
         description: "Add YouTube channel videos",
-        icon: <TbVideo />,
+        icon: <TbBrandYoutube />,
         longDescription:
           "Fetch all videos from a YouTube channel and extract their transcripts. Provide the YouTube channel URL, channel ID, or handle (e.g., @channelname).",
       },
@@ -438,7 +439,7 @@ export function NewKnowledgeGroupForm({
 
   return (
     <>
-      <div className="p-4 bg-base-200/50 rounded-box border border-base-300">
+      <div className="p-4 bg-base-100 shadow rounded-box border border-base-300">
         <RadioCard
           name="type"
           value={type}
@@ -454,12 +455,7 @@ export function NewKnowledgeGroupForm({
 
       <p className="text-base-content/50 mt-2">{getDescription(type)}</p>
 
-      <div
-        className={cn(
-          "flex flex-col gap-2 bg-base-200/50 p-4 rounded-box",
-          "border border-base-300 shadow"
-        )}
-      >
+      <div className={cn("flex flex-col gap-2")}>
         <fieldset className="fieldset">
           <legend className="fieldset-legend">Name</legend>
           <input
@@ -503,17 +499,20 @@ export function NewKnowledgeGroupForm({
         {type === "upload" && (
           <>
             <input type="hidden" name="url" value="file" />
-            <input
-              type="file"
-              name="file"
-              required
-              className="file-input w-full"
-              accept={
-                "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown,text/javascript,application/javascript,.tsx,.ts,.js,.jsx,.mdx"
-              }
-              multiple
-              disabled={disabled}
-            />
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Select files</legend>
+              <input
+                type="file"
+                name="file"
+                required
+                className="file-input w-full"
+                accept={
+                  "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown,text/javascript,application/javascript,.tsx,.ts,.js,.jsx,.mdx"
+                }
+                multiple
+                disabled={disabled}
+              />
+            </fieldset>
           </>
         )}
 

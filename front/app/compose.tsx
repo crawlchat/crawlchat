@@ -479,7 +479,7 @@ function ToolbarPlugin() {
   };
 
   return (
-    <div className="flex flex-wrap gap-1 p-2 border-b border-base-300 bg-base-200 rounded-t-box">
+    <div className="flex flex-wrap gap-1 p-2 border-b border-base-300 bg-base-100 rounded-t-box">
       <div className="flex gap-1">
         <button
           type="button"
@@ -627,7 +627,7 @@ function ToolbarPlugin() {
           <div
             tabIndex={-1}
             className={cn(
-              "dropdown-content menu bg-base-200 rounded-box z-[1]",
+              "dropdown-content menu bg-base-100 rounded-box z-[1]",
               "w-80 p-4 shadow-lg border border-base-300"
             )}
           >
@@ -777,7 +777,7 @@ function LexicalEditor({
   return (
     <LexicalComposer initialConfig={initialConfig}>
       <div>
-        <div className="sticky top-15 z-10 bg-base-200">
+        <div className="sticky top-15 z-10">
           <TitleBar composer={composer} />
           <ToolbarPlugin />
         </div>
@@ -814,11 +814,7 @@ function TitleBar({ composer }: { composer: ComposerState }) {
   }
 
   return (
-    <div
-      className={cn(
-        "px-4 py-3 flex items-center bg-base-200 border-b border-base-300"
-      )}
-    >
+    <div className={cn("px-4 py-3 flex items-center border-b border-base-300")}>
       <input
         type="text"
         placeholder={"Title of the page"}
@@ -852,7 +848,7 @@ export function ComposerSection({
   right?: React.ReactNode;
 }) {
   return (
-    <div className="bg-base-200/50 border border-base-300 rounded-box">
+    <div className="bg-base-100 border border-base-300 rounded-box">
       <LexicalEditor
         composer={composer}
         markdown={composer.state.slate}
@@ -865,7 +861,7 @@ export function ComposerSection({
         editable={true}
       />
 
-      <div className="sticky bottom-0 bg-base-200 z-10 border-t border-base-300">
+      <div className="sticky bottom-0 bg-base-200/50 z-10 border-t border-base-300">
         <div className="flex gap-2 items-center p-2">
           <input
             className="input flex-1"

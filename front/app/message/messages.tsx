@@ -187,7 +187,7 @@ function Filters({
       <div
         tabIndex={-1}
         className={cn(
-          "dropdown-content menu bg-base-200 rounded-box z-1 w-52",
+          "dropdown-content menu bg-base-100 rounded-box z-1 w-52",
           "p-3 px-4 shadow-sm mt-1 flex flex-col gap-2"
         )}
       >
@@ -290,7 +290,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
               <div
                 className={cn(
                   "overflow-x-auto border border-base-300",
-                  "rounded-box bg-base-200/50 shadow"
+                  "rounded-box bg-base-100 shadow"
                 )}
               >
                 <table className="table">

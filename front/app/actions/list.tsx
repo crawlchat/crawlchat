@@ -169,7 +169,7 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
           <div
             className={cn(
               "overflow-x-auto border border-base-300",
-              "rounded-box bg-base-200/50 shadow"
+              "rounded-box bg-base-100 shadow"
             )}
           >
             <table className="table">
@@ -211,7 +211,7 @@ export default function Actions({ loaderData }: Route.ComponentProps) {
                         {loaderData.counts[item.id]}
                       </div>
                     </td>
-                    <td className="text-end">
+                    <td className="text-end min-w-46">
                       <Timestamp date={item.createdAt} />
                     </td>
                     <td className="text-end">

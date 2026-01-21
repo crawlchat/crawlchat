@@ -44,7 +44,7 @@ export default function KnowledgeSearch({ query }: { query?: string | null }) {
       </fetcher.Form>
 
       {fetcher.data?.results && fetcher.data.results.length > 0 && (
-        <div className="overflow-x-auto bg-base-200/50 rounded-box shadow">
+        <div className="overflow-x-auto bg-base-100 rounded-box shadow">
           <table className="table">
             <thead>
               <tr>

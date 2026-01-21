@@ -399,7 +399,7 @@ function DashboardStep() {
         All set! You have configured the basics. Here are few more items you can
         configure.
       </p>
-      <ul className="bg-base-200/50 rounded-box border border-base-300 w-xs">
+      <ul className="bg-base-100 rounded-box border border-base-300 w-xs">
         {links.map((link, index) => (
           <li
             key={index}

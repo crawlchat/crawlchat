@@ -64,7 +64,7 @@ export function SettingsSection({
       <div
         className={cn(
           "border border-base-300 rounded-box flex flex-col",
-          "outline-primary outline-offset-3 bg-base-200/50 shadow-sm",
+          "outline-primary outline-offset-3 bg-base-100 shadow-sm",
           danger && "border-red-200 bg-red-50 text-error",
           targeted && "outline-2"
         )}
@@ -92,7 +92,7 @@ export function SettingsSection({
           <div
             className={cn(
               "flex justify-between p-4 py-3 border-t border-base-300",
-              "bg-base-200 w-full rounded-b-box",
+              "bg-base-200/50 w-full rounded-b-box",
               danger && "bg-red-100 border-red-200"
             )}
           >

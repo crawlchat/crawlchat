@@ -87,7 +87,7 @@ function CategoriesTable() {
   const { scrape } = useLoaderData<typeof loader>();
 
   return (
-    <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200/50 shadow">
+    <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100 shadow">
       <table className="table">
         <thead>
           <tr>
@@ -114,7 +114,7 @@ function GroupsTable() {
   const { itemsCount, scrape } = useLoaderData<typeof loader>();
 
   return (
-    <div className="overflow-x-auto border border-base-300 rounded-box bg-base-200/50 shadow">
+    <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100 shadow">
       <table className="table">
         <thead>
           <tr>

@@ -77,7 +77,7 @@ export function Page({
     <div className="flex flex-col flex-1 max-w-[1200px] w-full mx-auto">
       <div
         className={cn(
-          "flex flex-col p-4 h-[60px] bg-base-100",
+          "flex flex-col p-4 h-[60px]",
           "justify-center sticky top-0 z-10"
         )}
       >

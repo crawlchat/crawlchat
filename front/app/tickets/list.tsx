@@ -227,7 +227,7 @@ export default function Tickets({ loaderData }: Route.ComponentProps) {
           <div
             className={cn(
               "flex flex-col border border-base-300 w-full",
-              "rounded-box bg-base-200/50 shadow"
+              "rounded-box bg-base-100 shadow"
             )}
           >
             {loaderData.threads.map((thread) => (

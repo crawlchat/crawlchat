@@ -289,7 +289,7 @@ function QuickLink({
       className={cn(
         "border border-base-300 rounded-box p-2 px-4 w-full block",
         "hover:bg-base-200 transition-all group",
-        "flex justify-between gap-2 cursor-pointer bg-base-200/50",
+        "flex justify-between gap-2 cursor-pointer bg-base-100",
         className
       )}
       {...props}

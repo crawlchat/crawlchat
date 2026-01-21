@@ -24,7 +24,7 @@ function DataItemForm({
     <div
       className={cn(
         "flex flex-col border border-base-300",
-        "rounded-box p-4 bg-base-200/50 shadow"
+        "rounded-box p-4 bg-base-100 shadow"
       )}
     >
       <div className="flex gap-2">
@@ -147,7 +147,7 @@ function CustomForm() {
 
   return (
     <>
-      <div className="flex flex-col bg-base-200/50 rounded-box p-4 shadow">
+      <div className="flex flex-col bg-base-100 rounded-box p-4 shadow">
         <div className="flex gap-2">
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">Title</legend>
@@ -305,7 +305,7 @@ function CalForm() {
         </div>
       )}
 
-      <div className="flex flex-col bg-base-200/50 rounded-box p-4 shadow">
+      <div className="flex flex-col bg-base-100 rounded-box p-4 shadow">
         <div className="flex gap-2">
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">Title</legend>
@@ -382,7 +382,7 @@ export function LinearCreateIssueForm() {
 
   return (
     <>
-      <div className="flex flex-col bg-base-200/50 rounded-box p-4 shadow">
+      <div className="flex flex-col bg-base-100 rounded-box p-4 shadow">
         <div className="flex gap-2">
           <fieldset className="fieldset flex-1">
             <legend className="fieldset-legend">Title</legend>
@@ -457,9 +457,7 @@ export function EditForm() {
         and uses it appropriately.
       </div>
 
-      <div
-        className={cn("p-4 bg-base-200/50 rounded-box border border-base-300")}
-      >
+      <div className={cn("p-4 bg-base-100 rounded-box border border-base-300")}>
         <RadioCard
           name="type"
           value={type}

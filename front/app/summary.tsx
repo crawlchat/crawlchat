@@ -257,7 +257,7 @@ export function StatCard({
   suffix?: string;
 }) {
   return (
-    <div className="stats shadow flex-1 bg-base-200 w-full">
+    <div className="stats shadow flex-1 bg-base-100 w-full">
       <div className="stat">
         <div className="stat-figure text-4xl">{icon}</div>
         <div className="stat-title">{label}</div>
@@ -345,7 +345,7 @@ function CategoryCard({
   return (
     <div
       className={cn(
-        "bg-base-200/50 rounded-box p-4 border border-base-300",
+        "bg-base-100 rounded-box p-4 border border-base-300",
         "flex flex-col md:flex-row justify-between gap-2 md:items-center"
       )}
     >
@@ -649,7 +649,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <div
                 className={cn(
                   "rounded-box overflow-hidden border",
-                  "border-base-300 p-4 bg-base-200/50 shadow"
+                  "border-base-300 p-4 bg-base-100 shadow"
                 )}
               >
                 <ComposedChart width={width - 24} height={260} data={chartData}>

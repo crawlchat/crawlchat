@@ -116,7 +116,7 @@ export function DataGapCard({
     <div
       className={cn(
         "flex flex-col gap-4 border border-base-300",
-        "p-4 rounded-box bg-base-200/50 shadow"
+        "p-4 rounded-box bg-base-100 shadow"
       )}
     >
       <div className="flex flex-col gap-2">

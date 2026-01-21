@@ -48,7 +48,7 @@ function GuidesGrid({ guides, slug }: { guides: Article[]; slug: string }) {
             href={`/helpdesk/${slug}/article/${guide.id}`}
             className={cn(
               "flex flex-col gap-2 border border-base-300 rounded-box p-4",
-              "bg-base-200/50 shadow-sm hover:shadow-md transition-all",
+              "bg-base-100 shadow-sm hover:shadow-md transition-all",
               "hover:bg-base-200 cursor-pointer"
             )}
           >

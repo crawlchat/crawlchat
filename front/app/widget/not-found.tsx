@@ -16,7 +16,7 @@ export default function NotFound() {
       <div
         className={cn(
           "flex flex-col gap-4 p-6 justify-center",
-          "items-center rounded-box bg-base-200/50",
+          "items-center rounded-box bg-base-100",
           "border border-base-300 shadow",
           "w-fit h-fit"
         )}

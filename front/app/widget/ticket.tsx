@@ -256,7 +256,7 @@ export function Message({
     <div
       className={cn(
         "flex flex-col gap-0 border border-base-300 rounded-box overflow-hidden",
-        "bg-base-200/50",
+        "bg-base-100",
         shouldHighlight && "border-primary border-2"
       )}
     >
@@ -353,7 +353,7 @@ export default function Ticket({ loaderData }: Route.ComponentProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2 items-center bg-base-100 min-h-screen">
+    <div className="flex flex-col gap-2 items-center bg-base-200 min-h-screen">
       <div className="flex flex-col gap-8 p-4 max-w-3xl w-full">
         <Nav scrape={loaderData.thread.scrape} />
         {loaderData.thread.title && (
