@@ -1403,8 +1403,9 @@ export function Nav({
   return (
     <div
       className={cn(
-        "border-b border-base-300",
-        "sticky top-0 z-20 bg-base-100"
+        "backdrop-blur-2xl",
+        "sticky top-0 z-20",
+        "border-b border-accent/20"
       )}
     >
       <nav
@@ -1519,7 +1520,7 @@ function Hero() {
         "flex gap-10 md:gap-14 mb-10 flex-col md:flex-row py-2 md:mt-8"
       )}
     >
-      <div className={cn("flex flex-col flex-[1.4]")}>
+      <div className={cn("flex flex-col flex-[1.4] z-10")}>
         {focusChangelog && (
           <a
             className="mb-4 cursor-pointer hover:scale-[1.02] transition-all w-fit"
@@ -1585,8 +1586,9 @@ function Hero() {
           </div>
         </div>
       </div>
+
       <div className="flex-1 flex-col">
-        <div className="relative">
+        <div className="relative animate-breath-y">
           <div className="border-2 border-accent rounded-box overflow-hidden shadow">
             <iframe
               src="/w/crawlchat?theme=light"
@@ -1622,20 +1624,7 @@ function Hero() {
             </span>
             <div className="flex items-center gap-1 text-lg group">
               {channels.map((channel, index) => (
-                <div
-                  key={index}
-                  className="tooltip tooltip-bottom"
-                  data-tip={channel.tooltip}
-                >
-                  <span
-                    className={cn(
-                      "hover:text-primary transition-all",
-                      "group-hover:opacity-20 hover:opacity-100"
-                    )}
-                  >
-                    {channel.icon}
-                  </span>
-                </div>
+                <span key={index}>{channel.icon}</span>
               ))}
             </div>
           </div>
@@ -2877,7 +2866,7 @@ export function OpenSource() {
         to contribute to the project!
       </p>
 
-      <div className="flex justify-center gap-4">
+      <div className="flex flex-col md:flex-row justify-center gap-4">
         <a
           href="https://github.com/crawlchat/crawlchat"
           target="_blank"
@@ -2903,6 +2892,20 @@ export function OpenSource() {
 export default function Landing({ loaderData }: Route.ComponentProps) {
   return (
     <>
+      <div
+        className={cn(
+          "bg-gradient-to-b from-accent/20 to-base-100",
+          "absolute top-0 left-0 w-full h-[600px]"
+        )}
+      />
+      <div
+        className={cn(
+          "absolute top-0 left-0 w-full h-[600px]",
+          "hero-bg-pattern",
+          "[mask-image:linear-gradient(to_bottom,black,transparent)]"
+        )}
+      />
+
       <Container>
         <Hero />
       </Container>
