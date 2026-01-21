@@ -74,105 +74,110 @@ export function Page({
   const currentLlmModel = scrape?.llmModel ?? "gpt_4o_mini";
 
   return (
-    <div className="flex flex-col flex-1 max-w-[1200px] w-full mx-auto">
-      <div
-        className={cn(
-          "flex flex-col p-4 h-[60px] bg-base-100",
-          "justify-center sticky top-0 z-10",
-          "border-b border-base-300"
-        )}
-      >
-        <div className="flex justify-between gap-2">
-          <div className="flex gap-2 items-center">
-            <label
-              htmlFor="side-menu-drawer"
-              className="btn btn-square md:hidden"
-            >
-              <TbMenu2 />
-            </label>
-            <div>
-              <div className="flex items-center gap-2 text-xl font-medium">
-                {icon && <span className="shrink-0">{icon}</span>}
-                <div className="line-clamp-1">{title}</div>
-              </div>
-              {description && (
-                <div className="text-xs text-base-content/50 line-clamp-1">
-                  {description}
+    <div className="flex flex-col flex-1">
+      <div className="bg-base-100 border-b border-base-300">
+        <div
+          className={cn(
+            "flex flex-col p-4 h-[60px]",
+            "justify-center sticky top-0 z-10",
+            "max-w-[1200px] w-full mx-auto"
+          )}
+        >
+          <div className="flex justify-between gap-2">
+            <div className="flex gap-2 items-center">
+              <label
+                htmlFor="side-menu-drawer"
+                className="btn btn-square md:hidden"
+              >
+                <TbMenu2 />
+              </label>
+              <div>
+                <div className="flex items-center gap-2 text-xl font-medium">
+                  {icon && <span className="shrink-0">{icon}</span>}
+                  <div className="line-clamp-1">{title}</div>
                 </div>
-              )}
+                {description && (
+                  <div className="text-xs text-base-content/50 line-clamp-1">
+                    {description}
+                  </div>
+                )}
+              </div>
             </div>
+            <div className="flex gap-2 items-center">{right}</div>
           </div>
-          <div className="flex gap-2 items-center">{right}</div>
         </div>
       </div>
 
-      <div
-        className={cn("flex-1 flex flex-col", !noPadding && "p-4")}
-        ref={containerRef}
-      >
-        {closedReleaseKey !== undefined && closedReleaseKey !== release.key && (
-          <div
-            className={cn(
-              "bg-gradient-to-br from-primary to-primary/80 p-6 rounded-box",
-              "mb-4 text-primary-content shadow-md flex justify-between",
-              "gap-4 flex-col md:flex-row md:items-center"
-            )}
-          >
-            <div className="flex flex-col gap-1 flex-4 pr-10">
+      <div className="max-w-[1200px] w-full mx-auto">
+        <div
+          className={cn("flex-1 flex flex-col", !noPadding && "p-4")}
+          ref={containerRef}
+        >
+          {closedReleaseKey !== undefined &&
+            closedReleaseKey !== release.key && (
               <div
                 className={cn(
-                  "text-2xl font-medium font-radio-grotesk",
-                  "flex items-center gap-2"
+                  "bg-gradient-to-br from-primary to-primary/80 p-6 rounded-box",
+                  "mb-4 text-primary-content shadow-md flex justify-between",
+                  "gap-4 flex-col md:flex-row md:items-center"
                 )}
               >
-                {release.title}
+                <div className="flex flex-col gap-1 flex-4 pr-10">
+                  <div
+                    className={cn(
+                      "text-2xl font-medium font-radio-grotesk",
+                      "flex items-center gap-2"
+                    )}
+                  >
+                    {release.title}
+                  </div>
+                  <div className="text-primary-content/80">
+                    {release.description}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {release.cta && (
+                    <a
+                      href={release.cta.href}
+                      target={release.cta.target}
+                      className="btn btn-accent"
+                    >
+                      {release.cta.label}
+                      {release.cta.icon}
+                    </a>
+                  )}
+                  <button
+                    className="btn btn-neutral btn-square"
+                    onClick={() => setClosedReleaseKey(release.key)}
+                  >
+                    <TbX />
+                  </button>
+                </div>
               </div>
-              <div className="text-primary-content/80">
-                {release.description}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {release.cta && (
-                <a
-                  href={release.cta.href}
-                  target={release.cta.target}
-                  className="btn btn-accent"
-                >
-                  {release.cta.label}
-                  {release.cta.icon}
-                </a>
-              )}
-              <button
-                className="btn btn-neutral btn-square"
-                onClick={() => setClosedReleaseKey(release.key)}
-              >
-                <TbX />
-              </button>
-            </div>
-          </div>
-        )}
+            )}
 
-        {!productionLlmModels.includes(currentLlmModel) && (
-          <div role="alert" className="alert alert-warning alert-dash mb-4">
-            <TbAlertTriangle size={20} />
-            <span>
-              You are using{" "}
-              <span className="font-medium">
-                {LlmNameMap[currentLlmModel] ?? currentLlmModel}
-              </span>{" "}
-              model. This is not fit for public usage. Use one of{" "}
-              {productionLlmModels
-                .map((model) => LlmNameMap[model] ?? model)
-                .join(", ")}{" "}
-              for better results from{" "}
-              <Link to="/settings#ai-model" className="link">
-                here
-              </Link>
-            </span>
-          </div>
-        )}
+          {!productionLlmModels.includes(currentLlmModel) && (
+            <div role="alert" className="alert alert-warning alert-dash mb-4">
+              <TbAlertTriangle size={20} />
+              <span>
+                You are using{" "}
+                <span className="font-medium">
+                  {LlmNameMap[currentLlmModel] ?? currentLlmModel}
+                </span>{" "}
+                model. This is not fit for public usage. Use one of{" "}
+                {productionLlmModels
+                  .map((model) => LlmNameMap[model] ?? model)
+                  .join(", ")}{" "}
+                for better results from{" "}
+                <Link to="/settings#ai-model" className="link">
+                  here
+                </Link>
+              </span>
+            </div>
+          )}
 
-        {children}
+          {children}
+        </div>
       </div>
     </div>
   );
