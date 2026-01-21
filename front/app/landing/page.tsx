@@ -1035,7 +1035,7 @@ function FooterLink({
 
 export function Footer() {
   return (
-    <footer className="bg-base-100 border-t border-base-300">
+    <footer className="bg-base-200/50 border-t border-base-300">
       <Container>
         <div className="py-8 flex flex-col md:flex-row gap-8">
           <div className="flex-[2] flex flex-col gap-4">
@@ -1237,7 +1237,7 @@ function CaseStudyDropdown() {
       <ul
         tabIndex={0}
         className={cn(
-          "dropdown-content menu bg-base-200 rounded-box z-1 w-72 p-2",
+          "dropdown-content menu bg-base-100 rounded-box z-1 w-72 p-2",
           "shadow-lg mt-4"
         )}
       >
@@ -1354,7 +1354,7 @@ function UseCasesDropdown() {
       <ul
         tabIndex={0}
         className={cn(
-          "dropdown-content menu bg-base-200 rounded-box z-1 w-72 p-2",
+          "dropdown-content menu bg-base-100 rounded-box z-1 w-72 p-2",
           "shadow-lg mt-4"
         )}
       >
@@ -1404,7 +1404,7 @@ export function Nav({
     <div
       className={cn(
         "border-b border-base-300",
-        "sticky top-0 z-20 bg-base-200"
+        "sticky top-0 z-20 bg-base-100"
       )}
     >
       <nav
@@ -1652,7 +1652,7 @@ export function LandingPage({ children }: PropsWithChildren) {
   };
 
   return (
-    <div data-theme="brand" className="bg-base-200 font-aeonik">
+    <div data-theme="brand" className="font-aeonik">
       <div className="relative">{children}</div>
       <Toaster position="bottom-center" />
     </div>
