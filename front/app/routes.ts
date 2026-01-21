@@ -124,6 +124,7 @@ export default [
       "set-brand-removal-subscription",
       "admin/set-brand-removal-subscription.ts"
     ),
+    route("activate-plan", "admin/activate-plan.ts"),
   ]),
 
   route("email-alert", "email-alert.ts"),

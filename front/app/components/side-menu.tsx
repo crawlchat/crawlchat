@@ -487,11 +487,7 @@ export function SideMenu({
         {scrape && (
           <div className="px-3 w-full">
             <div className="dropdown w-full">
-              <button
-                tabIndex={0}
-                className="btn w-full flex justify-between"
-                style={{ background: "white" }}
-              >
+              <button tabIndex={0} className="btn w-full flex justify-between">
                 {scrapeId ? scrape?.title : "Select collection"}
                 <TbChevronDown />
               </button>
@@ -576,11 +572,7 @@ export function SideMenu({
           </div>
 
           <div className="dropdown dropdown-top dropdown-end">
-            <button
-              tabIndex={0}
-              className="btn btn-sm mt-1 btn-square"
-              style={{ background: "white" }}
-            >
+            <button tabIndex={0} className="btn btn-sm mt-1 btn-square">
               <TbChevronUp />
             </button>
             <ul

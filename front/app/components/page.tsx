@@ -77,8 +77,9 @@ export function Page({
     <div className="flex flex-col flex-1 max-w-[1200px] w-full mx-auto">
       <div
         className={cn(
-          "flex flex-col p-4 h-[60px]",
-          "justify-center sticky top-0 z-10"
+          "flex flex-col p-4 h-[60px] bg-base-100",
+          "justify-center sticky top-0 z-10",
+          "border-b border-base-300 shadow-xs"
         )}
       >
         <div className="flex justify-between gap-2">
@@ -104,6 +105,7 @@ export function Page({
           <div className="flex gap-2 items-center">{right}</div>
         </div>
       </div>
+
       <div
         className={cn("flex-1 flex flex-col", !noPadding && "p-4")}
         ref={containerRef}
@@ -169,6 +171,7 @@ export function Page({
             </span>
           </div>
         )}
+
         {children}
       </div>
     </div>
