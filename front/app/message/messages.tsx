@@ -99,7 +99,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       thread: true,
     },
     orderBy: {
-      createdAt: "asc",
+      createdAt: "desc",
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
