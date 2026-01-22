@@ -208,7 +208,7 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
 
       {loaderData.threads.length > 0 && (
         <div className="flex flex-col gap-2">
-          <div className={cn("bg-base-200 rounded-box border border-base-300")}>
+          <div className={cn("bg-base-100 rounded-box border border-base-300")}>
             {loaderData.threads.map((thread) => (
               <div
                 key={thread.id}
