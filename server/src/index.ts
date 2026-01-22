@@ -533,7 +533,6 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       questionMessage.id,
       getQueryString(query),
       answer.content,
-      answer.sources,
       answer.context,
       {
         categories: scrape.messageCategories,
@@ -752,7 +751,6 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
       questionMessage.id,
       messageText,
       answer!.content,
-      answer!.sources,
       answer!.context,
       {
         categories: scrape.messageCategories,

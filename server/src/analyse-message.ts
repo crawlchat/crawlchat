@@ -14,7 +14,6 @@ import { getConfig } from "./llm/config";
 import { createToken } from "libs/jwt";
 import { consumeCredits } from "libs/user-plan";
 
-const MAX_ANSWER_SCORE = 0.5;
 const MIN_RELEVANT_SCORE = 0.5;
 
 export async function decomposeQuestion(question: string, scrapeId: string) {
@@ -220,6 +219,10 @@ export async function analyseMessage(
     <thread-questions>
     ${threadQuestions.join("\n\n")}
     </thread-questions>
+
+    <categories>
+    ${categories.map((c) => `${c.title}: ${c.description}`).join("\n\n")}
+    </categories>
     `;
 
   const schema: Record<string, z.ZodSchema> = {
@@ -265,7 +268,8 @@ export async function analyseMessage(
         `
         Suggest categories for the question.
         It should be under 3 categories.
-        It should not be one of the following: ${categories.join(", ")}
+        Try to pick one from mentioned <categories/>. Create new only if not available.
+        Give high preference to the existing <categories/>
       `
       ),
     resolved: z.boolean().describe(
@@ -286,12 +290,6 @@ export async function analyseMessage(
 
   if (categories.length > 0) {
     const categoryNames = categories.map((c) => c.title);
-    prompt += `
-
-      <categories>
-      ${categories.map((c) => `${c.title}: ${c.description}`).join("\n\n")}
-      </categories>
-    `;
     schema.category = z
       .object({
         title: z.enum(categoryNames as [string, ...string[]]),
@@ -348,21 +346,11 @@ export async function analyseMessage(
   };
 }
 
-function shouldCheckForDataGap(sources: MessageSourceLink[]) {
-  if (sources.length === 0) {
-    return true;
-  }
-  const avgScore =
-    sources.reduce((acc, s) => acc + (s.score ?? 0), 0) / sources.length;
-  return avgScore <= MAX_ANSWER_SCORE;
-}
-
 export async function fillMessageAnalysis(
   messageId: string,
   questionMessageId: string,
   question: string,
   answer: string,
-  sources: MessageSourceLink[],
   context: string[],
   options?: {
     onFollowUpQuestion?: (questions: string[]) => void;
@@ -410,12 +398,48 @@ export async function fillMessageAnalysis(
       .filter((m) => m.analysis?.shortQuestion)
       .map((m) => m.analysis!.shortQuestion!);
 
+    const latestQuestions = await prisma.message.findMany({
+      where: {
+        scrapeId: message.scrapeId,
+        llmMessage: {
+          is: {
+            role: "user",
+          },
+        },
+      },
+      select: {
+        analysis: {
+          select: {
+            categorySuggestions: true,
+          },
+        },
+      },
+      take: 50,
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const latestCategories: ScrapeMessageCategory[] = latestQuestions
+      .filter((q) => q.analysis?.categorySuggestions)
+      .map((q) => q.analysis!.categorySuggestions!)
+      .reduce((acc, curr) => [...acc, ...curr], [])
+      .map((c) => ({
+        title: c.title,
+        description: c.description,
+        createdAt: new Date(),
+      }));
+
+    const uniqueCategories = latestCategories.filter(
+      (c, index, self) => index === self.findIndex((t) => t.title === c.title)
+    );
+
     const partialAnalysis = await analyseMessage(
       question,
       answer,
       recentQuestions,
       threadQuestions,
-      options?.categories ?? [],
+      [...(options?.categories ?? []), ...uniqueCategories],
       message.scrapeId
     );
 

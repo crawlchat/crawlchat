@@ -648,8 +648,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             <div className="flex flex-col gap-2">
               <div
                 className={cn(
-                  "rounded-box overflow-hidden border",
-                  "border-base-300 p-4 bg-base-100 shadow"
+                  "rounded-box overflow-hidden",
+                  "p-4 bg-base-100 shadow"
                 )}
               >
                 <ComposedChart width={width - 24} height={260} data={chartData}>
@@ -681,47 +681,36 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            {loaderData.categoriesSummary &&
-              loaderData.categoriesSummary.map((category) => (
-                <CategoryCard
-                  title={category.title}
-                  summary={category.summary}
-                />
-              ))}
-            <div className="flex justify-between">
-              <div>
-                {loaderData.scrape &&
-                  loaderData.scrape.messageCategories.length > 0 &&
-                  !loaderData.scrape.analyseMessage && (
-                    <div
-                      role="alert"
-                      className="flex items-center gap-2 text-error"
-                    >
-                      <TbCircleXFilled size={22} />
-                      <span>
-                        Turn on{" "}
-                        <Link
-                          to="/settings#data-gap-analysis"
-                          className="link link-error link-hover"
-                        >
-                          message analysis
-                        </Link>{" "}
-                        for categories to work!
-                      </span>
-                    </div>
+          {loaderData.categoriesSummary &&
+            loaderData.categoriesSummary.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {loaderData.categoriesSummary &&
+                  loaderData.categoriesSummary.map((category) => (
+                    <CategoryCard
+                      title={category.title}
+                      summary={category.summary}
+                    />
+                  ))}
+              </div>
+            )}
+
+          <div className="flex flex-wrap gap-2">
+            {loaderData.messagesSummary.tags.slice(0, 20).map((tag) => (
+              <div
+                key={tag.title}
+                className="badge badge-lg badge-soft badge-primary"
+              >
+                {tag.title}
+                <span
+                  className={cn(
+                    "text-xs bg-neutral/10 text-neutral",
+                    "rounded-box px-1"
                   )}
-              </div>
-              <div>
-                <Link
-                  to="/settings#categories"
-                  className="btn btn-soft btn-primary"
                 >
-                  <TbFolderPlus />
-                  Add category
-                </Link>
+                  {tag.count}
+                </span>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       )}
