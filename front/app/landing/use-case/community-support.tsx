@@ -145,7 +145,7 @@ export default function CommunitySupport() {
             },
             {
               icon: <TbBrandGithub />,
-              title: "Github issues",
+              title: "Issues",
               tooltip: "Add GitHub issues to the knowledge base",
             },
             {

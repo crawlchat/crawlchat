@@ -195,9 +195,7 @@ function StatsItem({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex gap-4 py-6 px-6 items-center border-b border-base-300 last:border-b-0">
       <div className="flex-1 flex">{label}</div>
-      <div className="text-5xl md:text-6xl font-bold font-radio-grotesk">
-        {value}
-      </div>
+      <div className="text-5xl md:text-6xl font-bold font-brand">{value}</div>
     </div>
   );
 }
@@ -218,7 +216,7 @@ function Stats({
           <div className="w-3 h-3 bg-green-500 rounded-box outline-2 outline-green-300" />
           Serving the community
         </div>
-        <h3 className="text-4xl md:text-5xl font-radio-grotesk font-bold leading-[1.2]">
+        <h3 className="text-4xl md:text-5xl font-brand font-bold leading-[1.2]">
           Answering <br />
           <span className="text-primary">questions</span> <br />
           continuously
@@ -337,7 +335,7 @@ export function UsedBy() {
 
 export function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className="text-center text-4xl md:text-5xl max-w-[300px] md:max-w-[640px] mx-auto font-radio-grotesk leading-[1.3]">
+    <h3 className="text-center text-4xl md:text-5xl max-w-[300px] md:max-w-[640px] mx-auto font-brand leading-[1.3]">
       {children}
     </h3>
   );
@@ -378,7 +376,7 @@ function WorksStep({
         <img src={img} alt={title} className="w-full h-full" />
       </div>
 
-      <h4 className="text-2xl font-radio-grotesk">{title}</h4>
+      <h4 className="text-2xl font-brand">{title}</h4>
       <p className="text-center text-lg">{children}</p>
     </div>
   );
@@ -507,11 +505,11 @@ function ClickableFeature({
       className={cn(
         "rounded-box p-4 border border-transparent hover:border-base-300 gap-2 flex flex-col",
         "cursor-pointer",
-        active && "bg-base-100 hover:border-transparent"
+        active && "bg-base-300/50 hover:border-transparent"
       )}
       onClick={onClick}
     >
-      <h3 className="text-2xl font-radio-grotesk flex items-center gap-2">
+      <h3 className="text-2xl font-brand flex items-center gap-2">
         {icon && <div className="text-2xl">{icon}</div>}
         {img && <img src={img} alt={title} className="w-6 h-6" />}
         {title}
@@ -789,12 +787,12 @@ function PricingBox({
           popular && "border-primary"
         )}
       >
-        <h4 className="text-3xl font-semibold font-radio-grotesk">{title}</h4>
+        <h4 className="text-3xl font-semibold font-brand">{title}</h4>
         <p className="opacity-50 font-medium">{description}</p>
       </div>
       <div className="p-6 gap-6 flex flex-col">
         <div className="flex gap-1 items-end">
-          <p className="text-4xl font-semibold font-radio-grotesk">{price}</p>
+          <p className="text-4xl font-semibold font-brand">{price}</p>
           <p className="opacity-50 font-medium mb-1">/{period}</p>
         </div>
         <ul className="flex flex-col gap-2">
@@ -999,7 +997,7 @@ export function CTA({ text }: { text?: string }) {
       <div className="w-full py-16 px-10 relative border-t-4 border-dashed border-primary/20">
         <h2
           className={cn(
-            "font-radio-grotesk text-[42px] leading-[1.2]",
+            "font-brand text-[42px] leading-[1.2]",
             "font-medium text-center max-w-[900px] mx-auto"
           )}
         >
@@ -1040,7 +1038,7 @@ export function Footer() {
         <div className="py-8 flex flex-col md:flex-row gap-8">
           <div className="flex-[2] flex flex-col gap-4">
             <Logo />
-            <p className="font-medium opacity-60">
+            <p className="font-medium opacity-60 font-brand italic">
               Power up your tech documentation with AI
             </p>
             <p className="opacity-50 text-xs font-medium">© 2025 CrawlChat</p>
@@ -1538,13 +1536,13 @@ function Hero() {
           </a>
         )}
 
-        <h1 className="font-radio-grotesk text-[42px] md:text-[42px] leading-[1.2]">
+        <h1 className="font-brand text-[42px] md:text-[42px] leading-[1.2]">
           Turn your documentation into an{" "}
           <span className="text-accent whitespace-nowrap">AI assistant</span>{" "}
           that answers questions instantly
         </h1>
 
-        <p className="text-xl mt-6">
+        <p className="text-xl mt-6 font-brand italic text-base-content/50">
           Add an AI chatbot to your documentation website. Users can ask
           questions and get instant answers from your docs, without searching
           through pages.
@@ -1666,13 +1664,14 @@ export function CustomTestimonial({
   small?: boolean;
 }) {
   return (
-    <div className="border-r-0 md:border-r border-b md:border-b-0 border-base-300 p-6 last:border-r-0 last:border-b-0">
-      <p
-        className={cn(
-          "font-radio-grotesk text-center italic",
-          !small && "text-xl"
-        )}
-      >
+    <div
+      className={cn(
+        "border-r-0 md:border-r border-b",
+        "md:border-b-0 border-base-300 p-6 last:border-r-0",
+        "last:border-b-0"
+      )}
+    >
+      <p className={cn("font-brand text-center", !small && "text-xl")}>
         {text}
       </p>
 
@@ -2301,7 +2300,7 @@ export function SourceCard({
         )}
       >
         <div className="text-4xl text-primary">{icon}</div>
-        <div className="font-radio-grotesk text-lg text-primary/80 text-center">
+        <div className="font-brand text-lg text-primary/80 text-center">
           {title}
         </div>
       </div>
@@ -2347,7 +2346,7 @@ export function ChannelCard({
         )}
       >
         <div className="text-4xl text-secondary">{icon}</div>
-        <div className="font-radio-grotesk text-lg text-secondary/80 text-center">
+        <div className="font-brand text-lg text-secondary/80 text-center">
           {title}
         </div>
       </div>
@@ -2374,7 +2373,7 @@ function SourcesChannels() {
     },
     {
       icon: <TbBrandGithub />,
-      title: "Github issues",
+      title: "Issues",
       tooltip: "Fetch your GitHub issues instantly",
     },
     {
@@ -2446,7 +2445,7 @@ function SourcesChannels() {
     },
     {
       icon: <FaMicrophone />,
-      title: "Voice agent",
+      title: "Voice",
       tooltip: "Ask questions by voice using a voice agent",
       isNew: true,
     },
@@ -2535,7 +2534,7 @@ function SecondaryCTA({
           "bg-gradient-to-br from-primary/5 to-primary/10"
         )}
       >
-        <h3 className="text-2xl font-medium font-radio-grotesk">{title}</h3>
+        <h3 className="text-2xl font-medium font-brand">{title}</h3>
         <p className="text-base-content/50">{description}</p>
       </div>
       <div
@@ -2595,7 +2594,7 @@ function PricingFeature({
   return (
     <div className="flex items-center gap-2 group">
       <div className="text-primary text-lg">{icon}</div>
-      <div className="font-radio-grotesk text-primary text-lg">{title}</div>
+      <div className="font-brand text-primary text-lg">{title}</div>
 
       {tooltip && (
         <div
@@ -2719,7 +2718,7 @@ export function PricingFeatures() {
   return (
     <div className="border border-base-300 rounded-box p-6">
       <div className="mb-4">
-        <h2 className="text-2xl font-medium font-radio-grotesk">Features</h2>
+        <h2 className="text-2xl font-medium font-brand">Features</h2>
         <p className="text-base-content/50">
           Following features are available in all plans.
         </p>
@@ -2759,7 +2758,7 @@ function BentoCard({
       )}
     >
       <div className="text-3xl text-accent">{icon}</div>
-      <h4 className="text-xl font-radio-grotesk font-semibold">{title}</h4>
+      <h4 className="text-xl font-brand">{title}</h4>
       <p className="text-base-content/70 leading-relaxed">{description}</p>
     </div>
   );
@@ -2836,9 +2835,7 @@ export function OpenSource() {
         "flex flex-col items-center gap-10"
       )}
     >
-      <h3
-        className={cn("text-4xl md:text-5xl font-radio-grotesk", "text-center")}
-      >
+      <h3 className={cn("text-4xl md:text-5xl font-brand", "text-center")}>
         <span
           className={cn(
             "inline-flex items-center gap-2 text-primary flex-nowrap",
@@ -2847,8 +2844,7 @@ export function OpenSource() {
         >
           <RiChatVoiceAiFill /> CrawlChat
         </span>{" "}
-        <span>is</span>{" "}
-        <span className="font-bold text-accent">open source</span>{" "}
+        <span>is</span> <span className="text-accent">open source</span>{" "}
         <span>now!</span>
       </h3>
 
@@ -2936,13 +2932,13 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
         <ChannelDiscord />
       </Container>
 
-      <Container>
+      {/* <Container>
         <Stats
           messagesThisWeek={loaderData.messagesThisWeek}
           messagesDay={loaderData.messagesDay}
           messagesMonth={loaderData.messagesMonth}
         />
-      </Container>
+      </Container> */}
 
       <Container>
         <Why />
@@ -2960,9 +2956,9 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
         <PricingFeatures />
       </Container>
 
-      <Container>
+      {/* <Container>
         <SecondaryCTAs />
-      </Container>
+      </Container> */}
 
       <SourcesChannels />
 

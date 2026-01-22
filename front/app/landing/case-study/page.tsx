@@ -32,7 +32,12 @@ export function meta({ loaderData }: Route.MetaArgs) {
 
 function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className={cn("text-xl font-medium text-base-content/50", "mb-2")}>
+    <h3
+      className={cn(
+        "text-xl font-medium text-base-content/50",
+        "mb-2 font-brand"
+      )}
+    >
       {children}
     </h3>
   );
@@ -147,11 +152,7 @@ export default function CaseStudyLayout() {
               "p-4 rounded-box flex flex-col gap-2"
             )}
           >
-            <h3
-              className={cn(
-                "text-2xl font-medium font-radio-grotesk text-primary"
-              )}
-            >
+            <h3 className={cn("text-2xl font-medium font-brand text-primary")}>
               Apply the same approach to your company!
             </h3>
             <p>

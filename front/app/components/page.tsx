@@ -125,7 +125,7 @@ export function Page({
                 <div className="flex flex-col gap-1 flex-4 pr-10">
                   <div
                     className={cn(
-                      "text-2xl font-medium font-radio-grotesk",
+                      "text-2xl font-medium font-brand",
                       "flex items-center gap-2"
                     )}
                   >

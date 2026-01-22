@@ -266,7 +266,7 @@ function Hero() {
         </div>
 
         <div className="text-center mt-16 mb-4" style={{ color }}>
-          <h1 className="text-5xl font-medium text-center font-radio-grotesk">
+          <h1 className="text-5xl font-medium text-center font-brand">
             {config.heroTitle}
           </h1>
         </div>
