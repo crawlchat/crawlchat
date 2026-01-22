@@ -6,6 +6,7 @@ import {
   TbCopy,
   TbMessage,
   TbTrash,
+  TbX,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
@@ -19,6 +20,7 @@ import cn from "@meltdownjs/cn";
 import { Timestamp } from "~/components/timestamp";
 import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
+import { useState } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -67,7 +69,7 @@ export async function action({ request }: Route.ActionArgs) {
     return { success: true };
   }
 
-  if (intent === "delete") {
+  if (intent === "cancel") {
     const messageId = formData.get("messageId") as string;
     await prisma.message.update({
       where: {
@@ -77,12 +79,10 @@ export async function action({ request }: Route.ActionArgs) {
         analysis: {
           upsert: {
             set: {
-              dataGapTitle: null,
-              dataGapDescription: null,
+              dataGapCancelled: true,
             },
             update: {
-              dataGapTitle: null,
-              dataGapDescription: null,
+              dataGapCancelled: true,
             },
           },
         },
@@ -93,13 +93,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 }
 
-export function DataGapCard({
-  message,
-  noControls,
-}: {
-  message: Message;
-  noControls?: boolean;
-}) {
+export function DataGapCard({ message }: { message: Message }) {
   const doneFetcher = useFetcher();
   const deleteFetcher = useFetcher();
 
@@ -115,62 +109,66 @@ export function DataGapCard({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 border border-base-300",
-        "p-4 rounded-box bg-base-100 shadow"
+        "p-4 rounded-box bg-base-100 shadow",
+        "border border-base-300"
       )}
     >
       <div className="flex flex-col gap-2">
-        <div className="font-bold">{message.analysis!.dataGapTitle}</div>
-        <div className="flex gap-2">
-          <div className="join">
-            <Link
-              className="btn btn-sm btn-square join-item"
-              to={`/questions/${message.questionId}`}
-            >
-              <TbMessage />
-            </Link>
-
-            <button
-              className="btn btn-square btn-sm join-item"
-              onClick={handleCopy}
-            >
-              <TbCopy />
-            </button>
+        <div className="flex items-center gap-2 justify-between">
+          <div>
+            <div>{message.analysis!.dataGapTitle}</div>
+            <Timestamp
+              date={message.createdAt}
+              className="text-base-content/50"
+            />
           </div>
+          <div className="flex gap-2">
+            <div className="join">
+              <Link
+                className="btn btn-square join-item"
+                to={`/questions/${message.questionId}`}
+              >
+                <TbMessage />
+              </Link>
 
-          {!noControls && (
+              <button className="btn btn-square join-item" onClick={handleCopy}>
+                <TbCopy />
+              </button>
+            </div>
+
             <div className="join">
               <doneFetcher.Form method="post">
                 <input type="hidden" name="messageId" value={message.id} />
                 <input type="hidden" name="intent" value="done" />
                 <button
-                  className="btn btn-sm btn-success join-item"
+                  className="btn btn-success btn-soft join-item"
                   type="submit"
                   disabled={doneFetcher.state !== "idle"}
                 >
                   <TbCheck />
-                  Done
+                  Accept
                 </button>
               </doneFetcher.Form>
               <deleteFetcher.Form method="post">
                 <input type="hidden" name="messageId" value={message.id} />
-                <input type="hidden" name="intent" value="delete" />
-                <button
-                  className="btn btn-sm btn-error join-item"
-                  disabled={deleteFetcher.state !== "idle"}
-                  type="submit"
+                <input type="hidden" name="intent" value="cancel" />
+                <div
+                  className="tooltip tooltip-left"
+                  data-tip="Cancel it so that similar data gaps are not created again"
                 >
-                  <TbTrash />
-                  Delete
-                </button>
+                  <button
+                    className="btn btn-error btn-soft join-item"
+                    disabled={deleteFetcher.state !== "idle"}
+                    type="submit"
+                  >
+                    <TbX />
+                    Cancel
+                  </button>
+                </div>
               </deleteFetcher.Form>
             </div>
-          )}
+          </div>
         </div>
-      </div>
-      <MarkdownProse>{message.analysis!.dataGapDescription}</MarkdownProse>
-      <div className="text-sm text-base-content/50">
-        <Timestamp date={message.createdAt} />
       </div>
     </div>
   );
@@ -189,13 +187,11 @@ export default function DataGapsPage({ loaderData }: Route.ComponentProps) {
         </div>
       )}
       {loaderData.messages.length > 0 && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
           <div className="text-base-content/50">
-            Following are the topics that are asked to the chat bot but no
-            significant information is found in the knowledge base. It is worth
-            to take a look at these topics and either add it your knowledge base
-            (or the external documentation) or delete it if it is not
-            appropriate or significant.
+            These topics were asked but not found in the knowledge base. Review
+            each one and either add it to your knowledge base or cancel it if
+            it's not relevant.
           </div>
           <div className="flex flex-col gap-4">
             {loaderData.messages.map((message) => (

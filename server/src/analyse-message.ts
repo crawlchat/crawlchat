@@ -87,11 +87,40 @@ async function getDataGap(
   answer: string,
   context: string[],
   scrapeId: string,
-  knowledgeBaseContext?: {
-    title?: string | null;
-    chatPrompt?: string | null;
+  knowledgeBaseContext: {
+    title: string | null;
+    chatPrompt: string | null;
   }
 ) {
+  const cancelledDataGaps = await prisma.message.findMany({
+    where: {
+      scrapeId,
+      analysis: {
+        is: {
+          dataGapCancelled: true,
+        },
+      },
+    },
+    select: {
+      analysis: {
+        select: {
+          dataGapTitle: true,
+          dataGapDescription: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 20,
+  });
+
+  const cancelledGaps = cancelledDataGaps
+    .filter((m) => m.analysis?.dataGapTitle)
+    .map((m) => ({
+      title: m.analysis!.dataGapTitle!,
+    }));
+
   const llmConfig = getConfig("gpt_5");
 
   const agent = new SimpleAgent({
@@ -112,6 +141,31 @@ async function getDataGap(
     
     The data gap should be very specific and actionable, not generic.
     You may leave title and description empty if there is no meaningful data gap.
+    
+    You are given previous cancelled data gaps.
+    If the new data gap is related to any of the cancelled data gaps, you MUST leave both title as empty strings.
+    Do not create a data gap that has been previously cancelled.
+
+    <context-from-knowledge-base>
+      ${
+        context.length > 0
+          ? context.join("\n\n")
+          : "No relevant context found in the knowledge base."
+      }
+    </context-from-knowledge-base>
+    
+    <knowledge-base-context>
+      <title>
+        ${knowledgeBaseContext.title ?? ""}
+      </title>
+      <purpose>
+        ${knowledgeBaseContext.chatPrompt ?? ""}
+      </purpose>
+    </knowledge-base-context>
+    
+    <cancelled-data-gaps>
+      ${JSON.stringify(cancelledGaps)}
+    </cancelled-data-gaps>
     `,
     schema: z.object({
       title: z.string({
@@ -122,29 +176,11 @@ async function getDataGap(
           Leave empty string if there is no meaningful data gap.
         `,
       }),
-      description: z.string({
-        description: `
-          Make a description for the data gap (if any). It should be in markdown format.
-          It should explain what specific information is missing from the knowledge base that would be needed to answer this question.
-          The description MUST be relevant to the knowledge base's domain, topic, and context. Use terminology and concepts that align with the knowledge base's purpose.
-          List the specific topics, details, or information that should be added to the knowledge base, framed in the context of the knowledge base's domain.
-          Make it descriptive and actionable, mention topics to fill as bullet points (max 5 points).
-          Leave empty string if there is no meaningful data gap.
-        `,
-      }),
     }),
     user: scrapeId,
     maxTokens: 4096,
     ...llmConfig,
   });
-
-  const knowledgeBaseInfo = knowledgeBaseContext?.title
-    ? `\n\n<knowledge-base-context>\nTitle: ${knowledgeBaseContext.title}${
-        knowledgeBaseContext.chatPrompt
-          ? `\nPurpose: ${knowledgeBaseContext.chatPrompt}`
-          : ""
-      }\n</knowledge-base-context>`
-    : "";
 
   const flow = new Flow([agent], {
     messages: [
@@ -153,25 +189,18 @@ async function getDataGap(
           role: "user",
           content: `
             <question>
-            ${question}
+              ${question}
             </question>
             
             <answer-provided>
-            ${answer}
+              ${answer}
             </answer-provided>
-            
-            <context-from-knowledge-base>
-            ${
-              context.length > 0
-                ? context.join("\n\n")
-                : "No relevant context found in the knowledge base."
-            }
-            </context-from-knowledge-base>${knowledgeBaseInfo}
             
             Analyze what information is MISSING from the knowledge base that would be needed to properly answer this question.
             Consider what the question asks for versus what information is actually available in the knowledge base.
             
-            When describing the data gap, ensure it is relevant to the knowledge base's domain and context. The description should use terminology and concepts that align with the knowledge base's purpose and topic.
+            When describing the data gap, ensure it is relevant to the knowledge base's domain and context. 
+            The description should use terminology and concepts that align with the knowledge base's purpose and topic.
           `,
         },
       },
@@ -186,7 +215,6 @@ async function getDataGap(
 
   return JSON.parse(content as string) as {
     title: string;
-    description: string;
   };
 }
 
@@ -481,6 +509,7 @@ export async function fillMessageAnalysis(
       dataGapDescription: null,
       category,
       dataGapDone: false,
+      dataGapCancelled: false,
       categorySuggestions: [],
       resolved: partialAnalysis?.resolved ?? false,
     };
@@ -509,16 +538,11 @@ export async function fillMessageAnalysis(
               chatPrompt: message.scrape.chatPrompt,
             }
           );
-          if (
-            dataGap.title &&
-            dataGap.description &&
-            dataGap.title.trim() &&
-            dataGap.description.trim()
-          ) {
+          if (dataGap.title && dataGap.title.trim()) {
             analysis.dataGapTitle = dataGap.title;
-            analysis.dataGapDescription = dataGap.description;
-
             console.log("Added data gap");
+          } else {
+            console.log("No data gap from LLM");
           }
         }
       }

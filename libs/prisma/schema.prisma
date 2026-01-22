@@ -280,6 +280,7 @@ type MessageAnalysis {
   dataGapTitle String?
   dataGapDescription String?
   dataGapDone Boolean?
+  dataGapCancelled Boolean?
   
   shortQuestion String?
   followUpQuestions String[]
