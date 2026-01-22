@@ -75,11 +75,11 @@ export function Page({
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="bg-base-100 border-b border-base-300">
+      <div className="bg-base-100 border-b border-base-300 sticky top-0 z-10">
         <div
           className={cn(
             "flex flex-col p-4 h-[60px]",
-            "justify-center sticky top-0 z-10",
+            "justify-center",
             "max-w-[1200px] w-full mx-auto"
           )}
         >
@@ -108,9 +108,9 @@ export function Page({
         </div>
       </div>
 
-      <div className="max-w-[1200px] w-full mx-auto">
+      <div className="max-w-[1200px] w-full mx-auto h-full">
         <div
-          className={cn("flex-1 flex flex-col", !noPadding && "p-4")}
+          className={cn("flex-1 flex flex-col h-full", !noPadding && "p-4")}
           ref={containerRef}
         >
           {closedReleaseKey !== undefined &&
