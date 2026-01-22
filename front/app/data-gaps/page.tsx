@@ -1,18 +1,10 @@
 import type { Route } from "./+types/page";
 import type { Message } from "libs/prisma";
-import {
-  TbChartBarOff,
-  TbCheck,
-  TbCopy,
-  TbMessage,
-  TbTrash,
-  TbX,
-} from "react-icons/tb";
+import { TbChartBarOff, TbCheck, TbCopy, TbMessage, TbX } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { prisma } from "libs/prisma";
-import { MarkdownProse } from "~/widget/markdown-prose";
 import { Link, useFetcher } from "react-router";
 import { fetchDataGaps } from "./fetch";
 import { EmptyState } from "~/components/empty-state";
@@ -20,7 +12,6 @@ import cn from "@meltdownjs/cn";
 import { Timestamp } from "~/components/timestamp";
 import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
-import { useState } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -114,7 +105,12 @@ export function DataGapCard({ message }: { message: Message }) {
       )}
     >
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 justify-between">
+        <div
+          className={cn(
+            "flex flex-col md:flex-row md:items-center",
+            "gap-2 md:justify-between"
+          )}
+        >
           <div>
             <div>{message.analysis!.dataGapTitle}</div>
             <Timestamp
@@ -122,7 +118,7 @@ export function DataGapCard({ message }: { message: Message }) {
               className="text-base-content/50"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-col md:flex-row">
             <div className="join">
               <Link
                 className="btn btn-square join-item"
