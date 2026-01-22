@@ -165,7 +165,7 @@ export default function LoginPage() {
           )}
         >
           <div className="text-2xl font-bold text-center py-4">
-            People love <span className="font-radio-grotesk">CrawlChat</span> ❤️
+            People love <span className="font-brand">CrawlChat</span> ❤️
           </div>
           <div className="max-w-500px overflow-y-auto no-scrollbar pb-4 max-w-96">
             {testiIndex === 0 && <JonnyTestimonial />}
