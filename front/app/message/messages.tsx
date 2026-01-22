@@ -17,7 +17,6 @@ import { prisma } from "libs/prisma";
 import { makeMessagePairs } from "./analyse";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import {
-  Link,
   Link as RouterLink,
   useLoaderData,
   useLocation,
@@ -59,12 +58,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const page = parseInt(url.searchParams.get("page") ?? "1");
   const pageSize = 20;
 
-  const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
   const where: Prisma.MessageWhereInput = {
     scrapeId,
-    createdAt: {
-      gte: ONE_WEEK_AGO,
-    },
     llmMessage: {
       is: {
         role: "user",
@@ -110,11 +105,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     take: pageSize,
   });
 
-  const questionIds = questions.map((q) => q.id);
   const answers = await prisma.message.findMany({
     where: {
       questionId: {
-        in: questionIds,
+        in: questions.map((q) => q.id),
       },
     },
     include: {
@@ -326,7 +320,6 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
   return (
     <Page
       title="Questions"
-      description="Showing for the last 7 days"
       icon={<TbMessage />}
       right={
         <div className="flex gap-2 items-center">
