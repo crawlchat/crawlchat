@@ -15,6 +15,7 @@ import { makeMeta } from "~/meta";
 import { UpgradeModal } from "~/components/upgrade-modal";
 import { showModal } from "~/components/daisy-utils";
 import { createToken } from "libs/jwt";
+import { getLatestChangelog } from "~/changelog/fetch";
 
 export function meta() {
   return makeMeta({
@@ -78,6 +79,8 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const pathname = url.pathname;
 
+  const latestChangelog = getLatestChangelog();
+
   return {
     user: user!,
     plan,
@@ -92,6 +95,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     scrapeUsers,
     token,
     pathname,
+    latestChangelog,
   };
 }
 
@@ -102,6 +106,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     scrapeUsers: loaderData.scrapeUsers,
     scrapeId: loaderData.scrapeId,
     scrape: loaderData.scrape,
+    latestChangelog: loaderData.latestChangelog,
   });
   const scrapeIdFetcher = useFetcher();
 
