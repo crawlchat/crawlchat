@@ -45,6 +45,7 @@ import { randomUUID } from "crypto";
 import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
+import { setupGithubBot } from "./github-bot";
 
 declare global {
   namespace Express {
@@ -55,6 +56,7 @@ declare global {
         };
       }>;
       authMode?: AuthMode;
+      rawBody?: Buffer;
     }
   }
 }
@@ -71,10 +73,19 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
 });
 
-app.use(/\/((?!sse).)*/, express.json({ limit: "50mb" }));
+app.use(
+  /\/((?!sse).)*/,
+  express.json({
+    limit: "50mb",
+    verify(req, _res, buf) {
+      (req as Request).rawBody = buf;
+    },
+  })
+);
 app.use(cors());
 
 app.use("/api", apiRouter);
+setupGithubBot(app);
 app.use("/admin", adminRouter);
 expressWs.app.ws("/", handleWs);
 

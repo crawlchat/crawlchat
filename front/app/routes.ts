@@ -52,6 +52,7 @@ export default [
       route("mcp", "integrations/mcp.tsx"),
       route("discord-bot", "integrations/discord.tsx"),
       route("slack-app", "integrations/slack.tsx"),
+      route("github-bot", "integrations/github-bot.tsx"),
       route("api", "integrations/api.tsx"),
     ]),
 

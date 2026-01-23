@@ -24,6 +24,7 @@ Before you begin, ensure you have:
 4. **Optional Services** (for full functionality):
    - Discord bot credentials (if using Discord integration)
    - Slack app credentials (if using Slack integration)
+   - GitHub app credentials (if using GitHub app integration)
    - Resend API key (for email functionality)
    - Google OAuth credentials (for Google sign-in)
    - GitHub token (for GitHub source syncing)
@@ -46,6 +47,7 @@ Before you begin, ensure you have:
    - Replace `<PINECONE_API_KEY>` with your Pinecone API key
    - Replace `<OPENROUTER_API_KEY>` with your OpenRouter API key
    - Update `JWT_SECRET` with a strong, random secret (use the same value for all services)
+   - Add GitHub app credentials if using GitHub integration (optional)
    - Update URLs if not using localhost (see Environment Variables section)
 
 4. **Start the services**:
@@ -72,6 +74,15 @@ These variables should be set consistently across all services:
 | `SELF_HOSTED` | Yes | Must be set to `"true"` for self-hosted deployments | `"true"` |
 | `DATABASE_URL` | Yes | MongoDB connection string with replica set | `"mongodb://database:27017/crawlchat?replicaSet=rs0"` |
 | `JWT_SECRET` | Yes | Secret key for JWT token signing. **Must be the same across all services** | `"a-long-random-secret-string"` |
+
+#### GitHub App Integration (Optional)
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `GITHUB_APP_ID` | No | GitHub App ID for webhook authentication | `"123456"` |
+| `GITHUB_APP_PRIVATE_KEY` | No | Private key for GitHub App authentication | `"-----BEGIN RSA PRIVATE KEY-----\n..."` |
+| `GITHUB_WEBHOOK_SECRET` | No | Secret for verifying GitHub webhook signatures | `"your-webhook-secret"` |
+| `VITE_GITHUB_APP_INSTALL_URL` | No | GitHub App installation URL for frontend | `"https://github.com/apps/your-app/installations/new"` |
 
 ### Network Configuration
 

@@ -15,6 +15,7 @@ services:
       VITE_SERVER_WS_URL: "ws://localhost:3002"
       VITE_SERVER_URL: "http://localhost:3002"
       VITE_SOURCE_SYNC_URL: "http://localhost:3003"
+      VITE_GITHUB_APP_INSTALL_URL: "https://github.com/apps/crawlchat/installations/new"
       DEFAULT_SIGNUP_PLAN_ID: "accelerate-yearly"
       MARKER_HOST: "http://localhost:3005"
       MARKER_API_KEY: "a-secret-for-marker"
@@ -41,6 +42,10 @@ services:
       SOURCE_SYNC_URL: "http://source_sync:3000"
       PINECONE_API_KEY: "<PINECONE_API_KEY>"
       OPENROUTER_API_KEY: "<OPENROUTER_API_KEY>"
+      # GitHub App Integration (optional)
+      GITHUB_APP_ID: ""
+      GITHUB_APP_PRIVATE_KEY: ""
+      GITHUB_WEBHOOK_SECRET: ""
       # optional
       ADMIN_EMAILS: ""
 

@@ -193,6 +193,7 @@ model Scrape {
 
   slackTeamId           String?
   slackConfig           SlackConfig?
+  githubRepoName        String?
 
   helpdeskConfig        HelpdeskConfig?
 
@@ -239,6 +240,7 @@ enum MessageChannel {
   widget
   api
   google_chat
+  github_discussion
 }
 
 enum MessageRating {
@@ -323,6 +325,7 @@ model Message {
 
   slackMessageId            String?
   discordMessageId          String?
+  githubCommentId           String?
   analysis                  MessageAnalysis?
   llmModel                  LlmModel?
   creditsUsed               Int?
