@@ -309,7 +309,7 @@ function CategorySuggestion({
         {suggestion.title}
         <p className="text-sm text-base-content/50">{suggestion.description}</p>
       </div>
-      <div className="tooltip" data-tip="Add category to the collection">
+      <div className="tooltip" data-tip="Add as category">
         <fetcher.Form method="post">
           <input type="hidden" name="intent" value="add-category" />
           <input
@@ -326,7 +326,7 @@ function CategorySuggestion({
             {fetcher.state !== "idle" && (
               <span className="loading loading-spinner loading-xs" />
             )}
-            Add <TbPlus />
+            Category <TbPlus />
           </button>
         </fetcher.Form>
       </div>
@@ -480,7 +480,7 @@ export default function Message({ loaderData }: Route.ComponentProps) {
         {filteredCategorySuggestions &&
           filteredCategorySuggestions.length > 0 && (
             <div className="flex flex-col gap-2">
-              <div className="text-lg">Category Suggestions</div>
+              <div className="text-lg">Tags</div>
               <div
                 className={cn(
                   "flex flex-col bg-base-100 rounded-box",

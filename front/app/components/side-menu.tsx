@@ -164,7 +164,7 @@ function WithSubMenuItems({
                 <TbStarFilled />
               </span>
             )}
-            <span className="text-base-content/40 group-hover:text-accent-content">
+            <span className="text-base-content/40">
               {isExpanded ? <TbChevronUp /> : <TbChevronDown />}
             </span>
           </div>

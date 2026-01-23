@@ -63,8 +63,8 @@
   -webkit-text-fill-color: transparent !important;
 }
 
-.font-radio-grotesk {
-  font-family: "Radio Grotesk", sans-serif;
+.font-brand {
+  font-family: "IBM Plex Mono", monospace;
 }
 
 .widget-highlighter {

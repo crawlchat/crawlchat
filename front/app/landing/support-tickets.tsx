@@ -38,7 +38,7 @@ function Step({
   return (
     <div className="flex flex-col md:flex-row gap-16 mt-32 md:odd:flex-row-reverse">
       <div className="flex flex-col gap-4 flex-1 pt-2">
-        <h3 className="text-4xl font-bold font-radio-grotesk">
+        <h3 className="text-4xl font-bold font-brand">
           <span className="text-brand">{number}.</span> {title}
         </h3>
         <p className="text-lg leading-[1.8]">{description}</p>
@@ -67,7 +67,7 @@ export default function PublicBots() {
       <Container>
         <div className="flex flex-col md:flex-row gap-16 mt-16">
           <div className="flex-1">
-            <h1 className="text-6xl font-bold font-radio-grotesk leading-[1.1]">
+            <h1 className="text-6xl font-bold font-brand leading-[1.1]">
               <span className="text-brand">Support tickets</span> right from the
               chatbot
             </h1>

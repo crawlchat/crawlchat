@@ -221,7 +221,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
               questionMessage.id,
               message.data.query,
               event.content,
-              event.sources,
               event.context,
               {
                 categories: scrape.messageCategories,

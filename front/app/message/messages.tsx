@@ -1,6 +1,8 @@
 import type { CategorySuggestion, Message, Prisma, Scrape } from "libs/prisma";
 import type { Route } from "./+types/messages";
 import {
+  TbChevronLeft,
+  TbChevronRight,
   TbConfetti,
   TbFilter,
   TbFolder,
@@ -15,7 +17,6 @@ import { prisma } from "libs/prisma";
 import { makeMessagePairs } from "./analyse";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import {
-  Outlet,
   Link as RouterLink,
   useLoaderData,
   useLocation,
@@ -54,16 +55,15 @@ export async function loader({ request }: Route.LoaderArgs) {
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
   const url = new URL(request.url);
+  const page = parseInt(url.searchParams.get("page") ?? "1");
+  const pageSize = 20;
 
-  const scrape = await prisma.scrape.findFirstOrThrow({
-    where: { id: scrapeId },
-  });
-
-  const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
   const where: Prisma.MessageWhereInput = {
     scrapeId,
-    createdAt: {
-      gte: ONE_WEEK_AGO,
+    llmMessage: {
+      is: {
+        role: "user",
+      },
     },
     OR: [
       {
@@ -85,28 +85,56 @@ export async function loader({ request }: Route.LoaderArgs) {
       },
     };
   }
-  if (url.searchParams.get("showMcp")) {
+  if (url.searchParams.get("mcp")) {
     delete where.OR;
   }
 
-  const messages = await prisma.message.findMany({
+  const total = await prisma.message.count({
+    where,
+  });
+
+  const questions = await prisma.message.findMany({
     where,
     include: {
       thread: true,
     },
     orderBy: {
-      createdAt: "asc",
+      createdAt: "desc",
+    },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+  });
+
+  const answers = await prisma.message.findMany({
+    where: {
+      questionId: {
+        in: questions.map((q) => q.id),
+      },
+    },
+    include: {
+      thread: true,
     },
   });
 
-  let messagePairs = makeMessagePairs(messages);
-  if (url.searchParams.get("showOnlyLowRatings")) {
+  let messagePairs = makeMessagePairs([...questions, ...answers]);
+  if (url.searchParams.get("low-rating")) {
     messagePairs = messagePairs.filter((pair) =>
       isLowRating(pair.responseMessage)
     );
   }
 
-  return { messagePairs, scrape };
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId },
+  });
+
+  return {
+    messagePairs,
+    scrape,
+    page,
+    pageSize,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+  };
 }
 
 export function meta() {
@@ -228,12 +256,46 @@ function Filters({
   );
 }
 
+function Pagination({
+  page,
+  totalPages,
+  setPage,
+}: {
+  page: number;
+  totalPages: number;
+  setPage: (page: number) => void;
+}) {
+  const previous = page > 1;
+  const next = page < totalPages;
+
+  return (
+    <div className="flex justify-center items-center gap-2">
+      <button
+        onClick={() => setPage(page - 1)}
+        className="btn btn-square"
+        disabled={!previous}
+      >
+        <TbChevronLeft />
+      </button>
+      {page} / {totalPages}
+      <button
+        onClick={() => setPage(page + 1)}
+        className="btn btn-square"
+        disabled={!next}
+      >
+        <TbChevronRight />
+      </button>
+    </div>
+  );
+}
+
 export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [category, setCategory] = useState<string>();
   const [showMcp, setShowMcp] = useState(false);
   const [showOnlyLowRatings, setShowOnlyLowRatings] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -242,25 +304,31 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
 
   useEffect(() => {
     const params = new URLSearchParams();
+    params.set("page", page.toString());
     if (category !== undefined) {
       params.set("category", category);
     }
     if (showMcp) {
-      params.set("showMcp", "true");
+      params.set("mcp", "true");
     }
     if (showOnlyLowRatings) {
-      params.set("showOnlyLowRatings", "true");
+      params.set("low-rating", "true");
     }
     navigate(`/questions?${params.toString()}`);
-  }, [category, showMcp, showOnlyLowRatings]);
+  }, [category, showMcp, showOnlyLowRatings, page]);
 
   return (
     <Page
       title="Questions"
-      description="Showing for the last 7 days"
       icon={<TbMessage />}
       right={
         <div className="flex gap-2 items-center">
+          <Pagination
+            page={loaderData.page}
+            totalPages={loaderData.totalPages}
+            setPage={setPage}
+          />
+
           <Filters
             category={category}
             setCategory={setCategory}
@@ -286,154 +354,157 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
         )}
         {loaderData.messagePairs.length > 0 && (
           <div className="flex flex-col gap-4">
-            {loaderData.messagePairs.length > 0 && (
-              <div
-                className={cn(
-                  "overflow-x-auto border border-base-300",
-                  "rounded-box bg-base-100 shadow"
-                )}
-              >
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Question</th>
-                      <th>Details</th>
-                      <th>Channel</th>
-                      <th>Category</th>
-                      <th className="text-end">Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loaderData.messagePairs.map((pair, index) => (
-                      <tr key={index}>
-                        <td>
-                          <div className="w-[400px] flex items-center gap-2">
-                            {pair.queryMessage?.fingerprint && (
-                              <Avatar
-                                name={pair.queryMessage.fingerprint}
-                                size={24}
-                                variant="beam"
-                                className="shrink-0"
-                              />
-                            )}
-                            <RouterLink
-                              className="link link-hover line-clamp-1"
-                              to={`/questions/${pair.queryMessage?.id}`}
+            <div
+              className={cn(
+                "overflow-x-auto border border-base-300",
+                "rounded-box bg-base-100 shadow"
+              )}
+            >
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Question</th>
+                    <th>Details</th>
+                    <th>Channel</th>
+                    <th>Category</th>
+                    <th className="text-end">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loaderData.messagePairs.map((pair, index) => (
+                    <tr key={index}>
+                      <td>
+                        <div className="w-[400px] flex items-center gap-2">
+                          {pair.queryMessage?.fingerprint && (
+                            <Avatar
+                              name={pair.queryMessage.fingerprint}
+                              size={24}
+                              variant="beam"
+                              className="shrink-0"
+                            />
+                          )}
+                          <RouterLink
+                            className="link link-hover line-clamp-1"
+                            to={`/questions/${pair.queryMessage?.id}`}
+                          >
+                            {getMessageContent(pair.queryMessage)}
+                          </RouterLink>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex gap-2 items-center">
+                          {!pair.queryMessage?.thread.isDefault && (
+                            <div
+                              className="tooltip"
+                              data-tip="View in conversation"
                             >
-                              {getMessageContent(pair.queryMessage)}
-                            </RouterLink>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="flex gap-2 items-center">
-                            {!pair.queryMessage?.thread.isDefault && (
+                              <RouterLink
+                                className="btn btn-xs btn-square"
+                                to={`/questions/conversations/${pair.queryMessage?.threadId}#message-${pair.queryMessage?.id}`}
+                              >
+                                <TbMessages />
+                              </RouterLink>
+                            </div>
+                          )}
+
+                          {pair.responseMessage?.analysis?.resolved && (
+                            <div className="tooltip" data-tip="Resolved">
+                              <div className="badge badge-primary badge-soft gap-1 px-2">
+                                <TbConfetti />
+                              </div>
+                            </div>
+                          )}
+
+                          {pair.queryMessage?.thread.location && (
+                            <CountryFlag
+                              location={pair.queryMessage.thread.location}
+                            />
+                          )}
+
+                          <SentimentBadge
+                            sentiment={
+                              pair.responseMessage?.analysis?.questionSentiment
+                            }
+                          />
+
+                          {pair.queryMessage?.attachments &&
+                            pair.queryMessage.attachments.length > 0 && (
                               <div
                                 className="tooltip"
-                                data-tip="View in conversation"
+                                data-tip={pair.queryMessage.attachments
+                                  .map((attachment) => attachment.name)
+                                  .join(", ")}
                               >
-                                <RouterLink
-                                  className="btn btn-xs btn-square"
-                                  to={`/questions/conversations/${pair.queryMessage?.threadId}#message-${pair.queryMessage?.id}`}
-                                >
-                                  <TbMessages />
-                                </RouterLink>
-                              </div>
-                            )}
-
-                            {pair.responseMessage?.analysis?.resolved && (
-                              <div className="tooltip" data-tip="Resolved">
-                                <div className="badge badge-primary badge-soft gap-1 px-2">
-                                  <TbConfetti />
+                                <div className="badge badge-secondary badge-soft gap-1 px-2">
+                                  <TbPaperclip />
+                                  {pair.queryMessage.attachments.length}
                                 </div>
                               </div>
                             )}
 
-                            {pair.queryMessage?.thread.location && (
-                              <CountryFlag
-                                location={pair.queryMessage.thread.location}
-                              />
-                            )}
-
-                            <SentimentBadge
-                              sentiment={
-                                pair.responseMessage?.analysis
-                                  ?.questionSentiment
-                              }
-                            />
-
-                            {pair.queryMessage?.attachments &&
-                              pair.queryMessage.attachments.length > 0 && (
-                                <div
-                                  className="tooltip"
-                                  data-tip={pair.queryMessage.attachments
-                                    .map((attachment) => attachment.name)
-                                    .join(", ")}
-                                >
-                                  <div className="badge badge-secondary badge-soft gap-1 px-2">
-                                    <TbPaperclip />
-                                    {pair.queryMessage.attachments.length}
-                                  </div>
-                                </div>
-                              )}
-
-                            {pair.actionCalls.length > 0 && (
-                              <div className="badge badge-secondary badge-soft gap-1 px-2">
-                                <TbPointer />
-                                {pair.actionCalls.length}
-                              </div>
-                            )}
-
-                            {pair.maxScore !== undefined && (
-                              <ScoreBadge score={pair.maxScore} />
-                            )}
-                            <Rating rating={pair.responseMessage.rating} />
-                            {pair.responseMessage.creditsUsed !== null && (
-                              <CreditsUsedBadge
-                                creditsUsed={pair.responseMessage.creditsUsed}
-                                llmModel={pair.responseMessage.llmModel}
-                              />
-                            )}
-                          </div>
-                        </td>
-                        <td className="w-10">
-                          <ChannelBadge
-                            channel={pair.queryMessage?.channel}
-                            onlyIcon
-                          />
-                        </td>
-                        <td className="min-w-12">
-                          <div className="flex items-center gap-2">
-                            {pair.queryMessage?.analysis?.category && (
-                              <span className="badge badge-soft badge-accent whitespace-nowrap">
-                                <TbFolder />
-                                {pair.queryMessage?.analysis?.category}
-                              </span>
-                            )}
-                            <CategorySuggestionCount
-                              scrape={loaderData.scrape}
-                              suggestions={
-                                pair.queryMessage?.analysis
-                                  ?.categorySuggestions ?? []
-                              }
-                            />
-                          </div>
-                        </td>
-                        <td className="text-end min-w-46">
-                          {pair.queryMessage?.createdAt && (
-                            <Timestamp date={pair.queryMessage.createdAt} />
+                          {pair.actionCalls.length > 0 && (
+                            <div className="badge badge-secondary badge-soft gap-1 px-2">
+                              <TbPointer />
+                              {pair.actionCalls.length}
+                            </div>
                           )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+
+                          {pair.maxScore !== undefined && (
+                            <ScoreBadge score={pair.maxScore} />
+                          )}
+                          <Rating rating={pair.responseMessage.rating} />
+                          {pair.responseMessage.creditsUsed !== null && (
+                            <CreditsUsedBadge
+                              creditsUsed={pair.responseMessage.creditsUsed}
+                              llmModel={pair.responseMessage.llmModel}
+                            />
+                          )}
+                        </div>
+                      </td>
+                      <td className="w-10">
+                        <ChannelBadge
+                          channel={pair.queryMessage?.channel}
+                          onlyIcon
+                        />
+                      </td>
+                      <td className="min-w-12">
+                        <div className="flex items-center gap-2">
+                          {pair.queryMessage?.analysis?.category && (
+                            <span className="badge badge-soft badge-accent whitespace-nowrap">
+                              <TbFolder />
+                              {pair.queryMessage?.analysis?.category}
+                            </span>
+                          )}
+                          <CategorySuggestionCount
+                            scrape={loaderData.scrape}
+                            suggestions={
+                              pair.queryMessage?.analysis
+                                ?.categorySuggestions ?? []
+                            }
+                          />
+                        </div>
+                      </td>
+                      <td className="text-end min-w-46">
+                        {pair.queryMessage?.createdAt && (
+                          <Timestamp date={pair.queryMessage.createdAt} />
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex justify-end">
+              <Pagination
+                page={loaderData.page}
+                totalPages={loaderData.totalPages}
+                setPage={setPage}
+              />
+            </div>
           </div>
         )}
       </div>
-
-      <Outlet />
     </Page>
   );
 }

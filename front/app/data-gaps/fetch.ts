@@ -21,6 +21,33 @@ export async function fetchDataGaps(scrapeId: string) {
             },
           },
         },
+        {
+          OR: [
+            {
+              analysis: {
+                is: {
+                  dataGapCancelled: {
+                    isSet: false,
+                  },
+                },
+              },
+            },
+            {
+              analysis: {
+                is: {
+                  dataGapCancelled: null,
+                },
+              },
+            },
+            {
+              analysis: {
+                is: {
+                  dataGapCancelled: false,
+                },
+              },
+            },
+          ],
+        },
       ],
       createdAt: {
         gte: ONE_WEEK_AGO,

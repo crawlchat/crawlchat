@@ -1,9 +1,4 @@
-import type {
-  ApiActionCall,
-  Message,
-  MessageSourceLink,
-  Prisma,
-} from "libs/prisma";
+import type { ApiActionCall, MessageSourceLink, Prisma } from "libs/prisma";
 
 export type MessageWithThread = Prisma.MessageGetPayload<{
   include: {
@@ -58,13 +53,10 @@ export function analysePairMessages(pairs: MessagePair[]) {
 }
 
 export function makeMessagePairs(messages: MessageWithThread[]) {
-  function findUserMessage(i: number, threadId: string) {
-    for (let j = i; j >= 0; j--) {
-      if (messages[j].threadId !== threadId) {
-        continue;
-      }
-      if ((messages[j].llmMessage as any).role === "user") {
-        return messages[j];
+  function findQuestion(questionId: string) {
+    for (let i = 0; i < messages.length; i++) {
+      if (messages[i].id === questionId) {
+        return messages[i];
       }
     }
   }
@@ -102,7 +94,9 @@ export function makeMessagePairs(messages: MessageWithThread[]) {
 
     messagePairs.push({
       scrapeId: message.thread.scrapeId,
-      queryMessage: findUserMessage(i, message.threadId),
+      queryMessage: message.questionId
+        ? findQuestion(message.questionId)
+        : undefined,
       responseMessage: message,
       maxScore,
       minScore,

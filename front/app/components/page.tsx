@@ -1,9 +1,10 @@
 import cn from "@meltdownjs/cn";
 import type { LlmModel } from "libs/prisma";
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useMemo, useRef } from "react";
 import { TbAlertTriangle, TbArrowRight, TbMenu2, TbX } from "react-icons/tb";
 import { Link } from "react-router";
 import { AppContext } from "~/components/app-context";
+import Markdown from "react-markdown";
 
 const LlmNameMap: Record<LlmModel, string> = {
   gpt_4o_mini: "OpenAI 4o-mini",
@@ -20,25 +21,26 @@ const LlmNameMap: Record<LlmModel, string> = {
   haiku_4_5: "Claude Haiku 4.5",
 };
 
-const release = {
-  key: "current-page-context",
-  title: "Current page context",
-  description: (
-    <p>
-      You can now enable <strong>Current page context</strong> for your widget.
-      When enabled, the widget includes the current page (URL, content and
-      title) as part of the conversation context so answers can be more relevant
-      to what the user is looking at.
-    </p>
-  ),
-  date: "2025-12-17T00:00:00.000Z",
-  cta: {
-    label: "Read more",
-    href: "/changelog/29-current-page-context",
-    icon: <TbArrowRight />,
-    target: "_blank",
-  },
-};
+function extractFirstParagraph(markdown: string): string {
+  const lines = markdown.split("\n");
+  const firstParagraph: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      if (firstParagraph.length > 0) {
+        break;
+      }
+      continue;
+    }
+    if (trimmed.startsWith("#") || trimmed.startsWith("!")) {
+      continue;
+    }
+    firstParagraph.push(trimmed);
+  }
+
+  return firstParagraph.join(" ");
+}
 
 export function Page({
   title,
@@ -55,8 +57,13 @@ export function Page({
   noPadding?: boolean;
   description?: string;
 }) {
-  const { setContainerWidth, scrape, setClosedReleaseKey, closedReleaseKey } =
-    useContext(AppContext);
+  const {
+    setContainerWidth,
+    scrape,
+    setClosedReleaseKey,
+    closedReleaseKey,
+    latestChangelog,
+  } = useContext(AppContext);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,16 +77,35 @@ export function Page({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const release = useMemo(() => {
+    if (!latestChangelog) return null;
+
+    const firstParagraph = extractFirstParagraph(latestChangelog.markdown);
+
+    return {
+      key: latestChangelog.slug,
+      title: latestChangelog.title,
+      description: <Markdown>{firstParagraph}</Markdown>,
+      date: latestChangelog.date.toISOString(),
+      cta: {
+        label: "Read more",
+        href: `/changelog/${latestChangelog.slug}`,
+        icon: <TbArrowRight />,
+        target: "_blank",
+      },
+    };
+  }, [latestChangelog]);
+
   const productionLlmModels: LlmModel[] = ["sonnet_4_5", "gpt_5", "haiku_4_5"];
   const currentLlmModel = scrape?.llmModel ?? "gpt_4o_mini";
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="bg-base-100 border-b border-base-300">
+      <div className="bg-base-100 border-b border-base-300 sticky top-0 z-10">
         <div
           className={cn(
             "flex flex-col p-4 h-[60px]",
-            "justify-center sticky top-0 z-10",
+            "justify-center",
             "max-w-[1200px] w-full mx-auto"
           )}
         >
@@ -108,12 +134,13 @@ export function Page({
         </div>
       </div>
 
-      <div className="max-w-[1200px] w-full mx-auto">
+      <div className="max-w-[1200px] w-full mx-auto h-full">
         <div
-          className={cn("flex-1 flex flex-col", !noPadding && "p-4")}
+          className={cn("flex-1 flex flex-col h-full", !noPadding && "p-4")}
           ref={containerRef}
         >
-          {closedReleaseKey !== undefined &&
+          {release &&
+            closedReleaseKey !== undefined &&
             closedReleaseKey !== release.key && (
               <div
                 className={cn(
@@ -125,7 +152,7 @@ export function Page({
                 <div className="flex flex-col gap-1 flex-4 pr-10">
                   <div
                     className={cn(
-                      "text-2xl font-medium font-radio-grotesk",
+                      "text-2xl font-medium font-brand",
                       "flex items-center gap-2"
                     )}
                   >

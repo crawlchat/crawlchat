@@ -145,6 +145,28 @@ export function getMessagesSummary(messages: Message[]) {
   const sadPct = questions > 0 ? sentimentCounts.sad / questions : 0;
   const neutralPct = questions > 0 ? sentimentCounts.neutral / questions : 0;
 
+  const categorySuggestions = messages
+    .filter((m) => m.analysis?.categorySuggestions)
+    .map((m) =>
+      m.analysis!.categorySuggestions!.map((s) => ({ ...s, date: m.createdAt }))
+    )
+    .reduce((acc, curr) => [...acc, ...curr], []);
+
+  const categoryCounts: Record<string, { count: number; latestDate: Date }> =
+    {};
+  for (const category of categorySuggestions) {
+    if (!categoryCounts[category.title]) {
+      categoryCounts[category.title] = { count: 0, latestDate: category.date };
+    }
+    categoryCounts[category.title].count++;
+    if (
+      category.date &&
+      category.date > categoryCounts[category.title].latestDate
+    ) {
+      categoryCounts[category.title].latestDate = category.date;
+    }
+  }
+
   return {
     messagesCount: Object.values(dailyMessages).reduce(
       (acc, curr) => acc + curr.count,
@@ -164,6 +186,7 @@ export function getMessagesSummary(messages: Message[]) {
     happyPct,
     sadPct,
     neutralPct,
+    tags: categoryCounts,
   };
 }
 
