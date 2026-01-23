@@ -66,13 +66,11 @@ function verifySignature(req: Request) {
     throw new Error("Missing GitHub signature");
   }
 
-  // Use raw body if available, otherwise reconstruct from parsed body
   let body: Buffer | string;
   const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
   if (rawBody) {
     body = rawBody;
   } else if (req.body) {
-    // If body is already parsed, reconstruct the JSON string
     body = JSON.stringify(req.body);
   } else {
     throw new Error("Missing request body for signature verification");
@@ -83,7 +81,6 @@ function verifySignature(req: Request) {
     .update(body)
     .digest("hex");
 
-  // GitHub signature format is "sha256=<hex_digest>"
   const expectedSignature = `sha256=${digest}`;
 
   if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
@@ -330,7 +327,9 @@ export function setupGithubBot(app: Express) {
     });
   });
 
-  app.use("/github", router);
+  if (appAuth) {
+    app.use("/github", router);
+  }
 }
 
 async function processWebhookAsync(event: string, payload: any) {
