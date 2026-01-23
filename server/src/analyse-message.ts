@@ -573,7 +573,7 @@ export async function fillMessageAnalysis(
       },
     });
 
-    if (analysis.dataGapTitle && analysis.dataGapDescription) {
+    if (analysis.dataGapTitle) {
       await fetch(`${process.env.FRONT_URL}/email-alert`, {
         method: "POST",
         body: JSON.stringify({
