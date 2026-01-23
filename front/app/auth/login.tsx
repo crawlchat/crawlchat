@@ -234,12 +234,16 @@ export default function LoginPage() {
 
             <a
               href="/auth/google"
-              className="btn bg-white text-black border-[#e5e5e5] w-full"
+              className={cn(
+                "w-full flex items-center border border-base-300 rounded-box p-2",
+                "justify-center gap-2 bg-base-100 hover:bg-base-200/50 transition-all",
+                "text-sm font-semibold text-base-content/80 hover:text-base-content"
+              )}
             >
               <svg
                 aria-label="Google logo"
-                width="16"
-                height="16"
+                width="20"
+                height="20"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 512 512"
               >
