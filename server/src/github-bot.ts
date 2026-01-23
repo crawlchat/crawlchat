@@ -204,8 +204,6 @@ async function answer(data: {
       `GitHub repo ${data.repoFullName} not found in CrawlChat`
     );
   }
-
-  // Check if auto-reply is enabled
   if (scrape.githubAutoReply === false) {
     return;
   }

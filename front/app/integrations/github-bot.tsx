@@ -47,7 +47,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("githubRepoName")) {
     (update as any).githubRepoName = formData.get("githubRepoName") as string;
   }
-  if (formData.has("githubAutoReply")) {
+  if (formData.has("from-github-auto-reply")) {
     (update as any).githubAutoReply = formData.get("githubAutoReply") === "on";
   }
 
@@ -105,9 +105,10 @@ export default function GitHubIntegrations({
           <SettingsSection
             id="github-auto-reply"
             title={"Auto-reply"}
-            description="Automatically reply to new GitHub issues when they are created. The bot will only reply if it has relevant knowledge about the topic."
+            description="Automatically reply to new GitHub issues and discussions when they are created. The bot will only reply if it has relevant knowledge about the topic."
             fetcher={fetcher}
           >
+            <input type="hidden" name="from-github-auto-reply" value="on" />
             <label className="label">
               <input
                 type="checkbox"
