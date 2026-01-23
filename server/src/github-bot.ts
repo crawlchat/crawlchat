@@ -52,17 +52,9 @@ type GitHubPostResponse = {
 };
 
 function containsMention(text?: string | null) {
-  return Boolean(text && /@crawlchat\b/i.test(text));
+  return Boolean(text && text.trim().startsWith("@crawlchat"));
 }
 
-function getApiKeySource(model: string): string {
-  // This mirrors the logic in getConfig function
-  if (model === "o3_mini" || model === "o4_mini") return "OPENAI_API_KEY";
-  if (model === "sonnet_3_5" || model === "sonnet_3_7") return "ANTHROPIC_API_KEY";
-  if (model === "gemini_2_5_flash" || model === "gemini_2_5_flash_lite") return "GEMINI_API_KEY";
-  if (model === "gpt_5_nano" || model === "gpt_5_mini" || model === "gpt_5" || model === "sonnet_4_5" || model === "haiku_4_5") return "OPENROUTER_API_KEY";
-  return "OPENAI_API_KEY"; // default
-}
 
 function verifySignature(req: Request) {
   if (!webhookSecret) {
@@ -101,28 +93,15 @@ function verifySignature(req: Request) {
 
 async function getInstallationOctokit(
   installationId: number
-): Promise<Octokit | null> {
+): Promise<Octokit> {
   if (!appAuth) {
-    console.error("GitHub bot: No app authentication available. Make sure GITHUB_APP_ID and GITHUB_APP_PRIVATE_KEY are set.");
-    return null;
+    throw new Error("GitHub bot: No app authentication available. Make sure GITHUB_APP_ID and GITHUB_APP_PRIVATE_KEY are set.");
   }
-  try {
-    const auth = await appAuth({
-      type: "installation",
-      installationId,
-    });
-    return new Octokit({ auth: auth.token });
-  } catch (error) {
-    console.error(`GitHub bot: Failed to create installation auth for ID ${installationId}:`, error);
-    return null;
-  }
-}
-
-async function touchThread(threadId: string) {
-  await prisma.thread.update({
-    where: { id: threadId },
-    data: { lastMessageAt: new Date() },
+  const auth = await appAuth({
+    type: "installation",
+    installationId,
   });
+  return new Octokit({ auth: auth.token });
 }
 
 async function getThread(
@@ -226,13 +205,14 @@ async function answerGitHubQuestion(data: GitHubQuestionRequest) {
     },
   });
 
-  await touchThread(thread.id);
+  await prisma.thread.update({
+    where: { id: thread.id },
+    data: { lastMessageAt: new Date() },
+  });
 
   const actions = await prisma.apiAction.findMany({
     where: { scrapeId: scrape.id },
   });
-
-  const apiKeySource = scrape.llmModel ? getApiKeySource(scrape.llmModel) : 'OPENAI_API_KEY';
 
   const answer = await baseAnswerer(scrape, thread, data.question, [], {
     channel: "github_discussion",
@@ -267,7 +247,10 @@ async function answerGitHubQuestion(data: GitHubQuestionRequest) {
     data: { answerId: answerMessage.id },
   });
 
-  await touchThread(thread.id);
+  await prisma.thread.update({
+    where: { id: thread.id },
+    data: { lastMessageAt: new Date() },
+  });
 
   if (scrape.analyseMessage) {
     fillMessageAnalysis(
@@ -288,38 +271,26 @@ async function answerGitHubQuestion(data: GitHubQuestionRequest) {
   });
 
   const installationOctokit = await getInstallationOctokit(data.installationId);
-  if (!installationOctokit) {
-    console.warn("Skipping GitHub reply: no installation auth available");
-    return;
+
+  let postResponse: GitHubPostResponse;
+  if (data.type === "discussion") {
+    postResponse = await postDiscussionComment(
+      installationOctokit,
+      data.owner,
+      data.repo,
+      data.number,
+      citation.content
+    );
+  } else {
+    postResponse = await postIssueComment(
+      installationOctokit,
+      data.owner,
+      data.repo,
+      data.number,
+      citation.content
+    );
   }
 
-  let postResponse: GitHubPostResponse | null = null;
-  try {
-    if (data.type === "discussion") {
-      postResponse = await postDiscussionComment(
-        installationOctokit,
-        data.owner,
-        data.repo,
-        data.number,
-        citation.content
-      );
-    } else {
-      postResponse = await postIssueComment(
-        installationOctokit,
-        data.owner,
-        data.repo,
-        data.number,
-        citation.content
-      );
-    }
-  } catch (error) {
-    console.error("Failed to post GitHub comment", error);
-    return;
-  }
-
-  if (!postResponse) {
-    return;
-  }
 
   await prisma.message.update({
     where: { id: answerMessage.id },
@@ -353,10 +324,7 @@ export function setupGithubBot(app: Express) {
       return;
     }
 
-    // Respond immediately to avoid GitHub webhook timeouts
     res.json({ ok: true });
-
-    // Process webhook asynchronously
     processWebhookAsync(event, payload).catch((error) => {
       console.error("Failed to process GitHub webhook asynchronously", error);
     });
@@ -521,52 +489,45 @@ async function processWebhookAsync(event: string, payload: any) {
             const installationOctokit = await getInstallationOctokit(
               installationId
             );
-            if (installationOctokit) {
-              try {
-                // Determine the correct API endpoint based on the webhook payload
-                const isIssueComment = !!payload.issue;
-                const endpoint = isIssueComment
-                  ? "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions"
-                  : "GET /repos/{owner}/{repo}/discussions/comments/{comment_id}/reactions";
+            const isIssueComment = !!payload.issue;
+            const endpoint = isIssueComment
+              ? "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions"
+              : "GET /repos/{owner}/{repo}/discussions/comments/{comment_id}/reactions";
 
-                const reactionsResponse = await installationOctokit.request(
-                  endpoint,
-                  {
-                    owner,
-                    repo: repoName,
-                    comment_id: comment.id,
-                    per_page: 100,
-                    headers: {
-                      accept:
-                        "application/vnd.github.squirrel-girl-preview+json",
-                    },
-                  }
-                );
-
-                const thumbsUp = (reactionsResponse.data as any[]).filter(
-                  (reaction) => reaction.content === "+1"
-                ).length;
-                const thumbsDown = (reactionsResponse.data as any[]).filter(
-                  (reaction) => reaction.content === "-1"
-                ).length;
-
-                let rating: MessageRating = "none";
-                if (thumbsDown >= thumbsUp && thumbsDown > 0) {
-                  rating = "down";
-                } else if (thumbsUp > 0) {
-                  rating = "up";
-                }
-
-                await prisma.message.update({
-                  where: { id: message.id },
-                  data: {
-                    rating,
-                  },
-                });
-              } catch (error) {
-                console.error("Failed to fetch GitHub reactions", error);
+            const reactionsResponse = await installationOctokit.request(
+              endpoint,
+              {
+                owner,
+                repo: repoName,
+                comment_id: comment.id,
+                per_page: 100,
+                headers: {
+                  accept:
+                    "application/vnd.github.squirrel-girl-preview+json",
+                },
               }
+            );
+
+            const thumbsUp = (reactionsResponse.data as any[]).filter(
+              (reaction) => reaction.content === "+1"
+            ).length;
+            const thumbsDown = (reactionsResponse.data as any[]).filter(
+              (reaction) => reaction.content === "-1"
+            ).length;
+
+            let rating: MessageRating = "none";
+            if (thumbsDown >= thumbsUp && thumbsDown > 0) {
+              rating = "down";
+            } else if (thumbsUp > 0) {
+              rating = "up";
             }
+
+            await prisma.message.update({
+              where: { id: message.id },
+              data: {
+                rating,
+              },
+            });
           }
         }
       }
