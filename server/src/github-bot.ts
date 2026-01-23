@@ -23,10 +23,6 @@ const githubPrivateKey = (process.env.GITHUB_APP_PRIVATE_KEY ?? "").replace(
   "\n"
 );
 const hasAppCredentials = githubAppId > 0 && githubPrivateKey.length > 0;
-console.log(`GitHub bot: App credentials configured: ${hasAppCredentials} (App ID: ${githubAppId > 0 ? 'set' : 'not set'}, Private key length: ${githubPrivateKey.length})`);
-console.log(`GitHub bot: Private key starts with: ${githubPrivateKey.substring(0, 30)}...`);
-console.log(`GitHub bot: Private key contains ${githubPrivateKey.split('\n').length} lines`);
-console.log(`GitHub bot: Private key ends with: ...${githubPrivateKey.substring(githubPrivateKey.length - 30).replace(/\n/g, '\\n')}`);
 
 const appAuth = hasAppCredentials
   ? createAppAuth({
@@ -70,28 +66,22 @@ function getApiKeySource(model: string): string {
 
 function verifySignature(req: Request) {
   if (!webhookSecret) {
-    console.log("GitHub webhook: No webhook secret configured, skipping verification");
     return;
   }
 
   const signature = req.headers["x-hub-signature-256"] as string | undefined;
   if (!signature) {
-    console.log("GitHub webhook: Missing x-hub-signature-256 header");
     throw new Error("Missing GitHub signature");
   }
-
-  console.log(`GitHub webhook: Verifying signature: ${signature.substring(0, 20)}...`);
 
   // Use raw body if available, otherwise reconstruct from parsed body
   let body: Buffer | string;
   const rawBody = (req as Request & { rawBody?: Buffer }).rawBody;
   if (rawBody) {
-    console.log(`GitHub webhook: Using raw body (${rawBody.length} bytes)`);
     body = rawBody;
   } else if (req.body) {
     // If body is already parsed, reconstruct the JSON string
     body = JSON.stringify(req.body);
-    console.log(`GitHub webhook: Using reconstructed body (${body.length} chars)`);
   } else {
     throw new Error("Missing request body for signature verification");
   }
@@ -104,14 +94,9 @@ function verifySignature(req: Request) {
   // GitHub signature format is "sha256=<hex_digest>"
   const expectedSignature = `sha256=${digest}`;
 
-  console.log(`GitHub webhook: Expected signature: ${expectedSignature.substring(0, 20)}...`);
-
   if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
-    console.log("GitHub webhook: Signature mismatch!");
     throw new Error("Invalid GitHub signature");
   }
-
-  console.log("GitHub webhook: Signature verified successfully");
 }
 
 async function getInstallationOctokit(
@@ -122,12 +107,10 @@ async function getInstallationOctokit(
     return null;
   }
   try {
-    console.log(`GitHub bot: Creating installation auth for installation ID: ${installationId}`);
     const auth = await appAuth({
       type: "installation",
       installationId,
     });
-    console.log(`GitHub bot: Successfully created installation auth`);
     return new Octokit({ auth: auth.token });
   } catch (error) {
     console.error(`GitHub bot: Failed to create installation auth for ID ${installationId}:`, error);
@@ -201,16 +184,13 @@ async function postIssueComment(
 }
 
 async function answerGitHubQuestion(data: GitHubQuestionRequest) {
-  console.log(`GitHub bot: Looking for scrape with githubRepoName: "${data.repoFullName}"`);
   const scrape = await prisma.scrape.findFirst({
     where: { githubRepoName: data.repoFullName },
   });
   if (!scrape) {
-    console.log(`GitHub bot: No scrape found for repository "${data.repoFullName}". Make sure you've configured this repository in your CrawlChat GitHub bot settings.`);
+    console.warn(`GitHub bot: No scrape found for repository "${data.repoFullName}". Make sure you've configured this repository in your CrawlChat GitHub bot settings.`);
     return;
   }
-  console.log(`GitHub bot: Found scrape ${scrape.id} for repository "${data.repoFullName}"`);
-  console.log(`GitHub bot: Scrape model: ${scrape.llmModel || 'default'}, userId: ${scrape.userId}`);
 
   if (
     !(
@@ -252,11 +232,7 @@ async function answerGitHubQuestion(data: GitHubQuestionRequest) {
     where: { scrapeId: scrape.id },
   });
 
-  console.log(`GitHub bot: About to call baseAnswerer with model: ${scrape.llmModel || 'default (gpt-4o-mini)'}`);
   const apiKeySource = scrape.llmModel ? getApiKeySource(scrape.llmModel) : 'OPENAI_API_KEY';
-  console.log(`GitHub bot: Expected API key source: ${apiKeySource}`);
-  const keyPrefix = process.env[apiKeySource]?.substring(0, 8) || 'not set';
-  console.log(`GitHub bot: API key starts with: ${keyPrefix}...`);
 
   const answer = await baseAnswerer(scrape, thread, data.question, [], {
     channel: "github_discussion",
