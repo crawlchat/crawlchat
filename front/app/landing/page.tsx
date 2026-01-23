@@ -1503,6 +1503,10 @@ function Hero() {
       tooltip: "Add as Slack bot on your workspace",
     },
     {
+      icon: <TbBrandGithub />,
+      tooltip: "Add as GitHub bot to answer questions in discussions and issues",
+    },
+    {
       icon: <MCPIcon />,
       tooltip: "Distribute your docs as an MCP server",
     },
@@ -2425,6 +2429,11 @@ function SourcesChannels() {
       icon: <TbBrandDiscord />,
       title: "Discord",
       tooltip: "Add the Discord bot and ask questions by tagging @crawlchat",
+    },
+    {
+      icon: <TbBrandGithub />,
+      title: "GitHub",
+      tooltip: "Add the GitHub bot and ask questions by tagging @crawlchat in discussions and issues",
     },
     {
       icon: <MCPIcon />,
