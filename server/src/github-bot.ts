@@ -1,8 +1,7 @@
 import crypto from "crypto";
 import { Router } from "express";
 import type { Express, Request, Response } from "express";
-import { Octokit } from "@octokit/core";
-import { createAppAuth } from "@octokit/auth-app";
+import type { Octokit } from "@octokit/core";
 import { baseAnswerer } from "./answer";
 import { fillMessageAnalysis } from "./analyse-message";
 import { extractCitations } from "libs/citation";
@@ -15,13 +14,22 @@ const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
 const githubAppId = process.env.GITHUB_APP_ID;
 const githubPrivateKey = process.env.GITHUB_APP_PRIVATE_KEY;
 
-const appAuth =
-  webhookSecret && githubAppId && githubPrivateKey
-    ? createAppAuth({
-        appId: githubAppId,
-        privateKey: githubPrivateKey,
-      })
-    : null;
+let appAuth: any = null;
+
+async function getAppAuth() {
+  if (appAuth !== null) {
+    return appAuth;
+  }
+  if (webhookSecret && githubAppId && githubPrivateKey) {
+    const { createAppAuth } = await import("@octokit/auth-app");
+    appAuth = createAppAuth({
+      appId: githubAppId,
+      privateKey: githubPrivateKey,
+    });
+    return appAuth;
+  }
+  return null;
+}
 
 type GitHubPostResponse = {
   id: number;
@@ -70,11 +78,13 @@ function verifySignature(req: Request) {
 }
 
 async function getOctokit(installationId: number) {
-  if (!appAuth) {
+  const authInstance = await getAppAuth();
+  if (!authInstance) {
     throw new Error("GitHub app authentication not configured");
   }
 
-  const auth = await appAuth({
+  const { Octokit } = await import("@octokit/core");
+  const auth = await authInstance({
     type: "installation",
     installationId,
   });
@@ -284,7 +294,7 @@ async function answer(data: {
   await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
 }
 
-export function setupGitHubBot(app: Express) {
+export async function setupGitHubBot(app: Express) {
   const router = Router();
 
   router.post("/webhook", async (req: Request, res: Response) => {
@@ -308,7 +318,7 @@ export function setupGitHubBot(app: Express) {
     processWebhook(event, payload);
   });
 
-  if (appAuth) {
+  if (await getAppAuth()) {
     app.use("/github", router);
   }
 }
