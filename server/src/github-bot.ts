@@ -7,7 +7,7 @@ import { extractCitations } from "libs/citation";
 import { createToken } from "libs/jwt";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
 import { getQueryString } from "libs/llm-message";
-import { MessageRating, Thread, prisma } from "libs/prisma";
+import { Thread, prisma } from "libs/prisma";
 import jwt from "jsonwebtoken";
 
 type GitHubPostResponse = {
@@ -476,74 +476,6 @@ async function processWebhook(event: string, payload: any) {
           title: issue.title,
           installationId,
         });
-      }
-    }
-  }
-
-  if (
-    event === "reaction" &&
-    payload.action &&
-    ["created", "deleted"].includes(payload.action)
-  ) {
-    const comment = payload.comment;
-    const repository = payload.repository;
-    const installationId = payload.installation?.id;
-
-    if (comment && repository && installationId) {
-      const repoFullName = repository.full_name;
-      const owner = repository.owner?.login;
-      const repoName = repository.name;
-
-      if (repoFullName && owner && repoName) {
-        const message = await prisma.message.findFirst({
-          where: {
-            githubCommentId: String(comment.id),
-            channel: "github_discussion",
-          },
-        });
-
-        if (message) {
-          const isIssueComment = !!payload.issue;
-          const endpoint = isIssueComment
-            ? `https://api.github.com/repos/${owner}/${repoName}/issues/comments/${comment.id}/reactions?per_page=100`
-            : `https://api.github.com/repos/${owner}/${repoName}/discussions/comments/${comment.id}/reactions?per_page=100`;
-
-          const reactionsResponse = await fetch(endpoint, {
-            headers: {
-              Authorization: `Bearer ${await getToken(installationId)}`,
-              Accept: "application/vnd.github.squirrel-girl-preview+json",
-              "X-GitHub-Api-Version": "2022-11-28",
-            },
-          });
-
-          if (!reactionsResponse.ok) {
-            throw new Error(
-              `Failed to get reactions: ${await reactionsResponse.text()}`
-            );
-          }
-
-          const reactions = (await reactionsResponse.json()) as any[];
-          const thumbsUp = reactions.filter(
-            (reaction) => reaction.content === "+1"
-          ).length;
-          const thumbsDown = reactions.filter(
-            (reaction) => reaction.content === "-1"
-          ).length;
-
-          let rating: MessageRating = "none";
-          if (thumbsDown >= thumbsUp && thumbsDown > 0) {
-            rating = "down";
-          } else if (thumbsUp > 0) {
-            rating = "up";
-          }
-
-          await prisma.message.update({
-            where: { id: message.id },
-            data: {
-              rating,
-            },
-          });
-        }
       }
     }
   }
