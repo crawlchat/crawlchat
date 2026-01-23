@@ -1,12 +1,14 @@
 import type { Prisma, Scrape, ScrapeUser, User } from "libs/prisma";
 import { createContext, useEffect, useMemo, useState } from "react";
 import type { SetupProgressAction } from "../setup-progress/config";
+import type { BlogPost } from "~/blog/posts";
 
 export const useApp = ({
   user,
   scrapeUsers,
   scrapeId,
   scrape,
+  latestChangelog,
 }: {
   user: User;
   scrapeUsers: Prisma.ScrapeUserGetPayload<{
@@ -20,6 +22,7 @@ export const useApp = ({
   }>[];
   scrapeId?: string;
   scrape?: Scrape;
+  latestChangelog?: BlogPost;
 }) => {
   const [containerWidth, setContainerWidth] = useState<number>();
   const [progressActions, setProgressActions] = useState<SetupProgressAction[]>(
@@ -55,6 +58,7 @@ export const useApp = ({
     closedReleaseKey,
     setClosedReleaseKey,
     shouldUpgrade,
+    latestChangelog,
   };
 };
 

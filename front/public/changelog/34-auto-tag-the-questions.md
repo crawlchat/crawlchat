@@ -1,7 +1,8 @@
 ---
-title: Tags
+title: Auto tag the questions
 date: 2026-01-23
 type: changelog
+tags: focus
 ---
 
 Tags are now automatically generated from your conversations and displayed on the summary page. They help you identify common topics and patterns in user questions.
