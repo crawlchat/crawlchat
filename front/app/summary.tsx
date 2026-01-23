@@ -2,12 +2,10 @@ import type { Route } from "./+types/summary";
 import {
   TbChartLine,
   TbCheck,
-  TbCircleXFilled,
   TbConfetti,
   TbCrown,
   TbDatabase,
   TbFolder,
-  TbFolderPlus,
   TbMessage,
   TbMoodCry,
   TbMoodHappy,
@@ -26,7 +24,13 @@ import {
   ComposedChart,
   Bar,
 } from "recharts";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type HTMLAttributes,
+} from "react";
 import { numberToKMB } from "~/components/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
@@ -257,7 +261,12 @@ export function StatCard({
   suffix?: string;
 }) {
   return (
-    <div className="stats shadow flex-1 bg-base-100 w-full">
+    <div
+      className={cn(
+        "stats flex-1 bg-base-100 w-full",
+        "border border-base-300 rounded-box"
+      )}
+    >
       <div className="stat">
         <div className="stat-figure text-4xl">{icon}</div>
         <div className="stat-title">{label}</div>
@@ -384,6 +393,45 @@ function CategoryCard({
   );
 }
 
+function Tags({ tags }: { tags: Array<{ title: string; count: number }> }) {
+  const paddingBoxes = 3 - (tags.length % 3);
+
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-1 md:grid-cols-3",
+        "rounded-box gap-[1px]",
+        "bg-base-300 border border-base-300"
+      )}
+    >
+      {tags.map((tag) => (
+        <div
+          key={tag.title}
+          className={cn("p-2 px-3 bg-base-100", "flex justify-between")}
+        >
+          {tag.title}
+          <span className="badge badge-primary badge-soft">{tag.count}</span>
+        </div>
+      ))}
+      {Array.from({ length: paddingBoxes }).map((_, index) => (
+        <div key={index} className="p-2 px-3 bg-base-100 hidden md:block" />
+      ))}
+    </div>
+  );
+}
+
+function Heading({
+  children,
+  className,
+  ...props
+}: HTMLAttributes<HTMLHeadingElement>) {
+  return (
+    <h2 className={cn("text-base-content/50 mb-2", className)} {...props}>
+      {children}
+    </h2>
+  );
+}
+
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -427,6 +475,25 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
     return [data.reverse(), categories];
   }, [loaderData.messagesSummary.dailyMessages]);
+
+  const [tagsOrder, setTagsOrder] = useState<"top" | "latest">("top");
+  const tags = useMemo(() => {
+    const sortedTags = Object.entries(loaderData.messagesSummary.tags).sort(
+      (a, b) => {
+        return b[1].count - a[1].count;
+      }
+    );
+
+    if (tagsOrder === "latest") {
+      sortedTags.sort((a, b) => {
+        return b[1].latestDate.getTime() - a[1].latestDate.getTime();
+      });
+    }
+
+    return sortedTags
+      .slice(0, 20)
+      .map(([title, d]) => ({ title, count: d.count }));
+  }, [loaderData.messagesSummary.tags, tagsOrder]);
 
   useEffect(() => {
     track("dashboard", {});
@@ -644,74 +711,73 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             />
           </div>
 
-          <div className="flex gap-4 flex-col md:flex-row">
-            <div className="flex flex-col gap-2">
-              <div
-                className={cn(
-                  "rounded-box overflow-hidden",
-                  "p-4 bg-base-100 shadow"
-                )}
-              >
-                <ComposedChart width={width - 24} height={260} data={chartData}>
-                  <XAxis
-                    dataKey="name"
-                    interval={"preserveStartEnd"}
-                    tick={renderTick}
-                  />
-                  <Tooltip content={renderTooltip} />
-                  <CartesianGrid strokeDasharray="6 6" vertical={false} />
-                  {Array.from(categories).map((category, i) => (
-                    <Bar
-                      key={category}
-                      type="monotone"
-                      dataKey={category}
-                      fill={BRIGHT_COLORS[i % BRIGHT_COLORS.length]}
-                      barSize={30}
-                      stackId="a"
-                    />
-                  ))}
-                  <Line
-                    type="monotone"
-                    dataKey="Unhappy"
-                    stroke={"var(--color-error)"}
-                    dot={false}
-                  />
-                </ComposedChart>
-              </div>
-            </div>
+          <div
+            className={cn(
+              "rounded-box overflow-hidden",
+              "p-4 bg-base-100 border border-base-300"
+            )}
+          >
+            <ComposedChart width={width - 24} height={260} data={chartData}>
+              <XAxis
+                dataKey="name"
+                interval={"preserveStartEnd"}
+                tick={renderTick}
+              />
+              <Tooltip content={renderTooltip} />
+              <CartesianGrid strokeDasharray="6 6" vertical={false} />
+              {Array.from(categories).map((category, i) => (
+                <Bar
+                  key={category}
+                  type="monotone"
+                  dataKey={category}
+                  fill={BRIGHT_COLORS[i % BRIGHT_COLORS.length]}
+                  barSize={30}
+                  stackId="a"
+                />
+              ))}
+              <Line
+                type="monotone"
+                dataKey="Unhappy"
+                stroke={"var(--color-error)"}
+                dot={false}
+              />
+            </ComposedChart>
           </div>
 
           {loaderData.categoriesSummary &&
             loaderData.categoriesSummary.length > 0 && (
-              <div className="flex flex-col gap-2">
-                {loaderData.categoriesSummary &&
-                  loaderData.categoriesSummary.map((category) => (
-                    <CategoryCard
-                      title={category.title}
-                      summary={category.summary}
-                    />
-                  ))}
+              <div>
+                <Heading>Categories</Heading>
+                <div className="flex flex-col gap-2">
+                  {loaderData.categoriesSummary &&
+                    loaderData.categoriesSummary.map((category) => (
+                      <CategoryCard
+                        title={category.title}
+                        summary={category.summary}
+                      />
+                    ))}
+                </div>
               </div>
             )}
 
-          <div className="flex flex-wrap gap-2">
-            {loaderData.messagesSummary.tags.slice(0, 20).map((tag) => (
-              <div
-                key={tag.title}
-                className="badge badge-lg badge-soft badge-primary"
-              >
-                {tag.title}
-                <span
-                  className={cn(
-                    "text-xs bg-neutral/10 text-neutral",
-                    "rounded-box px-1"
-                  )}
+          {tags.length > 0 && (
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Heading className="mb-0">Tags</Heading>
+                <select
+                  className="select w-fit select-sm"
+                  value={tagsOrder}
+                  onChange={(e) =>
+                    setTagsOrder(e.target.value as "top" | "latest")
+                  }
                 >
-                  {tag.count}
-                </span>
+                  <option value="top">Top</option>
+                  <option value="latest">Latest</option>
+                </select>
               </div>
-            ))}
-          </div>
+              <Tags tags={tags} />
+            </div>
+          )}
         </div>
       )}
 
