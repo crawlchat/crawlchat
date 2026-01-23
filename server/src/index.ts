@@ -45,7 +45,7 @@ import { randomUUID } from "crypto";
 import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
-import { setupGitHubBot } from "./github-bot";
+import githubBotRouter from "./github-bot";
 
 declare global {
   namespace Express {
@@ -86,8 +86,8 @@ app.use(cors());
 
 app.use("/api", apiRouter);
 app.use("/admin", adminRouter);
+app.use("/github", githubBotRouter);
 expressWs.app.ws("/", handleWs);
-setupGitHubBot(app);
 
 async function updateLastMessageAt(threadId: string) {
   await prisma.thread.update({
@@ -1065,7 +1065,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   });
   flow.addNextAgents(["compose-agent"]);
 
-  while (await flow.stream()) {}
+  while (await flow.stream()) { }
 
   const response = flow.getLastMessage().llmMessage.content as string;
   const { slate: newSlate, details, title: newTitle } = JSON.parse(response);
@@ -1223,7 +1223,7 @@ app.post("/fix-message", authenticate, async (req, res) => {
 
   flow.addNextAgents(["fix-agent"]);
 
-  while (await flow.stream()) {}
+  while (await flow.stream()) { }
 
   const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
   const { correctAnswer, title } = JSON.parse(content);
@@ -1325,7 +1325,7 @@ ${text}`,
   });
   flow.addNextAgents(["extract-facts-agent"]);
 
-  while (await flow.stream()) {}
+  while (await flow.stream()) { }
 
   const response = flow.getLastMessage().llmMessage.content as string;
   const parsed = JSON.parse(response);
@@ -1402,7 +1402,7 @@ Fact to check: ${fact}`,
   });
   flow.addNextAgents(["fact-check-agent"]);
 
-  while (await flow.stream()) {}
+  while (await flow.stream()) { }
 
   const response = flow.getLastMessage().llmMessage.content as string;
   const parsed = JSON.parse(response);

@@ -1,7 +1,6 @@
 import crypto from "crypto";
 import { Router } from "express";
-import type { Express, Request, Response } from "express";
-import type { Octokit } from "@octokit/core";
+import type { Request, Response } from "express";
 import { baseAnswerer } from "./answer";
 import { fillMessageAnalysis } from "./analyse-message";
 import { extractCitations } from "libs/citation";
@@ -9,38 +8,24 @@ import { createToken } from "libs/jwt";
 import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
 import { getQueryString } from "libs/llm-message";
 import { MessageRating, Thread, prisma } from "libs/prisma";
-
-const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
-const githubAppId = process.env.GITHUB_APP_ID;
-const githubPrivateKey = process.env.GITHUB_APP_PRIVATE_KEY;
-
-let appAuth: any = null;
-
-async function getAppAuth() {
-  if (appAuth !== null) {
-    return appAuth;
-  }
-  if (webhookSecret && githubAppId && githubPrivateKey) {
-    const { createAppAuth } = await import("@octokit/auth-app");
-    appAuth = createAppAuth({
-      appId: githubAppId,
-      privateKey: githubPrivateKey,
-    });
-    return appAuth;
-  }
-  return null;
-}
+import jwt from "jsonwebtoken";
 
 type GitHubPostResponse = {
   id: number;
   html_url: string;
 };
 
-function containsMention(text?: string | null) {
+function containsMention(text: string) {
   return Boolean(text && text.trim().startsWith("@crawlchat"));
 }
 
+function cleanupMention(text: string) {
+  return text.replace(/^@crawlchat/g, "").trim();
+}
+
 function verifySignature(req: Request) {
+  const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
+
   if (!webhookSecret) {
     throw new Error("GitHub webhook secret not configured");
   }
@@ -77,18 +62,48 @@ function verifySignature(req: Request) {
   }
 }
 
-async function getOctokit(installationId: number) {
-  const authInstance = await getAppAuth();
-  if (!authInstance) {
+async function getToken(installationId: number): Promise<string> {
+  const githubAppId = process.env.GITHUB_APP_ID;
+  const githubPrivateKey = process.env.GITHUB_APP_PRIVATE_KEY?.replace(
+    /\\n/g,
+    "\n"
+  );
+
+  if (!githubAppId || !githubPrivateKey) {
     throw new Error("GitHub app authentication not configured");
   }
 
-  const { Octokit } = await import("@octokit/core");
-  const auth = await authInstance({
-    type: "installation",
-    installationId,
-  });
-  return new Octokit({ auth: auth.token });
+  const now = Math.floor(Date.now() / 1000);
+  const iat = now - 30;
+  const jwtToken = jwt.sign(
+    {
+      iat,
+      exp: iat + 60 * 9,
+      iss: githubAppId,
+    },
+    githubPrivateKey,
+    { algorithm: "RS256" }
+  );
+
+  const response = await fetch(
+    `https://api.github.com/app/installations/${installationId}/access_tokens`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${jwtToken}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to get installation token: ${error}`);
+  }
+
+  const data = await response.json();
+  return data.token;
 }
 
 async function getThread(
@@ -112,41 +127,61 @@ async function getThread(
 }
 
 async function postDiscussionComment(
-  octokit: Octokit,
+  token: string,
   owner: string,
   repo: string,
   discussionNumber: number,
   body: string
 ): Promise<GitHubPostResponse> {
-  const response = await octokit.request(
-    "POST /repos/{owner}/{repo}/discussions/{discussion_number}/comments",
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/discussions/${discussionNumber}/comments`,
     {
-      owner,
-      repo,
-      discussion_number: discussionNumber,
-      body,
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ body }),
     }
   );
-  return response.data as GitHubPostResponse;
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to post discussion comment: ${error}`);
+  }
+
+  return (await response.json()) as GitHubPostResponse;
 }
 
 async function postIssueComment(
-  octokit: Octokit,
+  token: string,
   owner: string,
   repo: string,
   issueNumber: number,
   body: string
 ): Promise<GitHubPostResponse> {
-  const response = await octokit.request(
-    "POST /repos/{owner}/{repo}/issues/{issue_number}/comments",
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments`,
     {
-      owner,
-      repo,
-      issue_number: issueNumber,
-      body,
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ body }),
     }
   );
-  return response.data as GitHubPostResponse;
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to post issue comment: ${error}`);
+  }
+
+  return (await response.json()) as GitHubPostResponse;
 }
 
 async function answer(data: {
@@ -197,7 +232,7 @@ async function answer(data: {
         role: "user",
         content: data.question,
       },
-      fingerprint: data.userId,
+      fingerprint: data.userId?.toString(),
     },
   });
 
@@ -229,7 +264,7 @@ async function answer(data: {
       creditsUsed: answer.creditsUsed,
       questionId: questionMessage.id,
       llmModel: scrape.llmModel,
-      fingerprint: data.userId,
+      fingerprint: data.userId?.toString(),
     },
   });
 
@@ -261,12 +296,10 @@ async function answer(data: {
     addSourcesToMessage: false,
   });
 
-  const octokit = await getOctokit(data.installationId);
-
   let postResponse: GitHubPostResponse;
   if (data.type === "discussion") {
     postResponse = await postDiscussionComment(
-      octokit,
+      await getToken(data.installationId),
       data.owner,
       data.repo,
       data.number,
@@ -274,7 +307,7 @@ async function answer(data: {
     );
   } else {
     postResponse = await postIssueComment(
-      octokit,
+      await getToken(data.installationId),
       data.owner,
       data.repo,
       data.number,
@@ -287,41 +320,34 @@ async function answer(data: {
     data: {
       githubCommentId: String(postResponse.id),
       url: postResponse.html_url,
-      rating: "none",
     },
   });
 
   await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
 }
 
-export async function setupGitHubBot(app: Express) {
-  const router = Router();
+const router = Router();
 
-  router.post("/webhook", async (req: Request, res: Response) => {
-    try {
-      verifySignature(req);
-    } catch (error) {
-      console.warn("GitHub webhook signature failed:", error);
-      res.status(401).json({ message: "Invalid signature" });
-      return;
-    }
-
-    const event = req.headers["x-github-event"] as string | undefined;
-    const payload = req.body;
-
-    if (!event || !payload) {
-      res.status(400).json({ message: "Invalid payload" });
-      return;
-    }
-
-    res.json({ ok: true });
-    processWebhook(event, payload);
-  });
-
-  if (await getAppAuth()) {
-    app.use("/github", router);
+router.post("/webhook", async (req: Request, res: Response) => {
+  try {
+    verifySignature(req);
+  } catch (error) {
+    console.warn("GitHub webhook signature failed:", error);
+    res.status(401).json({ message: "Invalid signature" });
+    return;
   }
-}
+
+  const event = req.headers["x-github-event"] as string | undefined;
+  const payload = req.body;
+
+  if (!event || !payload) {
+    res.status(400).json({ message: "Invalid payload" });
+    return;
+  }
+
+  res.json({ ok: true });
+  processWebhook(event, payload);
+});
 
 async function processWebhook(event: string, payload: any) {
   if (event === "discussion_comment" && payload.action === "created") {
@@ -360,7 +386,7 @@ async function processWebhook(event: string, payload: any) {
           repoFullName,
           owner,
           repo: repoName,
-          question: comment.body ?? "",
+          question: cleanupMention(comment.body),
           userId: comment.user.id,
           threadKey,
           title: discussion.title,
@@ -406,7 +432,7 @@ async function processWebhook(event: string, payload: any) {
           repoFullName,
           owner,
           repo: repoName,
-          question: comment.body ?? "",
+          question: cleanupMention(comment.body),
           userId: comment.user.id,
           threadKey,
           title: issue.title,
@@ -477,26 +503,30 @@ async function processWebhook(event: string, payload: any) {
         });
 
         if (message) {
-          const octokit = await getOctokit(installationId);
           const isIssueComment = !!payload.issue;
           const endpoint = isIssueComment
-            ? "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions"
-            : "GET /repos/{owner}/{repo}/discussions/comments/{comment_id}/reactions";
+            ? `https://api.github.com/repos/${owner}/${repoName}/issues/comments/${comment.id}/reactions?per_page=100`
+            : `https://api.github.com/repos/${owner}/${repoName}/discussions/comments/${comment.id}/reactions?per_page=100`;
 
-          const reactionsResponse = await octokit.request(endpoint, {
-            owner,
-            repo: repoName,
-            comment_id: comment.id,
-            per_page: 100,
+          const reactionsResponse = await fetch(endpoint, {
             headers: {
-              accept: "application/vnd.github.squirrel-girl-preview+json",
+              Authorization: `Bearer ${await getToken(installationId)}`,
+              Accept: "application/vnd.github.squirrel-girl-preview+json",
+              "X-GitHub-Api-Version": "2022-11-28",
             },
           });
 
-          const thumbsUp = (reactionsResponse.data as any[]).filter(
+          if (!reactionsResponse.ok) {
+            throw new Error(
+              `Failed to get reactions: ${await reactionsResponse.text()}`
+            );
+          }
+
+          const reactions = (await reactionsResponse.json()) as any[];
+          const thumbsUp = reactions.filter(
             (reaction) => reaction.content === "+1"
           ).length;
-          const thumbsDown = (reactionsResponse.data as any[]).filter(
+          const thumbsDown = reactions.filter(
             (reaction) => reaction.content === "-1"
           ).length;
 
@@ -518,3 +548,5 @@ async function processWebhook(event: string, payload: any) {
     }
   }
 }
+
+export default router;

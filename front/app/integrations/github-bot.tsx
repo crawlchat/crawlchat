@@ -27,7 +27,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  return { scrape };
+  return { scrape, installUrl: process.env.VITE_GITHUB_APP_INSTALL_URL };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -64,17 +64,19 @@ export default function GitHubIntegrations({
   useFetcherToast(fetcher);
 
   return (
-    <Page title={"GitHub app"} icon={<TbBrandGithub />}>
+    <Page title={"GitHub bot"} icon={<TbBrandGithub />}>
       <SettingsSectionProvider>
         <SettingsContainer>
           <div className="text-base-content/50">
-            You can install the CrawlChat bot on your GitHub repositories. The bot will respond to mentions and answer questions in discussions and issues.
+            You can install the CrawlChat bot on your GitHub repositories. The
+            bot will respond to mentions and answer questions in discussions and
+            issues.
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center gap-2">
             <a
               className="btn btn-neutral"
-              href={window.ENV.VITE_GITHUB_APP_INSTALL_URL || "https://github.com/apps/crawlchat/installations/new"}
+              href={loaderData.installUrl}
               target="_blank"
             >
               <TbBrandGithub />
