@@ -20,7 +20,6 @@ declare global {
       VITE_SERVER_WS_URL: string;
       VITE_SOURCE_SYNC_URL: string;
       VITE_DATAFAST_ID: string;
-      VITE_GITHUB_APP_INSTALL_URL: string;
     };
   }
 }
@@ -45,7 +44,6 @@ export function loader() {
       VITE_SERVER_WS_URL: process.env.VITE_SERVER_WS_URL,
       VITE_SOURCE_SYNC_URL: process.env.VITE_SOURCE_SYNC_URL,
       VITE_DATAFAST_ID: process.env.VITE_DATAFAST_ID,
-      VITE_GITHUB_APP_INSTALL_URL: process.env.VITE_GITHUB_APP_INSTALL_URL,
     },
   };
 }
