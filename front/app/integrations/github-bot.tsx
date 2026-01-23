@@ -1,5 +1,5 @@
 import type { Route } from "./+types/github-bot";
-import type { Prisma } from "libs/prisma";
+import type { Prisma, Scrape } from "libs/prisma";
 import { useFetcher } from "react-router";
 import {
   SettingsContainer,
@@ -43,12 +43,12 @@ export async function action({ request }: Route.ActionArgs) {
 
   const formData = await request.formData();
 
-  const update: Prisma.ScrapeUpdateInput = {};
+  const update: Prisma.ScrapeUpdateInput & { githubAutoReply?: boolean; githubRepoName?: string } = {};
   if (formData.has("githubRepoName")) {
-    (update as any).githubRepoName = formData.get("githubRepoName") as string;
+    update.githubRepoName = formData.get("githubRepoName") as string;
   }
   if (formData.has("from-github-auto-reply")) {
-    (update as any).githubAutoReply = formData.get("githubAutoReply") === "on";
+    update.githubAutoReply = formData.get("githubAutoReply") === "on";
   }
 
   const updated = await prisma.scrape.update({
@@ -62,6 +62,7 @@ export async function action({ request }: Route.ActionArgs) {
 export default function GitHubIntegrations({
   loaderData,
 }: Route.ComponentProps) {
+  const scrape = loaderData.scrape as Scrape & { githubAutoReply?: boolean; githubRepoName?: string | null };
   const fetcher = useFetcher();
 
   useFetcherToast(fetcher);
@@ -98,7 +99,7 @@ export default function GitHubIntegrations({
               className="input w-full"
               name="githubRepoName"
               placeholder="Ex: crawlchat/crawlchat"
-              defaultValue={(loaderData.scrape as any).githubRepoName ?? ""}
+              defaultValue={scrape.githubRepoName ?? ""}
             />
           </SettingsSection>
 
@@ -114,7 +115,7 @@ export default function GitHubIntegrations({
                 type="checkbox"
                 className="toggle"
                 name="githubAutoReply"
-                defaultChecked={(loaderData.scrape as any).githubAutoReply ?? true}
+                defaultChecked={scrape.githubAutoReply ?? true}
               />
               Active
             </label>
