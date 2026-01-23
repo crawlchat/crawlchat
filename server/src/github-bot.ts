@@ -301,7 +301,6 @@ async function answerGitHubQuestion(data: GitHubQuestionRequest) {
       questionMessage.id,
       getQueryString(data.question),
       answer.content,
-      answer.sources,
       answer.context,
       {
         categories: scrape.messageCategories,
