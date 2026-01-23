@@ -45,7 +45,7 @@ import { randomUUID } from "crypto";
 import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
-import { setupGithubBot } from "./github-bot";
+import { setupGitHubBot } from "./github-bot";
 
 declare global {
   namespace Express {
@@ -85,9 +85,9 @@ app.use(
 app.use(cors());
 
 app.use("/api", apiRouter);
-setupGithubBot(app);
 app.use("/admin", adminRouter);
 expressWs.app.ws("/", handleWs);
+setupGitHubBot(app);
 
 async function updateLastMessageAt(threadId: string) {
   await prisma.thread.update({
