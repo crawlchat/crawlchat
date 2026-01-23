@@ -32,7 +32,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export function meta({ data }: Route.MetaArgs) {
   return makeMeta({
-    title: "GitHub app - CrawlChat",
+    title: "GitHub Bot - CrawlChat",
   });
 }
 
@@ -74,7 +74,7 @@ export default function GitHubIntegrations({
           <div className="flex flex-col md:flex-row md:items-center gap-2">
             <a
               className="btn btn-neutral"
-              href={import.meta.env.VITE_GITHUB_APP_INSTALL_URL || "https://github.com/apps/crawlchat/installations/new"}
+              href={window.ENV.VITE_GITHUB_APP_INSTALL_URL || "https://github.com/apps/crawlchat/installations/new"}
               target="_blank"
             >
               <TbBrandGithub />

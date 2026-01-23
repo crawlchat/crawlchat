@@ -102,7 +102,7 @@ export function makeRagTool(
         options.queryContext.ragQueries.push(query);
       }
       const context = JSON.stringify(
-        filtered.map((r) => ({
+        filtered.map((r, i) => ({
           url: r.url,
           content: r.content,
           fetchUniqueId: r.fetchUniqueId,
@@ -114,7 +114,7 @@ export function makeRagTool(
             ? `<context>\n${context}\n</context>`
             : "No relevant information found. Don't answer the query. Inform that you don't know the answer.",
         customMessage: {
-          result: filtered,
+          result: processed,
           query,
         },
       };
