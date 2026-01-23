@@ -1,4 +1,4 @@
-import type { Route } from "./+types/discord";
+import type { Route } from "./+types/github-bot";
 import type { Prisma } from "libs/prisma";
 import { useFetcher } from "react-router";
 import {
@@ -40,10 +40,6 @@ export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
-
-  const scrape = await prisma.scrape.findUnique({
-    where: { id: scrapeId },
-  });
 
   const formData = await request.formData();
 

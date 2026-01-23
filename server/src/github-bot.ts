@@ -66,7 +66,7 @@ function getApiKeySource(model: string): string {
 
 function verifySignature(req: Request) {
   if (!webhookSecret) {
-    return;
+    throw new Error("GitHub webhook secret not configured");
   }
 
   const signature = req.headers["x-hub-signature-256"] as string | undefined;
@@ -239,8 +239,6 @@ async function answerGitHubQuestion(data: GitHubQuestionRequest) {
     actions,
   });
 
-  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
-
   const shouldReply = data.mention || (answer.context?.length ?? 0) > 0;
   if (!shouldReply) {
     console.info("Skipping GitHub reply: no relevant context and no mention.");
@@ -331,6 +329,8 @@ async function answerGitHubQuestion(data: GitHubQuestionRequest) {
       rating: "none" as MessageRating,
     },
   });
+
+  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
 }
 
 export function setupGithubBot(app: Express) {
@@ -353,7 +353,20 @@ export function setupGithubBot(app: Express) {
       return;
     }
 
-    if (event === "discussion_comment" && payload.action === "created") {
+    // Respond immediately to avoid GitHub webhook timeouts
+    res.json({ ok: true });
+
+    // Process webhook asynchronously
+    processWebhookAsync(event, payload).catch((error) => {
+      console.error("Failed to process GitHub webhook asynchronously", error);
+    });
+  });
+
+  app.use("/github", router);
+}
+
+async function processWebhookAsync(event: string, payload: any) {
+  if (event === "discussion_comment" && payload.action === "created") {
       const comment = payload.comment;
       const discussion = payload.discussion;
       const repository = payload.repository;
@@ -451,7 +464,10 @@ export function setupGithubBot(app: Express) {
         repository &&
         installationId &&
         issue.number &&
-        repository.full_name
+        repository.full_name &&
+        issue.user &&
+        issue.user.type?.toLowerCase?.() !== "bot" &&
+        !issue.user.login?.endsWith?.("[bot]")
       ) {
         const repoFullName = repository.full_name;
         const owner = repository.owner?.login;
@@ -507,8 +523,14 @@ export function setupGithubBot(app: Express) {
             );
             if (installationOctokit) {
               try {
+                // Determine the correct API endpoint based on the webhook payload
+                const isIssueComment = !!payload.issue;
+                const endpoint = isIssueComment
+                  ? "GET /repos/{owner}/{repo}/issues/comments/{comment_id}/reactions"
+                  : "GET /repos/{owner}/{repo}/discussions/comments/{comment_id}/reactions";
+
                 const reactionsResponse = await installationOctokit.request(
-                  "GET /repos/{owner}/{repo}/discussions/comments/{comment_id}/reactions",
+                  endpoint,
                   {
                     owner,
                     repo: repoName,
@@ -549,9 +571,4 @@ export function setupGithubBot(app: Express) {
         }
       }
     }
-
-    res.json({ ok: true });
-  });
-
-  app.use("/github", router);
 }
