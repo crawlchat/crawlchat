@@ -30,6 +30,7 @@ The Front service is the main React-based web interface for CrawlChat. It provid
 | `VITE_SERVER_WS_URL` | Yes | WebSocket URL for the server service | `"ws://localhost:3002"` or `"wss://api.yourdomain.com"` |
 | `VITE_SERVER_URL` | Yes | HTTP URL for the server service | `"http://localhost:3002"` or `"https://api.yourdomain.com"` |
 | `VITE_SOURCE_SYNC_URL` | Yes | URL for the source-sync service | `"http://localhost:3003"` or `"https://sync.yourdomain.com"` |
+| `VITE_GITHUB_APP_INSTALL_URL` | No | GitHub App installation URL | `"https://github.com/apps/crawlchat/installations/new"` |
 | `DEFAULT_SIGNUP_PLAN_ID` | Yes | Default subscription plan ID for new user signups | `"accelerate-yearly"` |
 | `MARKER_HOST` | Yes | Host of marker service to convert files into markdown | `"http://localhost:3005"` |
 | `MARKER_API_KEY` | Yes | A secret API Key configured in marker env | `a-secret-key-for-marker` |

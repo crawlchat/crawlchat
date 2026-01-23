@@ -31,6 +31,9 @@ The Server service is the main API server that handles LLM interactions, user re
 | `OPENROUTER_API_KEY` | Yes | OpenRouter API key for LLM access | `"sk-or-v1-xxxxxxxxxxxxx"` |
 | `ADMIN_EMAILS` | No | Comma-separated list of admin email addresses | `"admin1@example.com,admin2@example.com"` |
 | `OPENAI_API_KEY` | No | OpenAI API key (if using OpenAI directly instead of OpenRouter) | `"sk-xxxxxxxxxxxxx"` |
+| `GITHUB_APP_ID` | No | GitHub App ID for webhook authentication | `"123456"` |
+| `GITHUB_APP_PRIVATE_KEY` | No | Private key for GitHub App authentication | `"-----BEGIN RSA PRIVATE KEY-----\n..."` |
+| `GITHUB_WEBHOOK_SECRET` | No | Secret for verifying GitHub webhook signatures | `"your-webhook-secret"` |
 
 ## Running Locally
 

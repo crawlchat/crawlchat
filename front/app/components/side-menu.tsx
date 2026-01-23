@@ -4,6 +4,7 @@ import type { FetcherWithComponents } from "react-router";
 import {
   TbBook,
   TbBrandDiscord,
+  TbBrandGithub,
   TbBrandSlack,
   TbChartBarOff,
   TbChartLine,
@@ -328,6 +329,12 @@ export function SideMenu({
             label: "Slack app",
             to: "/integrate/slack-app",
             icon: <TbBrandSlack />,
+            forScrape: true,
+          },
+          {
+            label: "GitHub bot",
+            to: "/integrate/github-bot",
+            icon: <TbBrandGithub />,
             forScrape: true,
           },
           {
