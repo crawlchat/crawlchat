@@ -36,7 +36,6 @@ The GitHub app will:
 - **Monitor discussions and issues** in configured repositories
 - **Respond to @mentions** of the app (e.g., `@crawlchat`)
 - **Auto-respond** to questions where it has high confidence answers (above your configured minimum score)
-- **Support reactions** - users can thumbs up/down responses to rate them
 
 ## Troubleshooting
 
