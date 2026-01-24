@@ -19,7 +19,7 @@ import {
 import { createToken } from "libs/jwt";
 import { makeMeta } from "~/meta";
 import { makeMessagePairs } from "./analyse";
-import type { ApiAction, ScrapeItem } from "libs/prisma";
+import type { ApiAction } from "libs/prisma";
 import { QuestionAnswer } from "./message";
 import { SettingsSection } from "~/components/settings-section";
 import { useFetcherToast } from "~/components/use-fetcher-toast";
@@ -30,15 +30,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const scrapeId = await getSessionScrapeId(request);
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
-  const scrape = await prisma.scrape.findUnique({
+  const scrape = await prisma.scrape.findFirstOrThrow({
     where: {
       id: scrapeId,
     },
   });
-
-  if (!scrape) {
-    throw redirect("/app");
-  }
 
   const queryMessage = await prisma.message.findUnique({
     where: {
@@ -144,6 +140,7 @@ ${content}`;
           markdown,
           defaultGroupTitle: "Answer corrections",
           knowledgeGroupType: "answer_corrections",
+          createItem: true,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -157,12 +154,24 @@ ${content}`;
       return Response.json({ error: data.error ?? data.message });
     }
 
-    const { scrapeItem } = (await response.json()) as {
-      scrapeItem: ScrapeItem;
-    };
+    const data = await response.json();
+    const createdScrapeItem = await prisma.scrapeItem.findUnique({
+      where: {
+        id: data.scrapeItemId,
+      },
+    });
+
+    await prisma.message.update({
+      where: {
+        id: params.messageId,
+      },
+      data: {
+        correctionItemId: createdScrapeItem?.id,
+      },
+    });
 
     return {
-      scrapeItem,
+      scrapeItem: createdScrapeItem,
     };
   }
 }
@@ -188,7 +197,6 @@ function FixComposer({
 
   useFetcherToast(saveFetcher, {
     title: "Saved",
-    description: "Saved the answer to the knowledge base!",
   });
 
   const missingDetails =
@@ -238,11 +246,11 @@ export default function FixMessage({ loaderData }: Route.ComponentProps) {
         <div className="flex flex-col gap-4 max-w-prose flex-2">
           {loaderData.messagePair?.queryMessage?.correctionItemId && (
             <div role="alert" className="alert alert-warning">
-              <TbAlertTriangle />
+              <TbAlertTriangle size={20} />
               <span>
                 This message is already corrected{" "}
                 <Link
-                  className="link link-primary link-hover"
+                  className="link link-underline"
                   to={`/knowledge/item/${loaderData.messagePair?.queryMessage?.correctionItemId}`}
                 >
                   here
