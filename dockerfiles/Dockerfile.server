@@ -1,4 +1,4 @@
-FROM node:20-alpine AS base
+FROM node:20-bullseye AS base
 
 RUN npm install -g turbo
 
@@ -6,15 +6,15 @@ WORKDIR /app
 
 COPY . .
 
-RUN turbo prune front
+RUN turbo prune server
 
 WORKDIR /app/out
 
 RUN npm i
 
-RUN turbo run build --filter=front
+RUN turbo run build --filter=server
 
-WORKDIR /app/out/front
+WORKDIR /app/out/server
 
 EXPOSE 3000
 
