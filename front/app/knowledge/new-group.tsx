@@ -8,7 +8,6 @@ import {
   TbBrandYoutube,
   TbCheck,
   TbUpload,
-  TbVideo,
   TbWorld,
 } from "react-icons/tb";
 import { FaConfluence } from "react-icons/fa";
@@ -431,7 +430,6 @@ export function NewKnowledgeGroupForm({
     return types;
   }, []);
   const [type, setType] = useState<string>("scrape_web");
-  const [skipUrls, setSkipUrls] = useState<string[]>([]);
 
   function getDescription(type: string) {
     return types.find((t) => t.value === type)?.longDescription;
@@ -464,7 +462,6 @@ export function NewKnowledgeGroupForm({
             required
             placeholder="Ex: Documentation"
             name="title"
-            disabled={disabled}
           />
         </fieldset>
 
@@ -479,7 +476,6 @@ export function NewKnowledgeGroupForm({
                 pattern="^https?://.+"
                 placeholder="https://example.com"
                 name="url"
-                disabled={disabled}
               />
             </fieldset>
 
@@ -489,7 +485,6 @@ export function NewKnowledgeGroupForm({
                 name="prefix"
                 defaultChecked
                 className="toggle"
-                disabled={disabled}
               />
               Match exact prefix
             </label>
@@ -510,7 +505,6 @@ export function NewKnowledgeGroupForm({
                   "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown,text/javascript,application/javascript,.tsx,.ts,.js,.jsx,.mdx"
                 }
                 multiple
-                disabled={disabled}
               />
             </fieldset>
           </>
@@ -527,7 +521,6 @@ export function NewKnowledgeGroupForm({
                 pattern="^https?://.+"
                 placeholder="https://example.com/docs"
                 name="url"
-                disabled={disabled}
               />
             </fieldset>
             <fieldset className="fieldset">
@@ -537,7 +530,6 @@ export function NewKnowledgeGroupForm({
                 type="text"
                 placeholder="Ex: 1.0.0, 1.1.0, 2.x"
                 name="versionsToSkip"
-                disabled={disabled}
               />
             </fieldset>
             <input
@@ -615,7 +607,6 @@ export function NewKnowledgeGroupForm({
                 placeholder="Ex: your@email.com"
                 required
                 pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                disabled={disabled}
               />
             </fieldset>
 
@@ -628,7 +619,6 @@ export function NewKnowledgeGroupForm({
                 placeholder="Ex: https://yourhost.atlassian.net"
                 required
                 pattern="^https://[a-b-_]+\\.atlassian\\.net$"
-                disabled={disabled}
               />
             </fieldset>
 
@@ -640,7 +630,6 @@ export function NewKnowledgeGroupForm({
                 name="confluenceApiKey"
                 placeholder="Ex: ATATTXXXXXX"
                 required
-                disabled={disabled}
               />
             </fieldset>
           </>
@@ -678,7 +667,6 @@ export function NewKnowledgeGroupForm({
                 pattern="^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$"
                 placeholder="https://www.youtube.com/watch?v=..."
                 name="url"
-                disabled={disabled}
               />
             </fieldset>
           </>
@@ -696,7 +684,6 @@ export function NewKnowledgeGroupForm({
                 required
                 placeholder="https://www.youtube.com/@channelname or @channelname or UC-9-kyTW8ZkZNDHQJ6FgpwQ"
                 name="url"
-                disabled={disabled}
               />
               <p className="text-sm text-gray-500 mt-2">
                 You can provide a channel URL (e.g.,
@@ -711,7 +698,7 @@ export function NewKnowledgeGroupForm({
   );
 }
 
-export default function NewScrape({ loaderData }: Route.ComponentProps) {
+export default function NewScrape() {
   const scrapeFetcher = useFetcher();
 
   useEffect(() => {
