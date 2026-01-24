@@ -402,7 +402,7 @@ async function answer(data: {
     where: { scrapeId: scrape.id },
   });
 
-  const prompt = scrape.githubPrompt ?? scrape.chatPrompt ?? "";
+  const prompt = scrape.githubPrompt || scrape.chatPrompt || "";
 
   const conversationMessages = await getGitHubConversationMessages(
     await getToken(data.installationId),
@@ -439,6 +439,7 @@ async function answer(data: {
       questionId: questionMessage.id,
       llmModel: scrape.llmModel,
       fingerprint: data.userId?.toString(),
+      apiActionCalls: answer.actionCalls as any,
     },
   });
 
