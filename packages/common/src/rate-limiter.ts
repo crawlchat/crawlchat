@@ -14,7 +14,7 @@ export class RateLimiter {
 
   private cleanupOldRequests() {
     const oneMinuteAgo = new Date().getTime() - 60 * 1000;
-    this.requestTimes = this.requestTimes.filter(time => time > oneMinuteAgo);
+    this.requestTimes = this.requestTimes.filter((time) => time > oneMinuteAgo);
   }
 
   getWaitMs() {
@@ -33,11 +33,11 @@ export class RateLimiter {
 
   check() {
     this.cleanupOldRequests();
-    
+
     if (this.requestTimes.length >= this.rpm) {
       throw new Error(`Rate limit ${this.name} exceeded: ${this.rpm} RPM`);
     }
-    
+
     this.requestTimes.push(new Date().getTime());
   }
 }

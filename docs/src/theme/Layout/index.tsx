@@ -19,11 +19,11 @@ export default function LayoutWrapper(props: Props): ReactNode {
         selectionButtons={{
           explore: {
             name: "Explore",
-            queryPrefix: "Explain what is:"
+            queryPrefix: "Explain what is:",
           },
           ticket: {
             name: "Ask human",
-            queryPrefix: "Create a support ticket for:"
+            queryPrefix: "Create a support ticket for:",
           },
         }}
         sidePanel

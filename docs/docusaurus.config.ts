@@ -1,13 +1,13 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
+import { themes as prismThemes } from "prism-react-renderer";
+import type { Config } from "@docusaurus/types";
+import type * as Preset from "@docusaurus/preset-classic";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'CrawlChat',
-  tagline: 'AI chatbot for your technical documentation',
-  favicon: 'img/favicon.ico',
+  title: "CrawlChat",
+  tagline: "AI chatbot for your technical documentation",
+  favicon: "img/favicon.ico",
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
@@ -15,39 +15,39 @@ const config: Config = {
   },
 
   // Set the production url of your site here
-  url: 'https://docs.crawlchat.app',
+  url: "https://docs.crawlchat.app",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+  baseUrl: "/",
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   // organizationName: 'crawlchat', // Usually your GitHub org/user name.
   // projectName: 'crawlchat', // Usually your repo name.
 
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  onBrokenLinks: "throw",
+  onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
 
   presets: [
     [
-      'classic',
+      "classic",
       {
         docs: {
-          sidebarPath: './sidebars.ts',
-          routeBasePath: '/',
+          sidebarPath: "./sidebars.ts",
+          routeBasePath: "/",
         },
         blog: false,
         pages: false,
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: "./src/css/custom.css",
         },
       } satisfies Preset.Options,
     ],
@@ -55,56 +55,55 @@ const config: Config = {
 
   headTags: [
     {
-      "tagName": "script",
-      "attributes": {
-        "src": "https://datafa.st/js/script.js",
+      tagName: "script",
+      attributes: {
+        src: "https://datafa.st/js/script.js",
         "data-domain": "crawlchat.app",
-        "data-website-id": "dfid_JIKHGZEDxmQtWQODXf6zA"
+        "data-website-id": "dfid_JIKHGZEDxmQtWQODXf6zA",
       },
     },
     {
-      "tagName": "script",
-      "attributes": {
-        "type": "text/javascript"
+      tagName: "script",
+      attributes: {
+        type: "text/javascript",
       },
-      "innerHTML": `
+      innerHTML: `
         window.vmtrcq = window.vmtrcq || [];
         window.vmtrc = window.vmtrc || function (){window.vmtrcq.push(Array.prototype.slice.call(arguments))};
-      `
+      `,
     },
   ],
-  
 
   themeConfig: {
     // Replace with your project's social card
-    image: 'img/og-1.png',
+    image: "img/og-1.png",
     navbar: {
-      title: 'CrawlChat',
+      title: "CrawlChat",
       logo: {
-        alt: 'CrawlChat Logo',
-        src: 'img/logo.png',
-        srcDark: 'img/logo-white.png',
+        alt: "CrawlChat Logo",
+        src: "img/logo.png",
+        srcDark: "img/logo-white.png",
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
-          position: 'left',
-          label: 'Docs',
+          type: "docSidebar",
+          sidebarId: "tutorialSidebar",
+          position: "left",
+          label: "Docs",
         },
         {
-          href: 'https://crawlchat.app',
-          label: 'Website',
-          position: 'right',
+          href: "https://crawlchat.app",
+          label: "Website",
+          position: "right",
         },
         {
-          href: 'https://crawlchat.app/app',
-          label: 'Dashboard',
-          position: 'right',
+          href: "https://crawlchat.app/app",
+          label: "Dashboard",
+          position: "right",
         },
         {
-          type: 'html',
-          position: 'right',
+          type: "html",
+          position: "right",
           value: `<button 
           class="crawlchat-nav-askai" 
           onclick="window.crawlchatEmbed.toggleSidePanel()">
@@ -118,7 +117,7 @@ const config: Config = {
       ],
     },
     footer: {
-      style: 'dark',
+      style: "dark",
       // links: [
       //   {
       //     title: 'Docs',
@@ -167,9 +166,9 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
     },
     colorMode: {
-      defaultMode: 'light',
+      defaultMode: "light",
       respectPrefersColorScheme: true,
-    }
+    },
   } satisfies Preset.ThemeConfig,
 };
 

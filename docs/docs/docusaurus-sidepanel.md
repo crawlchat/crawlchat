@@ -4,7 +4,7 @@ sidebar_position: 8
 
 # Docusaurus sidepanel
 
-Now you can embed the Ask AI widget as sidepanel instead of as a popup. This pattern has been adopted by many documentations. It has few advantages over the traditional popup. 
+Now you can embed the Ask AI widget as sidepanel instead of as a popup. This pattern has been adopted by many documentations. It has few advantages over the traditional popup.
 
 - Non blocking experiance. Users can browse the docs and also Ask AI on side
 - Quick Source Link navigation
@@ -45,8 +45,8 @@ themeConfig: {
             {
                 type: 'html',
                 position: 'right',
-                value: `<button 
-                class="crawlchat-nav-askai" 
+                value: `<button
+                class="crawlchat-nav-askai"
                 onclick="window.crawlchatEmbed.toggleSidePanel()">
                     Ask AI
                     <span class="keyboard-keys">
@@ -114,7 +114,6 @@ export default function LayoutWrapper(props) {
     </>
   );
 }
-
 ```
 
 Also, users can use `Cmd` `I` shortcut to open the side panel for quick usage.
