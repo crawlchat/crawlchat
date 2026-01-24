@@ -11,7 +11,6 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "libs/*": ["../libs/*"],
       "../scrape/*": ["../server/src/scrape/*"],
       "../github-api": ["../server/src/github-api"],
       "../rate-limiter": ["../server/src/rate-limiter"],

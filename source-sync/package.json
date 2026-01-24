@@ -4,6 +4,7 @@
   "description": "Source Sync",
   "main": "dist/index.js",
   "scripts": {
+    "generate": "npx playwright install-deps && npx playwright install",
     "build": "npx tsc",
     "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "nodemon src/index.ts",
