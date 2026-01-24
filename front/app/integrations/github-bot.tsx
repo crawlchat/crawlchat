@@ -50,6 +50,13 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("from-github-auto-reply")) {
     update.githubAutoReply = formData.get("githubAutoReply") === "on";
   }
+  if (formData.has("githubPrompt")) {
+    const githubPrompt = formData.get("githubPrompt") as string;
+    if (githubPrompt.length > 1000) {
+      return { error: "GitHub prompt must not exceed 1000 characters" };
+    }
+    update.githubPrompt = githubPrompt;
+  }
 
   const updated = await prisma.scrape.update({
     where: { id: scrapeId },
@@ -64,8 +71,10 @@ export default function GitHubIntegrations({
 }: Route.ComponentProps) {
   const fetcher = useFetcher();
   const autoReplyFetcher = useFetcher();
+  const promptFetcher = useFetcher();
 
   useFetcherToast(fetcher);
+  useFetcherToast(promptFetcher);
 
   return (
     <Page title={"GitHub bot"} icon={<TbBrandGithub />}>
@@ -119,6 +128,22 @@ export default function GitHubIntegrations({
               />
               Active
             </label>
+          </SettingsSection>
+
+          <SettingsSection
+            id="github-prompt"
+            title={"GitHub Prompt"}
+            description="Customize the prompt used when the bot responds to GitHub issues and discussions. If not set, the default chat prompt will be used. Maximum 1000 characters."
+            fetcher={promptFetcher}
+          >
+            <textarea
+              className="textarea textarea-bordered w-full"
+              name="githubPrompt"
+              defaultValue={loaderData.scrape.githubPrompt ?? ""}
+              placeholder="Enter a custom prompt for GitHub responses."
+              rows={4}
+              maxLength={1000}
+            />
           </SettingsSection>
         </SettingsContainer>
       </SettingsSectionProvider>

@@ -195,6 +195,7 @@ model Scrape {
   slackConfig           SlackConfig?
   githubRepoName        String?
   githubAutoReply       Boolean?
+  githubPrompt          String?
 
   helpdeskConfig        HelpdeskConfig?
 

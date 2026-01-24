@@ -238,9 +238,12 @@ async function answer(data: {
     where: { scrapeId: scrape.id },
   });
 
+  const prompt = scrape.githubPrompt ?? scrape.chatPrompt ?? "";
+
   const answer = await baseAnswerer(scrape, thread, data.question, [], {
     channel: "github_discussion",
     actions,
+    prompt,
   });
 
   const answerMessage = await prisma.message.create({

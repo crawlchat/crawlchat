@@ -18,11 +18,7 @@ export function useFetcherToast(
     }
 
     if (fetcher.data) {
-      toast.success(
-        options?.title ??
-          options?.description ??
-          "Operation completed successfully"
-      );
+      toast.success(options?.title ?? options?.description ?? "Done");
     }
   }, [fetcher.data]);
 }
