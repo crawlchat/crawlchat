@@ -6,7 +6,8 @@
     "server",
     "source-sync",
     "discord-bot",
-    "slack-app"
+    "slack-app",
+    "docs"
   ],
   "dependencies": {
     "turbo": "^2.7.5"
