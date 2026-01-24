@@ -161,15 +161,6 @@ ${content}`;
       scrapeItem: ScrapeItem;
     };
 
-    await prisma.message.update({
-      where: {
-        id: params.messageId,
-      },
-      data: {
-        correctionItemId: scrapeItem.id,
-      },
-    });
-
     return {
       scrapeItem,
     };
