@@ -1,0 +1,15 @@
+{
+  "packageManager": "npm@8.5.0",
+  "workspaces": [
+    "front",
+    "server",
+    "source-sync"
+  ],
+  "dependencies": {
+    "turbo": "^2.7.5"
+  },
+  "scripts": {
+    "dev": "turbo dev",
+    "prettier": "turbo prettier"
+  }
+}

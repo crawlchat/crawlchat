@@ -6,7 +6,8 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node -r tsconfig-paths/register dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "prettier": "prettier --no-error-on-unmatched-pattern --check ./**/*.{ts,tsx,js,jsx,json,css,md}"
   },
   "author": "",
   "license": "ISC",

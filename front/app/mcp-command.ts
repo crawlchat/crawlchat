@@ -61,8 +61,7 @@ export function makeClaudeDeepLink(scrapeId: string, name: string) {
 
   let url = `mcp-install://install-server?name=${encodedName}&command=${encodeURIComponent(command)}`;
 
-  // Add args
-  args.forEach(arg => {
+  args.forEach((arg) => {
     url += `&args=${encodeURIComponent(arg)}`;
   });
 

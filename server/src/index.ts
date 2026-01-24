@@ -290,7 +290,7 @@ app.post(
   ["/resource/:scrapeId", "/page/:scrapeId"],
   authenticate,
   async (req, res) => {
-    const scrapeId = req.params.scrapeId;
+    const scrapeId = req.params.scrapeId as string;
     const knowledgeGroupType = req.body.knowledgeGroupType;
     const defaultGroupTitle = req.body.defaultGroupTitle;
     const markdown = req.body.markdown || req.body.content;
