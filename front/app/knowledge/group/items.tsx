@@ -1,7 +1,7 @@
 import type { Route } from "./+types/items";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "libs/prisma";
-import type { ScrapeItemStatus } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
+import type { ScrapeItemStatus } from "@packages/common/prisma";
 import {
   TbCheck,
   TbRefresh,

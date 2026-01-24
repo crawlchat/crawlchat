@@ -3,8 +3,8 @@ dotenv.config();
 
 import { App } from "@slack/bolt";
 import { InstallationStore } from "@slack/oauth";
-import { prisma } from "libs/prisma";
-import { createToken } from "libs/jwt";
+import { prisma } from "@packages/common/prisma";
+import { createToken } from "@packages/common/jwt";
 import { learn, query } from "./api";
 
 const LOADING_REACTION = "hourglass";

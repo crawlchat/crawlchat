@@ -1,9 +1,9 @@
 import type { Route } from "./+types/list";
-import type { Thread, Prisma, TicketStatus } from "libs/prisma";
+import type { Thread, Prisma, TicketStatus } from "@packages/common/prisma";
 import { TbChevronLeft, TbChevronRight, TbTicket } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { redirect } from "react-router";
 import { Link as RouterLink } from "react-router";

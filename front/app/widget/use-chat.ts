@@ -1,4 +1,4 @@
-import type { Message } from "libs/prisma";
+import type { Message } from "@packages/common/prisma";
 import { useEffect, useMemo, useRef, useState } from "react";
 import FingerprintJS from "@fingerprintjs/fingerprintjs";
 

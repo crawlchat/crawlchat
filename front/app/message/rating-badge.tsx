@@ -1,5 +1,5 @@
 import cn from "@meltdownjs/cn";
-import type { Message } from "libs/prisma";
+import type { Message } from "@packages/common/prisma";
 import { TbThumbDown, TbThumbUp } from "react-icons/tb";
 
 export function Rating({ rating }: { rating: Message["rating"] }) {

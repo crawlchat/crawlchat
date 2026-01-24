@@ -1,5 +1,5 @@
-import type { Scrape, User } from "libs/prisma";
-import type { Plan } from "libs/user-plan";
+import type { Scrape, User } from "@packages/common/prisma";
+import type { Plan } from "@packages/common/user-plan";
 import type { FetcherWithComponents } from "react-router";
 import {
   TbBook,

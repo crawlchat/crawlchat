@@ -6,9 +6,9 @@ import type {
   ScrapeUser,
   Thread,
   User,
-} from "libs/prisma";
-import { prisma } from "libs/prisma";
-import { createToken } from "libs/jwt";
+} from "@packages/common/prisma";
+import { prisma } from "@packages/common/prisma";
+import { createToken } from "@packages/common/jwt";
 import { commitSession, getSession } from "~/session";
 import { data, redirect, type Session } from "react-router";
 import { fetchIpDetails, getClientIp } from "~/client-ip";

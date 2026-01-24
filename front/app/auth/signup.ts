@@ -1,5 +1,5 @@
-import { Prisma, prisma } from "libs/prisma";
-import { PLAN_FREE, activatePlan, planMap } from "libs/user-plan";
+import { Prisma, prisma } from "@packages/common/prisma";
+import { PLAN_FREE, activatePlan, planMap } from "@packages/common/user-plan";
 import { sendTeamJoinEmail, sendWelcomeEmail } from "~/email";
 import { DodoPayments } from "dodopayments";
 import { productIdPlanMap } from "~/payment/gateway-dodo";

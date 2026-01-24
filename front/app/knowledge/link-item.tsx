@@ -1,13 +1,13 @@
 import type { Route } from "./+types/link-item";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { useEffect, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { TbBook2, TbRefresh, TbTrash } from "react-icons/tb";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { Page } from "~/components/page";
-import { createToken } from "libs/jwt";
-import type { Prisma, ScrapeItem } from "libs/prisma";
+import { createToken } from "@packages/common/jwt";
+import type { Prisma, ScrapeItem } from "@packages/common/prisma";
 import { SettingsSection } from "~/components/settings-section";
 import { useFetcherToast } from "~/components/use-fetcher-toast";
 import cn from "@meltdownjs/cn";

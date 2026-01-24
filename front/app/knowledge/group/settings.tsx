@@ -3,9 +3,9 @@ import type {
   KnowledgeGroupUpdateFrequency,
   Prisma,
   KnowledgeGroup,
-} from "libs/prisma";
-import { prisma } from "libs/prisma";
-import { getNextUpdateTime } from "libs/knowledge-group";
+} from "@packages/common/prisma";
+import { prisma } from "@packages/common/prisma";
+import { getNextUpdateTime } from "@packages/common/knowledge-group";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import {
@@ -17,17 +17,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { redirect, useFetcher } from "react-router";
 import { GroupStatus } from "./status";
 import { TbEraser, TbTrash } from "react-icons/tb";
-import { createToken } from "libs/jwt";
+import { createToken } from "@packages/common/jwt";
 import { MultiSelect, type SelectValue } from "~/components/multi-select";
 import { Client } from "@notionhq/client";
 import { DataList } from "~/components/data-list";
 import { Select } from "~/components/select";
-import { getConfluencePages } from "libs/confluence";
+import { getConfluencePages } from "@packages/common/confluence";
 import {
   getLinearIssueStatuses,
   getLinearProjectStatuses,
   LinearClient,
-} from "libs/linear";
+} from "@packages/common/linear";
 import { Timestamp } from "~/components/timestamp";
 import type { FileUpload } from "@mjackson/form-data-parser";
 import { parseFormData } from "@mjackson/form-data-parser";

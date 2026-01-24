@@ -1,6 +1,6 @@
 import type { Route } from "./+types/layout";
 import { makeMeta } from "~/meta";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import {
   useContext,
   useEffect,
@@ -25,11 +25,11 @@ import type {
   Message,
   Scrape,
   Thread,
-} from "libs/prisma";
+} from "@packages/common/prisma";
 import { getSession } from "~/session";
 import ChatBox from "~/widget/chat-box";
 import { HelpdeskContext, HelpdeskProvider } from "./context";
-import { createToken } from "libs/jwt";
+import { createToken } from "@packages/common/jwt";
 import { Toaster } from "react-hot-toast";
 import { MCPIcon } from "~/components/mcp-icon";
 import { makeCursorMcpConfig, makeMcpName } from "~/mcp-command";

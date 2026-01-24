@@ -1,7 +1,10 @@
 import { Router } from "express";
-import { prisma } from "libs/prisma";
-import { authenticate, authoriseScrapeUser } from "libs/express-auth";
-import { LlmModel } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
+import {
+  authenticate,
+  authoriseScrapeUser,
+} from "@packages/common/express-auth";
+import { LlmModel } from "@packages/common/prisma";
 
 const router = Router();
 

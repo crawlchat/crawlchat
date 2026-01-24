@@ -8,7 +8,7 @@ import type {
 } from "libs/prisma";
 import { useEffect, useMemo, useState } from "react";
 import { createContext } from "react";
-import { getEventTypes, getMe } from "libs/cal";
+import { getEventTypes, getMe } from "@packages/common/cal";
 
 type CalEventType = {
   id: number;

@@ -1,5 +1,5 @@
 import cn from "@meltdownjs/cn";
-import type { LlmModel } from "libs/prisma";
+import type { LlmModel } from "@packages/common/prisma";
 import { useContext, useEffect, useMemo, useRef } from "react";
 import { TbAlertTriangle, TbArrowRight, TbMenu2, TbX } from "react-icons/tb";
 import { Link } from "react-router";

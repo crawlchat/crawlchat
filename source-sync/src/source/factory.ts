@@ -1,4 +1,4 @@
-import { KnowledgeGroupType } from "libs/dist/prisma";
+import { KnowledgeGroupType } from "@packages/common/prisma";
 import { WebSource } from "./source-web";
 import { NotionSource } from "./source-notion";
 import { GithubIssuesSource } from "./source-github-issues";

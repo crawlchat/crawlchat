@@ -1,4 +1,4 @@
-import { MultimodalContent } from "libs/llm-message";
+import { MultimodalContent } from "@packages/common/llm-message";
 
 export async function query(
   scrapeId: string,

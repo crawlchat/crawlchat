@@ -1,6 +1,6 @@
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import moment from "moment";
 import {
   TbAutomation,
@@ -26,7 +26,7 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { FaConfluence } from "react-icons/fa";
 import { Timestamp } from "~/components/timestamp";
-import { createToken } from "libs/jwt";
+import { createToken } from "@packages/common/jwt";
 import KnowledgeSearch, { type ItemSearchResult } from "./search";
 import { getTotalPageChunks } from "./group/page-chunks";
 

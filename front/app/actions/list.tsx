@@ -1,11 +1,11 @@
 import type { Route } from "./+types/list";
-import type { ApiActionType } from "libs/prisma";
+import type { ApiActionType } from "@packages/common/prisma";
 import { TbCopy, TbPlus, TbPointer, TbWebhook } from "react-icons/tb";
 import { Link, redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { EmptyState } from "~/components/empty-state";
 import { makeMeta } from "~/meta";
 import cn from "@meltdownjs/cn";

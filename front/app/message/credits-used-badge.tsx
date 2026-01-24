@@ -1,4 +1,4 @@
-import type { LlmModel } from "libs/prisma";
+import type { LlmModel } from "@packages/common/prisma";
 import { TbCoins } from "react-icons/tb";
 
 export function CreditsUsedBadge({

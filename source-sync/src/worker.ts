@@ -1,5 +1,5 @@
 import { Worker, Job, QueueEvents } from "bullmq";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { makeSource } from "./source/factory";
 import {
   ITEM_QUEUE_NAME,

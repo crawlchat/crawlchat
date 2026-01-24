@@ -1,5 +1,5 @@
 import jwt, { type JwtPayload } from "jsonwebtoken";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 
 interface UserPayload extends JwtPayload {
   userId: string;

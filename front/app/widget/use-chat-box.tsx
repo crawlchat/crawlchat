@@ -1,4 +1,9 @@
-import type { Message, MessageRating, Scrape, Thread } from "libs/prisma";
+import type {
+  Message,
+  MessageRating,
+  Scrape,
+  Thread,
+} from "@packages/common/prisma";
 import {
   createContext,
   useContext,

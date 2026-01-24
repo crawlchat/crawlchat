@@ -1,5 +1,5 @@
 import cn from "@meltdownjs/cn";
-import type { MessageChannel } from "libs/prisma";
+import type { MessageChannel } from "@packages/common/prisma";
 import { useMemo } from "react";
 import {
   TbBrandDiscord,

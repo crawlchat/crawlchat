@@ -1,4 +1,4 @@
-import { RateLimiter } from "libs/rate-limiter";
+import { RateLimiter } from "@packages/common/rate-limiter";
 
 export const wsRateLimiter = new RateLimiter(30, "ws");
 export const draftRateLimiter = new RateLimiter(20, "draft");

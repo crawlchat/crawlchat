@@ -4,9 +4,13 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import type { Express, Request, Response } from "express";
-import { authenticate, AuthMode, authoriseScrapeUser } from "libs/express-auth";
+import {
+  authenticate,
+  AuthMode,
+  authoriseScrapeUser,
+} from "@packages/common/express-auth";
 import "./worker";
-import { Prisma, prisma } from "libs/dist/prisma";
+import { Prisma, prisma } from "@packages/common/prisma";
 import { v4 as uuidv4 } from "uuid";
 import {
   getPendingUrls,

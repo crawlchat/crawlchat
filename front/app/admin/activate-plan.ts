@@ -3,8 +3,8 @@ import type { Route } from "./+types/update-customer";
 import { redirect } from "react-router";
 import { adminEmails } from "./emails";
 import { getDodoClient } from "~/payment/gateway-dodo";
-import { activatePlan, planMap } from "libs/user-plan";
-import { prisma, UserPlanProvider } from "libs/prisma";
+import { activatePlan, planMap } from "@packages/common/user-plan";
+import { prisma, UserPlanProvider } from "@packages/common/prisma";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

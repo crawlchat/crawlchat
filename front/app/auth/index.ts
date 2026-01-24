@@ -1,4 +1,4 @@
-import type { User } from "libs/prisma";
+import type { User } from "@packages/common/prisma";
 import { Authenticator } from "remix-auth";
 import { sessionStorage } from "~/session";
 import { EmailLinkStrategy } from "./email-strategy";

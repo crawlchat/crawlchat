@@ -1,5 +1,5 @@
 import cn from "@meltdownjs/cn";
-import type { QuestionSentiment } from "libs/prisma";
+import type { QuestionSentiment } from "@packages/common/prisma";
 import { TbMoodCry, TbMoodHappy } from "react-icons/tb";
 
 export function SentimentBadge({

@@ -1,4 +1,4 @@
-import type { KnowledgeGroup, ScrapeItem } from "libs/prisma";
+import type { KnowledgeGroup, ScrapeItem } from "@packages/common/prisma";
 import { useEffect } from "react";
 import { TbSearch } from "react-icons/tb";
 import { Link, useFetcher } from "react-router";

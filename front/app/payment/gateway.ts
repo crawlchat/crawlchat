@@ -1,5 +1,5 @@
-import type { UserPlanProvider } from "libs/prisma";
-import type { Plan } from "libs/user-plan";
+import type { UserPlanProvider } from "@packages/common/prisma";
+import type { Plan } from "@packages/common/user-plan";
 
 export type PaymentGatewaySubscriptionStatus =
   | "active"

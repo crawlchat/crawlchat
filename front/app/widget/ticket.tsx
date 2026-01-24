@@ -14,7 +14,7 @@ import {
   TbMessage,
   TbUser,
 } from "react-icons/tb";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { RiChatVoiceAiFill } from "react-icons/ri";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useFetcher } from "react-router";

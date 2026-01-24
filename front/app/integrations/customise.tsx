@@ -5,8 +5,8 @@ import type {
   WidgetConfig,
   WidgetQuestion,
   WidgetSize,
-} from "libs/prisma";
-import { prisma } from "libs/prisma";
+} from "@packages/common/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { SettingsSection } from "~/components/settings-section";
 import { useFetcher } from "react-router";

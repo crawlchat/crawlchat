@@ -5,12 +5,12 @@ import type {
   Scrape,
   Message,
   Thread,
-} from "libs/prisma";
+} from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { Link, redirect, useLoaderData } from "react-router";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { MarkdownProse } from "~/widget/markdown-prose";
-import { getQueryString } from "libs/llm-message";
+import { getQueryString } from "@packages/common/llm-message";
 import { TbConfetti, TbCopy } from "react-icons/tb";
 import { toast, Toaster } from "react-hot-toast";
 import { makeMeta } from "~/meta";

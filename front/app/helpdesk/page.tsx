@@ -1,9 +1,9 @@
 import type { Route } from "./+types/page";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { useContext } from "react";
 import cn from "@meltdownjs/cn";
 import { TbBook2 } from "react-icons/tb";
-import type { Article } from "libs/prisma";
+import type { Article } from "@packages/common/prisma";
 import { HelpdeskContext } from "./context";
 import { Container } from "./layout";
 import { sanitizeScrape } from "~/sanitize";

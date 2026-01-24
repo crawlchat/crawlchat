@@ -9,14 +9,14 @@ import {
   Scrape,
   Thread,
   ScrapeItem,
-} from "libs/prisma";
+} from "@packages/common/prisma";
 import { getConfig } from "./llm/config";
 import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
 import {
   getQueryString,
   MultimodalContent,
   removeImages,
-} from "libs/llm-message";
+} from "@packages/common/llm-message";
 import { FlowMessage, LlmRole } from "./llm/agentic";
 
 export type StreamDeltaEvent = {

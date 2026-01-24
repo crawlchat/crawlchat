@@ -1,4 +1,4 @@
-import type { KnowledgeGroupStatus } from "libs/prisma";
+import type { KnowledgeGroupStatus } from "@packages/common/prisma";
 import { useMemo } from "react";
 import { TbBook, TbCheck, TbLoader, TbX } from "react-icons/tb";
 import cn from "@meltdownjs/cn";

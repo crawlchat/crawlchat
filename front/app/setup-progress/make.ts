@@ -1,4 +1,4 @@
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import type { SetupProgressInput } from "./config";
 
 export async function getSetupProgressInput(

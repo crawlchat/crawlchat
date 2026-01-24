@@ -4,14 +4,14 @@ import {
   QuestionSentiment,
   Scrape,
   ScrapeMessageCategory,
-} from "libs/prisma";
+} from "@packages/common/prisma";
 import { SimpleAgent } from "./llm/agentic";
 import { z } from "zod";
 import { Flow } from "./llm/flow";
 import { makeIndexer } from "./indexer/factory";
 import { getConfig } from "./llm/config";
-import { createToken } from "libs/jwt";
-import { consumeCredits } from "libs/user-plan";
+import { createToken } from "@packages/common/jwt";
+import { consumeCredits } from "@packages/common/user-plan";
 
 const MIN_RELEVANT_SCORE = 0.5;
 

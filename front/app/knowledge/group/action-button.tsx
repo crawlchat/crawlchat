@@ -1,4 +1,7 @@
-import type { KnowledgeGroup, KnowledgeGroupStatus } from "libs/prisma";
+import type {
+  KnowledgeGroup,
+  KnowledgeGroupStatus,
+} from "@packages/common/prisma";
 import { useEffect, useState } from "react";
 import { TbArrowRight, TbPlayerStopFilled, TbRefresh } from "react-icons/tb";
 import { useFetcher } from "react-router";

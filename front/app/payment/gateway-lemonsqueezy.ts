@@ -1,4 +1,9 @@
-import { PLAN_HOBBY, PLAN_PRO, PLAN_STARTER, type Plan } from "libs/user-plan";
+import {
+  PLAN_HOBBY,
+  PLAN_PRO,
+  PLAN_STARTER,
+  type Plan,
+} from "@packages/common/user-plan";
 import type { PaymentGateway, PaymentGatewayWebhookType } from "./gateway";
 import crypto from "crypto";
 

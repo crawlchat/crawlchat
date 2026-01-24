@@ -1,6 +1,6 @@
 import type { Route } from "./+types/helpdesk";
 import { makeMeta } from "~/meta";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { getSessionScrapeId, authoriseScrapeUser } from "~/auth/scrape-session";
 import { Page } from "~/components/page";
@@ -9,11 +9,11 @@ import { useState, useMemo } from "react";
 import { SettingsSection } from "~/components/settings-section";
 import { useFetcher } from "react-router";
 import { Helpdesk } from "~/helpdesk/layout";
-import type { HelpdeskConfig } from "libs/prisma";
-import { createToken } from "libs/jwt";
+import type { HelpdeskConfig } from "@packages/common/prisma";
+import { createToken } from "@packages/common/jwt";
 import cn from "@meltdownjs/cn";
 import { TbPlus, TbTrash } from "react-icons/tb";
-import type { Scrape } from "libs/prisma";
+import type { Scrape } from "@packages/common/prisma";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

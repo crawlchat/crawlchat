@@ -1,5 +1,5 @@
 import type { Route } from "./+types/conversations";
-import type { Message, Prisma, Thread } from "libs/prisma";
+import type { Message, Prisma, Thread } from "@packages/common/prisma";
 import { Page } from "~/components/page";
 import {
   TbChevronLeft,
@@ -12,7 +12,7 @@ import {
 } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getMessagesScore } from "~/score";
 import { Link, redirect, useLoaderData } from "react-router";
 import { ViewSwitch } from "./view-switch";

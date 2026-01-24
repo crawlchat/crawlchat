@@ -14,7 +14,7 @@ import {
   MauritsTestimonial,
 } from "~/landing/page";
 import cn from "@meltdownjs/cn";
-import { RateLimiter } from "libs/rate-limiter";
+import { RateLimiter } from "@packages/common/rate-limiter";
 import { getClientIp } from "~/client-ip";
 
 export async function loader({ request }: Route.LoaderArgs) {

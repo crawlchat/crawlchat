@@ -1,4 +1,4 @@
-import type { Prisma } from "libs/prisma";
+import type { Prisma } from "@packages/common/prisma";
 import type { Route } from "./+types/settings";
 import { redirect, useFetcher } from "react-router";
 import { TbSettings } from "react-icons/tb";
@@ -10,7 +10,7 @@ import {
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { getSession } from "~/session";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getSessionScrapeId } from "~/auth/scrape-session";
 
 export async function loader({ request }: Route.LoaderArgs) {

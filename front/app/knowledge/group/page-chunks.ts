@@ -1,4 +1,4 @@
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 
 export async function getTotalPageChunks(knowledgeGroupId: string) {
   const result = (await prisma.$runCommandRaw({

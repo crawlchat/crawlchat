@@ -1,10 +1,10 @@
-import type { KnowledgeGroup, Scrape, UserPlan } from "libs/prisma";
+import type { KnowledgeGroup, Scrape, UserPlan } from "@packages/common/prisma";
 import { splitMarkdown } from "../scrape/markdown-splitter";
 import { assertLimit } from "../assert-limit";
 import { makeIndexer } from "../indexer/factory";
 import { deleteByIds, makeRecordId } from "../pinecone";
 import { v4 as uuidv4 } from "uuid";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 
 export async function upsertItem(
   scrape: Scrape,

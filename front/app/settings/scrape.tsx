@@ -5,14 +5,14 @@ import type {
   Scrape,
   ScrapeMessageCategory,
   User,
-} from "libs/prisma";
+} from "@packages/common/prisma";
 import { redirect, useFetcher } from "react-router";
 import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
 } from "~/components/settings-section";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import {
   TbBolt,
@@ -32,7 +32,7 @@ import {
 import { Page } from "~/components/page";
 import { useEffect, useRef, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
-import { createToken } from "libs/jwt";
+import { createToken } from "@packages/common/jwt";
 import { RadioCard } from "~/components/radio-card";
 import { DataList } from "~/components/data-list";
 import toast from "react-hot-toast";

@@ -1,4 +1,4 @@
-import { Prisma } from "libs/dist/prisma";
+import { Prisma } from "@packages/common/prisma";
 import { GroupData, ItemData } from "./queue";
 
 export type PageContent = {

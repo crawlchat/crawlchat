@@ -1,4 +1,4 @@
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import type { Route } from "./+types/config";
 
 export async function loader({ params }: Route.LoaderArgs) {

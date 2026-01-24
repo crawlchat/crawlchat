@@ -1,5 +1,9 @@
 import type { Route } from "./+types/message";
-import type { ApiAction, CategorySuggestion, Message } from "libs/prisma";
+import type {
+  ApiAction,
+  CategorySuggestion,
+  Message,
+} from "@packages/common/prisma";
 import {
   TbFolder,
   TbMessage,
@@ -12,10 +16,10 @@ import {
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { useMemo, useState } from "react";
 import { makeMessagePairs, type MessagePair } from "./analyse";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { Link, Link as RouterLink, useFetcher } from "react-router";
 import { CountryFlag } from "./country-flag";
-import { extractCitations } from "libs/citation";
+import { extractCitations } from "@packages/common/citation";
 import { DataList } from "~/components/data-list";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
@@ -26,7 +30,7 @@ import cn from "@meltdownjs/cn";
 import { ScoreBadge } from "~/components/score-badge";
 import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
-import { getImagesCount, getQueryString } from "libs/llm-message";
+import { getImagesCount, getQueryString } from "@packages/common/llm-message";
 import { SentimentBadge } from "./sentiment-badge";
 
 export async function loader({ request, params }: Route.LoaderArgs) {

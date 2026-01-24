@@ -11,7 +11,7 @@ import {
 import { jsonrepair } from "jsonrepair";
 import cn from "@meltdownjs/cn";
 import type { FetcherWithComponents } from "react-router";
-import type { Scrape, Thread } from "libs/prisma";
+import type { Scrape, Thread } from "@packages/common/prisma";
 import "./markdown-prose.css";
 import "highlight.js/styles/xt256.min.css";
 const linkifyRegex = require("remark-linkify-regex");

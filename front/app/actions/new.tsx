@@ -3,7 +3,7 @@ import { TbPointerPlus } from "react-icons/tb";
 import { EditForm } from "./edit-form";
 import { EditActionProvider } from "./use-edit-action";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { redirect, useFetcher } from "react-router";
 import { SaveForm } from "./save-form";

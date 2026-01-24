@@ -1,6 +1,6 @@
 import { GroupForSource, UpdateItemResponse, Source } from "./interface";
 import { GroupData, ItemData } from "./queue";
-import { ConfluenceClient } from "libs/confluence";
+import { ConfluenceClient } from "@packages/common/confluence";
 import { scheduleUrls } from "./schedule";
 import { parseHtml } from "../scrape/parse";
 

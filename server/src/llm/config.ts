@@ -1,4 +1,4 @@
-import { LlmModel } from "libs/prisma";
+import { LlmModel } from "@packages/common/prisma";
 
 export type LlmConfig = {
   model: string;

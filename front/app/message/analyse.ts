@@ -1,4 +1,8 @@
-import type { ApiActionCall, MessageSourceLink, Prisma } from "libs/prisma";
+import type {
+  ApiActionCall,
+  MessageSourceLink,
+  Prisma,
+} from "@packages/common/prisma";
 
 export type MessageWithThread = Prisma.MessageGetPayload<{
   include: {

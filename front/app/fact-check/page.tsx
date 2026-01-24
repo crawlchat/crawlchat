@@ -2,7 +2,7 @@ import type { Route } from "./+types/page";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { Page } from "~/components/page";
-import { createToken } from "libs/jwt";
+import { createToken } from "@packages/common/jwt";
 import { useFetcher } from "react-router";
 import { useEffect, useState, useRef, useMemo } from "react";
 import cn from "@meltdownjs/cn";

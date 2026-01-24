@@ -15,8 +15,8 @@ import {
   ThreadAutoArchiveDuration,
 } from "discord.js";
 import { learn, query } from "./api";
-import { createToken } from "libs/jwt";
-import { MessageRating, prisma, Scrape } from "libs/prisma";
+import { createToken } from "@packages/common/jwt";
+import { MessageRating, prisma, Scrape } from "@packages/common/prisma";
 
 type DiscordMessage = Message<boolean>;
 
@@ -500,14 +500,15 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
   if (emojiStr === "🧩") {
     const member = await reaction.message.guild!.members.fetch(user.id);
-    const hasRequiredPermissions = member.permissions.has(
-      PermissionsBitField.Flags.Administrator
-    ) ||
-    member.permissions.has(PermissionsBitField.Flags.ManageGuild) ||
-    member.permissions.has(PermissionsBitField.Flags.ManageMessages);
+    const hasRequiredPermissions =
+      member.permissions.has(PermissionsBitField.Flags.Administrator) ||
+      member.permissions.has(PermissionsBitField.Flags.ManageGuild) ||
+      member.permissions.has(PermissionsBitField.Flags.ManageMessages);
 
     if (!hasRequiredPermissions) {
-      console.warn(`Unauthorized 🧩 emoji usage by ${user.id} in server ${reaction.message.guildId}`);
+      console.warn(
+        `Unauthorized 🧩 emoji usage by ${user.id} in server ${reaction.message.guildId}`
+      );
       return;
     }
 

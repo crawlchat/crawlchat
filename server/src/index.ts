@@ -5,9 +5,13 @@ import express from "express";
 import type { Express, NextFunction, Request, Response } from "express";
 import ws from "express-ws";
 import cors from "cors";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { deleteByIds, deleteScrape } from "./pinecone";
-import { authenticate, AuthMode, authoriseScrapeUser } from "libs/express-auth";
+import {
+  authenticate,
+  AuthMode,
+  authoriseScrapeUser,
+} from "@packages/common/express-auth";
 import { v4 as uuidv4 } from "uuid";
 import {
   LlmModel,
@@ -16,31 +20,34 @@ import {
   MessageChannel,
   Prisma,
   Thread,
-} from "libs/prisma";
+} from "@packages/common/prisma";
 import { makeIndexer } from "./indexer/factory";
-import { name } from "libs";
-import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
+import { name } from "@packages/common";
+import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
 import {
   makeRagTool,
   QueryContext,
   RAGAgentCustomMessage,
 } from "./llm/flow-jasmine";
-import { extractCitations } from "libs/citation";
+import { extractCitations } from "@packages/common/citation";
 import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
-import { chunk } from "libs/chunk";
+import { chunk } from "@packages/common/chunk";
 import { Flow } from "./llm/flow";
 import { z } from "zod";
 import { baseAnswerer, collectSourceLinks } from "./answer";
 import { fillMessageAnalysis } from "./analyse-message";
-import { createToken } from "libs/jwt";
-import { MultimodalContent, getQueryString } from "libs/llm-message";
+import { createToken } from "@packages/common/jwt";
+import {
+  MultimodalContent,
+  getQueryString,
+} from "@packages/common/llm-message";
 import {
   draftRateLimiter,
   mcpRateLimiter,
   wsRateLimiter,
 } from "./rate-limiter";
 import { getConfig } from "./llm/config";
-import { getNextNumber } from "libs/mongo-counter";
+import { getNextNumber } from "@packages/common/mongo-counter";
 import { randomUUID } from "crypto";
 import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";

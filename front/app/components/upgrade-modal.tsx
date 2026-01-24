@@ -1,4 +1,4 @@
-import type { Plan } from "libs/user-plan";
+import type { Plan } from "@packages/common/user-plan";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { PricingBoxes, PricingSwitch } from "~/landing/page";

@@ -1,4 +1,8 @@
-import type { MessageSourceLink, MessageRating, WidgetSize } from "libs/prisma";
+import type {
+  MessageSourceLink,
+  MessageRating,
+  WidgetSize,
+} from "@packages/common/prisma";
 import {
   useEffect,
   useMemo,
@@ -27,7 +31,7 @@ import {
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { track } from "~/components/track";
-import { extractCitations } from "libs/citation";
+import { extractCitations } from "@packages/common/citation";
 import {
   makeClaudeDeepLink,
   makeClaudeMcpJson,

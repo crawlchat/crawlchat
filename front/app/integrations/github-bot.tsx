@@ -1,12 +1,12 @@
 import type { Route } from "./+types/github-bot";
-import type { Prisma } from "libs/prisma";
+import type { Prisma } from "@packages/common/prisma";
 import { useFetcher } from "react-router";
 import {
   SettingsContainer,
   SettingsSection,
   SettingsSectionProvider,
 } from "~/components/settings-section";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { TbArrowRight, TbBrandGithub } from "react-icons/tb";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";

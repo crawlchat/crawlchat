@@ -1,4 +1,4 @@
-import { prisma } from "libs/dist/prisma";
+import { prisma } from "@packages/common/prisma";
 import { GroupForSource } from "./interface";
 import { GroupData, groupQueue, ItemData, itemQueue, redis } from "./queue";
 

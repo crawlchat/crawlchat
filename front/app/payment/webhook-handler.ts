@@ -1,6 +1,11 @@
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import type { PaymentGateway } from "./gateway";
-import { activatePlan, PLAN_FREE, planMap, resetCredits } from "libs/user-plan";
+import {
+  activatePlan,
+  PLAN_FREE,
+  planMap,
+  resetCredits,
+} from "@packages/common/user-plan";
 
 export async function handleWebhook(request: Request, gateway: PaymentGateway) {
   const body = await request.text();

@@ -1,12 +1,12 @@
-import { prisma } from "libs/prisma";
-import { createToken, verifyToken } from "libs/jwt";
-import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
+import { prisma } from "@packages/common/prisma";
+import { createToken, verifyToken } from "@packages/common/jwt";
+import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
 import { wsRateLimiter } from "../rate-limiter";
 import { baseAnswerer, type AnswerListener } from "../answer";
 import { retry } from "../retry";
 import { fillMessageAnalysis } from "../analyse-message";
 import expressWs from "express-ws";
-import { ScrapeItem } from "libs/prisma";
+import { ScrapeItem } from "@packages/common/prisma";
 
 function makeMessage(type: string, data: unknown) {
   return JSON.stringify({ type, data });

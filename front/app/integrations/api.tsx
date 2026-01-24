@@ -1,5 +1,5 @@
 import type { Route } from "./+types/embed";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import {
   SettingsContainer,

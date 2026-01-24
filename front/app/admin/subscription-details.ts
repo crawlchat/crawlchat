@@ -1,7 +1,7 @@
 import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/subscription-details";
 import { redirect } from "react-router";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getPaymentGateway } from "~/payment/factory";
 import { adminEmails } from "./emails";
 

@@ -1,4 +1,4 @@
-import type { Scrape, Thread } from "libs/prisma";
+import type { Scrape, Thread } from "@packages/common/prisma";
 
 export function sanitizeScrape(scrape: Scrape) {
   scrape.slackConfig = null;

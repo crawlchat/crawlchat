@@ -6,15 +6,16 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts"
+    "dev": "nodemon src/index.ts",
+    "prettier": "prettier --no-error-on-unmatched-pattern --check ./**/*.{ts,tsx,js,jsx,json,css,md}"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@packages/common": "*",
     "@slack/bolt": "^4.2.1",
     "dotenv": "^16.4.7",
     "jsonwebtoken": "^9.0.2",
-    "libs": "file:../libs",
     "slackify-markdown": "^4.5.0"
   },
   "devDependencies": {

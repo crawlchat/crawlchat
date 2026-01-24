@@ -1,4 +1,4 @@
-import { allActivePlans } from "libs/user-plan";
+import { allActivePlans } from "@packages/common/user-plan";
 import {
   Container,
   CustomTestimonials,

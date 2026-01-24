@@ -1,11 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { exit } from "process";
 import { cleanupMessages } from "./cleanup";
-import { createToken } from "libs/jwt";
-import { getNextUpdateTime } from "libs/knowledge-group";
+import { createToken } from "@packages/common/jwt";
+import { getNextUpdateTime } from "@packages/common/knowledge-group";
 
 async function updateKnowledgeGroup(groupId: string) {
   console.log(`Updating knowledge group ${groupId}`);

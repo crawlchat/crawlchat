@@ -4,9 +4,13 @@ import { AppContext, useApp } from "~/components/app-context";
 import { getAuthUser } from "~/auth/middleware";
 import { SideMenu } from "~/components/side-menu";
 import { useEffect } from "react";
-import { getPagesCount, PLAN_FREE, allActivePlans } from "libs/user-plan";
-import { planMap } from "libs/user-plan";
-import { prisma } from "libs/prisma";
+import {
+  getPagesCount,
+  PLAN_FREE,
+  allActivePlans,
+} from "@packages/common/user-plan";
+import { planMap } from "@packages/common/user-plan";
+import { prisma } from "@packages/common/prisma";
 import { getSession } from "~/session";
 import { fetchDataGaps } from "~/data-gaps/fetch";
 import { Toaster } from "react-hot-toast";
@@ -14,7 +18,7 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { UpgradeModal } from "~/components/upgrade-modal";
 import { showModal } from "~/components/daisy-utils";
-import { createToken } from "libs/jwt";
+import { createToken } from "@packages/common/jwt";
 import { getLatestChangelog } from "~/changelog/fetch";
 
 export function meta() {

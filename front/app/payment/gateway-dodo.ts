@@ -12,7 +12,7 @@ import {
   PLAN_STARTER,
   PLAN_STARTER_YEARLY,
   type Plan,
-} from "libs/user-plan";
+} from "@packages/common/user-plan";
 import type { PaymentGateway, PaymentGatewayWebhookType } from "./gateway";
 import { Webhook } from "standardwebhooks";
 import { DodoPayments } from "dodopayments";

@@ -1,14 +1,18 @@
 {
   "packageManager": "npm@8.5.0",
   "workspaces": [
+    "packages/*",
     "front",
     "server",
-    "source-sync"
+    "source-sync",
+    "discord-bot",
+    "slack-app"
   ],
   "dependencies": {
     "turbo": "^2.7.5"
   },
   "scripts": {
+    "build": "turbo build",
     "dev": "turbo dev",
     "prettier": "turbo prettier"
   }

@@ -1,4 +1,9 @@
-import type { CategorySuggestion, Message, Prisma, Scrape } from "libs/prisma";
+import type {
+  CategorySuggestion,
+  Message,
+  Prisma,
+  Scrape,
+} from "@packages/common/prisma";
 import type { Route } from "./+types/messages";
 import {
   TbChevronLeft,
@@ -13,7 +18,7 @@ import {
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { makeMessagePairs } from "./analyse";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import {
@@ -28,7 +33,7 @@ import { Rating } from "./rating-badge";
 import { EmptyState } from "~/components/empty-state";
 import { ScoreBadge } from "~/components/score-badge";
 import { ChannelBadge } from "~/components/channel-badge";
-import { getQueryString } from "libs/llm-message";
+import { getQueryString } from "@packages/common/llm-message";
 import cn from "@meltdownjs/cn";
 import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";

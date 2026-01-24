@@ -1,10 +1,10 @@
 import type { Route } from "./+types/page";
-import type { Message } from "libs/prisma";
+import type { Message } from "@packages/common/prisma";
 import { TbChartBarOff, TbCheck, TbCopy, TbMessage, TbX } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { Link, useFetcher } from "react-router";
 import { fetchDataGaps } from "./fetch";
 import { EmptyState } from "~/components/empty-state";

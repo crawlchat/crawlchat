@@ -1,5 +1,8 @@
 import type { Route } from "./+types/new-group";
-import type { KnowledgeGroupStatus, KnowledgeGroupType } from "libs/prisma";
+import type {
+  KnowledgeGroupStatus,
+  KnowledgeGroupType,
+} from "@packages/common/prisma";
 import type { FileUpload } from "@mjackson/form-data-parser";
 import {
   TbBook2,
@@ -15,10 +18,10 @@ import { SiDocusaurus, SiLinear } from "react-icons/si";
 import { redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { Page } from "~/components/page";
-import { createToken } from "libs/jwt";
+import { createToken } from "@packages/common/jwt";
 import { parseFormData } from "@mjackson/form-data-parser";
 import { useEffect, useMemo, useState } from "react";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { RadioCard } from "~/components/radio-card";
 import toast from "react-hot-toast";

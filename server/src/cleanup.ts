@@ -1,4 +1,4 @@
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 
 function chunk<T>(array: T[], size: number): T[][] {
   return array.reduce((acc, _, i) => {

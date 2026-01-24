@@ -1,4 +1,4 @@
-import type { Scrape } from "libs/prisma";
+import type { Scrape } from "@packages/common/prisma";
 
 export function makeMcpName(scrape: Scrape) {
   const name =

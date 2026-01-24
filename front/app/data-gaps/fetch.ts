@@ -1,4 +1,4 @@
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 
 export async function fetchDataGaps(scrapeId: string) {
   const ONE_WEEK_AGO = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);

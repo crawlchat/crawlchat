@@ -25,6 +25,7 @@
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
     "@notionhq/client": "^4.0.1",
+    "@packages/common": "*",
     "@pinecone-database/pinecone": "^4.1.0",
     "bullmq": "^5.66.4",
     "cheerio": "^1.1.2",
@@ -32,7 +33,6 @@
     "dotenv": "^16.4.7",
     "express": "^5.2.1",
     "ioredis": "^5.8.2",
-    "libs": "file:../libs",
     "lodash": "^4.17.21",
     "markdown-to-txt": "^2.0.1",
     "notion-to-md": "^3.1.9",

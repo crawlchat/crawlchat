@@ -1,4 +1,9 @@
-import type { Scrape, ScrapeUser, Thread, UserRole } from "libs/prisma";
+import type {
+  Scrape,
+  ScrapeUser,
+  Thread,
+  UserRole,
+} from "@packages/common/prisma";
 import { redirect } from "react-router";
 import { getSession } from "~/session";
 

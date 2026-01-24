@@ -1,4 +1,4 @@
-import type { Prisma, Scrape, ScrapeUser, User } from "libs/prisma";
+import type { Prisma, Scrape, ScrapeUser, User } from "@packages/common/prisma";
 import { createContext, useEffect, useMemo, useState } from "react";
 import type { SetupProgressAction } from "../setup-progress/config";
 import type { BlogPost } from "~/blog/posts";

@@ -1,4 +1,4 @@
-import type { UserPlanProvider } from "libs/prisma";
+import type { UserPlanProvider } from "@packages/common/prisma";
 import { dodoGateway } from "./gateway-dodo";
 import { lemonsqueezyGateway } from "./gateway-lemonsqueezy";
 

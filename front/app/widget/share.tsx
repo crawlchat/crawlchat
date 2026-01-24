@@ -1,8 +1,12 @@
 import type { Route } from "./+types/share";
-import type { Scrape, Message, MessageSourceLink } from "libs/prisma";
-import { prisma } from "libs/prisma";
+import type {
+  Scrape,
+  Message,
+  MessageSourceLink,
+} from "@packages/common/prisma";
+import { prisma } from "@packages/common/prisma";
 import { useMemo } from "react";
-import { extractCitations } from "libs/citation";
+import { extractCitations } from "@packages/common/citation";
 import { MarkdownProse } from "./markdown-prose";
 import { RiChatVoiceAiFill } from "react-icons/ri";
 import { MessageCopyButton, Sources } from "~/widget/chat-box";

@@ -1,7 +1,7 @@
 import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/collection";
 import { redirect, useLoaderData } from "react-router";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { DataList } from "~/components/data-list";
 import { makeMeta } from "~/meta";
 import {

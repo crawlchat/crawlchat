@@ -13,7 +13,7 @@ import {
   TbThumbDown,
 } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { Page } from "~/components/page";
 import {
   XAxis,
@@ -35,7 +35,7 @@ import { numberToKMB } from "~/components/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
 import { Link, redirect, useFetcher } from "react-router";
-import { getLimits } from "libs/user-plan";
+import { getLimits } from "@packages/common/user-plan";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
 import moment from "moment";

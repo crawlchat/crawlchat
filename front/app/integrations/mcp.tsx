@@ -1,5 +1,5 @@
 import type { Route } from "./+types/mcp";
-import type { Prisma } from "libs/prisma";
+import type { Prisma } from "@packages/common/prisma";
 import { useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import {
@@ -7,7 +7,7 @@ import {
   SettingsSection,
   SettingsSectionProvider,
 } from "~/components/settings-section";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { makeCursorMcpJson, makeMcpName } from "~/mcp-command";

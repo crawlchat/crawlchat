@@ -1,0 +1,136 @@
+{
+  "name": "@packages/common",
+  "version": "1.0.0",
+  "description": "",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./prisma": {
+      "default": "./dist/prisma.js",
+      "types": "./dist/prisma.d.ts"
+    },
+    "./user-plan": {
+      "default": "./dist/user-plan.js",
+      "types": "./dist/user-plan.d.ts"
+    },
+    "./citation": {
+      "default": "./dist/citation.js",
+      "types": "./dist/citation.d.ts"
+    },
+    "./chunk": {
+      "default": "./dist/chunk.js",
+      "types": "./dist/chunk.d.ts"
+    },
+    "./knowledge-group": {
+      "default": "./dist/knowledge-group.js",
+      "types": "./dist/knowledge-group.d.ts"
+    },
+    "./rich-message-block": {
+      "default": "./dist/rich-message-block.js",
+      "types": "./dist/rich-message-block.d.ts"
+    },
+    "./mongo-counter": {
+      "default": "./dist/mongo-counter.js",
+      "types": "./dist/mongo-counter.d.ts"
+    },
+    "./jwt": {
+      "default": "./dist/jwt.js",
+      "types": "./dist/jwt.d.ts"
+    },
+    "./cal": {
+      "default": "./dist/cal.js",
+      "types": "./dist/cal.d.ts"
+    },
+    "./llm-message": {
+      "default": "./dist/llm-message.js",
+      "types": "./dist/llm-message.d.ts"
+    },
+    "./rate-limiter": {
+      "default": "./dist/rate-limiter.js",
+      "types": "./dist/rate-limiter.d.ts"
+    },
+    "./confluence": {
+      "default": "./dist/confluence.js",
+      "types": "./dist/confluence.d.ts"
+    },
+    "./linear": {
+      "default": "./dist/linear.js",
+      "types": "./dist/linear.d.ts"
+    },
+    "./express-auth": {
+      "default": "./dist/express-auth.js",
+      "types": "./dist/express-auth.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "prisma": [
+        "./dist/prisma.d.ts"
+      ],
+      "user-plan": [
+        "./dist/user-plan.d.ts"
+      ],
+      "citation": [
+        "./dist/citation.d.ts"
+      ],
+      "chunk": [
+        "./dist/chunk.d.ts"
+      ],
+      "knowledge-group": [
+        "./dist/knowledge-group.d.ts"
+      ],
+      "rich-message-block": [
+        "./dist/rich-message-block.d.ts"
+      ],
+      "mongo-counter": [
+        "./dist/mongo-counter.d.ts"
+      ],
+      "jwt": [
+        "./dist/jwt.d.ts"
+      ],
+      "cal": [
+        "./dist/cal.d.ts"
+      ],
+      "llm-message": [
+        "./dist/llm-message.d.ts"
+      ],
+      "rate-limiter": [
+        "./dist/rate-limiter.d.ts"
+      ],
+      "confluence": [
+        "./dist/confluence.d.ts"
+      ],
+      "linear": [
+        "./dist/linear.d.ts"
+      ],
+      "express-auth": [
+        "./dist/express-auth.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.13.9",
+    "prisma": "^6.4.1",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.6.0",
+    "@linear/sdk": "^60.0.0",
+    "@prisma/client": "^6.4.1",
+    "confluence.js": "^2.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.25.51"
+  }
+}

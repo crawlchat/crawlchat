@@ -9,7 +9,7 @@ import {
 } from "react";
 import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/page";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { TbArrowRight, TbCheck } from "react-icons/tb";
 import { getSession } from "~/session";
 import { useFetcher, useLoaderData } from "react-router";

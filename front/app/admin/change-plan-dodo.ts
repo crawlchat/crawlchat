@@ -1,8 +1,8 @@
 import { getAuthUser } from "~/auth/middleware";
 import type { Route } from "./+types/change-plan-dodo";
 import { redirect } from "react-router";
-import { prisma } from "libs/prisma";
-import { planMap, activatePlan } from "libs/user-plan";
+import { prisma } from "@packages/common/prisma";
+import { planMap, activatePlan } from "@packages/common/user-plan";
 import { getDodoClient, planProductIdMap } from "~/payment/gateway-dodo";
 import { adminEmails } from "./emails";
 

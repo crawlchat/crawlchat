@@ -6,7 +6,7 @@ import {
   RichBlockConfig,
   ScrapeItem,
   Thread,
-} from "libs/prisma";
+} from "@packages/common/prisma";
 import { makeIndexer } from "../indexer/factory";
 import {
   FlowMessage,
@@ -16,9 +16,9 @@ import {
 } from "./agentic";
 import { Flow } from "./flow";
 import { z } from "zod";
-import { richMessageBlocks } from "libs/rich-message-block";
-import { createBooking, getSlots } from "libs/cal";
-import { MultimodalContent } from "libs/llm-message";
+import { richMessageBlocks } from "@packages/common/rich-message-block";
+import { createBooking, getSlots } from "@packages/common/cal";
+import { MultimodalContent } from "@packages/common/llm-message";
 import zodToJsonSchema from "zod-to-json-schema";
 
 export type RAGAgentCustomMessage = {

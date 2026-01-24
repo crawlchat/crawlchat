@@ -1,4 +1,4 @@
-import type { Message } from "libs/prisma";
+import type { Message } from "@packages/common/prisma";
 
 export function getMessagesScore(messages: Message[]) {
   const scores = messages.map((m) => {

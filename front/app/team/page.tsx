@@ -13,11 +13,11 @@ import {
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
-import { prisma, type ScrapeUser } from "libs/prisma";
+import { prisma, type ScrapeUser } from "@packages/common/prisma";
 import { redirect, useFetcher } from "react-router";
 import { useEffect, useState } from "react";
 import { sendInvitationEmail, sendTeamJoinEmail } from "~/email";
-import { getLimits } from "libs/user-plan";
+import { getLimits } from "@packages/common/user-plan";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";

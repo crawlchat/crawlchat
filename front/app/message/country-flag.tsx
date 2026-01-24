@@ -1,4 +1,4 @@
-import type { Location } from "libs/prisma";
+import type { Location } from "@packages/common/prisma";
 import { useMemo } from "react";
 import { getCountryData, type TCountryCode } from "countries-list";
 

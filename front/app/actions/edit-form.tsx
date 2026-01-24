@@ -1,7 +1,10 @@
 import { useContext } from "react";
 import { EditActionContext } from "./use-edit-action";
 import { TbCircleCheck, TbCircleX, TbPlus, TbTrash } from "react-icons/tb";
-import type { ApiActionDataItem, ApiActionMethod } from "libs/prisma";
+import type {
+  ApiActionDataItem,
+  ApiActionMethod,
+} from "@packages/common/prisma";
 import cn from "@meltdownjs/cn";
 import { RadioCard } from "~/components/radio-card";
 

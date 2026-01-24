@@ -11,7 +11,7 @@ import { Page } from "~/components/page";
 import { EmptyState } from "~/components/empty-state";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { useFetcher } from "react-router";
 import { useEffect, useState } from "react";
 import { hideModal, showModal } from "~/components/daisy-utils";

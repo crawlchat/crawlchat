@@ -1,5 +1,5 @@
 import type { Route } from "./+types/page";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { Page } from "~/components/page";
@@ -18,7 +18,7 @@ import {
 } from "react-icons/tb";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import { useMemo } from "react";
-import { createToken } from "libs/jwt";
+import { createToken } from "@packages/common/jwt";
 import { ActionButton } from "./action-button";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";

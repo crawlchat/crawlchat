@@ -55,10 +55,10 @@ import {
   TbVideo,
   TbWorld,
 } from "react-icons/tb";
-import { prisma } from "libs/prisma";
-import type { User } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
+import type { User } from "@packages/common/prisma";
 import { track } from "~/components/track";
-import { type Plan, allActivePlans } from "libs/user-plan";
+import { type Plan, allActivePlans } from "@packages/common/user-plan";
 import { Link, useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
 import { makeMeta } from "~/meta";
@@ -1504,7 +1504,8 @@ function Hero() {
     },
     {
       icon: <TbBrandGithub />,
-      tooltip: "Add as GitHub bot to answer questions in discussions and issues",
+      tooltip:
+        "Add as GitHub bot to answer questions in discussions and issues",
     },
     {
       icon: <MCPIcon />,
@@ -2433,7 +2434,8 @@ function SourcesChannels() {
     {
       icon: <TbBrandGithub />,
       title: "GitHub",
-      tooltip: "Add the GitHub bot and ask questions by tagging @crawlchat in discussions and issues",
+      tooltip:
+        "Add the GitHub bot and ask questions by tagging @crawlchat in discussions and issues",
       isNew: true,
     },
     {

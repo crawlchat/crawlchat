@@ -1,4 +1,4 @@
-import type { User } from "libs/prisma";
+import type { User } from "@packages/common/prisma";
 import { createCookieSessionStorage } from "react-router";
 
 type SessionData = {

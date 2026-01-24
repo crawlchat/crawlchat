@@ -1,4 +1,4 @@
-import type { Message, QuestionSentiment } from "libs/prisma";
+import type { Message, QuestionSentiment } from "@packages/common/prisma";
 
 export function getMessagesSummary(messages: Message[]) {
   const dailyMessages: Record<

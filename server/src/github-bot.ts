@@ -3,11 +3,11 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import { baseAnswerer } from "./answer";
 import { fillMessageAnalysis } from "./analyse-message";
-import { extractCitations } from "libs/citation";
-import { createToken } from "libs/jwt";
-import { consumeCredits, hasEnoughCredits } from "libs/user-plan";
-import { getQueryString } from "libs/llm-message";
-import { Scrape, Thread, prisma } from "libs/prisma";
+import { extractCitations } from "@packages/common/citation";
+import { createToken } from "@packages/common/jwt";
+import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
+import { getQueryString } from "@packages/common/llm-message";
+import { Scrape, Thread, prisma } from "@packages/common/prisma";
 import jwt from "jsonwebtoken";
 
 type GitHubPostResponse = {

@@ -1,4 +1,4 @@
-import type { Scrape, User } from "libs/prisma";
+import type { Scrape, User } from "@packages/common/prisma";
 import { TbCrown } from "react-icons/tb";
 
 export type SetupProgressInput = {

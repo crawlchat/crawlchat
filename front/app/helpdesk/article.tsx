@@ -1,5 +1,5 @@
 import { Container } from "./layout";
-import { prisma } from "libs/prisma";
+import { prisma } from "@packages/common/prisma";
 import Markdown from "react-markdown";
 import type { Route } from "./+types/article";
 import { TbArrowLeft } from "react-icons/tb";
