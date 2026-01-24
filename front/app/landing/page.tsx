@@ -2434,6 +2434,7 @@ function SourcesChannels() {
       icon: <TbBrandGithub />,
       title: "GitHub",
       tooltip: "Add the GitHub bot and ask questions by tagging @crawlchat in discussions and issues",
+      isNew: true,
     },
     {
       icon: <MCPIcon />,
@@ -2444,7 +2445,6 @@ function SourcesChannels() {
       icon: <TbCode />,
       title: "API",
       tooltip: "Use the API to integrate with your own applications",
-      isNew: true,
     },
     {
       icon: <SiN8N />,
