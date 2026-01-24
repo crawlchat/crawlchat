@@ -1,0 +1,21 @@
+FROM node:20-alpine AS base
+
+RUN npm install -g turbo
+
+WORKDIR /app
+
+COPY . .
+
+RUN turbo prune source-sync
+
+WORKDIR /app/out
+
+RUN npm i
+
+RUN turbo run build --filter=source-sync
+
+WORKDIR /app/out/source-sync
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start"]
