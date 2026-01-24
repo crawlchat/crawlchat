@@ -4,11 +4,9 @@ import { emailConfig } from "./config";
 
 export default function DataGapAlertEmail({
   title,
-  description,
   scrapeTitle,
 }: {
   title: string;
-  description: string;
   scrapeTitle: string;
 }) {
   return (
@@ -30,7 +28,6 @@ export default function DataGapAlertEmail({
       <Text style={{ fontWeight: "bold" }}>
         {title ?? "Sample data gap title"}
       </Text>
-      <Markdown>{description ?? "Sample data gap description"}</Markdown>
     </MailTemplate>
   );
 }

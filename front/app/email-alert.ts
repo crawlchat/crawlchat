@@ -84,14 +84,12 @@ export async function action({ request }: Route.LoaderArgs) {
       if (
         scrapeUser.user &&
         (scrapeUser.user.settings?.dataGapEmailUpdates ?? true) &&
-        message.analysis?.dataGapTitle &&
-        message.analysis?.dataGapDescription
+        message.analysis?.dataGapTitle
       ) {
         await sendDataGapAlertEmail(
           scrapeUser.user.email!,
           message.scrape.title ?? "",
-          message.analysis.dataGapTitle,
-          message.analysis.dataGapDescription
+          message.analysis.dataGapTitle
         );
       }
     }

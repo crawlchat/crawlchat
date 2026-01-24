@@ -120,17 +120,12 @@ export const sendLowCreditsEmail = async (
 export const sendDataGapAlertEmail = async (
   to: string,
   scrapeTitle: string,
-  title: string,
-  description: string
+  title: string
 ) => {
   await sendReactEmail(
     to,
     `Data Gap Found in ${scrapeTitle}`,
-    <DataGapAlertEmail
-      scrapeTitle={scrapeTitle}
-      title={title}
-      description={description}
-    />
+    <DataGapAlertEmail scrapeTitle={scrapeTitle} title={title} />
   );
 };
 
