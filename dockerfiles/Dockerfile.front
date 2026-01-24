@@ -8,13 +8,13 @@ WORKDIR /app
 
 COPY . .
 
-RUN turbo prune ${APP}
+RUN turbo prune front
 
 RUN npm i
 RUN cd packages/common && npx prisma@6.4.1 generate && cd ../..
-RUN turbo build --filter=${APP}
+RUN turbo build --filter=front
 
-WORKDIR /app/${APP}
+WORKDIR /app/front
 
 EXPOSE 3000
 
