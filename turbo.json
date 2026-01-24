@@ -1,16 +1,21 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "tasks": {
+    "generate": {
+      "outputs": ["node_modules/.prisma/**"]
+    },
     "prettier": {
       "outputs": ["**/*.{ts,tsx,js,json,css,md}"]
     },
     "build": {
+      "dependsOn": ["generate"],
       "outputs": ["dist/**"]
     },
     "check-types": {
       "dependsOn": ["^check-types"]
     },
     "dev": {
+      "dependsOn": ["generate"],
       "persistent": true,
       "cache": false
     }

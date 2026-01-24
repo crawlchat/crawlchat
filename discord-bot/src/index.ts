@@ -1,6 +1,14 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+if (!process.env.APP_ID) {
+  if (!process.env.SELF_HOSTED) {
+    throw new Error("APP_ID is not set");
+  }
+  console.log("APP_ID is not set, skipping Discord bot");
+  process.exit(0);
+}
+
 import {
   ActivityType,
   ChannelType,

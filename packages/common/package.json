@@ -114,6 +114,7 @@
     }
   },
   "scripts": {
+    "generate": "prisma generate",
     "dev": "tsc --watch",
     "build": "tsc"
   },
