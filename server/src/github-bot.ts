@@ -155,6 +155,106 @@ async function postDiscussionComment(
   return (await response.json()) as GitHubPostResponse;
 }
 
+async function getIssueComments(
+  token: string,
+  owner: string,
+  repo: string,
+  issueNumber: number
+): Promise<any[]> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to get issue comments: ${error}`);
+  }
+
+  return (await response.json()) as any[];
+}
+
+async function getDiscussionComments(
+  token: string,
+  owner: string,
+  repo: string,
+  discussionNumber: number
+): Promise<any[]> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/discussions/${discussionNumber}/comments`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to get discussion comments: ${error}`);
+  }
+
+  return (await response.json()) as any[];
+}
+
+async function getIssue(
+  token: string,
+  owner: string,
+  repo: string,
+  issueNumber: number
+): Promise<any> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to get issue: ${error}`);
+  }
+
+  return (await response.json()) as any;
+}
+
+async function getDiscussion(
+  token: string,
+  owner: string,
+  repo: string,
+  discussionNumber: number
+): Promise<any> {
+  const response = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/discussions/${discussionNumber}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Failed to get discussion: ${error}`);
+  }
+
+  return (await response.json()) as any;
+}
+
 async function postIssueComment(
   token: string,
   owner: string,
@@ -182,6 +282,70 @@ async function postIssueComment(
   }
 
   return (await response.json()) as GitHubPostResponse;
+}
+
+async function getGitHubConversationMessages(
+  token: string,
+  type: "discussion" | "issue",
+  owner: string,
+  repo: string,
+  number: number
+): Promise<
+  Array<{ llmMessage: { role: "user" | "assistant"; content: string } }>
+> {
+  let initialBody: string;
+  let comments: any[];
+
+  if (type === "issue") {
+    const issue = await getIssue(token, owner, repo, number);
+    initialBody = issue.body || issue.title || "";
+    comments = await getIssueComments(token, owner, repo, number);
+  } else {
+    const discussion = await getDiscussion(token, owner, repo, number);
+    initialBody = discussion.body || discussion.title || "";
+    comments = await getDiscussionComments(token, owner, repo, number);
+  }
+
+  const messages: Array<{
+    llmMessage: { role: "user" | "assistant"; content: string };
+  }> = [];
+
+  if (initialBody.trim()) {
+    messages.push({
+      llmMessage: {
+        role: "user",
+        content: initialBody,
+      },
+    });
+  }
+
+  const allItems = [
+    ...comments.map((c) => ({
+      id: String(c.id),
+      body: c.body || "",
+      createdAt: c.created_at,
+      isBot:
+        c.user?.type?.toLowerCase() === "bot" ||
+        c.user?.login?.endsWith?.("[bot]"),
+    })),
+  ].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+  for (const item of allItems) {
+    if (!item.body.trim()) {
+      continue;
+    }
+
+    messages.push({
+      llmMessage: {
+        role: item.isBot ? "assistant" : "user",
+        content: item.body,
+      },
+    });
+  }
+
+  return messages.slice(-40);
 }
 
 async function answer(data: {
@@ -240,11 +404,25 @@ async function answer(data: {
 
   const prompt = scrape.githubPrompt ?? scrape.chatPrompt ?? "";
 
-  const answer = await baseAnswerer(scrape, thread, data.question, [], {
-    channel: "github_discussion",
-    actions,
-    prompt,
-  });
+  const conversationMessages = await getGitHubConversationMessages(
+    await getToken(data.installationId),
+    data.type,
+    data.owner,
+    data.repo,
+    data.number
+  );
+
+  const answer = await baseAnswerer(
+    scrape,
+    thread,
+    data.question,
+    conversationMessages,
+    {
+      channel: "github_discussion",
+      actions,
+      prompt,
+    }
+  );
 
   const answerMessage = await prisma.message.create({
     data: {
