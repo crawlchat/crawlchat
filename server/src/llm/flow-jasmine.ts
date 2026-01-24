@@ -77,7 +77,8 @@ export function makeRagTool(
         };
       }
 
-      if (query.length < 5 || query?.split(" ").length < 2) {
+      const queryWords = query?.split(" ");
+      if (query.length < 5 || queryWords?.length < 4) {
         console.log("Query is too short -", query);
         return {
           content: `The query "${query}" is too short. Search again with a longer query.`,
