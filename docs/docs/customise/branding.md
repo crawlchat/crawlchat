@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Branding
 
-The next set of customisations is for the *Web* chatbot that you can embed on your website and the **Ask AI** button. You can configure the following UI elements so that it blends into your branding from Connect > [Customise](https://crawlchat.app/connect) page
+The next set of customisations is for the _Web_ chatbot that you can embed on your website and the **Ask AI** button. You can configure the following UI elements so that it blends into your branding from Connect > [Customise](https://crawlchat.app/connect) page
 
 - Background color
 - Text color
@@ -21,4 +21,4 @@ Configure the sample questions that are frequently asked about your documentatio
 
 ## Text input placeholder
 
-Change the text input placeholder text to your desired one. By default it shows *Ask your question*
+Change the text input placeholder text to your desired one. By default it shows _Ask your question_

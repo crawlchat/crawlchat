@@ -17,9 +17,9 @@ You can go to Connect > [Embed](https://crawlchat.app/connect/embed) page to fin
 Copy the following code and past in the `<head>` section of your page. Replace value of `data-id` to your collection id. You can find it on [Settings](https://crawlchat.app/settings) page.
 
 ```html
-<script 
-  src="https://crawlchat.app/embed.js" 
-  id="crawlchat-script" 
+<script
+  src="https://crawlchat.app/embed.js"
+  id="crawlchat-script"
   data-id="YOUR_COLLECTION_ID" <!-- Ex: 67d29ce750df5f4d86e1db33 --!>
 ></script>
 ```
@@ -47,58 +47,58 @@ All configuration options are set via `data-*` attributes on the script tag. Her
 
 ## Required Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `data-id` | string | - | Your collection ID. You can find it on the [Settings](https://crawlchat.app/connect/embed) page. Example: `67d29ce750df5f4d86e1db33` |
+| Parameter | Type   | Default | Description                                                                                                                          |
+| --------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `data-id` | string | -       | Your collection ID. You can find it on the [Settings](https://crawlchat.app/connect/embed) page. Example: `67d29ce750df5f4d86e1db33` |
 
 ## Optional Parameters
 
 ### Ask AI Button Configuration
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `data-hide-ask-ai` | boolean | `false` | Set to `"true"` to hide the **Ask AI** button completely |
-| `data-ask-ai-text` | string | `"💬 Ask AI"` | Custom text displayed on the Ask AI button |
-| `data-ask-ai-background-color` | string | `"#7b2cbf"` | Background color of the Ask AI button (CSS color value) |
-| `data-ask-ai-color` | string | `"white"` | Text color of the Ask AI button (CSS color value) |
-| `data-ask-ai-position` | string | `"br"` | Position of the Ask AI button. Valid values: `"bl"` (bottom-left), `"br"` (bottom-right), `"tl"` (top-left), `"tr"` (top-right) |
-| `data-ask-ai-margin-x` | string | `"20px"` | Horizontal margin from the edge of the viewport (CSS value) |
-| `data-ask-ai-margin-y` | string | `"20px"` | Vertical margin from the edge of the viewport (CSS value) |
-| `data-ask-ai-radius` | string | `"20px"` | Border radius of the Ask AI button (CSS value) |
-| `data-ask-ai-font-size` | string | - | Font size of the Ask AI button text (CSS value). If not set, uses default font size |
+| Parameter                      | Type    | Default       | Description                                                                                                                     |
+| ------------------------------ | ------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `data-hide-ask-ai`             | boolean | `false`       | Set to `"true"` to hide the **Ask AI** button completely                                                                        |
+| `data-ask-ai-text`             | string  | `"💬 Ask AI"` | Custom text displayed on the Ask AI button                                                                                      |
+| `data-ask-ai-background-color` | string  | `"#7b2cbf"`   | Background color of the Ask AI button (CSS color value)                                                                         |
+| `data-ask-ai-color`            | string  | `"white"`     | Text color of the Ask AI button (CSS color value)                                                                               |
+| `data-ask-ai-position`         | string  | `"br"`        | Position of the Ask AI button. Valid values: `"bl"` (bottom-left), `"br"` (bottom-right), `"tl"` (top-left), `"tr"` (top-right) |
+| `data-ask-ai-margin-x`         | string  | `"20px"`      | Horizontal margin from the edge of the viewport (CSS value)                                                                     |
+| `data-ask-ai-margin-y`         | string  | `"20px"`      | Vertical margin from the edge of the viewport (CSS value)                                                                       |
+| `data-ask-ai-radius`           | string  | `"20px"`      | Border radius of the Ask AI button (CSS value)                                                                                  |
+| `data-ask-ai-font-size`        | string  | -             | Font size of the Ask AI button text (CSS value). If not set, uses default font size                                             |
 
 ### Sidepanel Configuration
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `data-sidepanel` | boolean | `false` | Set to `"true"` to enable sidepanel mode (only works on desktop, width >= 700px). The chat will appear as a resizable side panel instead of a modal |
-| `data-sidepanelOpen` | boolean | `false` | Set to `"true"` to automatically open the sidepanel when the page loads (requires `data-sidepanel="true"`) |
-| `data-hideToc` | boolean | `false` | Set to `"true"` to hide the table of contents when sidepanel is open (primarily for Docusaurus sites) |
+| Parameter            | Type    | Default | Description                                                                                                                                         |
+| -------------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-sidepanel`     | boolean | `false` | Set to `"true"` to enable sidepanel mode (only works on desktop, width >= 700px). The chat will appear as a resizable side panel instead of a modal |
+| `data-sidepanelOpen` | boolean | `false` | Set to `"true"` to automatically open the sidepanel when the page loads (requires `data-sidepanel="true"`)                                          |
+| `data-hideToc`       | boolean | `false` | Set to `"true"` to hide the table of contents when sidepanel is open (primarily for Docusaurus sites)                                               |
 
 ### Theme & Styling
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `data-theme` | string | - | Theme setting passed to the embedded widget. |
+| Parameter             | Type    | Default | Description                                                               |
+| --------------------- | ------- | ------- | ------------------------------------------------------------------------- |
+| `data-theme`          | string  | -       | Theme setting passed to the embedded widget.                              |
 | `data-noPrimaryColor` | boolean | `false` | Set to `"true"` to disable the primary color theme in the embedded widget |
 
 ### Security & Authentication
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `data-secret` | string | - | Secret value used to replace `{{secret}}` placeholders in API action headers. When configuring API actions, you can use `{{secret}}` as a placeholder in header values (e.g., `Authorization: Bearer {{secret}}`). The placeholder will be replaced with the value provided via `data-secret` when the action is executed. This allows you to keep secrets out of your action configuration and provide them dynamically per embed instance. Example: `data-secret="your-api-key-here"` |
+| Parameter     | Type   | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ------------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-secret` | string | -       | Secret value used to replace `{{secret}}` placeholders in API action headers. When configuring API actions, you can use `{{secret}}` as a placeholder in header values (e.g., `Authorization: Bearer {{secret}}`). The placeholder will be replaced with the value provided via `data-secret` when the action is executed. This allows you to keep secrets out of your action configuration and provide them dynamically per embed instance. Example: `data-secret="your-api-key-here"` |
 
 ### Content Selection
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `data-selectionButtons` | JSON string | - | JSON string defining buttons shown in the text selection tooltip. Provide a JSON array of button objects, e.g. `[{"label":"Ask AI","action":"ask"},{"label":"Copy","action":"copy"}]`, where each object has a `label` (button text) and `action` (identifier used by the widget), plus optional fields such as `shortcut` or `icon`. |
+| Parameter               | Type        | Default | Description                                                                                                                                                                                                                                                                                                                           |
+| ----------------------- | ----------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-selectionButtons` | JSON string | -       | JSON string defining buttons shown in the text selection tooltip. Provide a JSON array of button objects, e.g. `[{"label":"Ask AI","action":"ask"},{"label":"Copy","action":"copy"}]`, where each object has a `label` (button text) and `action` (identifier used by the widget), plus optional fields such as `shortcut` or `icon`. |
 
 ### Custom Tags
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `data-tag-*` | string | - | Dynamic custom tags. Any attribute starting with `data-tag-` will be passed to the embedded widget. The tag name (after `data-tag-`) and value are sent as key-value pairs. Example: `data-tag-custom="value"` becomes `{"custom": "value"}` |
+| Parameter    | Type   | Default | Description                                                                                                                                                                                                                                  |
+| ------------ | ------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data-tag-*` | string | -       | Dynamic custom tags. Any attribute starting with `data-tag-` will be passed to the embedded widget. The tag name (after `data-tag-`) and value are sent as key-value pairs. Example: `data-tag-custom="value"` becomes `{"custom": "value"}` |
 
 ### Notes
 

@@ -31,10 +31,10 @@ You need to pass the following headers in the request
 
 Pass the following information in the body of the request
 
-| Key                    | Type     | Note                                                                 |
-| ---------------------- | -------- | -------------------------------------------------------------------- |
-| `query` (required)     | `STRING` | The query or the question you want to ask                            |
-| `prompt` (optional)    | `STRING` | You can pass a custom prompt for the LLMs for this particular query  |
+| Key                       | Type     | Note                                                                                               |
+| ------------------------- | -------- | -------------------------------------------------------------------------------------------------- |
+| `query` (required)        | `STRING` | The query or the question you want to ask                                                          |
+| `prompt` (optional)       | `STRING` | You can pass a custom prompt for the LLMs for this particular query                                |
 | `clientUserId` (optional) | `STRING` | A unique identifier for the client user. This will be used as the fingerprint when saving messages |
 
 ### CURL Request

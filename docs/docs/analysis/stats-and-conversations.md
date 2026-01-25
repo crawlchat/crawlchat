@@ -27,4 +27,3 @@ You can view all the past messages and answeres give from [Messages](https://cra
 You can open a message and find out the answer the chatbot provided, the contexts it fetched, the queries it used. All this information give you more visibility and make the documentation better and tweak the chatbot behaviour by the Chat prompt.
 
 ![Messages](./images/message.png)
-

@@ -54,6 +54,7 @@ docker-compose -f docker-compose-local.yml up -d
 ```
 
 This will start:
+
 - **MongoDB** on `localhost:27017` with replica set `rs0` initialized
 - **Redis** on `localhost:6379` with AOF persistence enabled
 - **mongo-init** service that automatically initializes the replica set
@@ -80,21 +81,25 @@ See for each service it's respective page [here](https://docs.crawlchat.app/cate
 ### Common Issues
 
 #### Port Conflicts
+
 If ports are in use, modify the ports in service configurations or use different ports.
 
 #### Database Connection Issues
+
 - Ensure MongoDB replica set is initialized (mongo-init service should handle this)
 - Check DATABASE_URL format: `mongodb://localhost:27017/crawlchat?replicaSet=rs0`
 - Check Docker containers: `docker-compose -f docker-compose-local.yml ps`
 - View logs: `docker-compose -f docker-compose-local.yml logs database`
 
 #### Redis Connection Issues
+
 - Ensure Redis is running and healthy
 - Check REDIS_URL configuration: `redis://localhost:6379`
 - Check Docker containers: `docker-compose -f docker-compose-local.yml ps`
 - View logs: `docker-compose -f docker-compose-local.yml logs redis`
 
 #### API Key Issues
+
 - Verify all required API keys are set
 - Check key formats and permissions
 - Test API keys independently
@@ -102,11 +107,13 @@ If ports are in use, modify the ports in service configurations or use different
 ## Stopping Services
 
 To stop the database and Redis services:
+
 ```bash
 docker-compose -f docker-compose-local.yml down
 ```
 
 To stop and remove volumes (reset all data):
+
 ```bash
 docker-compose -f docker-compose-local.yml down -v
 ```

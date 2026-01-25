@@ -33,12 +33,14 @@ Before you begin, ensure you have:
 ### Quick Start
 
 1. **Clone the repository** (if you haven't already):
+
    ```bash
    git clone https://github.com/crawlchat/crawlchat.git
    cd crawlchat
    ```
 
 2. **Create a docker-compose override file** (optional, for custom configuration):
+
    ```bash
    cp docker-compose.yml docker-compose.override.yml
    ```
@@ -51,6 +53,7 @@ Before you begin, ensure you have:
    - Update URLs if not using localhost (see Environment Variables section)
 
 4. **Start the services**:
+
    ```bash
    docker-compose up -d
    ```
@@ -69,20 +72,20 @@ Before you begin, ensure you have:
 
 These variables should be set consistently across all services:
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `SELF_HOSTED` | Yes | Must be set to `"true"` for self-hosted deployments | `"true"` |
-| `DATABASE_URL` | Yes | MongoDB connection string with replica set | `"mongodb://database:27017/crawlchat?replicaSet=rs0"` |
-| `JWT_SECRET` | Yes | Secret key for JWT token signing. **Must be the same across all services** | `"a-long-random-secret-string"` |
+| Variable       | Required | Description                                                                | Example                                               |
+| -------------- | -------- | -------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `SELF_HOSTED`  | Yes      | Must be set to `"true"` for self-hosted deployments                        | `"true"`                                              |
+| `DATABASE_URL` | Yes      | MongoDB connection string with replica set                                 | `"mongodb://database:27017/crawlchat?replicaSet=rs0"` |
+| `JWT_SECRET`   | Yes      | Secret key for JWT token signing. **Must be the same across all services** | `"a-long-random-secret-string"`                       |
 
 #### GitHub App Integration (Optional)
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `GITHUB_APP_ID` | No | GitHub App ID for webhook authentication | `"123456"` |
-| `GITHUB_APP_PRIVATE_KEY` | No | Private key for GitHub App authentication | `"-----BEGIN RSA PRIVATE KEY-----\n..."` |
-| `GITHUB_WEBHOOK_SECRET` | No | Secret for verifying GitHub webhook signatures | `"your-webhook-secret"` |
-| `VITE_GITHUB_APP_INSTALL_URL` | No | GitHub App installation URL for frontend | `"https://github.com/apps/your-app/installations/new"` |
+| Variable                      | Required | Description                                    | Example                                                |
+| ----------------------------- | -------- | ---------------------------------------------- | ------------------------------------------------------ |
+| `GITHUB_APP_ID`               | No       | GitHub App ID for webhook authentication       | `"123456"`                                             |
+| `GITHUB_APP_PRIVATE_KEY`      | No       | Private key for GitHub App authentication      | `"-----BEGIN RSA PRIVATE KEY-----\n..."`               |
+| `GITHUB_WEBHOOK_SECRET`       | No       | Secret for verifying GitHub webhook signatures | `"your-webhook-secret"`                                |
+| `VITE_GITHUB_APP_INSTALL_URL` | No       | GitHub App installation URL for frontend       | `"https://github.com/apps/your-app/installations/new"` |
 
 ### Network Configuration
 
@@ -99,6 +102,7 @@ All services run on a Docker bridge network named `crawlchat-net`. Services comm
 If MongoDB fails to initialize the replica set:
 
 1. Check the `mongo-init` service logs:
+
    ```bash
    docker-compose logs mongo-init
    ```
@@ -128,7 +132,7 @@ If ports 3001-3004 are already in use, modify the port mappings in `docker-compo
 
 ```yaml
 ports:
-  - "3005:3000"  # Change external port
+  - "3005:3000" # Change external port
 ```
 
 Remember to update corresponding environment variables (e.g., `VITE_APP_URL`) to match.

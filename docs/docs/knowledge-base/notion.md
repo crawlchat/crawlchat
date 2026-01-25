@@ -20,7 +20,7 @@ You need to create an Internal integration key on Notion dashboard and enter it 
 6. Select Type as **Internal**
 7. Hit Save
 8. Now open the created Integration
-9. Make sure *Read content* and *Read comments* is checked
+9. Make sure _Read content_ and _Read comments_ is checked
 10. Go to **Access** tab
 11. Select the pages to which CrawlChat should have access to
 12. Go to **Configuration** tab
@@ -35,4 +35,3 @@ Once you create the group, you can configure the **Auto update frequency** so th
 You can also configure the pages to skip if some pages are not relevant for the knowledge base.
 
 Hit Fetch now to finally fetch the contents of the configured Notion pages.
-

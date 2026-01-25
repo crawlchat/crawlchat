@@ -4,7 +4,7 @@ sidebar_position: 2
 
 # Web
 
-The most popolar way of adding your documentation to CrawlChat is by providing your docs site URL for **Web** group type and it fetches them automatically. Anyways, you can provide multiple options to get full control over what goes into the knowledge base from the scraping content. 
+The most popolar way of adding your documentation to CrawlChat is by providing your docs site URL for **Web** group type and it fetches them automatically. Anyways, you can provide multiple options to get full control over what goes into the knowledge base from the scraping content.
 
 Navigate to the group page to configure the following settings
 
@@ -16,7 +16,7 @@ Remember, junk in, junk out. So, it is important to keep the content very clean 
 
 ## Skip pages
 
-You can configure the paths to ignore from the scrape process. Example, */admin*, */dashboard* so that those pages and sub pages will be ignored.
+You can configure the paths to ignore from the scrape process. Example, _/admin_, _/dashboard_ so that those pages and sub pages will be ignored.
 
 ## Auto update
 

@@ -15,6 +15,6 @@ It uses the scores to do the analysis along with calculating the relevance of th
 - If (1) is low and (2) is high, it asks AI to check if there is a data gap
 - If so, it generates what is missing or can be corrected
 
-Currently, it only creates a Data Gap alert and more tools will be added soon around it. You can *Cancel* a Data Gap alert if it is not relevant. Or you can consider it, update your documentation and mark it *Done*.
+Currently, it only creates a Data Gap alert and more tools will be added soon around it. You can _Cancel_ a Data Gap alert if it is not relevant. Or you can consider it, update your documentation and mark it _Done_.
 
 ![Data Gaps](./images/data-gap.png)
