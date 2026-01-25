@@ -1,6 +1,7 @@
 ---
 sidebar_position: 3
 ---
+
 # Discord Bot Service
 
 ## Overview
@@ -23,13 +24,13 @@ The Discord Bot service provides integration with Discord, allowing users to int
 
 ## Environment Variables
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `APP_ID` | Yes | Discord application ID | `"123456789012345678"` |
-| `DISCORD_TOKEN` | Yes | Discord bot token | `"xxxxxxxx.yyyyyyyy.zzzzzzzzzzzzzzzzz"` |
-| `BOT_USER_ID` | Yes | Discord bot user ID | `"123456789012345678"` |
-| `ALL_BOT_USER_IDS` | Yes | All bot user IDs | `"123456789012345678,1234561327012345678"` |
-| `SERVER_HOST` | Yes | Server host URL for Discord bot to communicate with | `"http://localhost:3002"` or `"https://api.yourdomain.com"` |
+| Variable           | Required | Description                                         | Example                                                     |
+| ------------------ | -------- | --------------------------------------------------- | ----------------------------------------------------------- |
+| `APP_ID`           | Yes      | Discord application ID                              | `"123456789012345678"`                                      |
+| `DISCORD_TOKEN`    | Yes      | Discord bot token                                   | `"xxxxxxxx.yyyyyyyy.zzzzzzzzzzzzzzzzz"`                     |
+| `BOT_USER_ID`      | Yes      | Discord bot user ID                                 | `"123456789012345678"`                                      |
+| `ALL_BOT_USER_IDS` | Yes      | All bot user IDs                                    | `"123456789012345678,1234561327012345678"`                  |
+| `SERVER_HOST`      | Yes      | Server host URL for Discord bot to communicate with | `"http://localhost:3002"` or `"https://api.yourdomain.com"` |
 
 ## Running Locally
 
@@ -42,11 +43,13 @@ The Discord Bot service provides integration with Discord, allowing users to int
 ### Development Setup
 
 1. **Navigate to the discord-bot directory**:
+
    ```bash
    cd discord-bot
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```

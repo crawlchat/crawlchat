@@ -1,6 +1,7 @@
 ---
 sidebar_position: 6
 ---
+
 # Redis Service
 
 ## Overview
@@ -24,6 +25,7 @@ The Redis service provides an in-memory data store used primarily for queue mana
 ## Environment Variables
 
 Redis service doesn't require specific environment variables for basic setup. The default configuration uses:
+
 - Port: 6379 (internal)
 - AOF persistence: enabled
 - Health checks: enabled
@@ -44,6 +46,7 @@ The Redis service is typically run via Docker Compose as part of the full applic
 If running Redis directly without Docker:
 
 1. **Install Redis 7**:
+
    ```bash
    # Ubuntu/Debian
    sudo apt-get install redis-server
@@ -56,11 +59,13 @@ If running Redis directly without Docker:
 
 2. **Configure Redis** (optional):
    Edit `/etc/redis/redis.conf` to enable AOF:
+
    ```
    appendonly yes
    ```
 
 3. **Start Redis service**:
+
    ```bash
    # System service
    sudo systemctl start redis-server
@@ -72,9 +77,11 @@ If running Redis directly without Docker:
 ### Connection String
 
 Use this connection URL in your application services:
+
 ```
 redis://redis:6379
 ```
+
 (or `redis://localhost:6379` when running locally without Docker)
 
 ### Data Persistence
@@ -95,6 +102,7 @@ redis://redis:6379
 ### Queue Monitoring
 
 To monitor BullMQ queues:
+
 - Use Redis CLI to inspect queue keys
 - Check source-sync service logs for job processing status
 - Monitor queue lengths and job states programmatically

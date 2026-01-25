@@ -1,6 +1,7 @@
 ---
 sidebar_position: 8
 ---
+
 # Server Service
 
 ## Overview
@@ -24,16 +25,16 @@ The Server service is the main API server that handles LLM interactions, user re
 
 ## Environment Variables
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `SOURCE_SYNC_URL` | Yes | Internal URL for the source-sync service | `"http://source_sync:3000"` |
-| `PINECONE_API_KEY` | Yes | Pinecone API key for vector database operations | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` |
-| `OPENROUTER_API_KEY` | Yes | OpenRouter API key for LLM access | `"sk-or-v1-xxxxxxxxxxxxx"` |
-| `ADMIN_EMAILS` | No | Comma-separated list of admin email addresses | `"admin1@example.com,admin2@example.com"` |
-| `OPENAI_API_KEY` | No | OpenAI API key (if using OpenAI directly instead of OpenRouter) | `"sk-xxxxxxxxxxxxx"` |
-| `GITHUB_APP_ID` | No | GitHub App ID for webhook authentication | `"123456"` |
-| `GITHUB_APP_PRIVATE_KEY` | No | Private key for GitHub App authentication | `"-----BEGIN RSA PRIVATE KEY-----\n..."` |
-| `GITHUB_WEBHOOK_SECRET` | No | Secret for verifying GitHub webhook signatures | `"your-webhook-secret"` |
+| Variable                 | Required | Description                                                     | Example                                   |
+| ------------------------ | -------- | --------------------------------------------------------------- | ----------------------------------------- |
+| `SOURCE_SYNC_URL`        | Yes      | Internal URL for the source-sync service                        | `"http://source_sync:3000"`               |
+| `PINECONE_API_KEY`       | Yes      | Pinecone API key for vector database operations                 | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"`  |
+| `OPENROUTER_API_KEY`     | Yes      | OpenRouter API key for LLM access                               | `"sk-or-v1-xxxxxxxxxxxxx"`                |
+| `ADMIN_EMAILS`           | No       | Comma-separated list of admin email addresses                   | `"admin1@example.com,admin2@example.com"` |
+| `OPENAI_API_KEY`         | No       | OpenAI API key (if using OpenAI directly instead of OpenRouter) | `"sk-xxxxxxxxxxxxx"`                      |
+| `GITHUB_APP_ID`          | No       | GitHub App ID for webhook authentication                        | `"123456"`                                |
+| `GITHUB_APP_PRIVATE_KEY` | No       | Private key for GitHub App authentication                       | `"-----BEGIN RSA PRIVATE KEY-----\n..."`  |
+| `GITHUB_WEBHOOK_SECRET`  | No       | Secret for verifying GitHub webhook signatures                  | `"your-webhook-secret"`                   |
 
 ## Running Locally
 
@@ -47,11 +48,13 @@ The Server service is the main API server that handles LLM interactions, user re
 ### Development Setup
 
 1. **Navigate to the server directory**:
+
    ```bash
    cd server
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
@@ -60,6 +63,7 @@ The Server service is the main API server that handles LLM interactions, user re
    Create a `.env` file or set environment variables with the required configuration including database connection and API keys.
 
 4. **Generate Prisma client** (if not already done):
+
    ```bash
    npx prisma generate
    ```

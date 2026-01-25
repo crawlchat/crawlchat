@@ -1,6 +1,7 @@
 ---
 sidebar_position: 10
 ---
+
 # Source Sync Service
 
 ## Overview
@@ -25,14 +26,14 @@ The Source Sync service is a background service that handles syncing documentati
 
 ## Environment Variables
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `PINECONE_API_KEY` | Yes | Pinecone API key for vector database operations | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` |
-| `REDIS_URL` | Yes | Redis connection URL | `"redis://redis:6379"` |
-| `GROUP_QUEUE_NAME` | Yes | Queue name for processing source groups | `"crawlchat_source_sync_groups"` |
-| `ITEM_QUEUE_NAME` | Yes | Queue name for processing source items | `"crawlchat_source_sync_items"` |
-| `SCRAPECREATORS_API_KEY` | No | ScrapeCreators API key for web scraping features | `"YOUR_API_KEY"` |
-| `GITHUB_TOKEN` | No | GitHub personal access token for fetching GitHub issues and discussions | `"ghp_xxxxxxxxxxxxx"` |
+| Variable                 | Required | Description                                                             | Example                                  |
+| ------------------------ | -------- | ----------------------------------------------------------------------- | ---------------------------------------- |
+| `PINECONE_API_KEY`       | Yes      | Pinecone API key for vector database operations                         | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` |
+| `REDIS_URL`              | Yes      | Redis connection URL                                                    | `"redis://redis:6379"`                   |
+| `GROUP_QUEUE_NAME`       | Yes      | Queue name for processing source groups                                 | `"crawlchat_source_sync_groups"`         |
+| `ITEM_QUEUE_NAME`        | Yes      | Queue name for processing source items                                  | `"crawlchat_source_sync_items"`          |
+| `SCRAPECREATORS_API_KEY` | No       | ScrapeCreators API key for web scraping features                        | `"YOUR_API_KEY"`                         |
+| `GITHUB_TOKEN`           | No       | GitHub personal access token for fetching GitHub issues and discussions | `"ghp_xxxxxxxxxxxxx"`                    |
 
 ## Running Locally
 
@@ -46,16 +47,19 @@ The Source Sync service is a background service that handles syncing documentati
 ### Development Setup
 
 1. **Navigate to the source-sync directory**:
+
    ```bash
    cd source-sync
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Install Playwright browsers** (for web scraping):
+
    ```bash
    npx playwright install
    ```

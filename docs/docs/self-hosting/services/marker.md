@@ -1,6 +1,7 @@
 ---
 sidebar_position: 5
 ---
+
 # Marker Service
 
 ## Overview
@@ -23,9 +24,9 @@ The Marker service is a Python-based service that converts files into markdown f
 
 ## Environment Variables
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|---------|
-| `API_KEY` | Yes | A secret key other services to pass as an authentication | `a-secret-key-for-marker` |
+| Variable  | Required | Description                                              | Example                   |
+| --------- | -------- | -------------------------------------------------------- | ------------------------- |
+| `API_KEY` | Yes      | A secret key other services to pass as an authentication | `a-secret-key-for-marker` |
 
 ## Running Locally
 
@@ -37,17 +38,20 @@ The Marker service is a Python-based service that converts files into markdown f
 ### Development Setup
 
 1. **Navigate to the marker directory**:
+
    ```bash
    cd marker
    ```
 
 2. **Install dependencies**:
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Set up environment variables**:
    Create a `.env` file with the API key:
+
    ```
    API_KEY=your-secret-api-key
    ```
@@ -64,6 +68,7 @@ The service will start on `http://localhost:3005`.
 The marker service provides a single endpoint:
 
 **POST /mark**
+
 - **Headers**: `x-api-key: your-api-key`
 - **Body**: `{"base64": "base64-encoded-file-content"}`
 - **Response**: `{"id": "uuid", "markdown": "converted-markdown", "title": "document-title"}`

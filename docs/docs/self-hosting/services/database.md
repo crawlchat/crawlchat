@@ -1,6 +1,7 @@
 ---
 sidebar_position: 2
 ---
+
 # Database Service (MongoDB)
 
 ## Overview
@@ -24,6 +25,7 @@ The Database service provides MongoDB as the primary data store for CrawlChat. I
 ## Environment Variables
 
 MongoDB service doesn't require specific environment variables for basic self-hosting setup. The default configuration uses:
+
 - Database name: `crawlchat`
 - Replica set name: `rs0`
 - No authentication enabled
@@ -44,6 +46,7 @@ The database service is typically run via Docker Compose as part of the full app
 If running MongoDB directly without Docker:
 
 1. **Install MongoDB 7**:
+
    ```bash
    # Ubuntu/Debian
    sudo apt-get install mongodb
@@ -55,6 +58,7 @@ If running MongoDB directly without Docker:
    ```
 
 2. **Start MongoDB with replica set**:
+
    ```bash
    mongod --replSet rs0 --dbpath /path/to/data/directory
    ```
@@ -67,6 +71,7 @@ If running MongoDB directly without Docker:
 ### Connection String
 
 Use this connection string in your application services:
+
 ```
 mongodb://localhost:27017/crawlchat?replicaSet=rs0
 ```
