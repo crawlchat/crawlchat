@@ -8,18 +8,24 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        service:
-          - front
-          - docs
-          - server
-          - discord-bot
-          - crawlchat-client
-          - chrome-extension
-          - slack-app
-          - source-sync
-          - mcp-server
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+  prettier:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -30,12 +36,9 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: ${{ matrix.service }}/package-lock.json
 
       - name: Install dependencies
-        working-directory: ${{ matrix.service }}
         run: npm install
 
-      - name: Build
-        working-directory: ${{ matrix.service }}
-        run: npm run build
+      - name: Prettier
+        run: npm run prettier
