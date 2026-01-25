@@ -327,7 +327,6 @@ export async function analyseMessage(
           Calculate score by how relevant the answer is to the category description.
         `),
       })
-      .optional()
       .nullable()
       .describe(
         `
