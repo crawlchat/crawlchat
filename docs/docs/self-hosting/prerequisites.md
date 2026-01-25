@@ -18,7 +18,7 @@ Before you begin, ensure you have:
    - Google OAuth credentials
    - GitHub token [GitHub source]
    - ScrapeCreators API key [YouTube source]
-4. `env` variables
+4. **`env` variables**:
    - Make sure you checkout the possible [environment variables](https://github.com/crawlchat/crawlchat/blob/main/.env.example) and have all required details
 
 ## Next
