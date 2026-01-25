@@ -328,6 +328,7 @@ export async function analyseMessage(
         `),
       })
       .optional()
+      .nullable()
       .describe(
         `
         The category of the answer.
