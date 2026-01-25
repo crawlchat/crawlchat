@@ -10,7 +10,7 @@
     },
     "build": {
       "dependsOn": ["^build", "generate"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", "build/**"]
     },
     "check-types": {
       "dependsOn": ["^check-types"]

@@ -14,7 +14,6 @@
     "prettier": "prettier --no-error-on-unmatched-pattern --check ./**/*.{ts,tsx,js,jsx,json,css,md}"
   },
   "dependencies": {
-    "@11labs/react": "^0.0.4",
     "@emotion/react": "^11.14.0",
     "@fingerprintjs/fingerprintjs": "^4.6.2",
     "@lexical/code": "^0.39.0",
@@ -46,7 +45,6 @@
     "countries-list": "^3.1.1",
     "crypto-js": "^4.2.0",
     "dodopayments": "^2.0.1",
-    "elevenlabs": "^1.50.4",
     "highlight.js": "^11.11.1",
     "isbot": "^5.1.17",
     "jsonrepair": "^3.12.0",
@@ -92,7 +90,7 @@
     "autoprefixer": "^10.4.20",
     "daisyui": "^5.0.50",
     "postcss": "^8.4.49",
-    "react-email": "3.0.7",
+    "react-email": "5.2.5",
     "schema-dts": "^1.1.5",
     "typescript": "^5.7.2",
     "vite": "^5.4.11",
