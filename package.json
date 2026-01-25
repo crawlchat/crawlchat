@@ -14,8 +14,9 @@
     "turbo": "^2.7.5"
   },
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "prettier": "turbo prettier"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "prettier": "turbo run prettier",
+    "generate": "turbo run generate"
   }
 }

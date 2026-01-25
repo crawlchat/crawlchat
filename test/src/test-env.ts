@@ -18,6 +18,7 @@ function test() {
   }
 
   const rootEnvKeys = Object.keys(rootEnv.parsed);
+  const unseenRootEnvKeys = new Set(rootEnvKeys);
 
   for (const workspace of workspaces) {
     if (workspace === "packages/*") continue;
@@ -46,7 +47,14 @@ function test() {
       if (!rootEnvKeys.includes(key)) {
         throw new Error(`${key} is not in the root .env file`);
       }
+      unseenRootEnvKeys.delete(key);
     }
+  }
+
+  if (unseenRootEnvKeys.size > 0) {
+    throw new Error(
+      `Few keys are not in any workspace .env file: ${Array.from(unseenRootEnvKeys).join(", ")}`
+    );
   }
 }
 

@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc",
-    "generate": "tsc && node dist/test-env-examples.js"
+    "generate": "tsc && node dist/test-env.js"
   },
   "dependencies": {
     "dotenv": "^17.2.3"
