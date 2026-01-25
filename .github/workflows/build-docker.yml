@@ -19,19 +19,19 @@ jobs:
     strategy:
       matrix:
         include:
-          - dockerfile: Dockerfile.slack
+          - build_app: slack
             image_name: crawlchat-slack
-          - dockerfile: Dockerfile.discord
+          - build_app: discord
             image_name: crawlchat-discord
-          - dockerfile: Dockerfile.docs
+          - build_app: docs
             image_name: crawlchat-docs
-          - dockerfile: Dockerfile.front
+          - build_app: front
             image_name: crawlchat-front
-          - dockerfile: Dockerfile.marker
+          - build_app: marker
             image_name: crawlchat-marker
-          - dockerfile: Dockerfile.server
+          - build_app: server
             image_name: crawlchat-server
-          - dockerfile: Dockerfile.source-sync
+          - build_app: source-sync
             image_name: crawlchat-source-sync
     
     steps:
@@ -59,7 +59,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ${{ matrix.dockerfile }}
+          file: docker/Dockerfile
+          build-args: |
+            BUILD_APP=${{ matrix.build_app }}
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.meta.outputs.commit_sha }}
