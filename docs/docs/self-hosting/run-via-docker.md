@@ -1,99 +1,43 @@
 ---
-sidebar_position: 1
+sidebar_position: 3
 ---
 
 # Run via Docker
-
-### ⚠️ Important Notice
 
 **This self-hosting guide is NOT production-ready.** The self-hosted version is provided as-is for development, testing, and evaluation purposes. For production use, we strongly recommend using the managed cloud service at [https://crawlchat.app/](https://crawlchat.app/).
 
 **Support is not guaranteed for self-hosting users.** If you encounter issues while self-hosting, you may need to troubleshoot independently or use the production cloud service.
 
-### Prerequisites
+Make sure you meet the [prerequisites](./prerequisites.md) before starting it.
 
-Before you begin, ensure you have:
+### 1. Copy `docker-compose.yml` file
 
-1. **Docker** and **Docker Compose** installed on your system
-2. **External API Keys**:
-   - Pinecone API key ([Get one here](https://www.pinecone.io))
-   - OpenRouter API key ([Get one here](https://openrouter.ai))
-3. **Domain/Network Configuration**:
-   - A domain name or IP address where services will be accessible (if not using localhost)
-   - Proper network configuration for services to communicate
-4. **Optional Services** (for full functionality):
-   - Discord bot credentials (if using Discord integration)
-   - Slack app credentials (if using Slack integration)
-   - GitHub app credentials (if using GitHub app integration)
-   - Resend API key (for email functionality)
-   - Google OAuth credentials (for Google sign-in)
-   - GitHub token (for GitHub source syncing)
-   - ScrapeCreators API key (for web scraping features)
+Better you copy the `compose` file and do the required modifications.
 
-### Quick Start
+```bash
+cp docker/docker-compose.yml docker/docker-compose.override.yml
+```
 
-1. **Clone the repository** (if you haven't already):
+### 2. Set `env`
 
-   ```bash
-   git clone https://github.com/crawlchat/crawlchat.git
-   cd crawlchat
-   ```
+- Replace `<PINECONE_API_KEY>` with your Pinecone API key
+- Replace `<OPENROUTER_API_KEY>` with your OpenRouter API key
+- Update `JWT_SECRET` with a strong, random secret (use the same value for all services)
+- Add GitHub app credentials if using GitHub integration (optional)
+- Update URLs if not using localhost (see Environment Variables section)
 
-2. **Create a docker-compose override file** (optional, for custom configuration):
+### 3. Start
 
-   ```bash
-   cp docker-compose.yml docker-compose.override.yml
-   ```
+```bash
+docker-compose -f docker/docker-compose.yml up -d
+```
 
-3. **Edit environment variables** in `docker-compose.yml`:
-   - Replace `<PINECONE_API_KEY>` with your Pinecone API key
-   - Replace `<OPENROUTER_API_KEY>` with your OpenRouter API key
-   - Update `JWT_SECRET` with a strong, random secret (use the same value for all services)
-   - Add GitHub app credentials if using GitHub integration (optional)
-   - Update URLs if not using localhost (see Environment Variables section)
+### 4. Access
 
-4. **Start the services**:
-
-   ```bash
-   docker-compose up -d
-   ```
-
-5. **Wait for initialization**: The `mongo-init` service will automatically configure MongoDB replica set. This may take a minute or two.
-
-6. **Access the application**:
-   - Frontend: http://localhost:3001
-   - Server API: http://localhost:3002
-   - Source Sync API: http://localhost:3003
-   - Slack App (if configured): http://localhost:3004
-
-### Environment Variables
-
-#### Common Variables (All Services)
-
-These variables should be set consistently across all services:
-
-| Variable       | Required | Description                                                                | Example                                               |
-| -------------- | -------- | -------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `SELF_HOSTED`  | Yes      | Must be set to `"true"` for self-hosted deployments                        | `"true"`                                              |
-| `DATABASE_URL` | Yes      | MongoDB connection string with replica set                                 | `"mongodb://database:27017/crawlchat?replicaSet=rs0"` |
-| `JWT_SECRET`   | Yes      | Secret key for JWT token signing. **Must be the same across all services** | `"a-long-random-secret-string"`                       |
-
-#### GitHub App Integration (Optional)
-
-| Variable                      | Required | Description                                    | Example                                                |
-| ----------------------------- | -------- | ---------------------------------------------- | ------------------------------------------------------ |
-| `GITHUB_APP_ID`               | No       | GitHub App ID for webhook authentication       | `"123456"`                                             |
-| `GITHUB_APP_PRIVATE_KEY`      | No       | Private key for GitHub App authentication      | `"-----BEGIN RSA PRIVATE KEY-----\n..."`               |
-| `GITHUB_WEBHOOK_SECRET`       | No       | Secret for verifying GitHub webhook signatures | `"your-webhook-secret"`                                |
-| `VITE_GITHUB_APP_INSTALL_URL` | No       | GitHub App installation URL for frontend       | `"https://github.com/apps/your-app/installations/new"` |
-
-### Network Configuration
-
-All services run on a Docker bridge network named `crawlchat-net`. Services communicate using their service names as hostnames:
-
-- `database` - MongoDB service
-- `redis` - Redis service
-- `source_sync` - Source sync service (internal name)
+- UI: http://localhost:3001
+- Server API: http://localhost:3002
+- Source Sync API: http://localhost:3003
+- Slack App (if configured): http://localhost:3004
 
 ### Troubleshooting
 

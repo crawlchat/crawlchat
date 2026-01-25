@@ -3,7 +3,7 @@
 ## Requirements
 
 1. `docker`
-2. `node 20.10.0`
+2. `node 20.18.0`
 
 ## Required external services envs
 
@@ -13,9 +13,10 @@
 ## Steps
 
 1. Clone the repo
-2. Copy `.env.example` -> `.env` and set above `envs`
-3. Run `databases` on Docker: `docker compose -f docker-compose-local.yml up`
-4. Run `front` app [NEW TERMINAL]: `cd front`, `npm i`, `npm run dev`
-5. Run `server` app [NEW TERMINAL]: `cd server`, `npm i`, `npm run dev`
-6. Run `source-sync` app [NEW TERMINAL]: `cd source-sync`, `npm i`, `npm run dev`
-7. Navigate to [http://localhost:5173](http://localhost:5173)
+2. `npm i`
+3. Copy `.env.example` -> `.env` and set above `envs`
+4. Run `databases` on Docker: `docker compose -f docker/docker-compose-local.yml up`
+5. `npm run dev`
+6. Navigate to [http://localhost:5173](http://localhost:5173)
+
+Check out [documentation](https://docs.crawlchat.app/self-hosting/run-locally) for more details
