@@ -13,9 +13,9 @@
 ## Steps
 
 1. Clone the repo
-2. `npm i`
-3. Copy `.env.example` -> `.env` and set above `envs`
-4. Run `databases` on Docker: `docker compose -f docker/docker-compose-local.yml up`
+2. Run `databases` using `docker compose -f docker/docker-compose-local.yml up`
+3. `cp .env.example .env`
+4. `npm i`
 5. `npm run dev`
 6. Navigate to [http://localhost:5173](http://localhost:5173)
 
