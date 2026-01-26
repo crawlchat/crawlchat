@@ -370,6 +370,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                   <tr>
                     <th>Question</th>
                     <th>Details</th>
+                    <th>Language</th>
                     <th>Channel</th>
                     <th>Category</th>
                     <th className="text-end">Time</th>
@@ -465,6 +466,9 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                             />
                           )}
                         </div>
+                      </td>
+                      <td>
+                        {pair.responseMessage.analysis?.language}
                       </td>
                       <td className="w-10">
                         <ChannelBadge

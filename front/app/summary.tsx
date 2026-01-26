@@ -393,8 +393,8 @@ function CategoryCard({
   );
 }
 
-function Tags({ tags }: { tags: Array<{ title: string; count: number }> }) {
-  const paddingBoxes = 3 - (tags.length % 3);
+function CategoryTiles({ categories }: { categories: Array<{ title: string; count: number }> }) {
+  const paddingBoxes = 3 - (categories.length % 3);
 
   return (
     <div
@@ -404,13 +404,13 @@ function Tags({ tags }: { tags: Array<{ title: string; count: number }> }) {
         "bg-base-300 border border-base-300"
       )}
     >
-      {tags.map((tag) => (
+      {categories.map((category) => (
         <div
-          key={tag.title}
+          key={category.title}
           className={cn("p-2 px-3 bg-base-100", "flex justify-between")}
         >
-          {tag.title}
-          <span className="badge badge-primary badge-soft">{tag.count}</span>
+          {category.title}
+          <span className="badge badge-primary badge-soft">{category.count}</span>
         </div>
       ))}
       {Array.from({ length: paddingBoxes }).map((_, index) => (
@@ -441,7 +441,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       return true;
     }
   }, [loaderData.user]);
-
   const [chartData, categories] = useMemo(() => {
     const data = [];
     const today = new Date();
@@ -477,6 +476,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   }, [loaderData.messagesSummary.dailyMessages]);
 
   const [tagsOrder, setTagsOrder] = useState<"top" | "latest">("top");
+  const [languagesOrder, setLanguagesOrder] = useState<"top" | "latest">("top");
   const tags = useMemo(() => {
     const sortedTags = Object.entries(loaderData.messagesSummary.tags).sort(
       (a, b) => {
@@ -494,6 +494,23 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       .slice(0, 20)
       .map(([title, d]) => ({ title, count: d.count }));
   }, [loaderData.messagesSummary.tags, tagsOrder]);
+    const languages = useMemo(() => {
+    const sortedLanguages = Object.entries(loaderData.messagesSummary.languagesDistribution).sort(
+      (a, b) => {
+        return b[1].count - a[1].count;
+      }
+    );
+
+    if (languagesOrder === "latest") {
+      sortedLanguages.sort((a, b) => {
+        return b[1].latestDate.getTime() - a[1].latestDate.getTime();
+      });
+    }
+
+    return sortedLanguages
+      .slice(0, 20)
+      .map(([title, d]) => ({ title, count: d.count }));
+  }, [loaderData.messagesSummary.languagesDistribution, languagesOrder]);
 
   useEffect(() => {
     track("dashboard", {});
@@ -775,7 +792,25 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   <option value="latest">Latest</option>
                 </select>
               </div>
-              <Tags tags={tags} />
+              <CategoryTiles categories={tags} />
+            </div>
+          )}
+          {languages.length > 0 && (
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Heading className="mb-0">Languages</Heading>
+                <select
+                  className="select w-fit select-sm"
+                  value={languagesOrder}
+                  onChange={(e) =>
+                    setLanguagesOrder(e.target.value as "top" | "latest")
+                  }
+                >
+                  <option value="top">Top</option>
+                  <option value="latest">Latest</option>
+                </select>
+              </div>
+              <CategoryTiles categories={languages} />
             </div>
           )}
         </div>
