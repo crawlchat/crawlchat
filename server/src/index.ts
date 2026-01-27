@@ -27,7 +27,8 @@ import {
   RAGAgentCustomMessage,
 } from "./llm/flow-jasmine";
 import { extractCitations } from "@packages/common/citation";
-import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
+import { multiLinePrompt, Agent } from "./llm/agent";
+import { FlowMessage } from "./llm/flow-jasmine";
 import { chunk } from "@packages/common/chunk";
 import { Flow } from "./llm/flow";
 import { z } from "zod";
@@ -1018,7 +1019,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "compose-agent",
     prompt: `
     Update the <slate> given below following the prompt and the question.
@@ -1058,7 +1059,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
 
     ${prompt}
     `,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       slate: z.string({
         description: "The answer in slate format",
@@ -1197,7 +1198,7 @@ app.post("/fix-message", authenticate, async (req, res) => {
     .slice(0, messageIndex + 1)
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
-  const agent = new SimpleAgent<RAGAgentCustomMessage>({
+  const agent = new Agent<RAGAgentCustomMessage>({
     id: "fix-agent",
     prompt: multiLinePrompt([
       "You are a helpful assistant who fixes the wrongly answer with provided context.",
@@ -1303,7 +1304,7 @@ app.post("/extract-facts/:scrapeId", authenticate, async (req, res) => {
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "extract-facts-agent",
     prompt: `Extract all facts mentioned in the given text. Each fact should be a complete, standalone statement that exactly matches the wording from the source text. Do not paraphrase, summarize, or combine facts. Each fact should be extracted verbatim from the source.
 
@@ -1319,7 +1320,7 @@ Important requirements:
 
 Text to analyze:
 ${text}`,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       facts: z
         .array(z.string())
@@ -1383,7 +1384,7 @@ app.post("/fact-check/:scrapeId", authenticate, async (req, res) => {
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "fact-check-agent",
     prompt: `You are a fact-checking assistant. Your task is to evaluate how accurate a given fact is based on the knowledge base context.
 
@@ -1397,7 +1398,7 @@ After searching the knowledge base, analyze the fact against the context and pro
 - 0.0-0.1: The fact is completely inaccurate or contradicted by the knowledge base
 
 Fact to check: ${fact}`,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       score: z.number().min(0).max(1).describe("Accuracy score from 0 to 1"),
       reason: z

@@ -5,7 +5,7 @@ import {
   Scrape,
   ScrapeMessageCategory,
 } from "@packages/common/prisma";
-import { SimpleAgent } from "./llm/agentic";
+import { Agent } from "./llm/agent";
 import { z } from "zod";
 import { Flow } from "./llm/flow";
 import { makeIndexer } from "./indexer/factory";
@@ -16,7 +16,7 @@ import { consumeCredits } from "@packages/common/user-plan";
 const MIN_RELEVANT_SCORE = 0.5;
 
 export async function decomposeQuestion(question: string, scrapeId: string) {
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "decomposer",
     prompt: `
     Your job is to decompose the question into smaller atomic questions.
@@ -123,7 +123,7 @@ async function getDataGap(
 
   const llmConfig = getConfig("gpt_5");
 
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "data-gap-detector",
     prompt: `
     You are a helpful assistant that detects data gaps in the knowledge base for the question asked.
@@ -339,7 +339,7 @@ export async function analyseMessage(
 
   const llmConfig = getConfig("gpt_5");
 
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "analyser",
     prompt,
     schema: z.object(schema),

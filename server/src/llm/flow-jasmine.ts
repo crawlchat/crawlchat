@@ -8,16 +8,10 @@ import {
   Thread,
 } from "@packages/common/prisma";
 import { makeIndexer } from "../indexer/factory";
-import {
-  FlowMessage,
-  multiLinePrompt,
-  SimpleAgent,
-  SimpleTool,
-} from "./agentic";
+import { multiLinePrompt, Agent, Tool, Message } from "./agent";
 import { Flow } from "./flow";
-import { z } from "zod";
+import { z, ZodSchema } from "zod";
 import { richMessageBlocks } from "@packages/common/rich-message-block";
-import { createBooking, getSlots } from "@packages/common/cal";
 import { MultimodalContent } from "@packages/common/llm-message";
 import zodToJsonSchema from "zod-to-json-schema";
 
@@ -38,6 +32,16 @@ export type QueryContext = {
   ragQueries: string[];
 };
 
+export type FlowMessage<CustomMessage> = {
+  llmMessage: Message;
+  agentId?: string;
+  custom?: CustomMessage;
+};
+
+export type State<CustomState, CustomMessage> = CustomState & {
+  messages: FlowMessage<CustomMessage>[];
+};
+
 export function makeRagTool(
   scrapeId: string,
   indexerKey: string | null,
@@ -50,7 +54,7 @@ export function makeRagTool(
 ) {
   const indexer = makeIndexer({ key: indexerKey, topN: options?.topN });
 
-  return new SimpleTool({
+  return {
     id: "search_data",
     description: multiLinePrompt([
       "Search the vector database for the most relevant documents.",
@@ -120,22 +124,7 @@ export function makeRagTool(
         },
       };
     },
-  });
-}
-
-function makeVerifyEmailTool() {
-  return new SimpleTool<RAGAgentCustomMessage>({
-    id: "verify-email",
-    description:
-      "Don't use this tool, use the verify-email rich block instead.",
-    schema: z.object({}),
-    execute: async () => {
-      return {
-        content:
-          "Don't use this tool, use the verify-email rich block instead.",
-      };
-    },
-  });
+  };
 }
 
 export function makeActionTools(
@@ -232,7 +221,7 @@ export function makeActionTools(
     }
 
     if (!action.type || action.type === "custom") {
-      const tool = new SimpleTool({
+      const tool: Tool<ZodSchema<any>, RAGAgentCustomMessage> = {
         id: titleToId(action.title),
         description: action.description,
         schema: z.object(schameItems),
@@ -302,237 +291,9 @@ export function makeActionTools(
             },
           };
         },
-      });
+      };
 
       tools.push(tool);
-    } else if (action.type === "cal" && action.calConfig) {
-      const getSlotsTool = new SimpleTool({
-        id: "get-slots",
-        description: `Get the availability slots of the user. ${action.description}`,
-        schema: z.object({
-          start: z
-            .string()
-            .describe(
-              "The start date and time of the availability. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
-            ),
-          end: z
-            .string()
-            .describe(
-              "The end date and time of the availability. Make it 6 hours from the start time. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z"
-            ),
-          timeZone: z
-            .string()
-            .describe(
-              "The time zone of the availability. Example: Asia/Kolkata"
-            ),
-        }),
-        execute: async ({
-          start,
-          end,
-          timeZone,
-        }: {
-          start: string;
-          end: string;
-          timeZone: string;
-        }) => {
-          options?.onPreAction?.("get availability");
-          const slots = await getSlots(
-            action.calConfig!.apiKey!,
-            start,
-            end,
-            Number(action.calConfig!.eventTypeId!),
-            timeZone
-          );
-          const json = await slots.json();
-          return {
-            content: JSON.stringify(json),
-            customMessage: {
-              actionCall: {
-                actionId: action.id,
-                data: {
-                  start,
-                  end,
-                  api: "get-slots",
-                  timeZone,
-                  eventTypeId: action.calConfig!.eventTypeId!,
-                },
-                response: JSON.stringify(json),
-                statusCode: 200,
-                createdAt: new Date(),
-              },
-            },
-          };
-        },
-      });
-
-      const bookSlotTool = new SimpleTool({
-        id: "book-slot",
-        description: `Book a slot. 
-        Ask the user to provide the name and email. 
-        You need to absolutely collect the name and the email from the user.
-        Don't use dummy or default name or email.
-        Don't use this tool without collecting the name and email from the user.
-        Don't make up the name and email yourself. This is very important.
-         
-        ${action.description}`,
-        schema: z.object({
-          start: z.string({
-            description:
-              "The start date and time of the booking. It should be in ISO 8601 format. Example: 2025-01-01T00:00:00Z",
-          }),
-          name: z.string({
-            description:
-              "The name of the user. Collect it from the user. It is required and don't use dummy or default name.",
-          }),
-          email: z.string({
-            description:
-              "The email of the user. Collect it from the user. It is required and don't use dummy or default email.",
-          }),
-          timeZone: z.string({
-            description:
-              "The time zone of the user. Don't ask the user, it must be available already. Example: Asia/Kolkata",
-          }),
-        }),
-        execute: async ({
-          start,
-          name,
-          email,
-          timeZone,
-        }: {
-          start: string;
-          name: string;
-          email: string;
-          timeZone: string;
-        }) => {
-          if (!name || !email) {
-            return {
-              content: "Name and email are required. Please provide them.",
-            };
-          }
-          if (
-            name.toLowerCase().includes("user") ||
-            email.toLowerCase().includes("user") ||
-            email.toLowerCase().includes("example")
-          ) {
-            return {
-              content: "Need a valid name and email. Please provide them.",
-            };
-          }
-
-          options?.onPreAction?.("book slot");
-          const booking = await createBooking(
-            action.calConfig!.apiKey!,
-            Number(action.calConfig!.eventTypeId!),
-            start,
-            name,
-            email,
-            timeZone
-          );
-          const json = await booking.json();
-          return {
-            content: JSON.stringify(json),
-            customMessage: {
-              actionCall: {
-                actionId: action.id,
-                data: {
-                  start,
-                  name,
-                  email,
-                  api: "book-slot",
-                  timeZone,
-                  eventTypeId: action.calConfig!.eventTypeId!,
-                },
-                response: JSON.stringify(json),
-                statusCode: 200,
-                createdAt: new Date(),
-              },
-            },
-          };
-        },
-      });
-
-      tools.push(getSlotsTool, bookSlotTool);
-    } else if (action.type === "linear_create_issue" && action.linearConfig) {
-      const createIssueTool = new SimpleTool<RAGAgentCustomMessage>({
-        id: "create-issue",
-        description: `Create an issue in Linear. ${action.description}`,
-        schema: z.object({
-          title: z.string({
-            description:
-              "The title of the issue. It is required and don't use dummy or default title.",
-          }),
-          description: z.string({
-            description:
-              "The description of the issue. It is required and don't use dummy or default description.",
-          }),
-        }),
-        execute: async ({
-          title,
-          description,
-        }: {
-          title: string;
-          description: string;
-        }) => {
-          if (action.requireEmailVerification && !thread.emailVerifiedAt) {
-            return {
-              content:
-                "User needs to verify the email. Use the verify-email rich block to verify the email and call this tool again.",
-            };
-          }
-
-          options?.onPreAction?.("create issue");
-
-          const query = `
-    mutation CreateIssue($input: IssueCreateInput!) {
-      issueCreate(input: $input) {
-        success
-        issue {
-          id
-          title
-        }
-      }
-    }
-  `;
-
-          const variables = {
-            input: {
-              teamId: action.linearConfig!.teamId,
-              title,
-              description: `Created by ${thread.emailEntered}\n\n${description}`,
-            },
-          };
-
-          const response = await fetch("https://api.linear.app/graphql", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: process.env.LINEAR_API_KEY!,
-            },
-            body: JSON.stringify({ query, variables }),
-          });
-
-          const content = await response.text();
-
-          return {
-            content,
-            customMessage: {
-              actionCall: {
-                actionId: action.id,
-                data: {
-                  title,
-                  description,
-                  api: "create-issue",
-                  teamId: action.linearConfig!.teamId!,
-                },
-                response: content,
-                statusCode: response.status,
-                createdAt: new Date(),
-              },
-            },
-          };
-        },
-      });
-      tools.push(createIssueTool);
     }
   }
 
@@ -632,7 +393,7 @@ export function makeFlow(
     </current-page>`;
   }
 
-  const ragAgent = new SimpleAgent<RAGAgentCustomMessage>({
+  const ragAgent = new Agent<RAGAgentCustomMessage>({
     id: "rag-agent",
     prompt: multiLinePrompt([
       "You are a helpful assistant that can answer questions about the context provided.",
@@ -686,11 +447,7 @@ export function makeFlow(
 
       `<client-data>\n${JSON.stringify(options?.clientData)}\n</client-data>`,
     ]),
-    tools: [
-      ragTool.make(),
-      ...actionTools.map((tool) => tool.make()),
-      makeVerifyEmailTool().make(),
-    ],
+    tools: [ragTool, ...actionTools],
     model: options?.model,
     baseURL: options?.baseURL,
     apiKey: options?.apiKey,

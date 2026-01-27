@@ -3,9 +3,9 @@ import {
   ChatCompletionMessageToolCall,
   ChatCompletionToolMessageParam,
 } from "openai/resources/chat/completions";
-import { FlowMessage, State } from "./agentic";
-import { Agent } from "./agentic";
-import { handleStream, HandleStreamOptions } from "./stream";
+import { FlowMessage, State } from "./flow-jasmine";
+import { Agent } from "./agent";
+import { handleStream, OnDelta } from "./stream";
 
 type FlowState<CustomState, CustomMessage> = {
   state: State<CustomState, CustomMessage>;
@@ -14,12 +14,12 @@ type FlowState<CustomState, CustomMessage> = {
 };
 
 export class Flow<CustomState, CustomMessage> {
-  private agents: Agent<CustomState, CustomMessage>[];
+  private agents: Agent<CustomMessage>[];
   public flowState: FlowState<CustomState, CustomMessage>;
   private repeatToolAgent: boolean;
 
   constructor(
-    agents: Agent<CustomState, CustomMessage>[],
+    agents: Agent<CustomMessage>[],
     state: State<CustomState, CustomMessage>,
     options?: { repeatToolAgent?: boolean }
   ) {
@@ -43,7 +43,7 @@ export class Flow<CustomState, CustomMessage> {
 
   async runTool(id: string, toolId: string, args: Record<string, any>) {
     for (const [agentId, agent] of Object.entries(this.agents)) {
-      const tools = agent.getTools();
+      const tools = agent.tools;
       if (!tools) {
         continue;
       }
@@ -88,7 +88,7 @@ export class Flow<CustomState, CustomMessage> {
     return message.llmMessage && "tool_calls" in message.llmMessage;
   }
 
-  async stream(options?: HandleStreamOptions): Promise<null | {
+  async stream(onDelta?: OnDelta): Promise<null | {
     messages: FlowMessage<CustomMessage>[];
     agentId: string;
   }> {
@@ -120,8 +120,10 @@ export class Flow<CustomState, CustomMessage> {
     }
 
     const result = await handleStream(
-      await this.getAgent(agentId)!.stream(this.flowState.state),
-      options
+      await this.getAgent(agentId)!.stream(
+        this.flowState.state.messages.map((m) => m.llmMessage)
+      ),
+      onDelta
     );
 
     const newMessages = result.messages.map((message) => ({

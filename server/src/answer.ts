@@ -17,12 +17,13 @@ import {
   MultimodalContent,
   removeImages,
 } from "@packages/common/llm-message";
-import { FlowMessage, LlmRole } from "./llm/agentic";
+import { Role } from "./llm/agent";
+import { FlowMessage } from "./llm/flow-jasmine";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
   delta: string;
-  role: LlmRole;
+  role: Role;
   content: string;
 };
 
@@ -244,17 +245,15 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
   );
 
   while (
-    await flow.stream({
-      onDelta: ({ delta, content, role }) => {
-        if (delta !== undefined && delta !== null) {
-          options?.listen?.({
-            type: "stream-delta",
-            delta,
-            role,
-            content,
-          });
-        }
-      },
+    await flow.stream(({ delta, content, role }) => {
+      if (delta !== undefined && delta !== null) {
+        options?.listen?.({
+          type: "stream-delta",
+          delta,
+          role,
+          content,
+        });
+      }
     })
   ) {}
 
