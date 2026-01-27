@@ -27,10 +27,10 @@ import {
   RAGAgentCustomMessage,
 } from "./llm/flow-jasmine";
 import { extractCitations } from "@packages/common/citation";
-import { multiLinePrompt, Agent } from "./llm/agent";
+import { multiLinePrompt, Agent } from "@packages/agentic";
 import { FlowMessage } from "./llm/flow-jasmine";
 import { chunk } from "@packages/common/chunk";
-import { Flow } from "./llm/flow";
+import { Flow } from "@packages/agentic";
 import { z } from "zod";
 import { baseAnswerer, collectSourceLinks } from "./answer";
 import { fillMessageAnalysis } from "./analyse-message";

@@ -5,9 +5,9 @@ import {
   Scrape,
   ScrapeMessageCategory,
 } from "@packages/common/prisma";
-import { Agent } from "./llm/agent";
+import { Agent } from "@packages/agentic";
 import { z } from "zod";
-import { Flow } from "./llm/flow";
+import { Flow } from "@packages/agentic";
 import { makeIndexer } from "./indexer/factory";
 import { getConfig } from "./llm/config";
 import { createToken } from "@packages/common/jwt";

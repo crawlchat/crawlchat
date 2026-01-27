@@ -21,7 +21,7 @@ import {
   MultimodalContent,
   removeImages,
 } from "@packages/common/llm-message";
-import { Role } from "./llm/agent";
+import { Role } from "@packages/agentic";
 import { FlowMessage } from "./llm/flow-jasmine";
 
 export type StreamDeltaEvent = {

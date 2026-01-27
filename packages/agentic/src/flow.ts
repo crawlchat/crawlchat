@@ -3,9 +3,18 @@ import {
   ChatCompletionMessageToolCall,
   ChatCompletionToolMessageParam,
 } from "openai/resources/chat/completions";
-import { FlowMessage, State } from "./flow-jasmine";
-import { Agent } from "./agent";
+import { Agent, Message } from "./agent";
 import { handleStream, OnDelta } from "./stream";
+
+export type FlowMessage<CustomMessage> = {
+  llmMessage: Message;
+  agentId?: string;
+  custom?: CustomMessage;
+};
+
+export type State<CustomState, CustomMessage> = CustomState & {
+  messages: FlowMessage<CustomMessage>[];
+};
 
 type FlowState<CustomState, CustomMessage> = {
   state: State<CustomState, CustomMessage>;
@@ -169,7 +178,6 @@ export class Flow<CustomState, CustomMessage> {
       string,
       { toolCall: ChatCompletionMessageToolCall; agentId?: string }
     > = {};
-    // TODO: Not optimal. Traverse from the end and if you find a non tool message break.
     for (const message of this.flowState.state.messages) {
       if (this.isToolCall(message)) {
         const llmMessage =

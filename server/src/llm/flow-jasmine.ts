@@ -8,8 +8,7 @@ import {
   Thread,
 } from "@packages/common/prisma";
 import { makeIndexer } from "../indexer/factory";
-import { multiLinePrompt, Agent, Tool, Message } from "./agent";
-import { Flow } from "./flow";
+import { multiLinePrompt, Agent, Tool, Message, Flow } from "@packages/agentic";
 import { z, ZodSchema } from "zod";
 import { richMessageBlocks } from "@packages/common/rich-message-block";
 import { MultimodalContent } from "@packages/common/llm-message";
