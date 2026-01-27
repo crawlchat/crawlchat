@@ -97,7 +97,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
     return {
       model: "anthropic/claude-sonnet-4.5",
       apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
+      ragTopN: 2,
       creditsPerMessage: 6,
       baseURL: "https://openrouter.ai/api/v1",
       supportsImages: true,
