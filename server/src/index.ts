@@ -21,14 +21,11 @@ import {
 import { makeIndexer } from "./indexer/factory";
 import { name } from "@packages/common";
 import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
-import {
-  makeRagTool,
-  QueryContext,
-  RAGAgentCustomMessage,
-} from "./llm/flow-jasmine";
+import { CustomMessage } from "./llm/custom-message";
+import { makeSearchTool, SearchToolContext } from "./llm/search-tool";
 import { extractCitations } from "@packages/common/citation";
 import { multiLinePrompt, Agent } from "@packages/agentic";
-import { FlowMessage } from "./llm/flow-jasmine";
+import { FlowMessage } from "./llm/flow";
 import { chunk } from "@packages/common/chunk";
 import { Flow } from "@packages/agentic";
 import { z } from "zod";
@@ -260,7 +257,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 
   await consumeCredits(scrape.userId, "messages", creditsUsed);
 
-  const message: FlowMessage<RAGAgentCustomMessage> = {
+  const message: FlowMessage<CustomMessage> = {
     llmMessage: {
       role: "assistant",
       content: "Results are hidden as it is from MCP",
@@ -1014,8 +1011,8 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
 
   const messages = [message];
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext = {
+    queries: [],
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
@@ -1059,7 +1056,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
 
     ${prompt}
     `,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext })],
+    tools: [makeSearchTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       slate: z.string({
         description: "The answer in slate format",
@@ -1198,7 +1195,7 @@ app.post("/fix-message", authenticate, async (req, res) => {
     .slice(0, messageIndex + 1)
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
-  const agent = new Agent<RAGAgentCustomMessage>({
+  const agent = new Agent<CustomMessage>({
     id: "fix-agent",
     prompt: multiLinePrompt([
       "You are a helpful assistant who fixes the wrongly answer with provided context.",
@@ -1299,8 +1296,8 @@ app.post("/extract-facts/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext = {
+    queries: [],
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
@@ -1320,7 +1317,7 @@ Important requirements:
 
 Text to analyze:
 ${text}`,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext })],
+    tools: [makeSearchTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       facts: z
         .array(z.string())
@@ -1379,8 +1376,8 @@ app.post("/fact-check/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext = {
+    queries: [],
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
@@ -1398,7 +1395,7 @@ After searching the knowledge base, analyze the fact against the context and pro
 - 0.0-0.1: The fact is completely inaccurate or contradicted by the knowledge base
 
 Fact to check: ${fact}`,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext })],
+    tools: [makeSearchTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       score: z.number().min(0).max(1).describe("Accuracy score from 0 to 1"),
       reason: z
