@@ -49,6 +49,8 @@ Good relationship types: "owns", "created", "located_in", "works_for", "manages"
 BAD relationship types (DO NOT USE): "as a", "belongs to", "is a", "has a", "related to", "associated with", "part of", "member of"
 
 Use specific, action-oriented relationship types that clearly describe the nature of the connection between nodes.
+
+If the text is code, use technical relationship types. For example, "implements", "inherits_from", "depends_on", "uses", "requires", "produces", "consumes", "connects_to", "derives_from".
 `,
       },
       {
