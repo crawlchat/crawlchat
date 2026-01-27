@@ -11,7 +11,11 @@ import {
   ScrapeItem,
 } from "@packages/common/prisma";
 import { getConfig } from "./llm/config";
-import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
+import {
+  makeRagAgent,
+  makeRagFlow,
+  RAGAgentCustomMessage,
+} from "./llm/flow-jasmine";
 import {
   getQueryString,
   MultimodalContent,
@@ -210,12 +214,10 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     }
   }
 
-  const flow = makeFlow(
+  const ragAgent = makeRagAgent(
     thread,
     scrape.id,
     options?.prompt ?? scrape.chatPrompt ?? "",
-    query,
-    messages,
     scrape.indexer,
     {
       onPreSearch: async (query) => {
@@ -243,6 +245,8 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
       scrapeItem: options?.scrapeItem,
     }
   );
+
+  const flow = makeRagFlow(ragAgent, messages, query);
 
   while (
     await flow.stream(({ delta, content, role }) => {
