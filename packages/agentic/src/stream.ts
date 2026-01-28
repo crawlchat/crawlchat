@@ -1,24 +1,22 @@
 import OpenAI from "openai";
 import { Stream } from "openai/streaming";
 import { ChatCompletionAssistantMessageParam } from "openai/resources";
-import { LlmMessage, LlmRole } from "./agentic";
+import { Message, Role } from "./agent";
 
-export type HandleStreamOptions = {
-  onDelta?: (options: {
-    content: string;
-    role: LlmRole;
-    delta?: string;
-  }) => void;
-};
+export type OnDelta = (options: {
+  content: string;
+  role: Role;
+  delta?: string;
+}) => void;
 
 export async function handleStream(
   stream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>,
-  options?: HandleStreamOptions
+  onDelta?: OnDelta
 ) {
   let toolCall: ChatCompletionAssistantMessageParam | null = null;
   let content = "";
-  let role: LlmRole = "user";
-  const messages: LlmMessage[] = [];
+  let role: Role = "user";
+  const messages: Message[] = [];
 
   for await (const chunk of stream) {
     if (chunk.choices && chunk.choices[0].delta.role) {
@@ -58,7 +56,7 @@ export async function handleStream(
     }
 
     if (!toolCall) {
-      options?.onDelta?.({
+      onDelta?.({
         content,
         role,
         delta: chunk.choices?.[0].delta.content ?? undefined,

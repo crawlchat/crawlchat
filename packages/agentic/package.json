@@ -1,0 +1,54 @@
+{
+  "name": "@packages/agentic",
+  "version": "1.0.0",
+  "description": "Agentic framework for LLM orchestration",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./agent": {
+      "default": "./dist/agent.js",
+      "types": "./dist/agent.d.ts"
+    },
+    "./flow": {
+      "default": "./dist/flow.js",
+      "types": "./dist/flow.d.ts"
+    },
+    "./stream": {
+      "default": "./dist/stream.js",
+      "types": "./dist/stream.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "agent": [
+        "./dist/agent.d.ts"
+      ],
+      "flow": [
+        "./dist/flow.d.ts"
+      ],
+      "stream": [
+        "./dist/stream.d.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "openai": "^4.77.0",
+    "zod": "^3.25.51",
+    "zod-to-json-schema": "^3.24.5"
+  }
+}

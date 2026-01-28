@@ -25,6 +25,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@packages/agentic": "*",
     "@packages/common": "*",
     "@pinecone-database/pinecone": "^4.1.0",
     "@prisma/client": "^6.2.1",

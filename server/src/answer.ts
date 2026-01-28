@@ -9,32 +9,39 @@ import {
   Scrape,
   Thread,
   ScrapeItem,
+  LlmModel,
 } from "@packages/common/prisma";
 import { getConfig } from "./llm/config";
-import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
+import { makeRagAgent, makeRagFlow } from "./llm/flow";
 import {
   getQueryString,
   MultimodalContent,
   removeImages,
 } from "@packages/common/llm-message";
-import { FlowMessage, LlmRole } from "./llm/agentic";
+import { Role } from "@packages/agentic";
+import { FlowMessage } from "./llm/flow";
+import { CustomMessage, DataGap } from "./llm/custom-message";
+import { consumeCredits } from "@packages/common/user-plan";
+import { fillMessageAnalysis } from "./analyse-message";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
   delta: string;
-  role: LlmRole;
+  role: Role;
   content: string;
 };
 
 export type AnswerCompleteEvent = {
   type: "answer-complete";
+  question: string | MultimodalContent[];
   content: string;
   sources: MessageSourceLink[];
   actionCalls: ApiActionCall[];
   llmCalls: number;
   creditsUsed: number;
-  messages: FlowMessage<RAGAgentCustomMessage>[];
+  messages: FlowMessage<CustomMessage>[];
   context: string[];
+  dataGap?: DataGap;
 };
 
 export type ToolCallEvent = {
@@ -62,7 +69,7 @@ export type Answerer = (
   scrape: Scrape,
   thread: Thread,
   query: string | MultimodalContent[],
-  messages: FlowMessage<RAGAgentCustomMessage>[],
+  messages: FlowMessage<CustomMessage>[],
   options?: {
     listen?: AnswerListener;
     prompt?: string;
@@ -88,7 +95,7 @@ Don't tell user to reach out to support team, instead use this block.`,
 
 export async function collectSourceLinks(
   scrapeId: string,
-  messages: FlowMessage<RAGAgentCustomMessage>[]
+  messages: FlowMessage<CustomMessage>[]
 ) {
   const matches = messages
     .map((m) => m.custom?.result)
@@ -153,7 +160,7 @@ export async function collectSourceLinks(
 
 export async function collectActionCalls(
   scrapeId: string,
-  messages: FlowMessage<RAGAgentCustomMessage>[]
+  messages: FlowMessage<CustomMessage>[]
 ) {
   return messages
     .map((m) => m.custom?.actionCall)
@@ -161,12 +168,28 @@ export async function collectActionCalls(
     .flat();
 }
 
-export function collectContext(messages: FlowMessage<RAGAgentCustomMessage>[]) {
+export function collectDataGap(
+  messages: FlowMessage<CustomMessage>[]
+): DataGap | undefined {
+  const gaps = messages
+    .map((m) => m.custom?.dataGap)
+    .filter((r) => r !== undefined);
+  return gaps.length > 0 ? gaps[gaps.length - 1] : undefined;
+}
+
+export function collectContext(messages: FlowMessage<CustomMessage>[]) {
   return messages
     .map((m) => m.custom?.result)
     .filter((r) => r !== undefined)
     .flat()
     .map((m) => m.content);
+}
+
+export function updateLastMessageAt(threadId: string) {
+  return prisma.thread.update({
+    where: { id: threadId },
+    data: { lastMessageAt: new Date() },
+  });
 }
 
 export const baseAnswerer: Answerer = async (
@@ -209,12 +232,10 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     }
   }
 
-  const flow = makeFlow(
+  const ragAgent = makeRagAgent(
     thread,
     scrape.id,
     options?.prompt ?? scrape.chatPrompt ?? "",
-    query,
-    messages,
     scrape.indexer,
     {
       onPreSearch: async (query) => {
@@ -229,10 +250,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
           action: title,
         });
       },
-      model: llmConfig.model,
-      baseURL: llmConfig.baseURL,
-      apiKey: llmConfig.apiKey,
-      topN: llmConfig.ragTopN,
+      llmConfig,
       richBlocks,
       minScore: scrape.minScore ?? undefined,
       showSources: scrape.showSources ?? false,
@@ -243,18 +261,18 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     }
   );
 
+  const flow = makeRagFlow(ragAgent, messages, query);
+
   while (
-    await flow.stream({
-      onDelta: ({ delta, content, role }) => {
-        if (delta !== undefined && delta !== null) {
-          options?.listen?.({
-            type: "stream-delta",
-            delta,
-            role,
-            content,
-          });
-        }
-      },
+    await flow.stream(({ delta, content, role }) => {
+      if (delta !== undefined && delta !== null) {
+        options?.listen?.({
+          type: "stream-delta",
+          delta,
+          role,
+          content,
+        });
+      }
     })
   ) {}
 
@@ -271,8 +289,61 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     creditsUsed: llmConfig.creditsPerMessage,
     messages: flow.flowState.state.messages,
     context: collectContext(flow.flowState.state.messages),
+    dataGap: collectDataGap(flow.flowState.state.messages),
+    question: query,
   };
   options?.listen?.(answer);
 
   return answer;
 };
+
+export async function saveAnswer(
+  answer: AnswerCompleteEvent,
+  scrape: Scrape,
+  threadId: string,
+  channel: MessageChannel,
+  questionMessageId: string,
+  llmModel?: LlmModel | null,
+  fingerprint?: string,
+  onFollowUpQuestion?: (questions: string[]) => void
+) {
+  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
+  const newAnswerMessage = await prisma.message.create({
+    data: {
+      threadId,
+      scrapeId: scrape.id,
+      llmMessage: { role: "assistant", content: answer.content },
+      links: answer!.sources,
+      ownerUserId: scrape.userId,
+      channel,
+      apiActionCalls: answer.actionCalls as any,
+      llmModel,
+      creditsUsed: answer.creditsUsed,
+      fingerprint,
+      questionId: questionMessageId,
+      dataGap: answer.dataGap,
+    },
+  });
+
+  await prisma.message.update({
+    where: { id: questionMessageId },
+    data: { answerId: newAnswerMessage.id },
+  });
+
+  await updateLastMessageAt(threadId);
+
+  if (scrape.analyseMessage) {
+    fillMessageAnalysis(
+      newAnswerMessage.id,
+      questionMessageId,
+      getQueryString(answer.question),
+      answer.content,
+      {
+        categories: scrape.messageCategories,
+        onFollowUpQuestion,
+      }
+    );
+  }
+
+  return newAnswerMessage;
+}

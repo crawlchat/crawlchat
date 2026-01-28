@@ -309,6 +309,17 @@ type MessageAttachment {
   content     String?
 }
 
+enum DataGapStatus {
+  accepted
+  rejected
+}
+
+type DataGap {
+  title       String
+  description String?
+  status      DataGapStatus?
+}
+
 model Message {
   id                        String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId                  String   @db.ObjectId
@@ -331,6 +342,7 @@ model Message {
   discordMessageId          String?
   githubCommentId           String?
   analysis                  MessageAnalysis?
+  dataGap                   DataGap?
   llmModel                  LlmModel?
   creditsUsed               Int?
   fingerprint               String?

@@ -17,7 +17,7 @@ npm i
 ### 2. Database and Redis
 
 ```bash
-docker-compose -f docker-compose-local.yml up -d
+docker-compose -f docker/docker-compose-local.yml up -d
 ```
 
 This will start:
@@ -59,15 +59,15 @@ If ports are in use, modify the ports in service configurations or use different
 
 - Ensure MongoDB replica set is initialized (mongo-init service should handle this)
 - Check DATABASE_URL format: `mongodb://localhost:27017/crawlchat?replicaSet=rs0`
-- Check Docker containers: `docker-compose -f docker-compose-local.yml ps`
-- View logs: `docker-compose -f docker-compose-local.yml logs database`
+- Check Docker containers: `docker-compose -f docker/docker-compose-local.yml ps`
+- View logs: `docker-compose -f docker/docker-compose-local.yml logs database`
 
 #### Redis Connection Issues
 
 - Ensure Redis is running and healthy
 - Check REDIS_URL configuration: `redis://localhost:6379`
-- Check Docker containers: `docker-compose -f docker-compose-local.yml ps`
-- View logs: `docker-compose -f docker-compose-local.yml logs redis`
+- Check Docker containers: `docker-compose -f docker/docker-compose-local.yml ps`
+- View logs: `docker-compose -f docker/docker-compose-local.yml logs redis`
 
 #### API Key Issues
 
@@ -80,11 +80,11 @@ If ports are in use, modify the ports in service configurations or use different
 To stop the database and Redis services:
 
 ```bash
-docker-compose -f docker-compose-local.yml down
+docker-compose -f docker/docker-compose-local.yml down
 ```
 
 To stop and remove volumes (reset all data):
 
 ```bash
-docker-compose -f docker-compose-local.yml down -v
+docker-compose -f docker/docker-compose-local.yml down -v
 ```

@@ -21,23 +21,22 @@ import {
 import { makeIndexer } from "./indexer/factory";
 import { name } from "@packages/common";
 import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
-import {
-  makeRagTool,
-  QueryContext,
-  RAGAgentCustomMessage,
-} from "./llm/flow-jasmine";
+import { CustomMessage } from "./llm/custom-message";
+import { makeSearchTool, SearchToolContext } from "./llm/search-tool";
 import { extractCitations } from "@packages/common/citation";
-import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
+import { multiLinePrompt, Agent } from "@packages/agentic";
+import { FlowMessage } from "./llm/flow";
 import { chunk } from "@packages/common/chunk";
-import { Flow } from "./llm/flow";
+import { Flow } from "@packages/agentic";
 import { z } from "zod";
-import { baseAnswerer, collectSourceLinks } from "./answer";
-import { fillMessageAnalysis } from "./analyse-message";
-import { createToken } from "@packages/common/jwt";
 import {
-  MultimodalContent,
-  getQueryString,
-} from "@packages/common/llm-message";
+  baseAnswerer,
+  collectSourceLinks,
+  saveAnswer,
+  updateLastMessageAt,
+} from "./answer";
+import { createToken } from "@packages/common/jwt";
+import { MultimodalContent } from "@packages/common/llm-message";
 import {
   draftRateLimiter,
   mcpRateLimiter,
@@ -93,27 +92,12 @@ app.use("/admin", adminRouter);
 app.use("/github", githubBotRouter);
 expressWs.app.ws("/", handleWs);
 
-async function updateLastMessageAt(threadId: string) {
-  await prisma.thread.update({
-    where: { id: threadId },
-    data: { lastMessageAt: new Date() },
-  });
-}
-
 app.get("/", function (req: Request, res: Response) {
   res.json({ message: "ok" });
 });
 
 app.get("/test", async function (req: Request, res: Response) {
   res.json({ ok: true, name: name() });
-});
-
-app.post("/scrape", authenticate, async function (req: Request, res: Response) {
-  const scrapeId = req.body.scrapeId!;
-
-  authoriseScrapeUser(req.user!.scrapeUsers, scrapeId, res);
-
-  throw new Error("Not implemented");
 });
 
 app.delete(
@@ -259,7 +243,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 
   await consumeCredits(scrape.userId, "messages", creditsUsed);
 
-  const message: FlowMessage<RAGAgentCustomMessage> = {
+  const message: FlowMessage<CustomMessage> = {
     llmMessage: {
       role: "assistant",
       content: "Results are hidden as it is from MCP",
@@ -536,42 +520,15 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     }
   );
 
-  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
-  const newAnswerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content: answer.content },
-      links: answer!.sources,
-      ownerUserId: scrape.userId,
-      channel,
-      apiActionCalls: answer.actionCalls as any,
-      llmModel: scrape.llmModel as any,
-      creditsUsed: answer.creditsUsed,
-      fingerprint,
-      questionId: questionMessage.id,
-    },
-  });
-  await prisma.message.update({
-    where: { id: questionMessage.id },
-    data: { answerId: newAnswerMessage.id },
-  });
-  await updateLastMessageAt(thread.id);
-
-  if (scrape.analyseMessage) {
-    fillMessageAnalysis(
-      newAnswerMessage.id,
-      questionMessage.id,
-      getQueryString(query),
-      answer.content,
-      answer.context,
-      {
-        categories: scrape.messageCategories,
-      }
-    );
-  }
-
-  console.log("Sending answer to client");
+  const newAnswerMessage = await saveAnswer(
+    answer,
+    scrape,
+    thread.id,
+    channel,
+    questionMessage.id,
+    scrape.llmModel,
+    fingerprint
+  );
 
   const citation = extractCitations(answer.content, answer.sources, {
     cleanCitations: true,
@@ -754,40 +711,15 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
     }
   );
 
-  await consumeCredits(scrape.userId, "messages", answer!.creditsUsed);
-  const newAnswerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content: answer!.content },
-      links: answer!.sources,
-      ownerUserId: scrape.userId,
-      channel: "google_chat",
-      apiActionCalls: answer!.actionCalls as any,
-      llmModel: scrape.llmModel,
-      creditsUsed: answer!.creditsUsed,
-      questionId: questionMessage.id,
-      fingerprint: googleChatEvent.chat.user.email,
-    },
-  });
-  await prisma.message.update({
-    where: { id: questionMessage.id },
-    data: { answerId: newAnswerMessage.id },
-  });
-  await updateLastMessageAt(thread.id);
-
-  if (scrape.analyseMessage) {
-    fillMessageAnalysis(
-      newAnswerMessage.id,
-      questionMessage.id,
-      messageText,
-      answer!.content,
-      answer!.context,
-      {
-        categories: scrape.messageCategories,
-      }
-    );
-  }
+  await saveAnswer(
+    answer,
+    scrape,
+    thread.id,
+    "google_chat",
+    questionMessage.id,
+    scrape.llmModel,
+    googleChatEvent.chat.user.email
+  );
 
   if (!answer) {
     res.status(400).json({
@@ -1013,12 +945,12 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
 
   const messages = [message];
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext = {
+    queries: [],
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "compose-agent",
     prompt: `
     Update the <slate> given below following the prompt and the question.
@@ -1058,7 +990,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
 
     ${prompt}
     `,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [makeSearchTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       slate: z.string({
         description: "The answer in slate format",
@@ -1197,7 +1129,7 @@ app.post("/fix-message", authenticate, async (req, res) => {
     .slice(0, messageIndex + 1)
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
-  const agent = new SimpleAgent<RAGAgentCustomMessage>({
+  const agent = new Agent<CustomMessage>({
     id: "fix-agent",
     prompt: multiLinePrompt([
       "You are a helpful assistant who fixes the wrongly answer with provided context.",
@@ -1298,12 +1230,12 @@ app.post("/extract-facts/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext = {
+    queries: [],
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "extract-facts-agent",
     prompt: `Extract all facts mentioned in the given text. Each fact should be a complete, standalone statement that exactly matches the wording from the source text. Do not paraphrase, summarize, or combine facts. Each fact should be extracted verbatim from the source.
 
@@ -1319,7 +1251,7 @@ Important requirements:
 
 Text to analyze:
 ${text}`,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [makeSearchTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       facts: z
         .array(z.string())
@@ -1378,12 +1310,12 @@ app.post("/fact-check/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext = {
+    queries: [],
   };
 
   const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const agent = new Agent({
     id: "fact-check-agent",
     prompt: `You are a fact-checking assistant. Your task is to evaluate how accurate a given fact is based on the knowledge base context.
 
@@ -1397,7 +1329,7 @@ After searching the knowledge base, analyze the fact against the context and pro
 - 0.0-0.1: The fact is completely inaccurate or contradicted by the knowledge base
 
 Fact to check: ${fact}`,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [makeSearchTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       score: z.number().min(0).max(1).describe("Accuracy score from 0 to 1"),
       reason: z
