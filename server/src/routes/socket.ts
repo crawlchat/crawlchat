@@ -1,10 +1,9 @@
 import { prisma } from "@packages/common/prisma";
 import { createToken, verifyToken } from "@packages/common/jwt";
-import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
+import { hasEnoughCredits } from "@packages/common/user-plan";
 import { wsRateLimiter } from "../rate-limiter";
-import { baseAnswerer, type AnswerListener } from "../answer";
+import { baseAnswerer, saveAnswer, type AnswerListener } from "../answer";
 import { retry } from "../retry";
-import { fillMessageAnalysis } from "../analyse-message";
 import expressWs from "express-ws";
 import { ScrapeItem } from "@packages/common/prisma";
 
@@ -183,31 +182,15 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
           break;
 
         case "answer-complete":
-          await consumeCredits(scrape.userId, "messages", event.creditsUsed);
-          const newAnswerMessage = await prisma.message.create({
-            data: {
-              threadId,
-              scrapeId: scrape.id,
-              llmMessage: { role: "assistant", content: event.content },
-              links: event.sources,
-              apiActionCalls: event.actionCalls as any,
-              ownerUserId: scrape.userId,
-              questionId: questionMessage?.id ?? null,
-              llmModel: scrape.llmModel,
-              creditsUsed: event.creditsUsed,
-              channel: "widget",
-              fingerprint,
-              url: currentItem?.url,
-              dataGap: event.dataGap,
-            },
-          });
-          if (questionMessage) {
-            await prisma.message.update({
-              where: { id: questionMessage.id },
-              data: { answerId: newAnswerMessage.id },
-            });
-          }
-          await updateLastMessageAt(threadId);
+          const newAnswerMessage = await saveAnswer(
+            event,
+            scrape,
+            threadId,
+            "widget",
+            questionMessage?.id ?? null,
+            scrape.llmModel,
+            fingerprint
+          );
           ws?.send(
             makeMessage("llm-chunk", {
               end: true,
@@ -215,21 +198,7 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
               message: newAnswerMessage,
             })
           );
-
-          if (questionMessage && scrape.analyseMessage) {
-            await fillMessageAnalysis(
-              newAnswerMessage.id,
-              questionMessage.id,
-              message.data.query,
-              event.content,
-              {
-                categories: scrape.messageCategories,
-                onFollowUpQuestion: (questions) => {
-                  ws?.send(makeMessage("follow-up-questions", { questions }));
-                },
-              }
-            );
-          }
+          break;
       }
     };
 
