@@ -271,7 +271,7 @@ export async function analyseMessage(
     ),
     language: z.string().describe(
       `
-        The language of the question
+        The language of the question, in full name, for example english, french.
       `
     ),
     followUpQuestions: z.array(z.string()).describe(
