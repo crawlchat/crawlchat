@@ -308,9 +308,15 @@ type MessageAttachment {
   content     String?
 }
 
+enum DataGapStatus {
+  accepted
+  rejected
+}
+
 type DataGap {
   title       String
   description String?
+  status      DataGapStatus?
 }
 
 model Message {

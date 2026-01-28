@@ -36,23 +36,19 @@ export async function action({ request }: Route.ActionArgs) {
 
   const formData = await request.formData();
   const intent = formData.get("intent");
+  const messageId = formData.get("messageId") as string;
 
-  if (intent === "done") {
-    const messageId = formData.get("messageId") as string;
+  const message = await prisma.message.findFirstOrThrow({
+    where: { id: messageId },
+  });
+
+  if (intent === "accept") {
     await prisma.message.update({
-      where: {
-        id: messageId,
-      },
+      where: { id: messageId },
       data: {
-        analysis: {
-          upsert: {
-            set: {
-              dataGapDone: true,
-            },
-            update: {
-              dataGapDone: true,
-            },
-          },
+        dataGap: {
+          ...message.dataGap!,
+          status: "accepted",
         },
       },
     });
@@ -60,22 +56,13 @@ export async function action({ request }: Route.ActionArgs) {
     return { success: true };
   }
 
-  if (intent === "cancel") {
-    const messageId = formData.get("messageId") as string;
+  if (intent === "reject") {
     await prisma.message.update({
-      where: {
-        id: messageId,
-      },
+      where: { id: messageId },
       data: {
-        analysis: {
-          upsert: {
-            set: {
-              dataGapCancelled: true,
-            },
-            update: {
-              dataGapCancelled: true,
-            },
-          },
+        dataGap: {
+          ...message.dataGap!,
+          status: "rejected",
         },
       },
     });
@@ -85,14 +72,12 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export function DataGapCard({ message }: { message: Message }) {
-  const doneFetcher = useFetcher();
-  const deleteFetcher = useFetcher();
+  const acceptFetcher = useFetcher();
+  const rejectFetcher = useFetcher();
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(
-      `# ${message.analysis!.dataGapTitle}\n\n${
-        message.analysis!.dataGapDescription
-      }`
+      `# ${message.dataGap!.title}\n\n${message.dataGap!.description ?? ""}`
     );
     toast.success("Copied to clipboard");
   };
@@ -112,7 +97,7 @@ export function DataGapCard({ message }: { message: Message }) {
           )}
         >
           <div>
-            <div>{message.analysis!.dataGapTitle}</div>
+            <div>{message.dataGap!.title}</div>
             <Timestamp
               date={message.createdAt}
               className="text-base-content/50"
@@ -133,35 +118,35 @@ export function DataGapCard({ message }: { message: Message }) {
             </div>
 
             <div className="join">
-              <doneFetcher.Form method="post">
+              <acceptFetcher.Form method="post">
                 <input type="hidden" name="messageId" value={message.id} />
-                <input type="hidden" name="intent" value="done" />
+                <input type="hidden" name="intent" value="accept" />
                 <button
                   className="btn btn-success btn-soft join-item"
                   type="submit"
-                  disabled={doneFetcher.state !== "idle"}
+                  disabled={acceptFetcher.state !== "idle"}
                 >
                   <TbCheck />
                   Accept
                 </button>
-              </doneFetcher.Form>
-              <deleteFetcher.Form method="post">
+              </acceptFetcher.Form>
+              <rejectFetcher.Form method="post">
                 <input type="hidden" name="messageId" value={message.id} />
-                <input type="hidden" name="intent" value="cancel" />
+                <input type="hidden" name="intent" value="reject" />
                 <div
                   className="tooltip tooltip-left"
-                  data-tip="Cancel it so that similar data gaps are not created again"
+                  data-tip="Reject it so that similar data gaps are not created again"
                 >
                   <button
                     className="btn btn-error btn-soft join-item"
-                    disabled={deleteFetcher.state !== "idle"}
+                    disabled={rejectFetcher.state !== "idle"}
                     type="submit"
                   >
                     <TbX />
-                    Cancel
+                    Reject
                   </button>
                 </div>
-              </deleteFetcher.Form>
+              </rejectFetcher.Form>
             </div>
           </div>
         </div>
