@@ -11,7 +11,7 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "email": "email dev --port 3004",
-    "prettier": "prettier --no-error-on-unmatched-pattern --check ./**/*.{ts,tsx,js,jsx,json,css,md}"
+    "prettier": "prettier app --check"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

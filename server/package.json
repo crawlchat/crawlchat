@@ -9,7 +9,7 @@
     "dev": "dotenv -e ../.env -- npx tsx watch src/index.ts",
     "cli": "npx tsc && node dist/cli.js",
     "cron": "npx tsc && node dist/cron.js \"$@\"",
-    "prettier": "prettier --no-error-on-unmatched-pattern --check ./**/*.{ts,tsx,js,jsx,json,css,md}"
+    "prettier": "prettier src --check"
   },
   "author": "",
   "license": "ISC",
