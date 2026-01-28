@@ -548,6 +548,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       creditsUsed: answer.creditsUsed,
       fingerprint,
       questionId: questionMessage.id,
+      dataGap: answer.dataGap,
     },
   });
   await prisma.message.update({
@@ -562,7 +563,6 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       questionMessage.id,
       getQueryString(query),
       answer.content,
-      answer.context,
       {
         categories: scrape.messageCategories,
       }
@@ -766,6 +766,7 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
       creditsUsed: answer!.creditsUsed,
       questionId: questionMessage.id,
       fingerprint: googleChatEvent.chat.user.email,
+      dataGap: answer!.dataGap,
     },
   });
   await prisma.message.update({
@@ -780,7 +781,6 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
       questionMessage.id,
       messageText,
       answer!.content,
-      answer!.context,
       {
         categories: scrape.messageCategories,
       }

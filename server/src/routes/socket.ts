@@ -198,6 +198,7 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
               channel: "widget",
               fingerprint,
               url: currentItem?.url,
+              dataGap: event.dataGap,
             },
           });
           if (questionMessage) {
@@ -221,7 +222,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
               questionMessage.id,
               message.data.query,
               event.content,
-              event.context,
               {
                 categories: scrape.messageCategories,
                 onFollowUpQuestion: (questions) => {

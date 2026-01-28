@@ -19,7 +19,7 @@ import {
 } from "@packages/common/llm-message";
 import { Role } from "@packages/agentic";
 import { FlowMessage } from "./llm/flow";
-import { CustomMessage } from "./llm/custom-message";
+import { CustomMessage, DataGap } from "./llm/custom-message";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
@@ -37,6 +37,7 @@ export type AnswerCompleteEvent = {
   creditsUsed: number;
   messages: FlowMessage<CustomMessage>[];
   context: string[];
+  dataGap?: DataGap;
 };
 
 export type ToolCallEvent = {
@@ -163,6 +164,15 @@ export async function collectActionCalls(
     .flat();
 }
 
+export function collectDataGap(
+  messages: FlowMessage<CustomMessage>[]
+): DataGap | undefined {
+  const gaps = messages
+    .map((m) => m.custom?.dataGap)
+    .filter((r) => r !== undefined);
+  return gaps.length > 0 ? gaps[gaps.length - 1] : undefined;
+}
+
 export function collectContext(messages: FlowMessage<CustomMessage>[]) {
   return messages
     .map((m) => m.custom?.result)
@@ -268,6 +278,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     creditsUsed: llmConfig.creditsPerMessage,
     messages: flow.flowState.state.messages,
     context: collectContext(flow.flowState.state.messages),
+    dataGap: collectDataGap(flow.flowState.state.messages),
   };
   options?.listen?.(answer);
 

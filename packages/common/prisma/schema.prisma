@@ -308,6 +308,11 @@ type MessageAttachment {
   content     String?
 }
 
+type DataGap {
+  title       String
+  description String?
+}
+
 model Message {
   id                        String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId                  String   @db.ObjectId
@@ -330,6 +335,7 @@ model Message {
   discordMessageId          String?
   githubCommentId           String?
   analysis                  MessageAnalysis?
+  dataGap                   DataGap?
   llmModel                  LlmModel?
   creditsUsed               Int?
   fingerprint               String?

@@ -440,6 +440,7 @@ async function answer(data: {
       llmModel: scrape.llmModel,
       fingerprint: data.userId?.toString(),
       apiActionCalls: answer.actionCalls as any,
+      dataGap: answer.dataGap,
     },
   });
 
@@ -459,7 +460,6 @@ async function answer(data: {
       questionMessage.id,
       getQueryString(data.question),
       answer.content,
-      answer.context,
       {
         categories: scrape.messageCategories,
       }
