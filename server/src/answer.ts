@@ -9,6 +9,7 @@ import {
   Scrape,
   Thread,
   ScrapeItem,
+  LlmModel,
 } from "@packages/common/prisma";
 import { getConfig } from "./llm/config";
 import { makeRagAgent, makeRagFlow } from "./llm/flow";
@@ -20,6 +21,8 @@ import {
 import { Role } from "@packages/agentic";
 import { FlowMessage } from "./llm/flow";
 import { CustomMessage, DataGap } from "./llm/custom-message";
+import { consumeCredits } from "@packages/common/user-plan";
+import { fillMessageAnalysis } from "./analyse-message";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
@@ -30,6 +33,7 @@ export type StreamDeltaEvent = {
 
 export type AnswerCompleteEvent = {
   type: "answer-complete";
+  question: string | MultimodalContent[];
   content: string;
   sources: MessageSourceLink[];
   actionCalls: ApiActionCall[];
@@ -181,6 +185,13 @@ export function collectContext(messages: FlowMessage<CustomMessage>[]) {
     .map((m) => m.content);
 }
 
+export function updateLastMessageAt(threadId: string) {
+  return prisma.thread.update({
+    where: { id: threadId },
+    data: { lastMessageAt: new Date() },
+  });
+}
+
 export const baseAnswerer: Answerer = async (
   scrape,
   thread,
@@ -279,8 +290,58 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     messages: flow.flowState.state.messages,
     context: collectContext(flow.flowState.state.messages),
     dataGap: collectDataGap(flow.flowState.state.messages),
+    question: query,
   };
   options?.listen?.(answer);
 
   return answer;
 };
+
+export async function saveAnswer(
+  answer: AnswerCompleteEvent,
+  scrape: Scrape,
+  threadId: string,
+  channel: MessageChannel,
+  questionMessageId: string,
+  llmModel?: LlmModel | null,
+  fingerprint?: string
+) {
+  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
+  const newAnswerMessage = await prisma.message.create({
+    data: {
+      threadId,
+      scrapeId: scrape.id,
+      llmMessage: { role: "assistant", content: answer.content },
+      links: answer!.sources,
+      ownerUserId: scrape.userId,
+      channel,
+      apiActionCalls: answer.actionCalls as any,
+      llmModel,
+      creditsUsed: answer.creditsUsed,
+      fingerprint,
+      questionId: questionMessageId,
+      dataGap: answer.dataGap,
+    },
+  });
+
+  await prisma.message.update({
+    where: { id: questionMessageId },
+    data: { answerId: newAnswerMessage.id },
+  });
+
+  await updateLastMessageAt(threadId);
+
+  if (scrape.analyseMessage) {
+    fillMessageAnalysis(
+      newAnswerMessage.id,
+      questionMessageId,
+      getQueryString(answer.question),
+      answer.content,
+      {
+        categories: scrape.messageCategories,
+      }
+    );
+  }
+
+  return newAnswerMessage;
+}
