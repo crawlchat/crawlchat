@@ -304,7 +304,8 @@ export async function saveAnswer(
   channel: MessageChannel,
   questionMessageId: string,
   llmModel?: LlmModel | null,
-  fingerprint?: string
+  fingerprint?: string,
+  onFollowUpQuestion?: (questions: string[]) => void
 ) {
   await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
   const newAnswerMessage = await prisma.message.create({
@@ -339,6 +340,7 @@ export async function saveAnswer(
       answer.content,
       {
         categories: scrape.messageCategories,
+        onFollowUpQuestion,
       }
     );
   }

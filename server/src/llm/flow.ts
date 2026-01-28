@@ -142,6 +142,7 @@ export function makeRagAgent(
       "Query only related items from RAG. Keep the search simple and small",
       "Don't repeat similar search terms. Don't use more than 3 searches from RAG.",
       "Don't use the RAG tool once you have the answer.",
+      "The query should be at least 4 words.",
       "Output should be very very short and under 200 words.",
       "Give the answer in human readable format with markdown.",
 

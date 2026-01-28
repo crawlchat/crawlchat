@@ -189,7 +189,10 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             "widget",
             questionMessage?.id ?? null,
             scrape.llmModel,
-            fingerprint
+            fingerprint,
+            (questions) => {
+              ws?.send(makeMessage("follow-up-questions", { questions }));
+            }
           );
           ws?.send(
             makeMessage("llm-chunk", {
