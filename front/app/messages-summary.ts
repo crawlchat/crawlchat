@@ -154,23 +154,14 @@ export function getMessagesSummary(messages: Message[]) {
 
   //get all available languages
   const messagesWithLanguages = messages.filter((m) => m.analysis?.language);
-  const languagesDistribution: Record<
-    string,
-    { count: number; latestDate: Date }
-  > = {};
+  const languagesDistribution: Record<string, number> = {};
 
   messagesWithLanguages.forEach((message) => {
     const languageName = message.analysis?.language!;
     if (!languagesDistribution[languageName]) {
-      languagesDistribution[languageName] = {
-        count: 1,
-        latestDate: message.createdAt,
-      };
+      languagesDistribution[languageName] = 1;
     } else {
-      languagesDistribution[languageName].count++;
-      if (message.createdAt > languagesDistribution[languageName].latestDate) {
-        languagesDistribution[languageName].latestDate = message.createdAt;
-      }
+      languagesDistribution[languageName]++;
     }
   });
 

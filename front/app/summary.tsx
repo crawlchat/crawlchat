@@ -46,6 +46,7 @@ import { dodoGateway } from "~/payment/gateway-dodo";
 import { track } from "~/components/track";
 import { getMessagesSummary, type MessagesSummary } from "~/messages-summary";
 import type { Payload } from "recharts/types/component/DefaultTooltipContent";
+import LanguageDistribution from "./summary/languageDistribution";
 
 function monoString(str: string) {
   return str.trim().toLowerCase().replace(/^\n+/, "").replace(/\n+$/, "");
@@ -426,7 +427,7 @@ function CategoryTiles({
   );
 }
 
-function Heading({
+export function Heading({
   children,
   className,
   ...props
@@ -482,7 +483,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   }, [loaderData.messagesSummary.dailyMessages]);
 
   const [tagsOrder, setTagsOrder] = useState<"top" | "latest">("top");
-  const [languagesOrder, setLanguagesOrder] = useState<"top" | "latest">("top");
   const tags = useMemo(() => {
     const sortedTags = Object.entries(loaderData.messagesSummary.tags).sort(
       (a, b) => {
@@ -500,23 +500,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       .slice(0, 20)
       .map(([title, d]) => ({ title, count: d.count }));
   }, [loaderData.messagesSummary.tags, tagsOrder]);
-  const languages = useMemo(() => {
-    const sortedLanguages = Object.entries(
-      loaderData.messagesSummary.languagesDistribution
-    ).sort((a, b) => {
-      return b[1].count - a[1].count;
-    });
-
-    if (languagesOrder === "latest") {
-      sortedLanguages.sort((a, b) => {
-        return b[1].latestDate.getTime() - a[1].latestDate.getTime();
-      });
-    }
-
-    return sortedLanguages
-      .slice(0, 20)
-      .map(([title, d]) => ({ title, count: d.count }));
-  }, [loaderData.messagesSummary.languagesDistribution, languagesOrder]);
 
   useEffect(() => {
     track("dashboard", {});
@@ -801,24 +784,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <CategoryTiles categories={tags} />
             </div>
           )}
-          {languages.length > 0 && (
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <Heading className="mb-0">Languages</Heading>
-                <select
-                  className="select w-fit select-sm"
-                  value={languagesOrder}
-                  onChange={(e) =>
-                    setLanguagesOrder(e.target.value as "top" | "latest")
-                  }
-                >
-                  <option value="top">Top</option>
-                  <option value="latest">Latest</option>
-                </select>
-              </div>
-              <CategoryTiles categories={languages} />
-            </div>
-          )}
+          <LanguageDistribution
+            languages={loaderData.messagesSummary.languagesDistribution}
+          />
         </div>
       )}
 
