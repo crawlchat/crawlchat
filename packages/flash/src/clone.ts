@@ -1,26 +1,8 @@
-import { exec, execSync } from "child_process";
+import { exec } from "child_process";
 import { promisify } from "util";
-import { randomUUID } from "crypto";
-import * as path from "path";
 import * as fs from "fs";
 
 const execAsync = promisify(exec);
-
-export async function cloneRepo(repoUrl: string): Promise<string> {
-  const id = randomUUID().slice(0, 8);
-  const folderName = `flash-${id}`;
-  const targetPath = path.join("/tmp", folderName);
-
-  if (fs.existsSync(targetPath)) {
-    fs.rmSync(targetPath, { recursive: true });
-  }
-
-  execSync(`git clone --depth 1 ${repoUrl} ${targetPath}`, {
-    stdio: "pipe",
-  });
-
-  return targetPath;
-}
 
 export async function ensureRepoCloned(
   repoUrl: string,

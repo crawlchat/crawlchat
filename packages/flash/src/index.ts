@@ -1,4 +1,4 @@
-export { cloneRepo, cleanupRepo, ensureRepoCloned } from "./clone";
+export { cleanupRepo, ensureRepoCloned } from "./clone";
 export {
   createCodebaseTools,
   createGrepTool,
