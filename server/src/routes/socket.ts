@@ -192,21 +192,30 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             },
           });
           await updateLastMessageAt(threadId);
-          broadcastToThread(threadId, makeMessage("query-message", questionMessage));
+          broadcastToThread(
+            threadId,
+            makeMessage("query-message", questionMessage)
+          );
           break;
 
         case "stream-delta":
           if (event.delta) {
-            broadcastToThread(threadId, makeMessage("llm-chunk", { content: event.delta }));
+            broadcastToThread(
+              threadId,
+              makeMessage("llm-chunk", { content: event.delta })
+            );
           }
           break;
 
         case "tool-call":
-          broadcastToThread(threadId, makeMessage("stage", {
-            stage: "tool-call",
-            query: event.query,
-            action: event.action,
-          }));
+          broadcastToThread(
+            threadId,
+            makeMessage("stage", {
+              stage: "tool-call",
+              query: event.query,
+              action: event.action,
+            })
+          );
           break;
 
         case "answer-complete":
@@ -219,14 +228,20 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             scrape.llmModel,
             fingerprint,
             (questions) => {
-              broadcastToThread(threadId, makeMessage("follow-up-questions", { questions }));
+              broadcastToThread(
+                threadId,
+                makeMessage("follow-up-questions", { questions })
+              );
             }
           );
-          broadcastToThread(threadId, makeMessage("llm-chunk", {
-            end: true,
-            content: event.content,
-            message: newAnswerMessage,
-          }));
+          broadcastToThread(
+            threadId,
+            makeMessage("llm-chunk", {
+              end: true,
+              content: event.content,
+              message: newAnswerMessage,
+            })
+          );
           break;
       }
     };

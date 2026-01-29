@@ -33,7 +33,10 @@ export function makeRagAgent(
   options?: {
     onPreSearch?: (query: string) => Promise<void>;
     onPreAction?: (title: string) => void;
-    onPreCodebaseTool?: (toolId: string, input: Record<string, unknown>) => void;
+    onPreCodebaseTool?: (
+      toolId: string,
+      input: Record<string, unknown>
+    ) => void;
     llmConfig: LlmConfig;
     richBlocks?: RichBlockConfig[];
     minScore?: number;
