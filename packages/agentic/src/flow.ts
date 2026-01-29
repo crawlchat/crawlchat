@@ -3,7 +3,7 @@ import {
   ChatCompletionMessageToolCall,
   ChatCompletionToolMessageParam,
 } from "openai/resources/chat/completions";
-import { Agent, Message } from "./agent";
+import { Agent, Message, multiLinePrompt } from "./agent";
 import { handleStream, OnDelta, Usage } from "./stream";
 
 export type FlowMessage<CustomMessage> = {
@@ -21,17 +21,19 @@ type FlowState<CustomState, CustomMessage> = {
   startedAt?: number;
   nextAgentIds: string[];
   usage: Usage;
+  toolCallCount: number;
 };
 
 export class Flow<CustomState, CustomMessage> {
   private agents: Agent<CustomMessage>[];
   public flowState: FlowState<CustomState, CustomMessage>;
   private repeatToolAgent: boolean;
+  private maxToolCalls?: number;
 
   constructor(
     agents: Agent<CustomMessage>[],
     state: State<CustomState, CustomMessage>,
-    options?: { repeatToolAgent?: boolean }
+    options?: { repeatToolAgent?: boolean; maxToolCalls?: number }
   ) {
     this.agents = agents;
     this.flowState = {
@@ -43,8 +45,10 @@ export class Flow<CustomState, CustomMessage> {
         totalTokens: 0,
         cost: 0,
       },
+      toolCallCount: 0,
     };
     this.repeatToolAgent = options?.repeatToolAgent ?? true;
+    this.maxToolCalls = options?.maxToolCalls;
   }
 
   getAgent(id: string) {
@@ -133,6 +137,37 @@ export class Flow<CustomState, CustomMessage> {
     const pendingToolCalls = this.getPendingToolCalls();
     if (pendingToolCalls.length > 0) {
       const call = pendingToolCalls[0];
+
+      if (
+        this.maxToolCalls &&
+        this.flowState.toolCallCount >= this.maxToolCalls
+      ) {
+        const message: FlowMessage<CustomMessage> = {
+          llmMessage: {
+            role: "tool",
+            content: multiLinePrompt([
+              "Tool call limit reached",
+              "You cannot call any more tools.",
+              "Please provide your final answer based on the information you have gathered so far.",
+            ]),
+            tool_call_id: call.toolCall.id,
+          },
+          agentId,
+        };
+        this.flowState.state.messages.push(message);
+        if (pendingToolCalls.length > 1) {
+          this.flowState.nextAgentIds = [
+            agentId,
+            ...this.flowState.nextAgentIds,
+          ];
+        }
+        return {
+          messages: [message],
+          agentId,
+        };
+      }
+
+      this.flowState.toolCallCount++;
       const message = await this.runTool(
         call.toolCall.id,
         call.toolCall.function.name,

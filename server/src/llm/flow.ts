@@ -211,17 +211,21 @@ export function makeRagFlow(
   messages: FlowMessage<CustomMessage>[],
   query: string | MultimodalContent[]
 ) {
-  const flow = new Flow([agent], {
-    messages: [
-      ...messages,
-      {
-        llmMessage: {
-          role: "user",
-          content: query,
+  const flow = new Flow(
+    [agent],
+    {
+      messages: [
+        ...messages,
+        {
+          llmMessage: {
+            role: "user",
+            content: query,
+          },
         },
-      },
-    ],
-  });
+      ],
+    },
+    { maxToolCalls: 10 }
+  );
 
   flow.addNextAgents(["rag-agent"]);
 

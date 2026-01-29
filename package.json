@@ -22,7 +22,6 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "prettier": "turbo run prettier",
-    "generate": "turbo run generate",
-    "dev:core": "turbo run dev --filter=front --filter=server --filter=source-sync"
+    "generate": "turbo run generate"
   }
 }

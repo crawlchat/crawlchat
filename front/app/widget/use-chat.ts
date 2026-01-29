@@ -175,7 +175,7 @@ export function useScrapeChat({
     setAskStage("answering");
     setContent((prev) => {
       const delta = new Date().getTime() - prev.date.getTime();
-      const shouldOverride = delta > 2000 && prev.text.length <= 100;
+      const shouldOverride = delta > 2000 && prev.text.length <= 500;
       return {
         text: shouldOverride ? content : prev.text + content,
         date: new Date(),
