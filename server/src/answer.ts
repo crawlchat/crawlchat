@@ -215,7 +215,11 @@ export const baseAnswerer: Answerer = async (
   let githubRepoPath: string | undefined;
   if (githubRepoGroup?.githubUrl) {
     githubRepoPath = `/tmp/flash-${githubRepoGroup.id}`;
-    await ensureRepoCloned(githubRepoGroup.githubUrl, githubRepoPath, githubRepoGroup.githubBranch ?? "main");
+    await ensureRepoCloned(
+      githubRepoGroup.githubUrl,
+      githubRepoPath,
+      githubRepoGroup.githubBranch ?? "main"
+    );
   }
 
   const richBlocks = scrape.richBlocksConfig?.blocks ?? [];
