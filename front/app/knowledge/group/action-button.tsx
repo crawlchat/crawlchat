@@ -78,6 +78,7 @@ export function ActionButton({
       "learn_discord",
       "learn_slack",
       "answer_corrections",
+      "scrape_github",
     ].includes(group.type)
   ) {
     return null;
