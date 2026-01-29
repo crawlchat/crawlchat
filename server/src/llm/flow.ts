@@ -13,6 +13,7 @@ import { makeSearchTool, SearchToolContext } from "./search-tool";
 import { makeActionTools } from "./action-tool";
 import { CustomMessage } from "./custom-message";
 import { makeDataGapTool } from "./data-gap-tool";
+import { createCodebaseTools } from "@packages/flash";
 
 export type FlowMessage<CustomMessage> = {
   llmMessage: Message;
@@ -32,6 +33,7 @@ export function makeRagAgent(
   options?: {
     onPreSearch?: (query: string) => Promise<void>;
     onPreAction?: (title: string) => void;
+    onPreCodebaseTool?: (toolId: string, input: Record<string, unknown>) => void;
     llmConfig: LlmConfig;
     richBlocks?: RichBlockConfig[];
     minScore?: number;
@@ -101,6 +103,10 @@ export function makeRagAgent(
 
   const dataGapTool = makeDataGapTool();
 
+  const codebaseTools = createCodebaseTools("/tmp/flash-df659034", {
+    onToolCall: options?.onPreCodebaseTool,
+  });
+
   let currentPagePrompt = "";
   if (options?.scrapeItem) {
     currentPagePrompt = `
@@ -161,6 +167,15 @@ export function makeRagAgent(
       "Do NOT use report_data_gap if search_data returned no results.",
       "Do NOT use report_data_gap for questions unrelated to the knowledge base (e.g., general chat, greetings, off-topic questions).",
 
+      "You have access to a codebase through the following tools:",
+      "- grep: Search file contents using regex patterns. Returns matching lines with file paths and line numbers.",
+      "- ls: List files and directories in a specified path.",
+      "- find: Find files by name or glob pattern (e.g., '**/*.ts').",
+      "- tree: Get a tree-like representation of the directory structure.",
+      "Use these tools when the user asks about code, file structure, or wants to explore the codebase.",
+      "Start with 'tree' to understand the project structure, then use 'grep' or 'find' to locate specific code.",
+      "Use 'ls' to explore specific directories in detail.",
+
       options?.showSources ? citationPrompt : "",
 
       enabledRichBlocks.length > 0 ? richBlocksPrompt : "",
@@ -173,7 +188,7 @@ export function makeRagAgent(
 
       `<client-data>\n${JSON.stringify(options?.clientData)}\n</client-data>`,
     ]),
-    tools: [ragTool, ...actionTools, dataGapTool],
+    tools: [ragTool, ...actionTools, dataGapTool, ...codebaseTools],
     model: options?.llmConfig.model,
     baseURL: options?.llmConfig.baseURL,
     apiKey: options?.llmConfig.apiKey,

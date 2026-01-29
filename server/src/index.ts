@@ -49,6 +49,7 @@ import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
 import githubBotRouter from "./github-bot";
+import flashRouter from "./routes/flash";
 
 declare global {
   namespace Express {
@@ -90,6 +91,7 @@ app.use(cors());
 app.use("/api", apiRouter);
 app.use("/admin", adminRouter);
 app.use("/github", githubBotRouter);
+app.use("/flash", flashRouter);
 expressWs.app.ws("/", handleWs);
 
 app.get("/", function (req: Request, res: Response) {

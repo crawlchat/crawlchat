@@ -250,6 +250,12 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
           action: title,
         });
       },
+      onPreCodebaseTool: (toolId, input) => {
+        options?.listen?.({
+          type: "tool-call",
+          action: `${toolId}: ${JSON.stringify(input)}`,
+        });
+      },
       llmConfig,
       richBlocks,
       minScore: scrape.minScore ?? undefined,

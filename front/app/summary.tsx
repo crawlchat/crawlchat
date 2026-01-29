@@ -608,7 +608,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               Collection
             </button>
           )}
-          {loaderData.scrape && loaderData.nScrapeItems > 0 && (
+          {loaderData.scrape && (
             <a
               className="btn btn-primary btn-soft hidden md:flex"
               href={`/w/${loaderData.scrape.slug ?? loaderData.scrapeId}`}
@@ -618,7 +618,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               Chat
             </a>
           )}
-          {loaderData.scrape && loaderData.nScrapeItems > 0 && (
+          {loaderData.scrape && (
             <a
               className="btn btn-primary btn-soft btn-square md:hidden"
               href={`/w/${loaderData.scrape.slug ?? loaderData.scrapeId}`}

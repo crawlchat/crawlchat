@@ -6,9 +6,33 @@ import { baseAnswerer, saveAnswer, type AnswerListener } from "../answer";
 import { retry } from "../retry";
 import expressWs from "express-ws";
 import { ScrapeItem } from "@packages/common/prisma";
+import type WebSocket from "ws";
 
 function makeMessage(type: string, data: unknown) {
   return JSON.stringify({ type, data });
+}
+
+const threadConnections = new Map<string, Set<WebSocket>>();
+
+function broadcastToThread(threadId: string, message: string) {
+  const connections = threadConnections.get(threadId);
+  if (!connections) return;
+  for (const socket of connections) {
+    if (socket.readyState === 1) socket.send(message);
+  }
+}
+
+function addToThread(threadId: string, socket: WebSocket) {
+  if (!threadConnections.has(threadId)) {
+    threadConnections.set(threadId, new Set());
+  }
+  threadConnections.get(threadId)!.add(socket);
+}
+
+function removeFromAllThreads(socket: WebSocket) {
+  for (const connections of threadConnections.values()) {
+    connections.delete(socket);
+  }
 }
 
 async function updateLastMessageAt(threadId: string) {
@@ -47,6 +71,11 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       const token = authHeader.split(" ")[1];
       const user = verifyToken(token);
       userId = user.userId;
+
+      if (message.data.threadId) {
+        addToThread(message.data.threadId, ws);
+      }
+
       ws.send(makeMessage("connected", { message: "Connected" }));
       return;
     }
@@ -62,6 +91,7 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
     }
 
     const threadId = message.data.threadId;
+    addToThread(threadId, ws);
     const deleteIds = message.data.delete;
     const thread = await prisma.thread.findFirstOrThrow({
       where: { id: threadId },
@@ -162,23 +192,21 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             },
           });
           await updateLastMessageAt(threadId);
-          ws?.send(makeMessage("query-message", questionMessage));
+          broadcastToThread(threadId, makeMessage("query-message", questionMessage));
           break;
 
         case "stream-delta":
           if (event.delta) {
-            ws?.send(makeMessage("llm-chunk", { content: event.delta }));
+            broadcastToThread(threadId, makeMessage("llm-chunk", { content: event.delta }));
           }
           break;
 
         case "tool-call":
-          ws?.send(
-            makeMessage("stage", {
-              stage: "tool-call",
-              query: event.query,
-              action: event.action,
-            })
-          );
+          broadcastToThread(threadId, makeMessage("stage", {
+            stage: "tool-call",
+            query: event.query,
+            action: event.action,
+          }));
           break;
 
         case "answer-complete":
@@ -191,16 +219,14 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             scrape.llmModel,
             fingerprint,
             (questions) => {
-              ws?.send(makeMessage("follow-up-questions", { questions }));
+              broadcastToThread(threadId, makeMessage("follow-up-questions", { questions }));
             }
           );
-          ws?.send(
-            makeMessage("llm-chunk", {
-              end: true,
-              content: event.content,
-              message: newAnswerMessage,
-            })
-          );
+          broadcastToThread(threadId, makeMessage("llm-chunk", {
+            end: true,
+            content: event.content,
+            message: newAnswerMessage,
+          }));
           break;
       }
     };
@@ -247,5 +273,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
 
   ws.on("close", () => {
     userId = null;
+    removeFromAllThreads(ws);
   });
 };
