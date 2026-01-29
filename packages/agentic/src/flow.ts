@@ -4,7 +4,7 @@ import {
   ChatCompletionToolMessageParam,
 } from "openai/resources/chat/completions";
 import { Agent, Message } from "./agent";
-import { handleStream, OnDelta } from "./stream";
+import { handleStream, OnDelta, Usage } from "./stream";
 
 export type FlowMessage<CustomMessage> = {
   llmMessage: Message;
@@ -20,6 +20,7 @@ type FlowState<CustomState, CustomMessage> = {
   state: State<CustomState, CustomMessage>;
   startedAt?: number;
   nextAgentIds: string[];
+  usage: Usage;
 };
 
 export class Flow<CustomState, CustomMessage> {
@@ -36,6 +37,12 @@ export class Flow<CustomState, CustomMessage> {
     this.flowState = {
       state,
       nextAgentIds: [],
+      usage: {
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        cost: 0,
+      },
     };
     this.repeatToolAgent = options?.repeatToolAgent ?? true;
   }
@@ -48,6 +55,18 @@ export class Flow<CustomState, CustomMessage> {
     return this.flowState.state.messages[
       this.flowState.state.messages.length - 1
     ];
+  }
+
+  getUsage(): Usage {
+    return this.flowState.usage;
+  }
+
+  private addUsage(usage: Usage | null) {
+    if (!usage) return;
+    this.flowState.usage.promptTokens += usage.promptTokens;
+    this.flowState.usage.completionTokens += usage.completionTokens;
+    this.flowState.usage.totalTokens += usage.totalTokens;
+    this.flowState.usage.cost += usage.cost;
   }
 
   async runTool(id: string, toolId: string, args: Record<string, any>) {
@@ -134,6 +153,8 @@ export class Flow<CustomState, CustomMessage> {
       ),
       onDelta
     );
+
+    this.addUsage(result.usage);
 
     const newMessages = result.messages.map((message) => ({
       llmMessage: message,

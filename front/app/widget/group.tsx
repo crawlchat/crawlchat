@@ -100,7 +100,7 @@ function AssistantMessage({
   content: string;
 }) {
   return (
-    <div className="flex flex-col gap-0 border border-base-300 rounded-box overflow-hidden bg-base-100 border-primary border-2">
+    <div className="flex flex-col gap-0 rounded-box overflow-hidden bg-base-100 border-primary border-2">
       <div className="flex items-center gap-2 p-2 px-4 border-b border-base-300">
         <img
           className="max-h-[18px]"
@@ -260,9 +260,9 @@ export default function GroupChat({ loaderData }: Route.ComponentProps) {
               )}
             </div>
           ))}
-          {(chat.askStage === "asked" || chat.askStage === "searching" || chat.askStage === "action-call") && (
-            <LoadingMessage />
-          )}
+          {(chat.askStage === "asked" ||
+            chat.askStage === "searching" ||
+            chat.askStage === "action-call") && <LoadingMessage />}
         </div>
 
         <div className="sticky bottom-4">

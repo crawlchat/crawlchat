@@ -1,9 +1,12 @@
 import { Tool } from "@packages/agentic";
 import { z } from "zod";
-import * as fs from "fs";
+import * as fs from "fs/promises";
 import * as path from "path";
-import { execSync } from "child_process";
+import { exec } from "child_process";
+import { promisify } from "util";
 import { glob } from "glob";
+
+const execAsync = promisify(exec);
 
 const GrepSchema = z.object({
   pattern: z.string().describe("Regex pattern to search for"),
@@ -67,11 +70,11 @@ function createGrepTool(repoPath: string, options?: CodebaseToolOptions): Tool<t
       options?.onToolCall?.("grep", input);
       const { pattern, glob: globPattern } = input;
       const globArg = globPattern ? `--include='${globPattern}'` : "";
-      const result = execSync(
+      const { stdout } = await execAsync(
         `grep -rn ${globArg} -E '${pattern.replace(/'/g, "\\'")}' . 2>/dev/null || true`,
         { cwd: repoPath, encoding: "utf-8", maxBuffer: 10 * 1024 * 1024 }
       );
-      const lines = result.trim().split("\n").filter(Boolean).slice(0, 100);
+      const lines = stdout.trim().split("\n").filter(Boolean).slice(0, 100);
       return {
         content: lines.length ? lines.join("\n") : "No matches found",
       };
@@ -88,7 +91,7 @@ function createLsTool(repoPath: string, options?: CodebaseToolOptions): Tool<typ
       console.log("[ls] called with:", input);
       options?.onToolCall?.("ls", input);
       const targetPath = resolvePath(repoPath, input.path);
-      const entries = fs.readdirSync(targetPath, { withFileTypes: true });
+      const entries = await fs.readdir(targetPath, { withFileTypes: true });
       const result = entries
         .map((entry) => {
           const suffix = entry.isDirectory() ? "/" : "";
@@ -123,21 +126,22 @@ function createFindTool(repoPath: string, options?: CodebaseToolOptions): Tool<t
   };
 }
 
-function buildTree(
+async function buildTree(
   dir: string,
   prefix: string,
   depth: number,
   maxDepth: number
-): string[] {
+): Promise<string[]> {
   if (depth >= maxDepth) return [];
 
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const entries = await fs.readdir(dir, { withFileTypes: true });
   const filtered = entries.filter(
     (e) => !e.name.startsWith(".") && e.name !== "node_modules"
   );
   const lines: string[] = [];
 
-  filtered.forEach((entry, index) => {
+  for (let index = 0; index < filtered.length; index++) {
+    const entry = filtered[index];
     const isLast = index === filtered.length - 1;
     const connector = isLast ? "└── " : "├── ";
     const suffix = entry.isDirectory() ? "/" : "";
@@ -145,11 +149,10 @@ function buildTree(
 
     if (entry.isDirectory()) {
       const newPrefix = prefix + (isLast ? "    " : "│   ");
-      lines.push(
-        ...buildTree(path.join(dir, entry.name), newPrefix, depth + 1, maxDepth)
-      );
+      const subLines = await buildTree(path.join(dir, entry.name), newPrefix, depth + 1, maxDepth);
+      lines.push(...subLines);
     }
-  });
+  }
 
   return lines;
 }
@@ -165,7 +168,8 @@ function createTreeTool(repoPath: string, options?: CodebaseToolOptions): Tool<t
       const targetPath = resolvePath(repoPath, input.path);
       const maxDepth = input.depth ?? 3;
       const rootName = input.path || path.basename(repoPath);
-      const lines = [`${rootName}/`, ...buildTree(targetPath, "", 0, maxDepth)];
+      const treeLines = await buildTree(targetPath, "", 0, maxDepth);
+      const lines = [`${rootName}/`, ...treeLines];
       return { content: lines.join("\n") };
     },
   };

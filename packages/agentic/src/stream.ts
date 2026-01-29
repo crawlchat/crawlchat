@@ -9,6 +9,13 @@ export type OnDelta = (options: {
   delta?: string;
 }) => void;
 
+export type Usage = {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  cost: number;
+};
+
 export async function handleStream(
   stream: Stream<OpenAI.Chat.Completions.ChatCompletionChunk>,
   onDelta?: OnDelta
@@ -17,8 +24,19 @@ export async function handleStream(
   let content = "";
   let role: Role = "user";
   const messages: Message[] = [];
+  let usage: Usage | null = null;
 
   for await (const chunk of stream) {
+    const chunkUsage = (chunk as any).usage;
+    if (chunkUsage) {
+      usage = {
+        promptTokens: chunkUsage.prompt_tokens ?? 0,
+        completionTokens: chunkUsage.completion_tokens ?? 0,
+        totalTokens: chunkUsage.total_tokens ?? 0,
+        cost: chunkUsage.cost ?? 0,
+      };
+      console.log("[stream] captured usage:", usage);
+    }
     if (chunk.choices && chunk.choices[0].delta.role) {
       role = chunk.choices[0].delta.role;
     }
@@ -73,5 +91,5 @@ export async function handleStream(
     } as ChatCompletionAssistantMessageParam);
   }
 
-  return { content, messages };
+  return { content, messages, usage };
 }

@@ -345,6 +345,10 @@ model Message {
   dataGap                   DataGap?
   llmModel                  LlmModel?
   creditsUsed               Int?
+  promptTokens              Int?
+  completionTokens          Int?
+  totalTokens               Int?
+  llmCost                   Float?
   fingerprint               String?
   url                       String?
 

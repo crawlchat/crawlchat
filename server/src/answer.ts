@@ -39,6 +39,10 @@ export type AnswerCompleteEvent = {
   actionCalls: ApiActionCall[];
   llmCalls: number;
   creditsUsed: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  llmCost: number;
   messages: FlowMessage<CustomMessage>[];
   context: string[];
   dataGap?: DataGap;
@@ -283,6 +287,8 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
   ) {}
 
   const lastMessage = flow.getLastMessage();
+  const usage = flow.getUsage();
+  console.log("[answer] usage from flow:", usage);
   const answer: AnswerCompleteEvent = {
     type: "answer-complete",
     content: (lastMessage.llmMessage.content ?? "") as string,
@@ -293,6 +299,10 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     ),
     llmCalls: 1,
     creditsUsed: llmConfig.creditsPerMessage,
+    promptTokens: usage.promptTokens,
+    completionTokens: usage.completionTokens,
+    totalTokens: usage.totalTokens,
+    llmCost: usage.cost,
     messages: flow.flowState.state.messages,
     context: collectContext(flow.flowState.state.messages),
     dataGap: collectDataGap(flow.flowState.state.messages),
@@ -314,6 +324,12 @@ export async function saveAnswer(
   onFollowUpQuestion?: (questions: string[]) => void
 ) {
   await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
+  console.log("[saveAnswer] saving with tokens:", {
+    promptTokens: answer.promptTokens,
+    completionTokens: answer.completionTokens,
+    totalTokens: answer.totalTokens,
+    llmCost: answer.llmCost,
+  });
   const newAnswerMessage = await prisma.message.create({
     data: {
       threadId,
@@ -325,6 +341,10 @@ export async function saveAnswer(
       apiActionCalls: answer.actionCalls as any,
       llmModel,
       creditsUsed: answer.creditsUsed,
+      promptTokens: answer.promptTokens,
+      completionTokens: answer.completionTokens,
+      totalTokens: answer.totalTokens,
+      llmCost: answer.llmCost,
       fingerprint,
       questionId: questionMessageId,
       dataGap: answer.dataGap,
