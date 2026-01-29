@@ -85,8 +85,6 @@ export async function action({ request }: { request: Request }) {
 
   if (request.method === "POST") {
     let url = formData.get("url") as string;
-    let maxLinks = formData.get("maxLinks");
-    let allowOnlyRegex = formData.get("allowOnlyRegex");
     let removeHtmlTags = formData.get("removeHtmlTags");
     let skipPageRegex = formData.get("skipPageRegex") as string;
     let subType = formData.get("subType") as string;
@@ -105,12 +103,6 @@ export async function action({ request }: { request: Request }) {
       if (!githubBranch) {
         return { error: "Branch name is required" };
       }
-
-      url = `${githubRepoUrl}/tree/${githubBranch}`;
-      allowOnlyRegex = "https://github.com/[^/]+/[^/]+/(tree|blob)/main.*";
-      const removeSelectors = [".react-line-number", "#repos-file-tree"];
-      removeHtmlTags = removeSelectors.join(",");
-      maxLinks = "100";
     }
 
     if (type === "github_issues") {
@@ -128,7 +120,8 @@ export async function action({ request }: { request: Request }) {
       type !== "linear" &&
       type !== "linear_projects" &&
       type !== "youtube" &&
-      type !== "youtube_channel"
+      type !== "youtube_channel" &&
+      type !== "scrape_github"
     ) {
       return { error: "URL is required" };
     }
@@ -162,10 +155,6 @@ export async function action({ request }: { request: Request }) {
       }
     }
 
-    if (prefix === "on") {
-      allowOnlyRegex = `^${url.replace(/\/$/, "")}.*`;
-    }
-
     if (type === "docusaurus") {
       type = "scrape_web";
     }
@@ -181,7 +170,7 @@ export async function action({ request }: { request: Request }) {
 
     let status: KnowledgeGroupStatus = "pending";
 
-    if (type === "upload") {
+    if (type === "upload" || type === "scrape_github") {
       status = "done";
     }
 
@@ -308,6 +297,13 @@ export function NewKnowledgeGroupForm({
             </a>
           </p>
         ),
+      },
+      {
+        title: "GH Repo",
+        value: "scrape_github",
+        description: "Index a GitHub repository",
+        icon: <TbBrandGithub />,
+        longDescription: "Turn a GitHub repository into the knowledge base.",
       },
       {
         title: "GH Issues",
@@ -547,6 +543,33 @@ export function NewKnowledgeGroupForm({
               value="/docs/[0-9x]+\.[0-9x]+\.[0-9x]+,/docs/next"
             />
             <input type="hidden" name="subType" value="docusaurus" />
+          </>
+        )}
+
+        {type === "scrape_github" && (
+          <>
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">GitHub Repo URL</legend>
+              <input
+                type="url"
+                className="input w-full"
+                name="githubRepoUrl"
+                placeholder="https://github.com/user/repo"
+                pattern="^https://github.com/.+$"
+                required
+              />
+            </fieldset>
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">GitHub Branch</legend>
+              <input
+                type="text"
+                className="input w-full"
+                name="githubBranch"
+                placeholder="main"
+                defaultValue="main"
+                required
+              />
+            </fieldset>
           </>
         )}
 
