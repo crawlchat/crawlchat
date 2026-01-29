@@ -157,6 +157,9 @@ function ChatInput({
     if (!query.trim()) return;
     onSend(query);
     setQuery("");
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {

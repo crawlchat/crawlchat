@@ -24,9 +24,7 @@ const LsSchema = z.object({
 });
 
 const FindSchema = z.object({
-  pattern: z
-    .string()
-    .describe("Glob pattern to match files (e.g., '**/*.ts')"),
+  pattern: z.string().describe("Glob pattern to match files (e.g., '**/*.ts')"),
 });
 
 const TreeSchema = z.object({
@@ -59,7 +57,10 @@ function resolvePath(repoPath: string, relativePath?: string): string {
   return resolved;
 }
 
-function createGrepTool(repoPath: string, options?: CodebaseToolOptions): Tool<typeof GrepSchema, object> {
+function createGrepTool(
+  repoPath: string,
+  options?: CodebaseToolOptions
+): Tool<typeof GrepSchema, object> {
   return {
     id: "grep",
     description:
@@ -82,7 +83,10 @@ function createGrepTool(repoPath: string, options?: CodebaseToolOptions): Tool<t
   };
 }
 
-function createLsTool(repoPath: string, options?: CodebaseToolOptions): Tool<typeof LsSchema, object> {
+function createLsTool(
+  repoPath: string,
+  options?: CodebaseToolOptions
+): Tool<typeof LsSchema, object> {
   return {
     id: "ls",
     description: "List files and directories in the specified path.",
@@ -103,7 +107,10 @@ function createLsTool(repoPath: string, options?: CodebaseToolOptions): Tool<typ
   };
 }
 
-function createFindTool(repoPath: string, options?: CodebaseToolOptions): Tool<typeof FindSchema, object> {
+function createFindTool(
+  repoPath: string,
+  options?: CodebaseToolOptions
+): Tool<typeof FindSchema, object> {
   return {
     id: "find",
     description: "Find files by name or glob pattern.",
@@ -120,7 +127,9 @@ function createFindTool(repoPath: string, options?: CodebaseToolOptions): Tool<t
       const suffix =
         matches.length > 200 ? `\n... and ${matches.length - 200} more` : "";
       return {
-        content: limited.length ? limited.join("\n") + suffix : "No files found",
+        content: limited.length
+          ? limited.join("\n") + suffix
+          : "No files found",
       };
     },
   };
@@ -149,7 +158,12 @@ async function buildTree(
 
     if (entry.isDirectory()) {
       const newPrefix = prefix + (isLast ? "    " : "│   ");
-      const subLines = await buildTree(path.join(dir, entry.name), newPrefix, depth + 1, maxDepth);
+      const subLines = await buildTree(
+        path.join(dir, entry.name),
+        newPrefix,
+        depth + 1,
+        maxDepth
+      );
       lines.push(...subLines);
     }
   }
@@ -157,7 +171,10 @@ async function buildTree(
   return lines;
 }
 
-function createTreeTool(repoPath: string, options?: CodebaseToolOptions): Tool<typeof TreeSchema, object> {
+function createTreeTool(
+  repoPath: string,
+  options?: CodebaseToolOptions
+): Tool<typeof TreeSchema, object> {
   return {
     id: "tree",
     description: "Get a tree-like representation of the directory structure.",
@@ -175,7 +192,10 @@ function createTreeTool(repoPath: string, options?: CodebaseToolOptions): Tool<t
   };
 }
 
-export function createCodebaseTools(repoPath: string, options?: CodebaseToolOptions): CodebaseTool[] {
+export function createCodebaseTools(
+  repoPath: string,
+  options?: CodebaseToolOptions
+): CodebaseTool[] {
   return [
     createGrepTool(repoPath, options),
     createLsTool(repoPath, options),

@@ -42,6 +42,7 @@ export function makeRagAgent(
     clientData?: any;
     secret?: string;
     scrapeItem?: ScrapeItem;
+    githubRepoPath?: string;
   }
 ) {
   const queryContext: SearchToolContext = {
@@ -103,9 +104,11 @@ export function makeRagAgent(
 
   const dataGapTool = makeDataGapTool();
 
-  const codebaseTools = createCodebaseTools("/tmp/flash-df659034", {
-    onToolCall: options?.onPreCodebaseTool,
-  });
+  const codebaseTools = options?.githubRepoPath
+    ? createCodebaseTools(options.githubRepoPath, {
+        onToolCall: options?.onPreCodebaseTool,
+      })
+    : [];
 
   let currentPagePrompt = "";
   if (options?.scrapeItem) {
@@ -167,14 +170,18 @@ export function makeRagAgent(
       "Do NOT use report_data_gap if search_data returned no results.",
       "Do NOT use report_data_gap for questions unrelated to the knowledge base (e.g., general chat, greetings, off-topic questions).",
 
-      "You have access to a codebase through the following tools:",
-      "- grep: Search file contents using regex patterns. Returns matching lines with file paths and line numbers.",
-      "- ls: List files and directories in a specified path.",
-      "- find: Find files by name or glob pattern (e.g., '**/*.ts').",
-      "- tree: Get a tree-like representation of the directory structure.",
-      "Use these tools when the user asks about code, file structure, or wants to explore the codebase.",
-      "Start with 'tree' to understand the project structure, then use 'grep' or 'find' to locate specific code.",
-      "Use 'ls' to explore specific directories in detail.",
+      options?.githubRepoPath
+        ? multiLinePrompt([
+            "You have access to a codebase through the following tools:",
+            "- grep: Search file contents using regex patterns. Returns matching lines with file paths and line numbers.",
+            "- ls: List files and directories in a specified path.",
+            "- find: Find files by name or glob pattern (e.g., '**/*.ts').",
+            "- tree: Get a tree-like representation of the directory structure.",
+            "Use these tools when the user asks about code, file structure, or wants to explore the codebase.",
+            "Start with 'tree' to understand the project structure, then use 'grep' or 'find' to locate specific code.",
+            "Use 'ls' to explore specific directories in detail.",
+          ])
+        : "",
 
       options?.showSources ? citationPrompt : "",
 

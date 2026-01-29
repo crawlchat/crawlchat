@@ -35,7 +35,6 @@ export async function handleStream(
         totalTokens: chunkUsage.total_tokens ?? 0,
         cost: chunkUsage.cost ?? 0,
       };
-      console.log("[stream] captured usage:", usage);
     }
     if (chunk.choices && chunk.choices[0].delta.role) {
       role = chunk.choices[0].delta.role;

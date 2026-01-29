@@ -23,6 +23,7 @@ import { FlowMessage } from "./llm/flow";
 import { CustomMessage, DataGap } from "./llm/custom-message";
 import { consumeCredits } from "@packages/common/user-plan";
 import { fillMessageAnalysis } from "./analyse-message";
+import { ensureRepoCloned } from "@packages/flash";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
@@ -205,6 +206,18 @@ export const baseAnswerer: Answerer = async (
 ) => {
   const llmConfig = getConfig(scrape.llmModel);
 
+  const githubRepoGroup = await prisma.knowledgeGroup.findFirst({
+    where: {
+      scrapeId: scrape.id,
+      type: "scrape_github",
+    },
+  });
+  let githubRepoPath: string | undefined;
+  if (githubRepoGroup?.githubUrl) {
+    githubRepoPath = `/tmp/flash-${githubRepoGroup.id}`;
+    await ensureRepoCloned(githubRepoGroup.githubUrl, githubRepoPath, githubRepoGroup.githubBranch ?? "main");
+  }
+
   const richBlocks = scrape.richBlocksConfig?.blocks ?? [];
   if (scrape.ticketingEnabled && options?.channel === "widget") {
     richBlocks.push(createTicketRichBlock);
@@ -268,6 +281,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
       clientData: options?.clientData,
       secret: options?.secret,
       scrapeItem: options?.scrapeItem,
+      githubRepoPath,
     }
   );
 
@@ -288,7 +302,6 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
 
   const lastMessage = flow.getLastMessage();
   const usage = flow.getUsage();
-  console.log("[answer] usage from flow:", usage);
   const answer: AnswerCompleteEvent = {
     type: "answer-complete",
     content: (lastMessage.llmMessage.content ?? "") as string,
@@ -324,12 +337,6 @@ export async function saveAnswer(
   onFollowUpQuestion?: (questions: string[]) => void
 ) {
   await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
-  console.log("[saveAnswer] saving with tokens:", {
-    promptTokens: answer.promptTokens,
-    completionTokens: answer.completionTokens,
-    totalTokens: answer.totalTokens,
-    llmCost: answer.llmCost,
-  });
   const newAnswerMessage = await prisma.message.create({
     data: {
       threadId,
