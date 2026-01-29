@@ -679,6 +679,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               icon={<TbThumbDown />}
             />
           </div>
+
           <div className="flex flex-col justify-stretch md:flex-row gap-4 items-center">
             <StatCard
               label="Resolved"
@@ -750,8 +751,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <Heading>Categories</Heading>
                 <div className="flex flex-col gap-2">
                   {loaderData.categoriesSummary &&
-                    loaderData.categoriesSummary.map((category) => (
+                    loaderData.categoriesSummary.map((category, i) => (
                       <CategoryCard
+                        key={i}
                         title={category.title}
                         summary={category.summary}
                       />
@@ -792,7 +794,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <TbPlus />
               New collection
             </h3>
-            <p className="py-4">
+            <div className="py-4">
               <div className="text-base-content/50">
                 A collection lets you setup your knowledge base and lets you
                 connect bot on multiple channels.
@@ -807,11 +809,16 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   required
                 />
               </fieldset>
-            </p>
+            </div>
             <div className="modal-action">
-              <form method="dialog">
-                <button className="btn">Close</button>
-              </form>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => hideModal("new-collection-dialog")}
+              >
+                Close
+              </button>
+
               <button
                 type="submit"
                 className="btn btn-primary"
