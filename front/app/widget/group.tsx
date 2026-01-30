@@ -3,13 +3,14 @@ import type { Message, Scrape, Thread } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
 import { createToken } from "@packages/common/jwt";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TbArrowUp, TbUser } from "react-icons/tb";
+import { TbArrowUp, TbShare, TbUser } from "react-icons/tb";
 import { RiChatVoiceAiFill } from "react-icons/ri";
 import { MarkdownProse } from "./markdown-prose";
 import { useScrapeChat } from "./use-chat";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
+import Avatar from "boring-avatars";
 
 function isMongoObjectId(id: string) {
   return /^[0-9a-fA-F]{24}$/.test(id);
@@ -53,7 +54,12 @@ export function meta({ data }: Route.MetaArgs) {
 
 function Nav({ scrape }: { scrape: Scrape }) {
   return (
-    <nav className="flex items-center py-4 gap-2 justify-between">
+    <nav
+      className={cn(
+        "flex flex-col md:flex-row items-center py-4 gap-2 justify-between",
+        "md:justify-between"
+      )}
+    >
       <div className="flex items-center gap-2">
         {scrape.logoUrl && (
           <img
@@ -65,25 +71,33 @@ function Nav({ scrape }: { scrape: Scrape }) {
         <div className="text-lg font-medium">{scrape.title}</div>
       </div>
       <div className="text-sm text-base-content/50 flex items-center gap-2">
-        Powered by{" "}
-        <a
-          className="link link-hover link-primary flex items-center gap-1"
-          href="https://crawlchat.app"
-        >
-          <RiChatVoiceAiFill />
-          CrawlChat
-        </a>
+        Grouped conversation
       </div>
     </nav>
   );
 }
 
-function UserMessage({ content }: { content: string }) {
+function UserMessage({
+  content,
+  fingerprint,
+}: {
+  content: string;
+  fingerprint?: string;
+}) {
   return (
     <div className="flex flex-col gap-0 border border-base-300 rounded-box overflow-hidden bg-base-100">
       <div className="flex items-center gap-2 p-2 px-4 border-b border-base-300">
-        <TbUser />
-        <div className="font-medium">User</div>
+        {fingerprint && (
+          <Avatar
+            name={fingerprint}
+            size={20}
+            variant="beam"
+            className="shrink-0"
+          />
+        )}
+        <div className="font-medium">
+          User {fingerprint && `#${fingerprint.slice(0, 6)}`}
+        </div>
       </div>
       <div className="flex flex-col gap-2 p-4">
         <div className="whitespace-pre-wrap">{content}</div>
@@ -237,6 +251,11 @@ export default function GroupChat({ loaderData }: Route.ComponentProps) {
     return "Ask a question...";
   }
 
+  function handleCopyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success("Group link copied to clipboard");
+  }
+
   const isDisabled = chat.askStage !== "idle";
 
   return (
@@ -257,7 +276,10 @@ export default function GroupChat({ loaderData }: Route.ComponentProps) {
           {chat.allMessages.map((message, index) => (
             <div key={message.id || index}>
               {message.role === "user" ? (
-                <UserMessage content={message.content} />
+                <UserMessage
+                  content={message.content}
+                  fingerprint={message.fingerprint ?? undefined}
+                />
               ) : (
                 <AssistantMessage scrape={scrape} content={message.content} />
               )}
@@ -269,14 +291,55 @@ export default function GroupChat({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="sticky bottom-4">
-          <ChatInput
-            onSend={(message) => chat.ask(message)}
-            disabled={isDisabled}
-            placeholder={getPlaceholder()}
-          />
+          <div>
+            <ChatInput
+              onSend={(message) => chat.ask(message)}
+              disabled={isDisabled}
+              placeholder={getPlaceholder()}
+            />
+            <div className="bg-base-100">
+              <div
+                className={cn(
+                  "bg-base-300/80 border border-base-300 rounded-box p-1 px-2",
+                  "flex items-center gap-1 text-xs justify-between"
+                )}
+              >
+                <div className="flex items-center gap-1">
+                  <span className="text-base-content/40">Powered by </span>
+                  <a
+                    href="https://crawlchat.app?ref=group-chat"
+                    target="_blank"
+                    className={cn(
+                      "text-base-content/40 hover:text-base-content/80 transition-all",
+                      "flex items-center gap-1"
+                    )}
+                  >
+                    <RiChatVoiceAiFill />
+                    CrawlChat
+                  </a>
+                </div>
+                <div>
+                  <div
+                    className="tooltip tooltip-left"
+                    data-tip="Copy group link"
+                  >
+                    <button
+                      onClick={handleCopyLink}
+                      className={cn(
+                        "text-base-content/40 hover:text-base-content/80 transition-all",
+                        "cursor-pointer"
+                      )}
+                    >
+                      <TbShare />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <Toaster position="bottom-right" />
+      <Toaster />
     </div>
   );
 }
