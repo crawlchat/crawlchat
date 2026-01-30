@@ -6,47 +6,25 @@ export async function fetchDataGaps(scrapeId: string) {
   const messages = await prisma.message.findMany({
     where: {
       scrapeId,
-      AND: [
+      dataGap: {
+        isNot: null,
+      },
+      OR: [
         {
-          analysis: {
-            isNot: {
-              dataGapTitle: null,
+          dataGap: {
+            is: {
+              status: null,
             },
           },
         },
         {
-          analysis: {
-            isNot: {
-              dataGapDone: true,
+          dataGap: {
+            is: {
+              status: {
+                isSet: false,
+              },
             },
           },
-        },
-        {
-          OR: [
-            {
-              analysis: {
-                is: {
-                  dataGapCancelled: {
-                    isSet: false,
-                  },
-                },
-              },
-            },
-            {
-              analysis: {
-                is: {
-                  dataGapCancelled: null,
-                },
-              },
-            },
-            {
-              analysis: {
-                is: {
-                  dataGapCancelled: false,
-                },
-              },
-            },
-          ],
         },
       ],
       createdAt: {

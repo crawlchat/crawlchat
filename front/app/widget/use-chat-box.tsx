@@ -53,6 +53,7 @@ export function useChatBox({
   const verifyEmailFetcher = useFetcher();
   const ticketCreateFetcher = useFetcher();
   const createThreadFetcher = useFetcher();
+  const makeGroupFetcher = useFetcher();
   const [eraseAt, setEraseAt] = useState<number>();
   const [thread, setThread] = useState<Thread | null>(initialThread);
   const [token, setToken] = useState<string | null>(initialToken);
@@ -277,6 +278,13 @@ export function useChatBox({
     }
   }, [eraseAt]);
 
+  useEffect(() => {
+    if (makeGroupFetcher.data) {
+      open(`/w/${scrape.slug ?? scrape.id}/group/${thread?.id}`);
+      window.location.reload();
+    }
+  }, [makeGroupFetcher.data]);
+
   function rate(id: string, rating: MessageRating) {
     toast.success("Thank you for your feedback!");
     rateFetcher.submit(
@@ -383,6 +391,13 @@ export function useChatBox({
     );
   }
 
+  function makeGroup() {
+    makeGroupFetcher.submit(
+      { intent: "make-group" },
+      { method: "post", action: `/w/${scrape.id}` }
+    );
+  }
+
   return {
     scrape,
     thread,
@@ -413,6 +428,7 @@ export function useChatBox({
     verifyEmailFetcher,
     defaultQuery,
     currentPage,
+    makeGroupFetcher,
     close,
     erase,
     deleteMessages,
@@ -424,6 +440,7 @@ export function useChatBox({
     setScreen,
     setTheme,
     handleInternalLinkClick,
+    makeGroup,
   };
 }
 

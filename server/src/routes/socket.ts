@@ -1,15 +1,38 @@
 import { prisma } from "@packages/common/prisma";
 import { createToken, verifyToken } from "@packages/common/jwt";
-import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
+import { hasEnoughCredits } from "@packages/common/user-plan";
 import { wsRateLimiter } from "../rate-limiter";
-import { baseAnswerer, type AnswerListener } from "../answer";
+import { baseAnswerer, saveAnswer, type AnswerListener } from "../answer";
 import { retry } from "../retry";
-import { fillMessageAnalysis } from "../analyse-message";
 import expressWs from "express-ws";
 import { ScrapeItem } from "@packages/common/prisma";
+import type WebSocket from "ws";
 
 function makeMessage(type: string, data: unknown) {
   return JSON.stringify({ type, data });
+}
+
+const threadConnections = new Map<string, Set<WebSocket>>();
+
+function broadcastToThread(threadId: string, message: string) {
+  const connections = threadConnections.get(threadId);
+  if (!connections) return;
+  for (const socket of connections) {
+    if (socket.readyState === 1) socket.send(message);
+  }
+}
+
+function addToThread(threadId: string, socket: WebSocket) {
+  if (!threadConnections.has(threadId)) {
+    threadConnections.set(threadId, new Set());
+  }
+  threadConnections.get(threadId)!.add(socket);
+}
+
+function removeFromAllThreads(socket: WebSocket) {
+  for (const connections of threadConnections.values()) {
+    connections.delete(socket);
+  }
 }
 
 async function updateLastMessageAt(threadId: string) {
@@ -48,6 +71,11 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       const token = authHeader.split(" ")[1];
       const user = verifyToken(token);
       userId = user.userId;
+
+      if (message.data.threadId) {
+        addToThread(message.data.threadId, ws);
+      }
+
       ws.send(makeMessage("connected", { message: "Connected" }));
       return;
     }
@@ -63,6 +91,7 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
     }
 
     const threadId = message.data.threadId;
+    addToThread(threadId, ws);
     const deleteIds = message.data.delete;
     const thread = await prisma.thread.findFirstOrThrow({
       where: { id: threadId },
@@ -163,17 +192,24 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             },
           });
           await updateLastMessageAt(threadId);
-          ws?.send(makeMessage("query-message", questionMessage));
+          broadcastToThread(
+            threadId,
+            makeMessage("query-message", questionMessage)
+          );
           break;
 
         case "stream-delta":
           if (event.delta) {
-            ws?.send(makeMessage("llm-chunk", { content: event.delta }));
+            broadcastToThread(
+              threadId,
+              makeMessage("llm-chunk", { content: event.delta })
+            );
           }
           break;
 
         case "tool-call":
-          ws?.send(
+          broadcastToThread(
+            threadId,
             makeMessage("stage", {
               stage: "tool-call",
               query: event.query,
@@ -183,53 +219,30 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
           break;
 
         case "answer-complete":
-          await consumeCredits(scrape.userId, "messages", event.creditsUsed);
-          const newAnswerMessage = await prisma.message.create({
-            data: {
-              threadId,
-              scrapeId: scrape.id,
-              llmMessage: { role: "assistant", content: event.content },
-              links: event.sources,
-              apiActionCalls: event.actionCalls as any,
-              ownerUserId: scrape.userId,
-              questionId: questionMessage?.id ?? null,
-              llmModel: scrape.llmModel,
-              creditsUsed: event.creditsUsed,
-              channel: "widget",
-              fingerprint,
-              url: currentItem?.url,
-            },
-          });
-          if (questionMessage) {
-            await prisma.message.update({
-              where: { id: questionMessage.id },
-              data: { answerId: newAnswerMessage.id },
-            });
-          }
-          await updateLastMessageAt(threadId);
-          ws?.send(
+          const newAnswerMessage = await saveAnswer(
+            event,
+            scrape,
+            threadId,
+            "widget",
+            questionMessage?.id ?? null,
+            scrape.llmModel,
+            fingerprint,
+            (questions) => {
+              broadcastToThread(
+                threadId,
+                makeMessage("follow-up-questions", { questions })
+              );
+            }
+          );
+          broadcastToThread(
+            threadId,
             makeMessage("llm-chunk", {
               end: true,
               content: event.content,
               message: newAnswerMessage,
             })
           );
-
-          if (questionMessage && scrape.analyseMessage) {
-            await fillMessageAnalysis(
-              newAnswerMessage.id,
-              questionMessage.id,
-              message.data.query,
-              event.content,
-              event.context,
-              {
-                categories: scrape.messageCategories,
-                onFollowUpQuestion: (questions) => {
-                  ws?.send(makeMessage("follow-up-questions", { questions }));
-                },
-              }
-            );
-          }
+          break;
       }
     };
 
@@ -275,5 +288,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
 
   ws.on("close", () => {
     userId = null;
+    removeFromAllThreads(ws);
   });
 };

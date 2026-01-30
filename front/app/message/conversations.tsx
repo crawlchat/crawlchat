@@ -9,6 +9,7 @@ import {
   TbMessage,
   TbMessages,
   TbTicket,
+  TbUsersGroup,
 } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
@@ -241,6 +242,16 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
                     </Link>
                   </div>
                   <div className="flex gap-2 items-center">
+                    {thread.grouping && (
+                      <div
+                        className="tooltip tooltip-left"
+                        data-tip="Grouped conversation"
+                      >
+                        <span className="badge badge-secondary badge-soft px-1">
+                          <TbUsersGroup />
+                        </span>
+                      </div>
+                    )}
                     {thread.ticketStatus && (
                       <div
                         className="tooltip tooltip-left"

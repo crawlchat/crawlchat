@@ -1598,39 +1598,6 @@ function Hero() {
               className="w-full h-[560px]"
             />
           </div>
-
-          <img
-            src="/arrow.png"
-            className={cn(
-              "absolute bottom-[40px] left-0 -translate-x-full",
-              "w-16 h-16",
-              "rotate-70 opacity-70",
-              "hidden md:block"
-            )}
-          />
-
-          <div
-            className={cn(
-              "absolute bottom-[100px]",
-              "-left-6 -translate-x-full",
-              "-rotate-20",
-              "flex-col items-center gap-1",
-              "hidden md:flex"
-            )}
-          >
-            <span
-              style={{
-                fontFamily: "'Mynerve', cursive",
-              }}
-            >
-              Add <span className="text-primary">Ask AI</span> on
-            </span>
-            <div className="flex items-center gap-1 text-lg group">
-              {channels.map((channel, index) => (
-                <span key={index}>{channel.icon}</span>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     </div>

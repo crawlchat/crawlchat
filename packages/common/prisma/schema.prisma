@@ -280,6 +280,7 @@ type MessageAnalysis {
   category  String?
   questionRelevanceScore Float?
   questionSentiment QuestionSentiment?
+  language String?
   
   dataGapTitle String?
   dataGapDescription String?
@@ -308,6 +309,17 @@ type MessageAttachment {
   content     String?
 }
 
+enum DataGapStatus {
+  accepted
+  rejected
+}
+
+type DataGap {
+  title       String
+  description String?
+  status      DataGapStatus?
+}
+
 model Message {
   id                        String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId                  String   @db.ObjectId
@@ -330,8 +342,13 @@ model Message {
   discordMessageId          String?
   githubCommentId           String?
   analysis                  MessageAnalysis?
+  dataGap                   DataGap?
   llmModel                  LlmModel?
   creditsUsed               Int?
+  promptTokens              Int?
+  completionTokens          Int?
+  totalTokens               Int?
+  llmCost                   Float?
   fingerprint               String?
   url                       String?
 
@@ -390,6 +407,7 @@ model Thread {
 
   clientThreadId  String?
   fingerprint     String?
+  grouping        Boolean?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   

@@ -46,6 +46,7 @@ import { dodoGateway } from "~/payment/gateway-dodo";
 import { track } from "~/components/track";
 import { getMessagesSummary, type MessagesSummary } from "~/messages-summary";
 import type { Payload } from "recharts/types/component/DefaultTooltipContent";
+import LanguageDistribution from "./summary/language-distribution";
 
 function monoString(str: string) {
   return str.trim().toLowerCase().replace(/^\n+/, "").replace(/\n+$/, "");
@@ -420,7 +421,7 @@ function Tags({ tags }: { tags: Array<{ title: string; count: number }> }) {
   );
 }
 
-function Heading({
+export function Heading({
   children,
   className,
   ...props
@@ -441,7 +442,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       return true;
     }
   }, [loaderData.user]);
-
   const [chartData, categories] = useMemo(() => {
     const data = [];
     const today = new Date();
@@ -608,7 +608,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               Collection
             </button>
           )}
-          {loaderData.scrape && loaderData.nScrapeItems > 0 && (
+          {loaderData.scrape && (
             <a
               className="btn btn-primary btn-soft hidden md:flex"
               href={`/w/${loaderData.scrape.slug ?? loaderData.scrapeId}`}
@@ -618,7 +618,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               Chat
             </a>
           )}
-          {loaderData.scrape && loaderData.nScrapeItems > 0 && (
+          {loaderData.scrape && (
             <a
               className="btn btn-primary btn-soft btn-square md:hidden"
               href={`/w/${loaderData.scrape.slug ?? loaderData.scrapeId}`}
@@ -679,6 +679,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               icon={<TbThumbDown />}
             />
           </div>
+
           <div className="flex flex-col justify-stretch md:flex-row gap-4 items-center">
             <StatCard
               label="Resolved"
@@ -750,8 +751,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 <Heading>Categories</Heading>
                 <div className="flex flex-col gap-2">
                   {loaderData.categoriesSummary &&
-                    loaderData.categoriesSummary.map((category) => (
+                    loaderData.categoriesSummary.map((category, i) => (
                       <CategoryCard
+                        key={i}
                         title={category.title}
                         summary={category.summary}
                       />
@@ -778,6 +780,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <Tags tags={tags} />
             </div>
           )}
+          <LanguageDistribution
+            languages={loaderData.messagesSummary.languagesDistribution}
+          />
         </div>
       )}
 
@@ -789,7 +794,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <TbPlus />
               New collection
             </h3>
-            <p className="py-4">
+            <div className="py-4">
               <div className="text-base-content/50">
                 A collection lets you setup your knowledge base and lets you
                 connect bot on multiple channels.
@@ -804,11 +809,16 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   required
                 />
               </fieldset>
-            </p>
+            </div>
             <div className="modal-action">
-              <form method="dialog">
-                <button className="btn">Close</button>
-              </form>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => hideModal("new-collection-dialog")}
+              >
+                Close
+              </button>
+
               <button
                 type="submit"
                 className="btn btn-primary"

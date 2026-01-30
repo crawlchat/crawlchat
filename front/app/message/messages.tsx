@@ -41,6 +41,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CreditsUsedBadge } from "./credits-used-badge";
 import { SentimentBadge } from "./sentiment-badge";
 import Avatar from "boring-avatars";
+import { LanguageBadge } from "./language-badge";
 
 function isLowRating(message: Message) {
   if (message.analysis?.questionSentiment === "sad") return true;
@@ -462,6 +463,11 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                             <CreditsUsedBadge
                               creditsUsed={pair.responseMessage.creditsUsed}
                               llmModel={pair.responseMessage.llmModel}
+                            />
+                          )}
+                          {pair.responseMessage.analysis?.language && (
+                            <LanguageBadge
+                              language={pair.responseMessage.analysis.language}
                             />
                           )}
                         </div>

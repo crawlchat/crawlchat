@@ -1,12 +1,10 @@
 import crypto from "crypto";
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { baseAnswerer } from "./answer";
-import { fillMessageAnalysis } from "./analyse-message";
+import { baseAnswerer, saveAnswer } from "./answer";
 import { extractCitations } from "@packages/common/citation";
 import { createToken } from "@packages/common/jwt";
 import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
-import { getQueryString } from "@packages/common/llm-message";
 import { Scrape, Thread, prisma } from "@packages/common/prisma";
 import jwt from "jsonwebtoken";
 
@@ -424,47 +422,15 @@ async function answer(data: {
     }
   );
 
-  const answerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      ownerUserId: scrape.userId,
-      channel: "github_discussion",
-      llmMessage: {
-        role: "assistant",
-        content: answer.content,
-      },
-      links: answer.sources,
-      creditsUsed: answer.creditsUsed,
-      questionId: questionMessage.id,
-      llmModel: scrape.llmModel,
-      fingerprint: data.userId?.toString(),
-      apiActionCalls: answer.actionCalls as any,
-    },
-  });
-
-  await prisma.message.update({
-    where: { id: questionMessage.id },
-    data: { answerId: answerMessage.id },
-  });
-
-  await prisma.thread.update({
-    where: { id: thread.id },
-    data: { lastMessageAt: new Date() },
-  });
-
-  if (scrape.analyseMessage) {
-    fillMessageAnalysis(
-      answerMessage.id,
-      questionMessage.id,
-      getQueryString(data.question),
-      answer.content,
-      answer.context,
-      {
-        categories: scrape.messageCategories,
-      }
-    );
-  }
+  const newAnswerMessage = await saveAnswer(
+    answer,
+    scrape,
+    thread.id,
+    "github_discussion",
+    questionMessage.id,
+    scrape.llmModel,
+    data.userId?.toString()
+  );
 
   const citation = extractCitations(answer.content, answer.sources, {
     cleanCitations: true,
@@ -491,7 +457,7 @@ async function answer(data: {
   }
 
   await prisma.message.update({
-    where: { id: answerMessage.id },
+    where: { id: newAnswerMessage.id },
     data: {
       githubCommentId: String(postResponse.id),
       url: postResponse.html_url,

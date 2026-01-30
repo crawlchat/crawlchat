@@ -8,8 +8,7 @@
     "build": "npx tsc",
     "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "dotenv -e ../.env -- npx tsx watch -r tsconfig-paths/register src/index.ts",
-    "cron": "npx tsc && node dist/cron.js",
-    "prettier": "prettier --no-error-on-unmatched-pattern --check ./**/*.{ts,tsx,js,jsx,json,css,md}"
+    "prettier": "prettier src --check"
   },
   "author": "",
   "license": "ISC",

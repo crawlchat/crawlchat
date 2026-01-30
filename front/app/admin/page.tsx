@@ -262,6 +262,7 @@ function MessagesTable({
             <th>Score</th>
             <th>Channel</th>
             <th>LLM</th>
+            <th>Cost</th>
             <th>Data gap</th>
             <th>Created At</th>
           </tr>
@@ -337,9 +338,20 @@ function MessagesTable({
                   messageDetail.message.creditsUsed ?? "-"
                 }`}
               </td>
-
               <td>
-                {messageDetail.message.analysis?.dataGapTitle && (
+                {messageDetail.message.llmCost != null ? (
+                  <div
+                    className="tooltip"
+                    data-tip={`${messageDetail.message.promptTokens ?? 0} input tokens`}
+                  >
+                    ${messageDetail.message.llmCost.toFixed(4)}
+                  </div>
+                ) : (
+                  "-"
+                )}
+              </td>
+              <td>
+                {messageDetail.message.dataGap?.title && (
                   <div className="dropdown dropdown-end">
                     <div tabIndex={0} className="btn mb-1">
                       Yes
@@ -349,10 +361,10 @@ function MessagesTable({
                       className="dropdown-content bg-base-100 rounded-box z-1 w-80 p-4 shadow-sm"
                     >
                       <div className="text-lg font-bold mb-2">
-                        {messageDetail.message.analysis.dataGapTitle}
+                        {messageDetail.message.dataGap.title}
                       </div>
                       <MarkdownProse>
-                        {messageDetail.message.analysis.dataGapDescription}
+                        {messageDetail.message.dataGap.description}
                       </MarkdownProse>
                     </div>
                   </div>

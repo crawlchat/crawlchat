@@ -6,6 +6,8 @@ export type SearchToolContext = {
   queries: string[];
 };
 
+const MIN_QUERY_WORDS = 4;
+
 export function makeSearchTool(
   scrapeId: string,
   indexerKey: string | null,
@@ -22,6 +24,7 @@ export function makeSearchTool(
     id: "search_data",
     description: multiLinePrompt([
       "Search the vector database for the most relevant documents.",
+      `Minimum ${MIN_QUERY_WORDS} words required to search.`,
     ]),
     schema: z.object({
       query: z.string({
@@ -43,10 +46,16 @@ export function makeSearchTool(
       }
 
       const queryWords = query?.split(" ");
-      if (query.length < 5 || queryWords?.length < 4) {
+      if (
+        query.length < MIN_QUERY_WORDS ||
+        queryWords?.length < MIN_QUERY_WORDS
+      ) {
         console.log("Query is too short -", query);
         return {
-          content: `The query "${query}" is too short. Search again with a longer query.`,
+          content: multiLinePrompt([
+            `The query "${query}" is too short`,
+            `Minimum ${MIN_QUERY_WORDS} words.`,
+          ]),
         };
       }
 

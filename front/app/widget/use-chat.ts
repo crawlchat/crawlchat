@@ -66,6 +66,7 @@ export function useScrapeChat({
               id: "new-answer",
               rating: null,
               createdAt: content.date,
+              fingerprint,
             },
           ]
         : []),
@@ -77,6 +78,7 @@ export function useScrapeChat({
       pinned: message.pinnedAt !== null,
       id: message.id,
       rating: message.rating,
+      fingerprint: message.fingerprint,
     }));
   }, [messages, content]);
 
@@ -110,23 +112,26 @@ export function useScrapeChat({
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        threadId,
       })
     );
   }
 
-  function handleQueryMessage({ id }: { id: string }) {
+  function handleQueryMessage(messageData: Message) {
     setMessages((prev) => {
       const queryIndex = prev.findIndex(
         (message) => message.id === "new-query"
       );
       if (queryIndex === -1) {
-        return prev;
+        const alreadyExists = prev.some((m) => m.id === messageData.id);
+        if (alreadyExists) return prev;
+        return [...prev, { ...messageData, createdAt: new Date() }];
       }
       return [
         ...prev.slice(0, queryIndex),
         {
           ...prev[queryIndex],
-          id,
+          id: messageData.id,
         },
         ...prev.slice(queryIndex + 1),
       ];
@@ -170,10 +175,14 @@ export function useScrapeChat({
       return;
     }
     setAskStage("answering");
-    setContent((prev) => ({
-      text: prev.text + content,
-      date: new Date(),
-    }));
+    setContent((prev) => {
+      const delta = new Date().getTime() - prev.date.getTime();
+      const shouldOverride = delta > 2000 && prev.text.length <= 500;
+      return {
+        text: shouldOverride ? content : prev.text + content,
+        date: new Date(),
+      };
+    });
     setSearchQuery(undefined);
   }
 
@@ -230,8 +239,15 @@ export function useScrapeChat({
         llmModel: "gpt_4o_mini",
         creditsUsed: 0,
         attachments: [],
-        fingerprint: null,
+        fingerprint,
         url: null,
+        answerId: null,
+        githubCommentId: null,
+        dataGap: null,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        llmCost: 0,
       },
     ]);
     setAskStage("asked");

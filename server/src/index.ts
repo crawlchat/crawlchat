@@ -29,13 +29,14 @@ import { FlowMessage } from "./llm/flow";
 import { chunk } from "@packages/common/chunk";
 import { Flow } from "@packages/agentic";
 import { z } from "zod";
-import { baseAnswerer, collectSourceLinks } from "./answer";
-import { fillMessageAnalysis } from "./analyse-message";
-import { createToken } from "@packages/common/jwt";
 import {
-  MultimodalContent,
-  getQueryString,
-} from "@packages/common/llm-message";
+  baseAnswerer,
+  collectSourceLinks,
+  saveAnswer,
+  updateLastMessageAt,
+} from "./answer";
+import { createToken } from "@packages/common/jwt";
+import { MultimodalContent } from "@packages/common/llm-message";
 import {
   draftRateLimiter,
   mcpRateLimiter,
@@ -91,27 +92,12 @@ app.use("/admin", adminRouter);
 app.use("/github", githubBotRouter);
 expressWs.app.ws("/", handleWs);
 
-async function updateLastMessageAt(threadId: string) {
-  await prisma.thread.update({
-    where: { id: threadId },
-    data: { lastMessageAt: new Date() },
-  });
-}
-
 app.get("/", function (req: Request, res: Response) {
   res.json({ message: "ok" });
 });
 
 app.get("/test", async function (req: Request, res: Response) {
   res.json({ ok: true, name: name() });
-});
-
-app.post("/scrape", authenticate, async function (req: Request, res: Response) {
-  const scrapeId = req.body.scrapeId!;
-
-  authoriseScrapeUser(req.user!.scrapeUsers, scrapeId, res);
-
-  throw new Error("Not implemented");
 });
 
 app.delete(
@@ -534,42 +520,15 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     }
   );
 
-  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
-  const newAnswerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content: answer.content },
-      links: answer!.sources,
-      ownerUserId: scrape.userId,
-      channel,
-      apiActionCalls: answer.actionCalls as any,
-      llmModel: scrape.llmModel as any,
-      creditsUsed: answer.creditsUsed,
-      fingerprint,
-      questionId: questionMessage.id,
-    },
-  });
-  await prisma.message.update({
-    where: { id: questionMessage.id },
-    data: { answerId: newAnswerMessage.id },
-  });
-  await updateLastMessageAt(thread.id);
-
-  if (scrape.analyseMessage) {
-    fillMessageAnalysis(
-      newAnswerMessage.id,
-      questionMessage.id,
-      getQueryString(query),
-      answer.content,
-      answer.context,
-      {
-        categories: scrape.messageCategories,
-      }
-    );
-  }
-
-  console.log("Sending answer to client");
+  const newAnswerMessage = await saveAnswer(
+    answer,
+    scrape,
+    thread.id,
+    channel,
+    questionMessage.id,
+    scrape.llmModel,
+    fingerprint
+  );
 
   const citation = extractCitations(answer.content, answer.sources, {
     cleanCitations: true,
@@ -752,40 +711,15 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
     }
   );
 
-  await consumeCredits(scrape.userId, "messages", answer!.creditsUsed);
-  const newAnswerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content: answer!.content },
-      links: answer!.sources,
-      ownerUserId: scrape.userId,
-      channel: "google_chat",
-      apiActionCalls: answer!.actionCalls as any,
-      llmModel: scrape.llmModel,
-      creditsUsed: answer!.creditsUsed,
-      questionId: questionMessage.id,
-      fingerprint: googleChatEvent.chat.user.email,
-    },
-  });
-  await prisma.message.update({
-    where: { id: questionMessage.id },
-    data: { answerId: newAnswerMessage.id },
-  });
-  await updateLastMessageAt(thread.id);
-
-  if (scrape.analyseMessage) {
-    fillMessageAnalysis(
-      newAnswerMessage.id,
-      questionMessage.id,
-      messageText,
-      answer!.content,
-      answer!.context,
-      {
-        categories: scrape.messageCategories,
-      }
-    );
-  }
+  await saveAnswer(
+    answer,
+    scrape,
+    thread.id,
+    "google_chat",
+    questionMessage.id,
+    scrape.llmModel,
+    googleChatEvent.chat.user.email
+  );
 
   if (!answer) {
     res.status(400).json({

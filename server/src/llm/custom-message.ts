@@ -1,5 +1,10 @@
 import { ApiActionCall } from "@prisma/client";
 
+export type DataGap = {
+  title: string;
+  description: string;
+};
+
 export type CustomMessage = {
   result?: {
     id: string;
@@ -11,4 +16,5 @@ export type CustomMessage = {
     query?: string;
   }[];
   actionCall?: ApiActionCall;
+  dataGap?: DataGap;
 };
