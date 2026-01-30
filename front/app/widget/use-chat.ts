@@ -66,6 +66,7 @@ export function useScrapeChat({
               id: "new-answer",
               rating: null,
               createdAt: content.date,
+              fingerprint,
             },
           ]
         : []),
@@ -77,6 +78,7 @@ export function useScrapeChat({
       pinned: message.pinnedAt !== null,
       id: message.id,
       rating: message.rating,
+      fingerprint: message.fingerprint,
     }));
   }, [messages, content]);
 
@@ -237,11 +239,15 @@ export function useScrapeChat({
         llmModel: "gpt_4o_mini",
         creditsUsed: 0,
         attachments: [],
-        fingerprint: null,
+        fingerprint,
         url: null,
         answerId: null,
         githubCommentId: null,
         dataGap: null,
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        llmCost: 0,
       },
     ]);
     setAskStage("asked");

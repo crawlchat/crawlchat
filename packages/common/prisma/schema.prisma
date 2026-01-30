@@ -407,6 +407,7 @@ model Thread {
 
   clientThreadId  String?
   fingerprint     String?
+  grouping        Boolean?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   

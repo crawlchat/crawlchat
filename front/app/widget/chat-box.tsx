@@ -10,6 +10,7 @@ import {
   useState,
   type PropsWithChildren,
   forwardRef,
+  type ButtonHTMLAttributes,
 } from "react";
 import {
   TbArrowUp,
@@ -28,6 +29,7 @@ import {
   TbMenu2,
   TbChartBar,
   TbFile,
+  TbUsersGroup,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { track } from "~/components/track";
@@ -693,14 +695,17 @@ function MCPSetup() {
 
 const ToolbarButton = forwardRef<
   HTMLButtonElement,
-  PropsWithChildren<{ onClick?: () => void }>
->(function ToolbarButton({ children, onClick }, ref) {
+  PropsWithChildren<
+    { onClick?: () => void } & ButtonHTMLAttributes<HTMLButtonElement>
+  >
+>(({ children, onClick, ...props }, ref) => {
   return (
     <button
       className="btn btn-sm btn-ghost btn-plain btn-square text-lg"
       tabIndex={0}
       ref={ref}
       onClick={onClick}
+      {...props}
     >
       {children}
     </button>
@@ -719,6 +724,8 @@ function Toolbar() {
     admin,
     fullscreen,
     close,
+    makeGroup,
+    makeGroupFetcher,
   } = useChatBoxContext();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const menuItems = useMemo(() => {
@@ -825,6 +832,21 @@ function Toolbar() {
           <div className="tooltip tooltip-left" data-tip="Switch to chat">
             <ToolbarButton onClick={() => setScreen("chat")}>
               <TbMessage />
+            </ToolbarButton>
+          </div>
+        )}
+
+        {chat.allMessages.length > 1 && (
+          <div className="tooltip tooltip-left" data-tip="Chat with your team">
+            <ToolbarButton
+              onClick={() => makeGroup()}
+              disabled={makeGroupFetcher.state !== "idle"}
+            >
+              {makeGroupFetcher.state !== "idle" ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <TbUsersGroup />
+              )}
             </ToolbarButton>
           </div>
         )}
