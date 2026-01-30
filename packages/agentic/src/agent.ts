@@ -67,13 +67,73 @@ export class Agent<CustomMessage = {}> {
     console.log("Created agent", this.id, this.model);
   }
 
+  private isSonnetModel(): boolean {
+    return this.model.includes("claude") && this.model.includes("sonnet");
+  }
+
+  private buildSystemMessage(
+    dynamicPrompt?: string
+  ): ChatCompletionMessageParam {
+    if (this.isSonnetModel()) {
+      const content: any[] = [
+        {
+          type: "text",
+          text: this.prompt,
+          cache_control: { type: "ephemeral" },
+        },
+      ];
+      if (dynamicPrompt) {
+        content.push({ type: "text", text: dynamicPrompt });
+      }
+      return { role: "system", content };
+    }
+    const fullPrompt = dynamicPrompt
+      ? `${this.prompt}\n${dynamicPrompt}`
+      : this.prompt;
+    return { role: "system", content: fullPrompt };
+  }
+
+  private addCacheControlToMessages(messages: Message[]): Message[] {
+    if (!this.isSonnetModel()) {
+      return messages;
+    }
+
+    let lastToolResultIndex = -1;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role === "tool") {
+        lastToolResultIndex = i;
+        break;
+      }
+    }
+
+    if (lastToolResultIndex === -1) {
+      return messages;
+    }
+
+    return messages.map((msg, index) => {
+      if (index === lastToolResultIndex && msg.role === "tool") {
+        const content =
+          typeof msg.content === "string" ? msg.content : msg.content;
+        return {
+          ...msg,
+          content: [
+            {
+              type: "text" as const,
+              text: content as string,
+              cache_control: { type: "ephemeral" },
+            },
+          ],
+        };
+      }
+      return msg;
+    });
+  }
+
   async stream(
-    messages: Message[]
+    messages: Message[],
+    dynamicPrompt?: string
   ): Promise<Stream<OpenAI.Chat.Completions.ChatCompletionChunk>> {
-    const systemPromptMessage: ChatCompletionMessageParam = {
-      role: "system",
-      content: this.prompt,
-    };
+    const systemPromptMessage = this.buildSystemMessage(dynamicPrompt);
 
     let developerMessages: ChatCompletionMessageParam[] = [];
 
@@ -95,8 +155,14 @@ export class Agent<CustomMessage = {}> {
       },
     }));
 
+    const processedMessages = this.addCacheControlToMessages(messages);
+
     return this.openai.chat.completions.create({
-      messages: [...developerMessages, ...messages, systemPromptMessage],
+      messages: [
+        systemPromptMessage,
+        ...developerMessages,
+        ...processedMessages,
+      ],
       model: this.model,
       stream: true,
       response_format: this.schema
