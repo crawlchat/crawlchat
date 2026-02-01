@@ -320,6 +320,12 @@ type DataGap {
   status      DataGapStatus?
 }
 
+type ToolCall {
+  toolName        String
+  params          String
+  responseLength  Int?
+}
+
 model Message {
   id                        String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId                  String   @db.ObjectId
@@ -351,6 +357,7 @@ model Message {
   llmCost                   Float?
   fingerprint               String?
   url                       String?
+  toolCalls                 ToolCall[]
 
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt

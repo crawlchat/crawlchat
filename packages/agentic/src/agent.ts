@@ -6,12 +6,12 @@ import { zodResponseFormat } from "openai/helpers/zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 export type Message = ChatCompletionMessageParam;
-export type Tool<T extends ZodSchema<any>, CustomMessage> = {
+export type Tool<Schema extends ZodSchema<any>, CustomMessage> = {
   id: string;
   description: string;
-  schema: T;
+  schema: Schema;
   execute: (
-    input: z.infer<T>
+    input: z.infer<Schema>
   ) => Promise<{ content: string; customMessage?: CustomMessage }>;
 };
 export type Role = "developer" | "system" | "user" | "assistant" | "tool";

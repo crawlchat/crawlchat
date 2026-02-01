@@ -16,12 +16,18 @@ export type State<CustomState, CustomMessage> = CustomState & {
   messages: FlowMessage<CustomMessage>[];
 };
 
+export type AgentToolCall = {
+  toolName: string;
+  params: Record<string, any>;
+  result: any;
+};
+
 type FlowState<CustomState, CustomMessage> = {
   state: State<CustomState, CustomMessage>;
   startedAt?: number;
   nextAgentIds: string[];
   usage: Usage;
-  toolCallCount: number;
+  toolCalls: AgentToolCall[];
 };
 
 export class Flow<CustomState, CustomMessage> {
@@ -45,7 +51,7 @@ export class Flow<CustomState, CustomMessage> {
         totalTokens: 0,
         cost: 0,
       },
-      toolCallCount: 0,
+      toolCalls: [],
     };
     this.repeatToolAgent = options?.repeatToolAgent ?? true;
     this.maxToolCalls = options?.maxToolCalls;
@@ -92,6 +98,11 @@ export class Flow<CustomState, CustomMessage> {
             custom: customMessage,
           };
           this.flowState.state.messages.push(message);
+          this.flowState.toolCalls.push({
+            toolName: toolId,
+            params: args,
+            result: content,
+          });
           return message;
         }
       }
@@ -140,7 +151,7 @@ export class Flow<CustomState, CustomMessage> {
 
       if (
         this.maxToolCalls &&
-        this.flowState.toolCallCount >= this.maxToolCalls
+        this.flowState.toolCalls.length >= this.maxToolCalls
       ) {
         const message: FlowMessage<CustomMessage> = {
           llmMessage: {
@@ -167,7 +178,6 @@ export class Flow<CustomState, CustomMessage> {
         };
       }
 
-      this.flowState.toolCallCount++;
       const message = await this.runTool(
         call.toolCall.id,
         call.toolCall.function.name,

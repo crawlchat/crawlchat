@@ -10,6 +10,7 @@ import {
   Thread,
   ScrapeItem,
   LlmModel,
+  ToolCall,
 } from "@packages/common/prisma";
 import { getConfig } from "./llm/config";
 import { makeRagAgent, makeRagFlow } from "./llm/flow";
@@ -47,6 +48,7 @@ export type AnswerCompleteEvent = {
   messages: FlowMessage<CustomMessage>[];
   context: string[];
   dataGap?: DataGap;
+  toolCalls: ToolCall[];
 };
 
 export type ToolCallEvent = {
@@ -306,6 +308,12 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
 
   const lastMessage = flow.getLastMessage();
   const usage = flow.getUsage();
+  const toolCalls: ToolCall[] = flow.flowState.toolCalls.map((toolCall) => ({
+    toolName: toolCall.toolName,
+    params: JSON.stringify(toolCall.params),
+    responseLength: toolCall.result.length,
+  }));
+
   const answer: AnswerCompleteEvent = {
     type: "answer-complete",
     content: (lastMessage.llmMessage.content ?? "") as string,
@@ -324,6 +332,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     context: collectContext(flow.flowState.state.messages),
     dataGap: collectDataGap(flow.flowState.state.messages),
     question: query,
+    toolCalls,
   };
   options?.listen?.(answer);
 
@@ -359,6 +368,7 @@ export async function saveAnswer(
       fingerprint,
       questionId: questionMessageId,
       dataGap: answer.dataGap,
+      toolCalls: answer.toolCalls,
     },
   });
 

@@ -159,6 +159,17 @@ function AssistantMessage({
     () => extractCitations(getMessageContent(message), message.links),
     [message]
   );
+  const flashToolCalls = useMemo(() => {
+    return message.toolCalls
+      .filter((toolCall) =>
+        ["grep", "ls", "find", "tree"].includes(toolCall.toolName)
+      )
+      .map((toolCall) => ({
+        toolName: toolCall.toolName,
+        params: JSON.stringify(toolCall.params),
+        responseLength: toolCall.responseLength,
+      }));
+  }, [message.toolCalls]);
 
   return (
     <div className="flex flex-col gap-4 max-w-prose">
@@ -191,6 +202,33 @@ function AssistantMessage({
           {citation.content}
         </MarkdownProse>
       </div>
+
+      {flashToolCalls.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <div className="text-lg">Codebase search</div>
+          <div className="flex flex-col bg-base-100 rounded-box shadow border border-base-300">
+            {flashToolCalls.map((toolCall, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "p-2 border-b border-base-300 last:border-b-0",
+                  "flex gap-2 items-center justify-between"
+                )}
+              >
+                <div className="flex gap-2 items-center">
+                  <div>{toolCall.toolName}</div>
+                  <div className="text-xs text-base-content/50">
+                    {JSON.parse(toolCall.params)}
+                  </div>
+                </div>
+                <div className="tooltip" data-tip="Response length">
+                  <div className="badge">{toolCall.responseLength}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {showResources && message.links.length > 0 && (
         <div className="flex flex-col gap-2">
