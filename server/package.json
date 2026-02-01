@@ -8,7 +8,6 @@
     "start": "node dist/index.js",
     "dev": "dotenv -e ../.env -- npx tsx watch src/index.ts",
     "cli": "npx tsc && node dist/cli.js",
-    "cron": "npx tsc && node dist/cron.js \"$@\"",
     "prettier": "prettier src --check"
   },
   "author": "",
