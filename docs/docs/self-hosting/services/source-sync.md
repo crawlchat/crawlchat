@@ -61,7 +61,7 @@ The Source Sync service is a background service that handles syncing documentati
 3. **Install Playwright browsers** (for web scraping):
 
    ```bash
-   npx playwright install
+   npx playwright install chromium
    ```
 
 4. **Set up environment variables**:
