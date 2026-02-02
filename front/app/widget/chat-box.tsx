@@ -203,13 +203,12 @@ function ChatInput() {
   function getPlaceholder() {
     switch (chat.askStage) {
       case "asked":
-        return "😇 Thinking...";
+        return "Thinking...";
       case "answering":
-        return "🤓 Answering...";
-      case "searching":
-        return `🔍 Searching for "${chat.searchQuery ?? "answer"}"`;
-      case "action-call":
-        return `🤖 Doing "${chat.actionCall}"`;
+        return "Answering...";
+    }
+    if (chat.askStage !== "idle") {
+      return "Planning...";
     }
     return scrape.widgetConfig?.textInputPlaceholder ?? "Ask your question";
   }
@@ -245,6 +244,7 @@ function ChatInput() {
           </ChatInputBadge>
         </div>
       )}
+
       <div
         className={cn(
           "flex gap-2 border-t border-base-300 justify-between p-3 px-4",
@@ -286,6 +286,31 @@ function ChatInput() {
           <TbArrowUp />
         </button>
       </div>
+    </div>
+  );
+}
+
+function StatusText() {
+  const { chat } = useChatBoxContext();
+
+  function getStatusText() {
+    switch (chat.askStage) {
+      case "searching":
+        return `Searching for "${chat.searchQuery ?? "answer"}"`;
+      case "action-call":
+        return `Doing "${chat.actionCall}"`;
+    }
+  }
+
+  const statusText = getStatusText();
+
+  if (!statusText) {
+    return null;
+  }
+
+  return (
+    <div className="font-mono">
+      <span className="chat-status-text">{statusText}</span>
     </div>
   );
 }
@@ -345,7 +370,7 @@ export function SourceLink({
         internal ? () => handleInternalLinkClick(link.url ?? "") : undefined
       }
     >
-      <TbFileDescription size={14} className="flex-shrink-0" />
+      <TbFileDescription size={14} className="shrink-0" />
       <span className="truncate min-w-0">{link.title}</span>
     </a>
   );
@@ -619,6 +644,7 @@ function LoadingMessage() {
       <div className="skeleton h-[20px] w-full" />
       <div className="skeleton h-[20px] w-full" />
       <div className="skeleton h-[20px] w-[60%]" />
+      <StatusText />
     </div>
   );
 }

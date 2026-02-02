@@ -162,7 +162,7 @@ function AssistantMessage({
   const flashToolCalls = useMemo(() => {
     return message.toolCalls
       .filter((toolCall) =>
-        ["grep", "ls", "find", "tree"].includes(toolCall.toolName)
+        ["grep", "ls", "find", "tree", "read"].includes(toolCall.toolName)
       )
       .map((toolCall) => ({
         toolName: toolCall.toolName,
