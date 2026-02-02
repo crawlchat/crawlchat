@@ -152,6 +152,19 @@ export function getMessagesSummary(messages: Message[]) {
     )
     .reduce((acc, curr) => [...acc, ...curr], []);
 
+  //get all available languages
+  const messagesWithLanguages = messages.filter((m) => m.analysis?.language);
+  const languagesDistribution: Record<string, number> = {};
+
+  messagesWithLanguages.forEach((message) => {
+    const languageName = message.analysis?.language!;
+    if (!languagesDistribution[languageName]) {
+      languagesDistribution[languageName] = 1;
+    } else {
+      languagesDistribution[languageName]++;
+    }
+  });
+
   const categoryCounts: Record<string, { count: number; latestDate: Date }> =
     {};
   for (const category of categorySuggestions) {
@@ -186,6 +199,7 @@ export function getMessagesSummary(messages: Message[]) {
     happyPct,
     sadPct,
     neutralPct,
+    languagesDistribution,
     tags: categoryCounts,
   };
 }

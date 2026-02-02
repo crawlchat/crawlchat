@@ -10,6 +10,7 @@ import {
   useState,
   type PropsWithChildren,
   forwardRef,
+  type ButtonHTMLAttributes,
 } from "react";
 import {
   TbArrowUp,
@@ -28,6 +29,7 @@ import {
   TbMenu2,
   TbChartBar,
   TbFile,
+  TbUsersGroup,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { track } from "~/components/track";
@@ -201,13 +203,12 @@ function ChatInput() {
   function getPlaceholder() {
     switch (chat.askStage) {
       case "asked":
-        return "😇 Thinking...";
+        return "Thinking...";
       case "answering":
-        return "🤓 Answering...";
-      case "searching":
-        return `🔍 Searching for "${chat.searchQuery ?? "answer"}"`;
-      case "action-call":
-        return `🤖 Doing "${chat.actionCall}"`;
+        return "Answering...";
+    }
+    if (chat.askStage !== "idle") {
+      return "Planning...";
     }
     return scrape.widgetConfig?.textInputPlaceholder ?? "Ask your question";
   }
@@ -243,6 +244,7 @@ function ChatInput() {
           </ChatInputBadge>
         </div>
       )}
+
       <div
         className={cn(
           "flex gap-2 border-t border-base-300 justify-between p-3 px-4",
@@ -284,6 +286,31 @@ function ChatInput() {
           <TbArrowUp />
         </button>
       </div>
+    </div>
+  );
+}
+
+function StatusText() {
+  const { chat } = useChatBoxContext();
+
+  function getStatusText() {
+    switch (chat.askStage) {
+      case "searching":
+        return `Searching for "${chat.searchQuery ?? "answer"}"`;
+      case "action-call":
+        return `Doing "${chat.actionCall}"`;
+    }
+  }
+
+  const statusText = getStatusText();
+
+  if (!statusText) {
+    return null;
+  }
+
+  return (
+    <div className="font-mono">
+      <span className="chat-status-text">{statusText}</span>
     </div>
   );
 }
@@ -343,7 +370,7 @@ export function SourceLink({
         internal ? () => handleInternalLinkClick(link.url ?? "") : undefined
       }
     >
-      <TbFileDescription size={14} className="flex-shrink-0" />
+      <TbFileDescription size={14} className="shrink-0" />
       <span className="truncate min-w-0">{link.title}</span>
     </a>
   );
@@ -617,6 +644,7 @@ function LoadingMessage() {
       <div className="skeleton h-[20px] w-full" />
       <div className="skeleton h-[20px] w-full" />
       <div className="skeleton h-[20px] w-[60%]" />
+      <StatusText />
     </div>
   );
 }
@@ -693,14 +721,17 @@ function MCPSetup() {
 
 const ToolbarButton = forwardRef<
   HTMLButtonElement,
-  PropsWithChildren<{ onClick?: () => void }>
->(function ToolbarButton({ children, onClick }, ref) {
+  PropsWithChildren<
+    { onClick?: () => void } & ButtonHTMLAttributes<HTMLButtonElement>
+  >
+>(({ children, onClick, ...props }, ref) => {
   return (
     <button
       className="btn btn-sm btn-ghost btn-plain btn-square text-lg"
       tabIndex={0}
       ref={ref}
       onClick={onClick}
+      {...props}
     >
       {children}
     </button>
@@ -719,6 +750,8 @@ function Toolbar() {
     admin,
     fullscreen,
     close,
+    makeGroup,
+    makeGroupFetcher,
   } = useChatBoxContext();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const menuItems = useMemo(() => {
@@ -825,6 +858,21 @@ function Toolbar() {
           <div className="tooltip tooltip-left" data-tip="Switch to chat">
             <ToolbarButton onClick={() => setScreen("chat")}>
               <TbMessage />
+            </ToolbarButton>
+          </div>
+        )}
+
+        {chat.allMessages.length > 1 && (
+          <div className="tooltip tooltip-left" data-tip="Chat with your team">
+            <ToolbarButton
+              onClick={() => makeGroup()}
+              disabled={makeGroupFetcher.state !== "idle"}
+            >
+              {makeGroupFetcher.state !== "idle" ? (
+                <span className="loading loading-spinner loading-sm" />
+              ) : (
+                <TbUsersGroup />
+              )}
             </ToolbarButton>
           </div>
         )}

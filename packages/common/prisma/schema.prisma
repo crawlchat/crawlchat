@@ -280,6 +280,7 @@ type MessageAnalysis {
   category  String?
   questionRelevanceScore Float?
   questionSentiment QuestionSentiment?
+  language String?
   
   dataGapTitle String?
   dataGapDescription String?
@@ -319,6 +320,12 @@ type DataGap {
   status      DataGapStatus?
 }
 
+type ToolCall {
+  toolName        String
+  params          String
+  responseLength  Int?
+}
+
 model Message {
   id                        String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId                  String   @db.ObjectId
@@ -344,8 +351,13 @@ model Message {
   dataGap                   DataGap?
   llmModel                  LlmModel?
   creditsUsed               Int?
+  promptTokens              Int?
+  completionTokens          Int?
+  totalTokens               Int?
+  llmCost                   Float?
   fingerprint               String?
   url                       String?
+  toolCalls                 ToolCall[]
 
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
@@ -402,6 +414,7 @@ model Thread {
 
   clientThreadId  String?
   fingerprint     String?
+  grouping        Boolean?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   

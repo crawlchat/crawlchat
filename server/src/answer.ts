@@ -10,6 +10,7 @@ import {
   Thread,
   ScrapeItem,
   LlmModel,
+  ToolCall,
 } from "@packages/common/prisma";
 import { getConfig } from "./llm/config";
 import { makeRagAgent, makeRagFlow } from "./llm/flow";
@@ -23,6 +24,7 @@ import { FlowMessage } from "./llm/flow";
 import { CustomMessage, DataGap } from "./llm/custom-message";
 import { consumeCredits } from "@packages/common/user-plan";
 import { fillMessageAnalysis } from "./analyse-message";
+import { ensureRepoCloned } from "@packages/flash";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
@@ -39,9 +41,14 @@ export type AnswerCompleteEvent = {
   actionCalls: ApiActionCall[];
   llmCalls: number;
   creditsUsed: number;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  llmCost: number;
   messages: FlowMessage<CustomMessage>[];
   context: string[];
   dataGap?: DataGap;
+  toolCalls: ToolCall[];
 };
 
 export type ToolCallEvent = {
@@ -201,6 +208,22 @@ export const baseAnswerer: Answerer = async (
 ) => {
   const llmConfig = getConfig(scrape.llmModel);
 
+  const githubRepoGroup = await prisma.knowledgeGroup.findFirst({
+    where: {
+      scrapeId: scrape.id,
+      type: "scrape_github",
+    },
+  });
+  let githubRepoPath: string | undefined;
+  if (githubRepoGroup?.githubUrl) {
+    githubRepoPath = `/tmp/flash-${githubRepoGroup.id}`;
+    await ensureRepoCloned(
+      githubRepoGroup.githubUrl,
+      githubRepoPath,
+      githubRepoGroup.githubBranch ?? "main"
+    );
+  }
+
   const richBlocks = scrape.richBlocksConfig?.blocks ?? [];
   if (scrape.ticketingEnabled && options?.channel === "widget") {
     richBlocks.push(createTicketRichBlock);
@@ -250,6 +273,12 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
           action: title,
         });
       },
+      onPreCodebaseTool: (toolId, input) => {
+        options?.listen?.({
+          type: "tool-call",
+          action: `${toolId}: ${JSON.stringify(input)}`,
+        });
+      },
       llmConfig,
       richBlocks,
       minScore: scrape.minScore ?? undefined,
@@ -258,6 +287,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
       clientData: options?.clientData,
       secret: options?.secret,
       scrapeItem: options?.scrapeItem,
+      githubRepoPath,
     }
   );
 
@@ -277,6 +307,13 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
   ) {}
 
   const lastMessage = flow.getLastMessage();
+  const usage = flow.getUsage();
+  const toolCalls: ToolCall[] = flow.flowState.toolCalls.map((toolCall) => ({
+    toolName: toolCall.toolName,
+    params: JSON.stringify(toolCall.params),
+    responseLength: toolCall.result.length,
+  }));
+
   const answer: AnswerCompleteEvent = {
     type: "answer-complete",
     content: (lastMessage.llmMessage.content ?? "") as string,
@@ -287,10 +324,15 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     ),
     llmCalls: 1,
     creditsUsed: llmConfig.creditsPerMessage,
+    promptTokens: usage.promptTokens,
+    completionTokens: usage.completionTokens,
+    totalTokens: usage.totalTokens,
+    llmCost: usage.cost,
     messages: flow.flowState.state.messages,
     context: collectContext(flow.flowState.state.messages),
     dataGap: collectDataGap(flow.flowState.state.messages),
     question: query,
+    toolCalls,
   };
   options?.listen?.(answer);
 
@@ -319,9 +361,14 @@ export async function saveAnswer(
       apiActionCalls: answer.actionCalls as any,
       llmModel,
       creditsUsed: answer.creditsUsed,
+      promptTokens: answer.promptTokens,
+      completionTokens: answer.completionTokens,
+      totalTokens: answer.totalTokens,
+      llmCost: answer.llmCost,
       fingerprint,
       questionId: questionMessageId,
       dataGap: answer.dataGap,
+      toolCalls: answer.toolCalls,
     },
   });
 

@@ -213,28 +213,6 @@ export async function action({ request, params }: Route.ActionArgs) {
     throw redirect("/");
   }
 
-  if (intent === "pin") {
-    const id = formData.get("id") as string;
-
-    await prisma.message.update({
-      where: { id },
-      data: {
-        pinnedAt: new Date(),
-      },
-    });
-  }
-
-  if (intent === "unpin") {
-    const id = formData.get("id") as string;
-
-    await prisma.message.update({
-      where: { id },
-      data: {
-        pinnedAt: null,
-      },
-    });
-  }
-
   if (intent === "erase") {
     delete chatSessionKeys[scrapeId];
     session.set("chatSessionKeys", chatSessionKeys);
@@ -246,14 +224,6 @@ export async function action({ request, params }: Route.ActionArgs) {
         },
       }
     );
-  }
-
-  if (intent === "delete") {
-    const ids = (formData.get("ids") as string).split(",");
-
-    await prisma.message.deleteMany({
-      where: { id: { in: ids } },
-    });
   }
 
   if (intent === "rate") {
@@ -347,6 +317,26 @@ export async function action({ request, params }: Route.ActionArgs) {
     });
 
     return { success: true };
+  }
+
+  if (intent === "make-group") {
+    await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        grouping: true,
+      },
+    });
+
+    delete chatSessionKeys[scrapeId];
+    session.set("chatSessionKeys", chatSessionKeys);
+    return data(
+      { userToken: null },
+      {
+        headers: {
+          "Set-Cookie": await commitSession(session),
+        },
+      }
+    );
   }
 }
 

@@ -3,8 +3,8 @@ import {
   ChatCompletionMessageToolCall,
   ChatCompletionToolMessageParam,
 } from "openai/resources/chat/completions";
-import { Agent, Message } from "./agent";
-import { handleStream, OnDelta } from "./stream";
+import { Agent, Message, multiLinePrompt } from "./agent";
+import { handleStream, OnDelta, Usage } from "./stream";
 
 export type FlowMessage<CustomMessage> = {
   llmMessage: Message;
@@ -16,28 +16,45 @@ export type State<CustomState, CustomMessage> = CustomState & {
   messages: FlowMessage<CustomMessage>[];
 };
 
+export type AgentToolCall = {
+  toolName: string;
+  params: Record<string, any>;
+  result: any;
+};
+
 type FlowState<CustomState, CustomMessage> = {
   state: State<CustomState, CustomMessage>;
   startedAt?: number;
   nextAgentIds: string[];
+  usage: Usage;
+  toolCalls: AgentToolCall[];
 };
 
 export class Flow<CustomState, CustomMessage> {
   private agents: Agent<CustomMessage>[];
   public flowState: FlowState<CustomState, CustomMessage>;
   private repeatToolAgent: boolean;
+  private maxToolCalls?: number;
 
   constructor(
     agents: Agent<CustomMessage>[],
     state: State<CustomState, CustomMessage>,
-    options?: { repeatToolAgent?: boolean }
+    options?: { repeatToolAgent?: boolean; maxToolCalls?: number }
   ) {
     this.agents = agents;
     this.flowState = {
       state,
       nextAgentIds: [],
+      usage: {
+        promptTokens: 0,
+        completionTokens: 0,
+        totalTokens: 0,
+        cost: 0,
+      },
+      toolCalls: [],
     };
     this.repeatToolAgent = options?.repeatToolAgent ?? true;
+    this.maxToolCalls = options?.maxToolCalls;
   }
 
   getAgent(id: string) {
@@ -48,6 +65,18 @@ export class Flow<CustomState, CustomMessage> {
     return this.flowState.state.messages[
       this.flowState.state.messages.length - 1
     ];
+  }
+
+  getUsage(): Usage {
+    return this.flowState.usage;
+  }
+
+  private addUsage(usage: Usage | null) {
+    if (!usage) return;
+    this.flowState.usage.promptTokens += usage.promptTokens;
+    this.flowState.usage.completionTokens += usage.completionTokens;
+    this.flowState.usage.totalTokens += usage.totalTokens;
+    this.flowState.usage.cost += usage.cost;
   }
 
   async runTool(id: string, toolId: string, args: Record<string, any>) {
@@ -69,6 +98,11 @@ export class Flow<CustomState, CustomMessage> {
             custom: customMessage,
           };
           this.flowState.state.messages.push(message);
+          this.flowState.toolCalls.push({
+            toolName: toolId,
+            params: args,
+            result: content,
+          });
           return message;
         }
       }
@@ -114,6 +148,36 @@ export class Flow<CustomState, CustomMessage> {
     const pendingToolCalls = this.getPendingToolCalls();
     if (pendingToolCalls.length > 0) {
       const call = pendingToolCalls[0];
+
+      if (
+        this.maxToolCalls &&
+        this.flowState.toolCalls.length >= this.maxToolCalls
+      ) {
+        const message: FlowMessage<CustomMessage> = {
+          llmMessage: {
+            role: "tool",
+            content: multiLinePrompt([
+              "Tool call limit reached",
+              "You cannot call any more tools.",
+              "Please provide your final answer based on the information you have gathered so far.",
+            ]),
+            tool_call_id: call.toolCall.id,
+          },
+          agentId,
+        };
+        this.flowState.state.messages.push(message);
+        if (pendingToolCalls.length > 1) {
+          this.flowState.nextAgentIds = [
+            agentId,
+            ...this.flowState.nextAgentIds,
+          ];
+        }
+        return {
+          messages: [message],
+          agentId,
+        };
+      }
+
       const message = await this.runTool(
         call.toolCall.id,
         call.toolCall.function.name,
@@ -134,6 +198,8 @@ export class Flow<CustomState, CustomMessage> {
       ),
       onDelta
     );
+
+    this.addUsage(result.usage);
 
     const newMessages = result.messages.map((message) => ({
       llmMessage: message,

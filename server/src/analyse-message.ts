@@ -58,6 +58,12 @@ export async function analyseMessage(
         The short verstion for the question.
         It should be under 10 words.
         It should be in question format.
+        It must be in english
+      `
+    ),
+    language: z.string().describe(
+      `
+        The language of the question, in full name, for example english, french.
       `
     ),
     followUpQuestions: z.array(z.string()).describe(
@@ -150,6 +156,7 @@ export async function analyseMessage(
   return JSON.parse(content as string) as {
     questionSentiment: QuestionSentiment;
     shortQuestion: string;
+    language: string;
     followUpQuestions: string[];
     category: { title: string; score: number } | null;
     categorySuggestions: { title: string; description: string }[];
@@ -288,6 +295,7 @@ export async function fillMessageAnalysis(
       questionSentiment: partialAnalysis?.questionSentiment ?? null,
       shortQuestion: partialAnalysis?.shortQuestion ?? null,
       followUpQuestions: partialAnalysis?.followUpQuestions ?? [],
+      language: partialAnalysis?.language ?? null,
       category,
       categorySuggestions: [],
       resolved: partialAnalysis?.resolved ?? false,

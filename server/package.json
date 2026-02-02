@@ -8,8 +8,8 @@
     "start": "node dist/index.js",
     "dev": "dotenv -e ../.env -- npx tsx watch src/index.ts",
     "cli": "npx tsc && node dist/cli.js",
-    "cron": "npx tsc && node dist/cron.js \"$@\"",
-    "prettier": "prettier src --check"
+    "prettier": "prettier src --check",
+    "cron": "npx tsc && node dist/cron.js \"$@\""
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +27,7 @@
   "dependencies": {
     "@packages/agentic": "*",
     "@packages/common": "*",
+    "@packages/flash": "*",
     "@pinecone-database/pinecone": "^4.1.0",
     "@prisma/client": "^6.2.1",
     "cors": "^2.8.5",

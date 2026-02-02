@@ -273,7 +273,10 @@ async function learnMessage(message: DiscordMessage, includeSelf = false) {
   message.react("✅");
 }
 
-async function getPreviousMessages(message: DiscordMessage) {
+async function getPreviousMessages(
+  message: DiscordMessage,
+  fromMainChannel: boolean
+) {
   if (message.channel.type === ChannelType.PublicThread) {
     const threadChannel = message.channel as PublicThreadChannel;
     const messages = (
@@ -291,16 +294,16 @@ async function getPreviousMessages(message: DiscordMessage) {
     return messages;
   }
 
-  const messages = (
-    await message.channel.messages.fetch({
-      limit: 20,
-      before: message.id,
-    })
-  )
-    .filter((m) => m.channel.type !== ChannelType.PublicThread)
-    .map((m) => m);
+  if (fromMainChannel) {
+    return (
+      await message.channel.messages.fetch({
+        limit: 20,
+        before: message.id,
+      })
+    ).map((m) => m);
+  }
 
-  return messages;
+  return [];
 }
 
 async function isMessageFromChannels(
@@ -354,15 +357,15 @@ client.on(Events.MessageCreate, async (message) => {
 
     const { stopTyping } = await sendTyping(message.channel as TextChannel);
 
-    const previousMessages = await getPreviousMessages(message);
-    const replyMessages = await fetchAllParentMessages(message, []);
-
-    const contextMessages = [...previousMessages, ...replyMessages].sort(
-      (a, b) => a.createdTimestamp - b.createdTimestamp
+    const previousMessages = await getPreviousMessages(
+      message,
+      !scrape.discordConfig?.replyAsThread
     );
 
     const messages = await Promise.all(
-      contextMessages.map((m) => makeMessage(m, scrape))
+      previousMessages
+        .sort((a, b) => a.createdTimestamp - b.createdTimestamp)
+        .map((m) => makeMessage(m, scrape))
     );
 
     messages.push(await makeMessage(message, scrape));
