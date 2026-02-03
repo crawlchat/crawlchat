@@ -3,6 +3,7 @@ import type {
   Message,
   Prisma,
   Scrape,
+  ScrapeItem,
 } from "@packages/common/prisma";
 import type { Route } from "./+types/messages";
 import {
@@ -37,7 +38,7 @@ import { getQueryString } from "@packages/common/llm-message";
 import cn from "@meltdownjs/cn";
 import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { CreditsUsedBadge } from "./credits-used-badge";
 import { SentimentBadge } from "./sentiment-badge";
 import Avatar from "boring-avatars";
@@ -95,6 +96,33 @@ export async function loader({ request }: Route.LoaderArgs) {
     delete where.OR;
   }
 
+  const pageId = url.searchParams.get("pageId");
+  let filterItem: ScrapeItem | null = null;
+  if (pageId) {
+    filterItem = await prisma.scrapeItem.findFirstOrThrow({
+      where: {
+        scrapeId,
+        id: pageId,
+      },
+    });
+    const answersWithLink = await prisma.message.findMany({
+      where: {
+        scrapeId,
+        questionId: { not: null },
+        links: { some: { scrapeItemId: pageId } },
+      },
+      select: { questionId: true },
+    });
+    const questionIds = [
+      ...new Set(
+        answersWithLink
+          .map((a) => a.questionId)
+          .filter((id): id is string => id !== null)
+      ),
+    ];
+    where.id = { in: questionIds };
+  }
+
   const total = await prisma.message.count({
     where,
   });
@@ -140,6 +168,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     pageSize,
     total,
     totalPages: Math.ceil(total / pageSize),
+    filterItem,
   };
 }
 
@@ -298,30 +327,31 @@ function Pagination({
 export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [category, setCategory] = useState<string>();
-  const [showMcp, setShowMcp] = useState(false);
-  const [showOnlyLowRatings, setShowOnlyLowRatings] = useState(false);
-  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    setCategory(url.searchParams.get("category") ?? undefined);
-  }, [location.search]);
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    params.set("page", page.toString());
-    if (category !== undefined) {
-      params.set("category", category);
-    }
-    if (showMcp) {
-      params.set("mcp", "true");
-    }
-    if (showOnlyLowRatings) {
-      params.set("low-rating", "true");
-    }
+  function goto({
+    page,
+    category,
+    showMcp,
+    showOnlyLowRatings,
+  }: {
+    page?: number;
+    category?: string;
+    showMcp?: boolean;
+    showOnlyLowRatings?: boolean;
+  }) {
+    const params = new URLSearchParams(location.search);
+    if (page) params.set("page", page.toString());
+    if (category) params.set("category", category);
+    if (showMcp) params.set("mcp", "true");
+    if (showOnlyLowRatings) params.set("low-rating", "true");
     navigate(`/questions?${params.toString()}`);
-  }, [category, showMcp, showOnlyLowRatings, page]);
+  }
+
+  const params = new URLSearchParams(location.search);
+  const category = params.get("category");
+  const showMcp = params.get("mcp") === "true";
+  const showOnlyLowRatings = params.get("low-rating") === "true";
+  const pageId = params.get("pageId");
 
   return (
     <Page
@@ -332,16 +362,18 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
           <Pagination
             page={loaderData.page}
             totalPages={loaderData.totalPages}
-            setPage={setPage}
+            setPage={(page) => goto({ page })}
           />
 
           <Filters
-            category={category}
-            setCategory={setCategory}
+            category={category ?? undefined}
+            setCategory={(category) => goto({ category })}
             showMcp={showMcp}
-            setShowMcp={setShowMcp}
+            setShowMcp={(showMcp) => goto({ showMcp })}
             showOnlyLowRatings={showOnlyLowRatings}
-            setShowOnlyLowRatings={setShowOnlyLowRatings}
+            setShowOnlyLowRatings={(showOnlyLowRatings) =>
+              goto({ showOnlyLowRatings })
+            }
           />
 
           <ViewSwitch />
@@ -360,6 +392,12 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
         )}
         {loaderData.messagePairs.length > 0 && (
           <div className="flex flex-col gap-4">
+            {loaderData.filterItem && (
+              <div className="flex flex-col gap-2">
+                Page: {loaderData.filterItem.title}
+              </div>
+            )}
+
             <div
               className={cn(
                 "overflow-x-auto border border-base-300",
@@ -510,7 +548,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
               <Pagination
                 page={loaderData.page}
                 totalPages={loaderData.totalPages}
-                setPage={setPage}
+                setPage={(page) => goto({ page })}
               />
             </div>
           </div>

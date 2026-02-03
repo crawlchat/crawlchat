@@ -1,4 +1,5 @@
 import type { KnowledgeGroup } from "@packages/common/prisma";
+import { TbMessage } from "react-icons/tb";
 import { Link } from "react-router";
 import { numberToKMB } from "~/components/number-util";
 import { KnowledgeGroupBadge } from "~/knowledge/group-badge";
@@ -30,7 +31,7 @@ export function TopPages({
               <td>
                 <div>
                   <Link
-                    className="link link-hover line-clamp-1 link-primary"
+                    className="link link-hover line-clamp-1 link-primary w-fit"
                     to={`/knowledge/item/${item.id}`}
                   >
                     {item.title}
@@ -39,9 +40,19 @@ export function TopPages({
                 <div className="text-xs text-base-content/50">{item.url}</div>
               </td>
               <td>
-                <span className="badge badge-soft">
-                  {numberToKMB(item.count)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <div className="tooltip" data-tip="View questions">
+                    <Link
+                      to={`/questions?pageId=${item.id}`}
+                      className="btn btn-xs btn-square"
+                    >
+                      <TbMessage />
+                    </Link>
+                  </div>
+                  <span className="badge badge-soft">
+                    {numberToKMB(item.count)}
+                  </span>
+                </div>
               </td>
               <td className="text-right">
                 {item.knowledgeGroup && (

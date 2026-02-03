@@ -71,7 +71,12 @@ export function getMessagesSummary(messages: Message[]) {
     { title: string; count: number; url: string }
   > = {};
   for (const message of messages) {
-    if (!message.links || message.links.length === 0) continue;
+    if (
+      message.llmMessage?.role !== "assistant" ||
+      !message.links ||
+      message.links.length === 0
+    )
+      continue;
     for (const link of message.links) {
       if (!link.url) continue;
       itemCounts[link.url] = {
