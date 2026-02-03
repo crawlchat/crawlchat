@@ -4,7 +4,7 @@
   "description": "Source Sync",
   "main": "dist/index.js",
   "scripts": {
-    "generate": "npx playwright install-deps && npx playwright install",
+    "generate": "npx playwright install-deps chromium && npx playwright install chromium",
     "build": "npx tsc",
     "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "dotenv -e ../.env -- npx tsx watch -r tsconfig-paths/register src/index.ts",

@@ -22,6 +22,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "prettier": "turbo run prettier",
-    "generate": "turbo run generate"
+    "generate": "turbo run generate",
+    "clean" : "turbo run clean && rm -rf packages/**/dist && rm -rf packages/**/node_modules && rm -rf node_modules && rm -rf .cache && rm -rf packages/**/.turbo && rm -rf .turbo"
   }
 }
