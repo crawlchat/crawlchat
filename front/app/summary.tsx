@@ -47,6 +47,8 @@ import { track } from "~/components/track";
 import { getMessagesSummary, type MessagesSummary } from "~/messages-summary";
 import type { Payload } from "recharts/types/component/DefaultTooltipContent";
 import LanguageDistribution from "./summary/language-distribution";
+import { TopPages } from "./summary/top-pages";
+import { BRIGHT_COLORS } from "./summary/bright-colors";
 
 function monoString(str: string) {
   return str.trim().toLowerCase().replace(/^\n+/, "").replace(/\n+$/, "");
@@ -127,6 +129,35 @@ export async function loader({ request }: Route.LoaderArgs) {
     }))
     .sort((a, b) => b.summary.messagesCount - a.summary.messagesCount);
 
+  const topScrapeItems = await prisma.scrapeItem.findMany({
+    where: {
+      scrapeId,
+      url: {
+        in: messagesSummary.topItems.map((item) => item.url),
+      },
+    },
+    select: {
+      id: true,
+      title: true,
+      url: true,
+      knowledgeGroup: true,
+    },
+  });
+
+  const topItems = [];
+  for (const item of messagesSummary.topItems) {
+    const scrapeItem = topScrapeItems.find((i) => i.url === item.url);
+    if (scrapeItem) {
+      topItems.push({
+        id: scrapeItem.id,
+        title: scrapeItem.title,
+        url: scrapeItem.url,
+        knowledgeGroup: scrapeItem.knowledgeGroup,
+        count: item.count,
+      });
+    }
+  }
+
   return {
     user,
     scrapeId,
@@ -135,6 +166,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     nScrapeItems,
     messagesSummary,
     categoriesSummary,
+    topItems,
   };
 }
 
@@ -238,17 +270,6 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 }
-
-export const BRIGHT_COLORS = [
-  "#A208BD",
-  "#83B139",
-  "#2F64C9",
-  "#FC3B81",
-  "#84555F",
-  "#E8CC41",
-  "#37D9F6",
-  "#C0F73B",
-];
 
 export function StatCard({
   label,
@@ -395,13 +416,13 @@ function CategoryCard({
 }
 
 function Tags({ tags }: { tags: Array<{ title: string; count: number }> }) {
-  const paddingBoxes = 3 - (tags.length % 3);
+  const paddingBoxes = (3 - (tags.length % 3)) % 3;
 
   return (
     <div
       className={cn(
         "grid grid-cols-1 md:grid-cols-3",
-        "rounded-box gap-[1px]",
+        "rounded-box gap-px",
         "bg-base-300 border border-base-300"
       )}
     >
@@ -762,6 +783,13 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
+          {loaderData.topItems && (
+            <div>
+              <Heading>Top cited pages</Heading>
+              <TopPages topItems={loaderData.topItems} />
+            </div>
+          )}
+
           {tags.length > 0 && (
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -780,9 +808,13 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               <Tags tags={tags} />
             </div>
           )}
-          <LanguageDistribution
-            languages={loaderData.messagesSummary.languagesDistribution}
-          />
+
+          <div>
+            <Heading>Languages</Heading>
+            <LanguageDistribution
+              languages={loaderData.messagesSummary.languagesDistribution}
+            />
+          </div>
         </div>
       )}
 

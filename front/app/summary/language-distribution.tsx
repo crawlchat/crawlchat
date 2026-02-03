@@ -1,7 +1,7 @@
 import cn from "@meltdownjs/cn";
 import { useMemo } from "react";
 import { Pie, PieChart, Tooltip } from "recharts";
-import { BRIGHT_COLORS, Heading } from "~/summary";
+import { BRIGHT_COLORS } from "./bright-colors";
 
 export default function LanguageDistribution({
   languages,
@@ -21,28 +21,22 @@ export default function LanguageDistribution({
   }
 
   return (
-    <div style={{ width: "100%" }}>
-      <Heading>Languages</Heading>
-
-      <div
-        className={cn(
-          "w-fit bg-base-100 border border-base-300 rounded-box p-4"
-        )}
-      >
-        <PieChart width={200} height={200}>
-          <Pie
-            data={data}
-            innerRadius="80%"
-            outerRadius="100%"
-            cornerRadius="50%"
-            fill="#8884d8"
-            paddingAngle={5}
-            dataKey="count"
-            isAnimationActive={true}
-          />
-          <Tooltip />
-        </PieChart>
-      </div>
+    <div
+      className={cn("w-fit bg-base-100 border border-base-300 rounded-box p-4")}
+    >
+      <PieChart width={200} height={200}>
+        <Pie
+          data={data}
+          innerRadius="80%"
+          outerRadius="100%"
+          cornerRadius="50%"
+          fill="#8884d8"
+          paddingAngle={5}
+          dataKey="count"
+          isAnimationActive={true}
+        />
+        <Tooltip />
+      </PieChart>
     </div>
   );
 }

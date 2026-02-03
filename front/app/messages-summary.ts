@@ -84,7 +84,7 @@ export function getMessagesSummary(messages: Message[]) {
 
   const topItems = Object.values(itemCounts)
     .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
+    .slice(0, 10);
 
   const latestQuestions = messages
     .filter((m) => (m.llmMessage as any)?.role === "user")

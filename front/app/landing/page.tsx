@@ -1041,7 +1041,7 @@ export function Footer() {
             <p className="font-medium opacity-60 font-brand italic">
               Power up your tech documentation with AI
             </p>
-            <p className="opacity-50 text-xs font-medium">© 2025 CrawlChat</p>
+            <p className="opacity-50 text-xs font-medium">© 2026 CrawlChat</p>
             <p className="flex items-center gap-2">
               <span>Built with ❤️ by</span>{" "}
               <a
