@@ -25,6 +25,7 @@ import { CustomMessage, DataGap } from "./llm/custom-message";
 import { consumeCredits } from "@packages/common/user-plan";
 import { fillMessageAnalysis } from "./analyse-message";
 import { ensureRepoCloned } from "@packages/flash";
+import { extractCitations } from "@packages/common/citation";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
@@ -139,6 +140,7 @@ export async function collectSourceLinks(
         fetchUniqueId: match.fetchUniqueId ?? null,
         knowledgeGroupId: item.knowledgeGroupId,
         searchQuery: match.query ?? null,
+        cited: null,
       });
     }
   }
@@ -350,12 +352,21 @@ export async function saveAnswer(
   onFollowUpQuestion?: (questions: string[]) => void
 ) {
   await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
+
+  const { citedLinks } = extractCitations(answer.content, answer.sources);
+  const links = answer.sources.map((link) => ({
+    ...link,
+    cited: Object.values(citedLinks).some(
+      (l) => l.scrapeItemId === link.scrapeItemId
+    ),
+  }));
+
   const newAnswerMessage = await prisma.message.create({
     data: {
       threadId,
       scrapeId: scrape.id,
       llmMessage: { role: "assistant", content: answer.content },
-      links: answer!.sources,
+      links,
       ownerUserId: scrape.userId,
       channel,
       apiActionCalls: answer.actionCalls as any,

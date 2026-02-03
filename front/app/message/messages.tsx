@@ -109,7 +109,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       where: {
         scrapeId,
         questionId: { not: null },
-        links: { some: { scrapeItemId: pageId } },
+        links: { some: { scrapeItemId: pageId, cited: true } },
       },
       select: { questionId: true },
     });

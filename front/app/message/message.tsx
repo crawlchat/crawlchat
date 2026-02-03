@@ -6,12 +6,14 @@ import type {
 } from "@packages/common/prisma";
 import {
   TbFolder,
+  TbLink,
   TbMessage,
   TbMessages,
   TbPaperclip,
   TbPhoto,
   TbPlus,
   TbSettingsBolt,
+  TbStarFilled,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { useMemo, useState } from "react";
@@ -285,7 +287,16 @@ function AssistantMessage({
                       )}
                     </td>
                     <td className="w-24">
-                      {link.score && <ScoreBadge score={link.score} />}
+                      {link.score && (
+                        <div className="flex items-center gap-1">
+                          {link.cited && (
+                            <div className="badge badge-secondary badge-soft gap-1 px-2">
+                              <TbStarFilled />
+                            </div>
+                          )}
+                          <ScoreBadge score={link.score} />
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

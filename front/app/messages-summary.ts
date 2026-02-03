@@ -78,7 +78,7 @@ export function getMessagesSummary(messages: Message[]) {
     )
       continue;
     for (const link of message.links) {
-      if (!link.url) continue;
+      if (!link.url || !link.cited) continue;
       itemCounts[link.url] = {
         url: link.url,
         title: link.title ?? link.url,
