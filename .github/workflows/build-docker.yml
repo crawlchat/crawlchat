@@ -19,6 +19,9 @@ jobs:
     strategy:
       matrix:
         include:
+          - build_app: app
+            image_name: crawlchat-app
+            dockerfile: docker/Dockerfile.app
           - build_app: slack-app
             image_name: crawlchat-slack
             dockerfile: docker/Dockerfile
