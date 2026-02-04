@@ -40,10 +40,6 @@ export class MarsIndexer implements Indexer {
     return 10;
   }
 
-  makeRecordId(scrapeId: string, id: string) {
-    return `${scrapeId}-${id}`;
-  }
-
   async makeEmbedding(text: string) {
     return await this.pinecone.inference.embed(this.denseModel, [text], {
       inputType: "passage",
