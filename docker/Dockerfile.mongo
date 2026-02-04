@@ -1,0 +1,4 @@
+FROM mongo:7
+COPY docker/mongo-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/mongo-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/mongo-entrypoint.sh"]
