@@ -15,7 +15,7 @@ The `server` service is the main API server that handles LLM interactions, user 
 - **Authentication**: JWT-based authentication
 - **Real-time Communication**: WebSocket support for live chat
 - **AI Integration**: OpenRouter and OpenAI API integration
-- **Vector Database**: Pinecone integration for semantic search
+- **Vector Database**: PGVector or Pinecone
 - **Port**: 3002 (container port 3000)
 
 ### Dependencies
@@ -28,7 +28,6 @@ The `server` service is the main API server that handles LLM interactions, user 
 | Variable                 | Required | Description                                                     | Example                                   |
 | ------------------------ | -------- | --------------------------------------------------------------- | ----------------------------------------- |
 | `SOURCE_SYNC_URL`        | Yes      | Internal URL for the source-sync service                        | `"http://source_sync:3000"`               |
-| `PINECONE_API_KEY`       | Yes      | Pinecone API key for vector database operations                 | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"`  |
 | `OPENROUTER_API_KEY`     | Yes      | OpenRouter API key for LLM access                               | `"sk-or-v1-xxxxxxxxxxxxx"`                |
 | `ADMIN_EMAILS`           | No       | Comma-separated list of admin email addresses                   | `"admin1@example.com,admin2@example.com"` |
 | `OPENAI_API_KEY`         | No       | OpenAI API key (if using OpenAI directly instead of OpenRouter) | `"sk-xxxxxxxxxxxxx"`                      |
@@ -42,7 +41,6 @@ The `server` service is the main API server that handles LLM interactions, user 
 
 - Node.js 22
 - MongoDB running locally or accessible
-- Pinecone API key
 - OpenRouter or OpenAI API key
 
 ### Development Setup

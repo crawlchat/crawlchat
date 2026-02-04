@@ -15,7 +15,7 @@ The `source-sync` service is a background service that handles syncing documenta
 - **Content Processing**: Handles multiple source types (web, GitHub, Notion, Confluence, etc.)
 - **Document Conversion**: Converts various formats to markdown and text
 - **Web Scraping**: Playwright integration for dynamic content scraping
-- **Vector Processing**: Pinecone integration for embedding storage
+- **Vector Processing**: PGVector or Pinecone
 - **Port**: 3003 (container port 3000)
 
 ### Dependencies
@@ -28,7 +28,7 @@ The `source-sync` service is a background service that handles syncing documenta
 
 | Variable                 | Required | Description                                                             | Example                                  |
 | ------------------------ | -------- | ----------------------------------------------------------------------- | ---------------------------------------- |
-| `PINECONE_API_KEY`       | Yes      | Pinecone API key for vector database operations                         | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` |
+| `PGVECTOR_URL`           | Yes      | PGVector connection URL                                                 | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` |
 | `REDIS_URL`              | Yes      | Redis connection URL                                                    | `"redis://redis:6379"`                   |
 | `GROUP_QUEUE_NAME`       | Yes      | Queue name for processing source groups                                 | `"crawlchat_source_sync_groups"`         |
 | `ITEM_QUEUE_NAME`        | Yes      | Queue name for processing source items                                  | `"crawlchat_source_sync_items"`          |
@@ -42,7 +42,6 @@ The `source-sync` service is a background service that handles syncing documenta
 - Node.js 22
 - Redis running locally or accessible
 - MongoDB running locally or accessible
-- Pinecone API key
 
 ### Development Setup
 
