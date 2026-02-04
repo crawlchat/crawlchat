@@ -227,7 +227,7 @@ export async function action({ request }: Route.ActionArgs) {
         title: name as string,
         userId: user!.id,
         status: "done",
-        indexer: "mars",
+        indexer: process.env.DEFAULT_INDEXER ?? "mars",
       },
     });
 

@@ -1,8 +1,7 @@
 import type { KnowledgeGroup, Scrape, UserPlan } from "@packages/common/prisma";
 import { splitMarkdown } from "../scrape/markdown-splitter";
 import { assertLimit } from "../assert-limit";
-import { makeIndexer } from "../indexer/factory";
-import { deleteByIds, makeRecordId } from "../pinecone";
+import { makeIndexer } from "@packages/indexer";
 import { v4 as uuidv4 } from "uuid";
 import { prisma } from "@packages/common/prisma";
 
@@ -43,7 +42,7 @@ export async function upsertItem(
   const indexer = makeIndexer({ key: scrape.indexer });
 
   const documents = chunks.map((chunk) => ({
-    id: makeRecordId(scrape.id, uuidv4()),
+    id: indexer.makeRecordId(scrape.id, uuidv4()),
     text: chunk,
     metadata: { content: chunk, url: url },
   }));
@@ -53,8 +52,7 @@ export async function upsertItem(
     where: { scrapeId: scrape.id, url },
   });
   if (existingItem) {
-    await deleteByIds(
-      indexer.getKey(),
+    await indexer.deleteByIds(
       existingItem.embeddings.map((embedding) => embedding.id)
     );
   }

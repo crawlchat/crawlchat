@@ -3,7 +3,7 @@ import {
   RecordMetadata,
   QueryResponse,
 } from "@pinecone-database/pinecone";
-import { Indexer } from "./indexer";
+import { Indexer, IndexDocument } from "./indexer";
 
 function randomFetchId() {
   const chars = "01234567890";
@@ -21,7 +21,7 @@ export class MarsIndexer implements Indexer {
   private sparseModel: string;
   private topN: number;
 
-  constructor({ topN }: { topN?: number }) {
+  constructor({ topN }: { topN?: number } = {}) {
     this.pinecone = new Pinecone({
       apiKey: process.env.PINECONE_API_KEY!,
     });
@@ -34,6 +34,10 @@ export class MarsIndexer implements Indexer {
 
   getKey(): string {
     return this.indexName;
+  }
+
+  makeRecordId(scrapeId: string, id: string) {
+    return `${scrapeId}/${id}`;
   }
 
   getMinBestScore(): number {
@@ -68,6 +72,40 @@ export class MarsIndexer implements Indexer {
       }),
     });
     return await response.json();
+  }
+
+  async upsert(
+    scrapeId: string,
+    knowledgeGroupId: string,
+    documents: IndexDocument[]
+  ): Promise<void> {
+    if (documents.length === 0) {
+      return;
+    }
+    const index = this.pinecone.index(this.indexName);
+    await index.upsert(
+      await Promise.all(
+        documents.map(async (document) => {
+          const sparseData = await this.makeSparseEmbedding(document.text);
+
+          return {
+            id: document.id,
+            values: ((await this.makeEmbedding(document.text)) as any)[0]
+              .values!,
+            sparseValues: {
+              indices: sparseData.data[0].sparse_indices,
+              values: sparseData.data[0].sparse_values,
+            },
+            metadata: {
+              ...document.metadata,
+              scrapeId,
+              id: document.id,
+              knowledgeGroupId,
+            },
+          };
+        })
+      )
+    );
   }
 
   async search(
@@ -138,5 +176,33 @@ export class MarsIndexer implements Indexer {
       id: r.document!.id,
       query,
     }));
+  }
+
+  async deleteScrape(scrapeId: string): Promise<void> {
+    const index = this.pinecone.index(this.indexName);
+
+    let page;
+
+    do {
+      page = await index.listPaginated({
+        prefix: scrapeId,
+        paginationToken: page?.pagination?.next,
+      });
+      const ids = page.vectors?.map((vector) => vector.id) ?? [];
+
+      if (ids.length === 0) {
+        break;
+      }
+
+      await index.deleteMany(ids);
+    } while (page.pagination?.next);
+  }
+
+  async deleteByIds(ids: string[]): Promise<void> {
+    if (ids.length === 0) {
+      return;
+    }
+    const index = this.pinecone.index(this.indexName);
+    await index.deleteMany(ids);
   }
 }
