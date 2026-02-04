@@ -2,6 +2,8 @@
 
 [CrawlChat](https://crawlchat.app) is an open sourced AI-powered platform that transforms your technical documentation into intelligent chatbots. Connect your documentation from various sources and deploy AI assistants that understand your content and answer questions across multiple channels including websites, Discord, Slack, and as an MCP server for integration with AI development tools.
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/TQBJkc?referralCode=SYKJpN&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
 You can self host it yourself or let [CrawlChat](https://crawlchat.app/pricing) handle it for you!
 
 ## Services
