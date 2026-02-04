@@ -9,7 +9,10 @@ export function makeIndexer({
   key: string | null;
   topN?: number;
 }): Indexer {
-  const indexers: Indexer[] = [new MarsIndexer({ topN })];
+  const indexers: Indexer[] = [];
+  if (process.env.PINECONE_API_KEY) {
+    indexers.push(new MarsIndexer({ topN }));
+  }
   if (process.env.PGVECTOR_URL) {
     indexers.push(new EarthIndexer({ topN }));
   }
