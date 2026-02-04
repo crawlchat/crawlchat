@@ -33,6 +33,7 @@ services:
       - crawlchat-net
     depends_on:
       - database
+      - pgvector
     ports:
       - "3002:3000"
     environment:
@@ -41,6 +42,7 @@ services:
       JWT_SECRET: "a-long-secret"
       SOURCE_SYNC_URL: "http://source_sync:3000"
       PINECONE_API_KEY: "<PINECONE_API_KEY>"
+      PGVECTOR_URL: "postgresql://postgres:crawlchat@pgvector:5432/crawlchat"
       OPENROUTER_API_KEY: "<OPENROUTER_API_KEY>"
       # GitHub App Integration (optional)
       GITHUB_APP_ID: ""
@@ -54,6 +56,7 @@ services:
     depends_on:
       - redis
       - database
+      - pgvector
     ports:
       - "3003:3000"
     networks:
@@ -63,6 +66,7 @@ services:
       DATABASE_URL: "mongodb://database:27017/crawlchat?replicaSet=rs0"
       JWT_SECRET: "a-long-secret"
       PINECONE_API_KEY: "<PINECONE_API_KEY>"
+      PGVECTOR_URL: "postgresql://postgres:crawlchat@pgvector:5432/crawlchat"
       REDIS_URL: "redis://redis:6379"
       GROUP_QUEUE_NAME: "crawlchat_source_sync_groups"
       ITEM_QUEUE_NAME: "crawlchat_source_sync_items"
@@ -161,6 +165,23 @@ services:
     networks:
       - crawlchat-net
 
+  pgvector:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: crawlchat
+      POSTGRES_DB: crawlchat
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
+    volumes:
+      - crawlchat_pgvector_data:/var/lib/postgresql/data
+    networks:
+      - crawlchat-net
+
 networks:
   crawlchat-net:
     driver: bridge
@@ -168,3 +189,4 @@ networks:
 volumes:
   crawlchat_mongo_data:
   crawlchat_redis_data:
+  crawlchat_pgvector_data:

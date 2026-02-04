@@ -1,12 +1,12 @@
 ---
-sidebar_position: 8
+sidebar_position: 2
 ---
 
-# Server Service
+# server
 
 ## Overview
 
-The Server service is the main API server that handles LLM interactions, user requests, and business logic for the CrawlChat application. It serves as the central backend that coordinates between the frontend, database, and external AI services.
+The `server` service is the main API server that handles LLM interactions, user requests, and business logic for the CrawlChat application. It serves as the central backend that coordinates between the frontend, database, and external AI services.
 
 ### Architecture & Features
 
@@ -21,7 +21,7 @@ The Server service is the main API server that handles LLM interactions, user re
 ### Dependencies
 
 - Database service (MongoDB) for persistent data storage
-- External APIs: Pinecone, OpenRouter/OpenAI
+- External APIs: OpenRouter
 
 ## Environment Variables
 

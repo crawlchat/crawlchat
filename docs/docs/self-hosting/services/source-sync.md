@@ -1,12 +1,12 @@
 ---
-sidebar_position: 10
+sidebar_position: 3
 ---
 
-# Source Sync Service
+# source-sync
 
 ## Overview
 
-The Source Sync service is a background service that handles syncing documentation sources and maintaining the knowledge base using BullMQ queues. It processes various content sources like web pages, GitHub issues, Notion pages, and converts them into vector embeddings for semantic search.
+The `source-sync` service is a background service that handles syncing documentation sources and maintaining the knowledge base using BullMQ queues. It processes various content sources like web pages, GitHub issues, Notion pages, and converts them into vector embeddings for semantic search.
 
 ### Architecture & Features
 
@@ -22,7 +22,7 @@ The Source Sync service is a background service that handles syncing documentati
 
 - Redis service for queue management
 - Database service (MongoDB) for metadata storage
-- External APIs: Pinecone, GitHub (optional), ScrapeCreators (optional)
+- External APIs: GitHub (optional), ScrapeCreators (optional)
 
 ## Environment Variables
 

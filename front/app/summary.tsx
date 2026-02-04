@@ -809,12 +809,15 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             </div>
           )}
 
-          <div>
-            <Heading>Languages</Heading>
-            <LanguageDistribution
-              languages={loaderData.messagesSummary.languagesDistribution}
-            />
-          </div>
+          {Object.keys(loaderData.messagesSummary.languagesDistribution)
+            .length > 0 && (
+            <div>
+              <Heading>Languages</Heading>
+              <LanguageDistribution
+                languages={loaderData.messagesSummary.languagesDistribution}
+              />
+            </div>
+          )}
         </div>
       )}
 

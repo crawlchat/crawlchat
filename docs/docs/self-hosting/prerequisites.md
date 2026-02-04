@@ -8,7 +8,6 @@ Before you begin, ensure you have:
 
 1. **Docker** and **Docker Compose** installed on your system
 2. **External API Keys**:
-   - Pinecone API key [[Get one here](https://www.pinecone.io)]
    - OpenRouter API key [[Get one here](https://openrouter.ai)]
 3. **Optional Services**:
    - Discord bot credentials [Discord bot]

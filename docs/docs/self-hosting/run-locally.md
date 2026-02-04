@@ -14,7 +14,7 @@ Make sure you meet the [prerequisites](./prerequisites.md) before starting it.
 npm i
 ```
 
-### 2. Database and Redis
+### 2. Local databases
 
 ```bash
 docker-compose -f docker/docker-compose-local.yml up -d
@@ -24,17 +24,17 @@ This will start:
 
 - **MongoDB** on `localhost:27017` with replica set `rs0` initialized
 - **Redis** on `localhost:6379` with AOF persistence enabled
-- **mongo-init** service that automatically initializes the replica set
+- **Postgres** on `localhost:5432` for embeddings (`earth` indexer)
 
 ### 2. Setup `.env`
 
 Copy the `.env.example` from the root to `.env`, and fill them out to your needs:
 
 ```bash
-`cp .env.example .env`
+cp .env.example .env
 ```
 
-### 3. Start Services
+### 3. Start services
 
 You can start all the services in `dev` mode using following command from the root:
 

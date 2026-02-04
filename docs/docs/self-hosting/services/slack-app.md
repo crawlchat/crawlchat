@@ -1,12 +1,12 @@
 ---
-sidebar_position: 9
+sidebar_position: 5
 ---
 
-# Slack App Service
+# slack-app
 
 ## Overview
 
-The Slack App service provides integration with Slack, enabling users to interact with CrawlChat within Slack workspaces. The app can answer questions and provide information based on the configured knowledge base.
+The `slack-app` service provides integration with Slack, enabling users to interact with CrawlChat within Slack workspaces. The app can answer questions and provide information based on the configured knowledge base.
 
 ### Architecture & Features
 
