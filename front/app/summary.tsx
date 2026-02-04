@@ -206,6 +206,28 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
+  if (intent === "remove-tag") {
+    const tagName = formData.get("tagName");
+    await prisma.$runCommandRaw({
+      update: "Message",
+      updates: [
+        {
+          q: {
+            "analysis.categorySuggestions": {
+              $elemMatch: { title: tagName },
+            },
+          },
+          u: {
+            $pull: {
+              "analysis.categorySuggestions": { title: tagName },
+            },
+          },
+          multi: true,
+        },
+      ],
+    });
+  }
+
   if (intent === "create-collection") {
     const limits = await getLimits(user!);
     const existingScrapes = await prisma.scrape.count({
@@ -636,7 +658,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   <option value="latest">Latest</option>
                 </select>
               </div>
-              <Tags tags={tags} />
+              <Tags fetcher={newCollectionFetcher} tags={tags} />
             </div>
           )}
 
