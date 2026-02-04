@@ -29,7 +29,6 @@
     "@packages/common": "*",
     "@packages/flash": "*",
     "@packages/indexer": "*",
-    "@pinecone-database/pinecone": "^4.1.0",
     "@prisma/client": "^6.2.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
