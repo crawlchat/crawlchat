@@ -3,7 +3,6 @@ import type { Express, NextFunction, Request, Response } from "express";
 import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "@packages/common/prisma";
-import { deleteByIds, deleteScrape } from "./pinecone";
 import {
   authenticate,
   AuthMode,
@@ -18,7 +17,7 @@ import {
   Prisma,
   Thread,
 } from "@packages/common/prisma";
-import { makeIndexer } from "./indexer/factory";
+import { makeIndexer } from "@packages/indexer";
 import { name } from "@packages/common";
 import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
 import { CustomMessage } from "./llm/custom-message";
@@ -111,7 +110,7 @@ app.delete(
       where: { id: scrapeId },
     });
     const indexer = makeIndexer({ key: scrape.indexer });
-    await deleteScrape(indexer.getKey(), scrapeId);
+    await indexer.deleteScrape(scrapeId);
 
     res.json({ message: "ok" });
   }
@@ -133,10 +132,7 @@ app.delete(
     authoriseScrapeUser(req.user!.scrapeUsers, scrapeItem.scrapeId, res);
 
     const indexer = makeIndexer({ key: scrapeItem.scrape.indexer });
-    await deleteByIds(
-      indexer.getKey(),
-      scrapeItem.embeddings.map((e) => e.id)
-    );
+    await indexer.deleteByIds(scrapeItem.embeddings.map((e) => e.id));
 
     await prisma.scrapeItem.delete({
       where: { id: scrapeItemId },
@@ -169,7 +165,7 @@ app.delete(
 
     const chunks = chunk(ids, 800);
     for (const chunk of chunks) {
-      await deleteByIds(indexer.getKey(), chunk);
+      await indexer.deleteByIds(chunk);
     }
 
     await prisma.scrapeItem.deleteMany({

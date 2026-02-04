@@ -1,5 +1,5 @@
 import { multiLinePrompt } from "@packages/agentic";
-import { makeIndexer } from "../indexer/factory";
+import { makeIndexer } from "@packages/indexer";
 import { z } from "zod";
 
 export type SearchToolContext = {

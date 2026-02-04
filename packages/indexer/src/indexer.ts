@@ -14,6 +14,7 @@ export interface Indexer {
     options?: { topK?: number; excludeIds?: string[] }
   ): Promise<QueryResponse<RecordMetadata>>;
   getMinBestScore(): number;
+  makeRecordId(scrapeId: string, id: string): string;
   process(
     query: string,
     result: QueryResponse<RecordMetadata>
@@ -28,4 +29,11 @@ export interface Indexer {
       query?: string;
     }[]
   >;
+  upsert(
+    scrapeId: string,
+    knowledgeGroupId: string,
+    documents: IndexDocument[]
+  ): Promise<void>;
+  deleteScrape(scrapeId: string): Promise<void>;
+  deleteByIds(ids: string[]): Promise<void>;
 }
