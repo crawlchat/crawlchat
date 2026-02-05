@@ -31,10 +31,9 @@ import {
   useState,
   type HTMLAttributes,
 } from "react";
-import { numberToKMB } from "~/components/number-util";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
-import { Link, redirect, useFetcher } from "react-router";
+import { redirect, useFetcher } from "react-router";
 import { getLimits } from "@packages/common/user-plan";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
@@ -44,11 +43,14 @@ import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import { dodoGateway } from "~/payment/gateway-dodo";
 import { track } from "~/components/track";
-import { getMessagesSummary, type MessagesSummary } from "~/messages-summary";
+import { getMessagesSummary } from "~/messages-summary";
 import type { Payload } from "recharts/types/component/DefaultTooltipContent";
 import LanguageDistribution from "./summary/language-distribution";
 import { TopPages } from "./summary/top-pages";
 import { BRIGHT_COLORS } from "./summary/bright-colors";
+import CategoryCard from "./summary/category-card";
+import StatCard from "./summary/stat-card";
+import Tags from "./summary/tags";
 
 function monoString(str: string) {
   return str.trim().toLowerCase().replace(/^\n+/, "").replace(/\n+$/, "");
@@ -204,6 +206,28 @@ export async function action({ request }: Route.ActionArgs) {
     });
   }
 
+  if (intent === "remove-tag") {
+    const tagName = formData.get("tagName") as string;
+    await prisma.$runCommandRaw({
+      update: "Message",
+      updates: [
+        {
+          q: {
+            "analysis.categorySuggestions": {
+              $elemMatch: { title: tagName },
+            },
+          },
+          u: {
+            $pull: {
+              "analysis.categorySuggestions": { title: tagName },
+            },
+          },
+          multi: true,
+        },
+      ],
+    });
+  }
+
   if (intent === "create-collection") {
     const limits = await getLimits(user!);
     const existingScrapes = await prisma.scrape.count({
@@ -269,177 +293,6 @@ export async function action({ request }: Route.ActionArgs) {
       },
     });
   }
-}
-
-export function StatCard({
-  label,
-  value,
-  icon,
-  suffix,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-  suffix?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "stats flex-1 bg-base-100 w-full",
-        "border border-base-300 rounded-box"
-      )}
-    >
-      <div className="stat">
-        <div className="stat-figure text-4xl">{icon}</div>
-        <div className="stat-title">{label}</div>
-        <div className="stat-value">
-          {numberToKMB(value)}
-          {suffix}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CategoryCardStat({
-  label,
-  value,
-  error,
-  tooltip,
-}: {
-  label: string;
-  value: number | string;
-  error?: boolean;
-  tooltip?: string;
-}) {
-  return (
-    <div className="flex flex-col items-end gap-1 tooltip" data-tip={tooltip}>
-      <span className="text-base-content/50 text-xs text-right shrink-0">
-        {label}
-      </span>
-      <span
-        className={cn(
-          "badge badge-sm badge-soft",
-          error ? "badge-error" : "badge-primary"
-        )}
-      >
-        {typeof value === "number" ? numberToKMB(value) : value}
-      </span>
-    </div>
-  );
-}
-
-function CategoryCard({
-  title,
-  summary,
-}: {
-  title: string;
-  summary: MessagesSummary;
-}) {
-  const chartData = useMemo(() => {
-    const data = [];
-    const today = new Date();
-    const DAY_MS = 1000 * 60 * 60 * 24;
-
-    for (let i = 0; i < 14; i++) {
-      const date = new Date(today.getTime() - i * DAY_MS);
-      const key = date.toISOString().split("T")[0];
-      const name = moment(date).format("MMM D");
-      data.push({
-        name,
-        Messages: summary.dailyMessages[key]?.count ?? 0,
-      });
-    }
-    return data.reverse();
-  }, [summary.dailyMessages]);
-  const lowRatingQuery = useMemo(() => {
-    const content =
-      summary.lowRatingQueries[0]?.userMessage?.llmMessage?.content;
-    if (typeof content === "string") {
-      return {
-        content,
-        score: summary.lowRatingQueries[0]?.maxScore,
-      };
-    }
-    return null;
-  }, [summary.lowRatingQueries]);
-
-  function renderTooltip(props: any) {
-    return (
-      <div className="bg-primary text-primary-content px-3 py-1 rounded-box">
-        <div className="text-[8px] opacity-80">{props.label}</div>
-        <div className="text-xs">{props.payload[0]?.value}</div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "bg-base-100 rounded-box p-4 border border-base-300",
-        "flex flex-col md:flex-row justify-between gap-2 md:items-center"
-      )}
-    >
-      <div className="h-fit">
-        <Link
-          to={`/questions?category=${title}`}
-          className="flex items-center gap-2 link link-primary link-hover"
-        >
-          <TbFolder />
-          <span className="font-bold">{title}</span>
-        </Link>
-      </div>
-
-      <div className="flex gap-4 flex-wrap">
-        <LineChart width={160} height={40} data={chartData}>
-          <XAxis dataKey="name" hide />
-          <Tooltip content={renderTooltip} />
-          <Line
-            type="monotone"
-            dataKey="Messages"
-            stroke={"var(--color-primary)"}
-            dot={false}
-          />
-        </LineChart>
-        <CategoryCardStat label="This week" value={summary.messagesCount} />
-        <CategoryCardStat label="Today" value={summary.messagesToday} />
-        <CategoryCardStat
-          label="Avg score"
-          value={summary.avgScore?.toFixed(2) ?? "-"}
-          error={summary.avgScore ? summary.avgScore < 0.3 : undefined}
-          tooltip={"Avg of max scores for all queries"}
-        />
-        <CategoryCardStat label="Not helpful" value={summary.ratingDownCount} />
-      </div>
-    </div>
-  );
-}
-
-function Tags({ tags }: { tags: Array<{ title: string; count: number }> }) {
-  const paddingBoxes = (3 - (tags.length % 3)) % 3;
-
-  return (
-    <div
-      className={cn(
-        "grid grid-cols-1 md:grid-cols-3",
-        "rounded-box gap-px",
-        "bg-base-300 border border-base-300"
-      )}
-    >
-      {tags.map((tag) => (
-        <div
-          key={tag.title}
-          className={cn("p-2 px-3 bg-base-100", "flex justify-between")}
-        >
-          {tag.title}
-          <span className="badge badge-primary badge-soft">{tag.count}</span>
-        </div>
-      ))}
-      {Array.from({ length: paddingBoxes }).map((_, index) => (
-        <div key={index} className="p-2 px-3 bg-base-100 hidden md:block" />
-      ))}
-    </div>
-  );
 }
 
 export function Heading({
