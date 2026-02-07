@@ -79,7 +79,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     actions.map((action) => [action.id, action])
   );
 
-  return { messagePairs, messagePair, actionsMap, scrape };
+  return {
+    messagePairs,
+    messagePair,
+    actionsMap,
+    scrape,
+    isAdmin: process.env.ADMIN_EMAILS?.split(",").includes(user!.email),
+  };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -151,26 +157,24 @@ function AssistantMessage({
   message,
   actionsMap,
   showResources = true,
+  isAdmin = false,
 }: {
   message: Message;
   actionsMap: Map<string, ApiAction>;
   showResources?: boolean;
+  isAdmin?: boolean;
 }) {
   const [hoveredUniqueId, setHoveredUniqueId] = useState<string | null>(null);
   const citation = useMemo(
     () => extractCitations(getMessageContent(message), message.links),
     [message]
   );
-  const flashToolCalls = useMemo(() => {
-    return message.toolCalls
-      .filter((toolCall) =>
-        ["grep", "ls", "find", "tree", "read"].includes(toolCall.toolName)
-      )
-      .map((toolCall) => ({
-        toolName: toolCall.toolName,
-        params: JSON.stringify(toolCall.params),
-        responseLength: toolCall.responseLength,
-      }));
+  const toolCalls = useMemo(() => {
+    return message.toolCalls.map((toolCall) => ({
+      toolName: toolCall.toolName,
+      params: JSON.stringify(toolCall.params),
+      responseLength: toolCall.responseLength,
+    }));
   }, [message.toolCalls]);
 
   return (
@@ -210,11 +214,11 @@ function AssistantMessage({
         </MarkdownProse>
       </div>
 
-      {flashToolCalls.length > 0 && (
+      {toolCalls.length > 0 && isAdmin && (
         <div className="flex flex-col gap-2">
-          <div className="text-lg">Codebase search</div>
+          <div className="text-lg">Tool calls</div>
           <div className="flex flex-col bg-base-100 rounded-box shadow border border-base-300">
-            {flashToolCalls.map((toolCall, index) => (
+            {toolCalls.map((toolCall, index) => (
               <div
                 key={index}
                 className={cn(
@@ -406,10 +410,12 @@ export function QuestionAnswer({
   messagePair,
   actionsMap,
   showResources = true,
+  isAdmin = false,
 }: {
   messagePair: MessagePair;
   actionsMap: Map<string, ApiAction>;
   showResources?: boolean;
+  isAdmin?: boolean;
 }) {
   const imagesCount = useMemo(
     () =>
@@ -492,6 +498,7 @@ export function QuestionAnswer({
           message={messagePair.responseMessage}
           actionsMap={actionsMap}
           showResources={showResources}
+          isAdmin={isAdmin}
         />
       )}
     </>
@@ -542,7 +549,11 @@ export default function Message({ loaderData }: Route.ComponentProps) {
     >
       <div className="flex flex-col gap-6">
         {messagePair && (
-          <QuestionAnswer messagePair={messagePair} actionsMap={actionsMap} />
+          <QuestionAnswer
+            messagePair={messagePair}
+            actionsMap={actionsMap}
+            isAdmin={loaderData.isAdmin}
+          />
         )}
 
         {filteredCategorySuggestions &&
