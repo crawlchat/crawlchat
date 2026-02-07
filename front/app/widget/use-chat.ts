@@ -248,6 +248,7 @@ export function useScrapeChat({
         completionTokens: 0,
         totalTokens: 0,
         llmCost: 0,
+        toolCalls: [],
       },
     ]);
     setAskStage("asked");
