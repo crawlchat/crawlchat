@@ -136,6 +136,7 @@ export function makeTextSearchTool(
     description: multiLinePrompt([
       "Fallback phrase search over the knowledge base. Use ONLY when search_data has already been used and returned no or insufficient results.",
       "Use as small a snippetWindow as possible (default 80). Use a larger window only when you need more context around the match.",
+      "Response includes totalCount and pagination; when hasMore is true, call again with page=2, page=3, etc. to fetch more.",
       "Use this tool sparingly; prefer search_data first.",
     ]),
     schema: z.object({
@@ -148,13 +149,23 @@ export function makeTextSearchTool(
         .describe(
           "Characters before and after the match (default 80). Use the smallest value that gives enough context; increase only when you need more."
         ),
+      page: z
+        .number()
+        .int()
+        .min(1)
+        .optional()
+        .describe(
+          "Page number (1-based). Omit for first page. Use to get more results when totalCount exceeds one page."
+        ),
     }),
     execute: async ({
       searchPhrase,
       snippetWindow = DEFAULT_SNIPPET_WINDOW,
+      page = 1,
     }: {
       searchPhrase: string;
       snippetWindow?: number;
+      page?: number;
     }) => {
       console.log("[text_search] called with:", {
         searchPhrase,
@@ -165,11 +176,18 @@ export function makeTextSearchTool(
 
       const windowChars = Math.min(Math.max(0, snippetWindow), 500);
 
+      const textFilter = {
+        $text: { $search: searchPhrase.toLowerCase() },
+        scrapeId: { $oid: scrapeId },
+      };
+      const countResult = (await prisma.scrapeItem.aggregateRaw({
+        pipeline: [{ $match: textFilter }, { $count: "total" }],
+      })) as unknown as { total: number }[] | undefined;
+      const totalCount = countResult?.[0]?.total ?? 0;
+      const skip = (page - 1) * MAX_RESULTS;
+
       const rawResults = (await prisma.scrapeItem.findRaw({
-        filter: {
-          $text: { $search: searchPhrase.toLowerCase() },
-          scrapeId: { $oid: scrapeId },
-        },
+        filter: textFilter,
         options: {
           projection: {
             markdown: 1,
@@ -177,6 +195,7 @@ export function makeTextSearchTool(
             score: { $meta: "textScore" },
           },
           limit: MAX_RESULTS,
+          skip,
         },
       })) as unknown as ItemDocument[];
 
@@ -192,11 +211,18 @@ export function makeTextSearchTool(
         "text_search"
       );
 
+      const paginationInfo = {
+        totalCount,
+        page,
+        pageSize: MAX_RESULTS,
+        hasMore: skip + rawResults.length < totalCount,
+      };
+      const contentSuffix = `\n<pagination>${JSON.stringify(paginationInfo)}</pagination>`;
       return {
         content:
           list.length > 0
-            ? `<context>\n${JSON.stringify(list)}\n</context>`
-            : "No matches from text search. Do not rely on this for the answer.",
+            ? `<context>\n${JSON.stringify(list)}\n</context>${contentSuffix}`
+            : `No matches from text search. Do not rely on this for the answer.${contentSuffix}`,
         customMessage: { result },
       };
     },
@@ -213,6 +239,7 @@ export function makeTextSearchRegexTool(
       "Fallback regex search over the knowledge base. Use ONLY when search_data has already been used and returned no or insufficient results.",
       "Pass scrapeItemId when you know it from a previous result (context includes scrapeItemId); this narrows the search to that document.",
       "Use as small a snippetWindow as possible (default 80). Use a larger window only when you need more context; when passing scrapeItemId, increase (e.g. 200–500 or 500–1500) exactly when the snippet is insufficient.",
+      "Response includes totalCount and pagination; when hasMore is true, call again with page=2, page=3, etc. to fetch more.",
       "Use this tool sparingly; prefer search_data first.",
     ]),
     schema: z.object({
@@ -232,15 +259,25 @@ export function makeTextSearchRegexTool(
         .describe(
           "Characters before and after the match (default 80, or 300 when scrapeItemId is passed). Use the smallest value that gives enough context; increase only when you need more."
         ),
+      page: z
+        .number()
+        .int()
+        .min(1)
+        .optional()
+        .describe(
+          "Page number (1-based). Omit for first page. Use to get more results when totalCount exceeds one page."
+        ),
     }),
     execute: async ({
       searchRegex,
       scrapeItemId: scrapeItemIdParam,
       snippetWindow,
+      page = 1,
     }: {
       searchRegex: string;
       scrapeItemId?: string;
       snippetWindow?: number;
+      page?: number;
     }) => {
       const defaultWindow = scrapeItemIdParam
         ? LARGE_SNIPPET_WINDOW_WHEN_ITEM
@@ -254,6 +291,7 @@ export function makeTextSearchRegexTool(
         searchRegex,
         scrapeItemId: scrapeItemIdParam,
         snippetWindow: snippetWindow ?? defaultWindow,
+        page,
       });
       const limitMsg = checkLimitAndIncrement(context);
       if (limitMsg) return { content: limitMsg };
@@ -265,15 +303,23 @@ export function makeTextSearchRegexTool(
         };
       }
 
+      const regexFilter = {
+        scrapeId: { $oid: scrapeId },
+        markdown: { $regex: searchRegex, $options: "i" },
+        ...(scrapeItemIdParam && { _id: { $oid: scrapeItemIdParam } }),
+      };
+      const countResult = (await prisma.scrapeItem.aggregateRaw({
+        pipeline: [{ $match: regexFilter }, { $count: "total" }],
+      })) as unknown as { total: number }[] | undefined;
+      const totalCount = countResult?.[0]?.total ?? 0;
+      const skip = (page - 1) * MAX_RESULTS;
+
       const rawResults = (await prisma.scrapeItem.findRaw({
-        filter: {
-          scrapeId: { $oid: scrapeId },
-          markdown: { $regex: searchRegex, $options: "i" },
-          ...(scrapeItemIdParam && { _id: { $oid: scrapeItemIdParam } }),
-        },
+        filter: regexFilter,
         options: {
           projection: { markdown: 1, url: 1 },
           limit: MAX_RESULTS,
+          skip,
         },
       })) as unknown as ItemDocument[];
 
@@ -285,11 +331,18 @@ export function makeTextSearchRegexTool(
         "text_search_regex"
       );
 
+      const paginationInfo = {
+        totalCount,
+        page,
+        pageSize: MAX_RESULTS,
+        hasMore: skip + rawResults.length < totalCount,
+      };
+      const contentSuffix = `\n<pagination>${JSON.stringify(paginationInfo)}</pagination>`;
       return {
         content:
           list.length > 0
-            ? `<context>\n${JSON.stringify(list)}\n</context>`
-            : "No matches from text search regex. Do not rely on this for the answer.",
+            ? `<context>\n${JSON.stringify(list)}\n</context>${contentSuffix}`
+            : `No matches from text search regex. Do not rely on this for the answer.${contentSuffix}`,
         customMessage: { result },
       };
     },
