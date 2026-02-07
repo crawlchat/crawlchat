@@ -187,11 +187,11 @@ export function makeRagAgent(
       "Do NOT use report_data_gap for questions unrelated to the knowledge base (e.g., general chat, greetings, off-topic questions).",
 
       // text_search_regex and text_search
-      "Use search_data first for semantic search. Use text_search_regex or text_search only as fallbacks when search_data has already been tried and got poor results.",
       "text_search does phrase search; text_search_regex does regex-based search.",
       "Both accept snippetWindow. Use as small a window as possible (default 80); increase only when you need more context around the match.",
       "Use text_search_regex first to get broader context and then use text_search when you exactly know the keyword to search.",
       "When you have scrapeItemId from a previous search result (it appears in the context JSON), pass it to text_search_regex to search only that document; use a larger snippetWindow only when you need more context from that item, and increase further on follow-up calls only if the snippet is still insufficient.",
+      "Recommended to use text_search_regex or text_search when you want to know about a specific term or phrase. Best for codebase related questions.",
 
       options?.githubRepoPath
         ? multiLinePrompt([

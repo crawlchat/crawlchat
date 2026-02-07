@@ -6,7 +6,7 @@ export type SearchToolContext = {
   queries: string[];
 };
 
-const MIN_QUERY_WORDS = 4;
+const MIN_QUERY_WORDS = 3;
 
 export function makeSearchTool(
   scrapeId: string,
