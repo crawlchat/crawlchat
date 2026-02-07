@@ -16,6 +16,7 @@ import { toast, Toaster } from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import cn from "@meltdownjs/cn";
 import Avatar from "boring-avatars";
+import { SearchTypeBadge } from "~/message/search-type-badge";
 import {
   Bar,
   BarChart,
@@ -91,6 +92,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     include: {
       thread: true,
+      links: { select: { searchType: true } },
     },
     take: 100,
   });
@@ -260,6 +262,7 @@ function MessagesTable({
             <th>Id</th>
             <th>Category</th>
             <th>Score</th>
+            <th>Search types</th>
             <th>Channel</th>
             <th>LLM</th>
             <th>Cost</th>
@@ -330,6 +333,20 @@ function MessagesTable({
                     </div>
                   )}
                   <Score message={messageDetail.message} />
+                </div>
+              </td>
+              <td>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    ...new Set(
+                      messageDetail.message.links
+                        .map((l) => l.searchType)
+                        .filter((t): t is string => t != null)
+                    ),
+                  ].map((searchType) => (
+                    <SearchTypeBadge key={searchType} searchType={searchType} />
+                  ))}
+                  {messageDetail.message.links.length === 0 && "-"}
                 </div>
               </td>
               <td>{messageDetail.message.channel ?? "chatbot"}</td>
