@@ -92,7 +92,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     include: {
       thread: true,
-      links: { select: { searchType: true } },
     },
     take: 100,
   });
