@@ -114,6 +114,7 @@ enum LlmModel {
   sonnet_3_5
   gemini_2_5_flash
   gemini_2_5_flash_lite
+  gemini_3_flash
   o4_mini
 
   gpt_5_nano
@@ -128,6 +129,8 @@ enum LlmModel {
   kimi_2_5
 
   minimax_m_2_1
+
+  glm_4_7
 }
 
 type RichBlockConfig {

@@ -59,8 +59,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     { label: "OpenAI GPT-5", value: "gpt_5", credits: 4 },
     { label: "Claude Haiku 4.5", value: "haiku_4_5", credits: 2 },
     { label: "Claude Sonnet 4.5", value: "sonnet_4_5", credits: 6 },
+    { label: "Gemini 3 Flash", value: "gemini_3_flash", credits: 2 },
     { label: "Kimi 2.5", value: "kimi_2_5", credits: 2 },
     { label: "Minimax M2.1", value: "minimax_m_2_1", credits: 2 },
+    { label: "GLM 4.7", value: "glm_4_7", credits: 2 },
   ];
 
   return { scrape, user: user!, llmModels };

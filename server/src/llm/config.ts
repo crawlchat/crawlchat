@@ -122,6 +122,24 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       baseURL: "https://openrouter.ai/api/v1",
     };
   }
+  if (model === LlmModel.glm_4_7) {
+    return {
+      model: "z-ai/glm-4.7",
+      apiKey: process.env.OPENROUTER_API_KEY!,
+      ragTopN: 4,
+      creditsPerMessage: 2,
+      baseURL: "https://openrouter.ai/api/v1",
+    };
+  }
+  if (model === LlmModel.gemini_3_flash) {
+    return {
+      model: "google/gemini-3-flash-preview",
+      apiKey: process.env.OPENROUTER_API_KEY!,
+      ragTopN: 4,
+      creditsPerMessage: 2,
+      baseURL: "https://openrouter.ai/api/v1",
+    };
+  }
   return {
     model: "gpt-4o-mini",
     apiKey: process.env.OPENAI_API_KEY!,
