@@ -6,7 +6,6 @@ import type {
 } from "@packages/common/prisma";
 import {
   TbFolder,
-  TbLink,
   TbMessage,
   TbMessages,
   TbPaperclip,
@@ -34,6 +33,7 @@ import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
 import { getImagesCount, getQueryString } from "@packages/common/llm-message";
 import { SentimentBadge } from "./sentiment-badge";
+import { SearchTypeBadge } from "./search-type-badge";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -250,7 +250,7 @@ function AssistantMessage({
               <thead>
                 <tr>
                   <th>Title</th>
-                  <th>Search type</th>
+                  <th>Type</th>
                   <th>Query</th>
                   <th>Score</th>
                 </tr>
@@ -274,8 +274,10 @@ function AssistantMessage({
                         {link.title || link.url}
                       </RouterLink>
                     </td>
-                    <td className="w-28">{link.searchType ?? "-"}</td>
-                    <td className="w-18 md:w-56">
+                    <td className="w-28">
+                      <SearchTypeBadge searchType={link.searchType ?? "-"} />
+                    </td>
+                    <td className="font-mono">
                       {link.searchQuery ? (
                         link.searchType === "search_data" ? (
                           <div
@@ -283,7 +285,7 @@ function AssistantMessage({
                             data-tip="Search in the knowledge base"
                           >
                             <Link
-                              className="link link-hover link-primary"
+                              className={cn("link link-hover link-primary")}
                               to={`/knowledge?query=${link.searchQuery}`}
                               target="_blank"
                             >
@@ -298,7 +300,7 @@ function AssistantMessage({
                       )}
                     </td>
                     <td className="w-24">
-                      {link.score && (
+                      {link.score ? (
                         <div className="flex items-center gap-1">
                           {link.cited && (
                             <div className="badge badge-secondary badge-soft gap-1 px-2">
@@ -307,6 +309,8 @@ function AssistantMessage({
                           )}
                           <ScoreBadge score={link.score} />
                         </div>
+                      ) : (
+                        "-"
                       )}
                     </td>
                   </tr>

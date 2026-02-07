@@ -52,12 +52,9 @@ export function makeRagAgent(
     githubRepoPath?: string;
   }
 ) {
-  const queryContext: SearchToolContext = {
+  const queryContext: SearchToolContext & TextSearchToolContext = {
     queries: [],
-  };
-
-  const textSearchContext: TextSearchToolContext = {
-    callCount: 0,
+    textSearchToolCalls: 0,
   };
 
   const ragTool = makeSearchTool(scrapeId, indexerKey, {
@@ -67,9 +64,7 @@ export function makeRagAgent(
     queryContext,
   });
 
-  const textSearchRegexTool = makeTextSearchRegexTool(scrapeId, {
-    textSearchContext,
-  });
+  const textSearchRegexTool = makeTextSearchRegexTool(scrapeId, queryContext);
 
   const enabledRichBlocks = options?.richBlocks
     ? options.richBlocks.map((rb) => ({

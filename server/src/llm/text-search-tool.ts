@@ -12,7 +12,9 @@ const MONGO_OBJECTID_HEX_LENGTH = 24;
 const VALID_OBJECTID = /^[a-fA-F0-9]{24}$/;
 
 function isValidMongoObjectId(value: string): boolean {
-  return value.length === MONGO_OBJECTID_HEX_LENGTH && VALID_OBJECTID.test(value);
+  return (
+    value.length === MONGO_OBJECTID_HEX_LENGTH && VALID_OBJECTID.test(value)
+  );
 }
 
 type ItemDocument = {
@@ -63,17 +65,14 @@ function snippetForRegex(
 }
 
 export type TextSearchToolContext = {
-  callCount: number;
+  textSearchToolCalls: number;
 };
 
-function checkLimitAndIncrement(
-  context: TextSearchToolContext,
-  maxCalls: number
-) {
-  if (context.callCount >= maxCalls) {
+function checkLimitAndIncrement(context: TextSearchToolContext) {
+  if (context.textSearchToolCalls >= DEFAULT_MAX_CALLS) {
     return "Fallback text search limit reached. Frame your answer from the context you have.";
   }
-  context.callCount += 1;
+  context.textSearchToolCalls += 1;
 }
 
 const LARGE_SNIPPET_WINDOW_WHEN_ITEM = 300;
@@ -130,14 +129,8 @@ function buildListAndResult(
 
 export function makeTextSearchTool(
   scrapeId: string,
-  options?: {
-    maxCalls?: number;
-    textSearchContext?: TextSearchToolContext;
-  }
+  context: TextSearchToolContext
 ) {
-  const context = options?.textSearchContext ?? { callCount: 0 };
-  const maxCalls = options?.maxCalls ?? DEFAULT_MAX_CALLS;
-
   return {
     id: "text_search",
     description: multiLinePrompt([
@@ -167,7 +160,7 @@ export function makeTextSearchTool(
         searchPhrase,
         snippetWindow,
       });
-      const limitMsg = checkLimitAndIncrement(context, maxCalls);
+      const limitMsg = checkLimitAndIncrement(context);
       if (limitMsg) return { content: limitMsg };
 
       const windowChars = Math.min(Math.max(0, snippetWindow), 500);
@@ -212,14 +205,8 @@ export function makeTextSearchTool(
 
 export function makeTextSearchRegexTool(
   scrapeId: string,
-  options?: {
-    maxCalls?: number;
-    textSearchContext?: TextSearchToolContext;
-  }
+  context: TextSearchToolContext
 ) {
-  const context = options?.textSearchContext ?? { callCount: 0 };
-  const maxCalls = options?.maxCalls ?? DEFAULT_MAX_CALLS;
-
   return {
     id: "text_search_regex",
     description: multiLinePrompt([
@@ -268,13 +255,10 @@ export function makeTextSearchRegexTool(
         scrapeItemId: scrapeItemIdParam,
         snippetWindow: snippetWindow ?? defaultWindow,
       });
-      const limitMsg = checkLimitAndIncrement(context, maxCalls);
+      const limitMsg = checkLimitAndIncrement(context);
       if (limitMsg) return { content: limitMsg };
 
-      if (
-        scrapeItemIdParam &&
-        !isValidMongoObjectId(scrapeItemIdParam)
-      ) {
+      if (scrapeItemIdParam && !isValidMongoObjectId(scrapeItemIdParam)) {
         return {
           content:
             "scrapeItemId must be a valid MongoDB ObjectId (24 hexadecimal characters). Use the scrapeItemId from the context JSON, not fetchUniqueId or other ids.",
