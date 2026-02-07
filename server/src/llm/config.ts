@@ -120,6 +120,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       ragTopN: 4,
       creditsPerMessage: 2,
       baseURL: "https://openrouter.ai/api/v1",
+      supportsImages: true,
     };
   }
   if (model === LlmModel.minimax_m_2_1) {
@@ -147,6 +148,7 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       ragTopN: 4,
       creditsPerMessage: 2,
       baseURL: "https://openrouter.ai/api/v1",
+      supportsImages: true,
     };
   }
   return {

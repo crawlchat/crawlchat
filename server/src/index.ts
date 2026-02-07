@@ -434,11 +434,12 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     attachments?: MessageAttachment[];
   };
 
-  const messages = (req.body.messages ?? []) as InputMessage[];
+  let messages = (req.body.messages ?? []) as InputMessage[];
   if (messages && messages.length > 0) {
     const lastMessage = messages[messages.length - 1];
     query = lastMessage.content;
     attachments = lastMessage.attachments;
+    messages = messages.slice(0, -1);
 
     if (
       attachments?.some(
@@ -479,23 +480,56 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     },
   });
 
-  function messageToContent(message: InputMessage): string {
-    const parts = [message.content];
-    if (message.attachments) {
-      for (const attachment of message.attachments) {
-        if (!attachment.content) {
-          continue;
-        }
+  function embedAttachments(
+    text: string,
+    attachments: MessageAttachment[]
+  ): string {
+    const parts = [text];
+    for (const attachment of attachments) {
+      if (!attachment.content) {
+        continue;
+      }
 
-        parts.push(
-          `<attachment name="${attachment.name}" type="${attachment.type}">
+      parts.push(
+        `<attachment name="${attachment.name}" type="${attachment.type}">
             ${attachment.content ?? ""}
           </attachment>`
-        );
-      }
+      );
     }
 
     return parts.join("\n\n");
+  }
+
+  function withAttachments(
+    content: string | MultimodalContent[],
+    attachments?: MessageAttachment[]
+  ): string | MultimodalContent[] {
+    if (typeof content === "string") {
+      return embedAttachments(content, attachments ?? []);
+    }
+
+    const textParts = content.filter(
+      (c) => c.type === "text"
+    ) as MultimodalContent[];
+    const nonTextParts = content.filter(
+      (c) => c.type !== "text"
+    ) as MultimodalContent[];
+    const attachmentPart =
+      attachments && attachments.length > 0
+        ? ({
+            type: "text",
+            text: embedAttachments(
+              attachments.map((a) => a.content ?? "").join("\n\n"),
+              attachments
+            ),
+          } as MultimodalContent)
+        : undefined;
+
+    return [
+      ...textParts,
+      ...(attachmentPart ? [attachmentPart] : []),
+      ...nonTextParts,
+    ];
   }
 
   const recentMessages = messages.slice(-40);
@@ -503,11 +537,11 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   const answer = await baseAnswerer(
     scrape,
     thread,
-    query,
+    withAttachments(query, attachments),
     recentMessages.map((m) => ({
       llmMessage: {
         role: m.role as any,
-        content: messageToContent(m),
+        content: withAttachments(m.content, m.attachments),
       },
     })),
     {
