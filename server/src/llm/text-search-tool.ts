@@ -1,11 +1,19 @@
 import { multiLinePrompt } from "@packages/agentic";
 import { prisma } from "@packages/common/prisma";
 import { z } from "zod";
+import { randomFetchId } from "@packages/indexer";
+import { CustomMessage } from "./custom-message";
 
 const DEFAULT_SNIPPET_WINDOW = 80;
 const MAX_REGEX_LENGTH = 200;
-const MAX_RESULTS = 20;
-const DEFAULT_MAX_CALLS = 3;
+const MAX_RESULTS = 8;
+const DEFAULT_MAX_CALLS = 10;
+const MONGO_OBJECTID_HEX_LENGTH = 24;
+const VALID_OBJECTID = /^[a-fA-F0-9]{24}$/;
+
+function isValidMongoObjectId(value: string): boolean {
+  return value.length === MONGO_OBJECTID_HEX_LENGTH && VALID_OBJECTID.test(value);
+}
 
 type ItemDocument = {
   _id: { $oid: string };
@@ -68,19 +76,56 @@ function checkLimitAndIncrement(
   context.callCount += 1;
 }
 
-function buildResultList(
+const LARGE_SNIPPET_WINDOW_WHEN_ITEM = 300;
+const MAX_SNIPPET_WINDOW_WHEN_ITEM = 1500;
+
+function buildListAndResult(
   rawResults: ItemDocument[],
-  getSnippet: (markdown: string | null) => string | null
-): { url: string; content: string; fetchUniqueId: string }[] {
-  const list: { url: string; content: string; fetchUniqueId: string }[] = [];
+  getSnippet: (markdown: string | null) => string | null,
+  getScore: (doc: ItemDocument) => number | undefined,
+  query: string,
+  searchType: string
+): {
+  list: {
+    url: string;
+    content: string;
+    fetchUniqueId: string;
+    scrapeItemId: string;
+  }[];
+  result: NonNullable<CustomMessage["result"]>;
+} {
+  const list: {
+    url: string;
+    content: string;
+    fetchUniqueId: string;
+    scrapeItemId: string;
+  }[] = [];
+  const result: NonNullable<CustomMessage["result"]> = [];
   for (const doc of rawResults) {
     if (!doc.markdown) continue;
     const snippet = getSnippet(doc.markdown);
     const content =
       snippet ?? doc.markdown.slice(0, 200).replace(/\s+/g, " ").trim() + "…";
-    list.push({ url: doc.url ?? "", content, fetchUniqueId: doc._id.$oid });
+    const fetchUniqueId = randomFetchId();
+    list.push({
+      url: doc.url ?? "",
+      content,
+      fetchUniqueId,
+      scrapeItemId: doc._id.$oid,
+    });
+    const score = getScore(doc);
+    result.push({
+      id: doc._id.$oid,
+      content,
+      url: doc.url ?? undefined,
+      ...(score !== undefined && { score }),
+      scrapeItemId: doc._id.$oid,
+      fetchUniqueId,
+      query,
+      searchType,
+    });
   }
-  return list;
+  return { list, result };
 }
 
 export function makeTextSearchTool(
@@ -97,7 +142,7 @@ export function makeTextSearchTool(
     id: "text_search",
     description: multiLinePrompt([
       "Fallback phrase search over the knowledge base. Use ONLY when search_data has already been used and returned no or insufficient results.",
-      "Use snippetWindow to control how many characters of context appear before and after each match (default 80).",
+      "Use as small a snippetWindow as possible (default 80). Use a larger window only when you need more context around the match.",
       "Use this tool sparingly; prefer search_data first.",
     ]),
     schema: z.object({
@@ -108,7 +153,7 @@ export function makeTextSearchTool(
         .number()
         .optional()
         .describe(
-          "Number of characters before and after the match to include in the snippet (default 80)"
+          "Characters before and after the match (default 80). Use the smallest value that gives enough context; increase only when you need more."
         ),
     }),
     execute: async ({
@@ -142,16 +187,24 @@ export function makeTextSearchTool(
         },
       })) as unknown as ItemDocument[];
 
-      const list = buildResultList(rawResults, (markdown) =>
-        snippetForPhrase(markdown, searchPhrase, windowChars)
+      const maxScore =
+        rawResults.length > 0
+          ? Math.max(...rawResults.map((d) => d.score ?? 0), 0)
+          : 0;
+      const { list, result } = buildListAndResult(
+        rawResults,
+        (markdown) => snippetForPhrase(markdown, searchPhrase, windowChars),
+        (doc) => (maxScore > 0 ? (doc.score ?? 0) / maxScore : 0),
+        searchPhrase,
+        "text_search"
       );
 
-      const contextStr = JSON.stringify(list);
       return {
         content:
           list.length > 0
-            ? `<context>\n${contextStr}\n</context>`
+            ? `<context>\n${JSON.stringify(list)}\n</context>`
             : "No matches from text search. Do not rely on this for the answer.",
+        customMessage: { result },
       };
     },
   };
@@ -171,7 +224,8 @@ export function makeTextSearchRegexTool(
     id: "text_search_regex",
     description: multiLinePrompt([
       "Fallback regex search over the knowledge base. Use ONLY when search_data has already been used and returned no or insufficient results.",
-      "Use snippetWindow to control how many characters of context appear before and after each match (default 80).",
+      "Pass scrapeItemId when you know it from a previous result (context includes scrapeItemId); this narrows the search to that document.",
+      "Use as small a snippetWindow as possible (default 80). Use a larger window only when you need more context; when passing scrapeItemId, increase (e.g. 200–500 or 500–1500) exactly when the snippet is insufficient.",
       "Use this tool sparingly; prefer search_data first.",
     ]),
     schema: z.object({
@@ -179,33 +233,59 @@ export function makeTextSearchRegexTool(
         .string()
         .max(MAX_REGEX_LENGTH)
         .describe("Regex pattern for matching (case-insensitive)"),
+      scrapeItemId: z
+        .string()
+        .optional()
+        .describe(
+          "When known from prior context, pass the scrapeItemId (must be a valid MongoDB ObjectId, 24 hex characters) to search only within that document"
+        ),
       snippetWindow: z
         .number()
         .optional()
         .describe(
-          "Number of characters before and after the match to include in the snippet (default 80)"
+          "Characters before and after the match (default 80, or 300 when scrapeItemId is passed). Use the smallest value that gives enough context; increase only when you need more."
         ),
     }),
     execute: async ({
       searchRegex,
-      snippetWindow = DEFAULT_SNIPPET_WINDOW,
+      scrapeItemId: scrapeItemIdParam,
+      snippetWindow,
     }: {
       searchRegex: string;
+      scrapeItemId?: string;
       snippetWindow?: number;
     }) => {
+      const defaultWindow = scrapeItemIdParam
+        ? LARGE_SNIPPET_WINDOW_WHEN_ITEM
+        : DEFAULT_SNIPPET_WINDOW;
+      const maxWindow = scrapeItemIdParam ? MAX_SNIPPET_WINDOW_WHEN_ITEM : 500;
+      const windowChars = Math.min(
+        Math.max(0, snippetWindow ?? defaultWindow),
+        maxWindow
+      );
       console.log("[text_search_regex] called with:", {
         searchRegex,
-        snippetWindow,
+        scrapeItemId: scrapeItemIdParam,
+        snippetWindow: snippetWindow ?? defaultWindow,
       });
       const limitMsg = checkLimitAndIncrement(context, maxCalls);
       if (limitMsg) return { content: limitMsg };
 
-      const windowChars = Math.min(Math.max(0, snippetWindow), 500);
+      if (
+        scrapeItemIdParam &&
+        !isValidMongoObjectId(scrapeItemIdParam)
+      ) {
+        return {
+          content:
+            "scrapeItemId must be a valid MongoDB ObjectId (24 hexadecimal characters). Use the scrapeItemId from the context JSON, not fetchUniqueId or other ids.",
+        };
+      }
 
       const rawResults = (await prisma.scrapeItem.findRaw({
         filter: {
           scrapeId: { $oid: scrapeId },
           markdown: { $regex: searchRegex, $options: "i" },
+          ...(scrapeItemIdParam && { _id: { $oid: scrapeItemIdParam } }),
         },
         options: {
           projection: { markdown: 1, url: 1 },
@@ -213,16 +293,20 @@ export function makeTextSearchRegexTool(
         },
       })) as unknown as ItemDocument[];
 
-      const list = buildResultList(rawResults, (markdown) =>
-        snippetForRegex(markdown, searchRegex, windowChars)
+      const { list, result } = buildListAndResult(
+        rawResults,
+        (markdown) => snippetForRegex(markdown, searchRegex, windowChars),
+        () => undefined,
+        searchRegex,
+        "text_search_regex"
       );
 
-      const contextStr = JSON.stringify(list);
       return {
         content:
           list.length > 0
-            ? `<context>\n${contextStr}\n</context>`
+            ? `<context>\n${JSON.stringify(list)}\n</context>`
             : "No matches from text search regex. Do not rely on this for the answer.",
+        customMessage: { result },
       };
     },
   };

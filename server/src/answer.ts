@@ -140,6 +140,7 @@ export async function collectSourceLinks(
         fetchUniqueId: match.fetchUniqueId ?? null,
         knowledgeGroupId: item.knowledgeGroupId,
         searchQuery: match.query ?? null,
+        searchType: match.searchType ?? null,
         cited: null,
       });
     }
