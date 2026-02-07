@@ -91,7 +91,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export function meta({ data }: Route.MetaArgs) {
   return makeMeta({
     title: `${
-      (data.messagePair?.queryMessage?.llmMessage as any)?.content ?? "Message"
+      getQueryString(
+        (data.messagePair?.queryMessage?.llmMessage as any)?.content
+      ) ?? "Message"
     } - CrawlChat`,
   });
 }
