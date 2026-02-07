@@ -13,7 +13,7 @@ export function SearchTypeBadge({ searchType }: { searchType: string }) {
     if (searchType === "text_search_regex") {
       return [<TbRegex />, "Regex"];
     }
-    return [<TbSearch />, "Search Data"];
+    return [<TbSearch />, "Semantic"];
   }, [searchType]);
   return (
     <div
@@ -25,7 +25,7 @@ export function SearchTypeBadge({ searchType }: { searchType: string }) {
       )}
     >
       {icon}
-      {text}
+      <span className="whitespace-nowrap">{text}</span>
     </div>
   );
 }
