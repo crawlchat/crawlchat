@@ -47,6 +47,13 @@ export async function handleStream(
     if (chunk.choices && chunk.choices[0].delta.tool_calls) {
       if (!toolCall) {
         toolCall = chunk.choices[0].delta as any;
+        if (toolCall?.tool_calls) {
+          for (let i = 0; i < toolCall.tool_calls.length; i++) {
+            if (!toolCall.tool_calls[i].function.arguments) {
+              toolCall.tool_calls[i].function.arguments = "";
+            }
+          }
+        }
       }
       for (let i = 0; i < chunk.choices[0].delta.tool_calls.length; i++) {
         if (!chunk.choices[0].delta.tool_calls[i].function) {
@@ -66,7 +73,10 @@ export async function handleStream(
           ] as any;
           toolCall.tool_calls[index].function.arguments = "";
         }
-        if (argChunk !== toolCall.tool_calls[index].function.arguments) {
+        if (
+          typeof argChunk === "string" &&
+          argChunk !== toolCall.tool_calls[index].function.arguments
+        ) {
           toolCall.tool_calls[index].function.arguments += argChunk;
         }
       }

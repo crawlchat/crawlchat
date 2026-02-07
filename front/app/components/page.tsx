@@ -1,25 +1,9 @@
 import cn from "@meltdownjs/cn";
 import type { LlmModel } from "@packages/common/prisma";
 import { useContext, useEffect, useMemo, useRef } from "react";
-import { TbAlertTriangle, TbArrowRight, TbMenu2, TbX } from "react-icons/tb";
-import { Link } from "react-router";
+import { TbArrowRight, TbMenu2, TbX } from "react-icons/tb";
 import { AppContext } from "~/components/app-context";
 import Markdown from "react-markdown";
-
-const LlmNameMap: Record<LlmModel, string> = {
-  gpt_4o_mini: "OpenAI 4o-mini",
-  gpt_5_nano: "OpenAI GPT 5-nano",
-  gpt_5: "OpenAI GPT 5",
-  gpt_5_mini: "OpenAI GPT 5-mini",
-  sonnet_4_5: "Claude Sonnet 4.5",
-  o3_mini: "OpenAI o3-mini",
-  sonnet_3_7: "Claude Sonnet 3.7",
-  sonnet_3_5: "Claude Sonnet 3.5",
-  gemini_2_5_flash: "Gemini 2.5 Flash",
-  gemini_2_5_flash_lite: "Gemini 2.5 Flash Lite",
-  o4_mini: "OpenAI o4-mini",
-  haiku_4_5: "Claude Haiku 4.5",
-};
 
 function extractFirstParagraph(markdown: string): string {
   const lines = markdown.split("\n");
@@ -182,26 +166,6 @@ export function Page({
                 </div>
               </div>
             )}
-
-          {!productionLlmModels.includes(currentLlmModel) && (
-            <div role="alert" className="alert alert-warning alert-dash mb-4">
-              <TbAlertTriangle size={20} />
-              <span>
-                You are using{" "}
-                <span className="font-medium">
-                  {LlmNameMap[currentLlmModel] ?? currentLlmModel}
-                </span>{" "}
-                model. This is not fit for public usage. Use one of{" "}
-                {productionLlmModels
-                  .map((model) => LlmNameMap[model] ?? model)
-                  .join(", ")}{" "}
-                for better results from{" "}
-                <Link to="/settings#ai-model" className="link">
-                  here
-                </Link>
-              </span>
-            </div>
-          )}
 
           {children}
         </div>

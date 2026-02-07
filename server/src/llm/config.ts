@@ -113,6 +113,15 @@ export const getConfig = (model?: LlmModel | null): LlmConfig => {
       supportsImages: true,
     };
   }
+  if (model === LlmModel.minimax_m_2_1) {
+    return {
+      model: "minimax/minimax-m2.1",
+      apiKey: process.env.OPENROUTER_API_KEY!,
+      ragTopN: 4,
+      creditsPerMessage: 2,
+      baseURL: "https://openrouter.ai/api/v1",
+    };
+  }
   return {
     model: "gpt-4o-mini",
     apiKey: process.env.OPENAI_API_KEY!,

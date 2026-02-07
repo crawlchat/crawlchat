@@ -6,7 +6,7 @@ import type {
   ScrapeMessageCategory,
   User,
 } from "@packages/common/prisma";
-import { redirect, useFetcher } from "react-router";
+import { redirect, useFetcher, useLoaderData } from "react-router";
 import {
   SettingsContainer,
   SettingsSection,
@@ -15,8 +15,6 @@ import {
 import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import {
-  TbBolt,
-  TbBrain,
   TbCheck,
   TbCrown,
   TbFolder,
@@ -25,12 +23,11 @@ import {
   TbPlus,
   TbSearch,
   TbSettings,
-  TbStar,
   TbTrash,
   TbWorld,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { createToken } from "@packages/common/jwt";
 import { RadioCard } from "~/components/radio-card";
@@ -57,7 +54,16 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  return { scrape, user: user! };
+  const llmModels = [
+    { label: "OpenAI 4o-mini", value: "gpt_4o_mini", credits: 1 },
+    { label: "OpenAI GPT-5", value: "gpt_5", credits: 4 },
+    { label: "Claude Haiku 4.5", value: "haiku_4_5", credits: 2 },
+    { label: "Claude Sonnet 4.5", value: "sonnet_4_5", credits: 6 },
+    { label: "Kimi 2.5", value: "kimi_2_5", credits: 2 },
+    { label: "Minimax M2.1", value: "minimax_m_2_1", credits: 2 },
+  ];
+
+  return { scrape, user: user!, llmModels };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -253,6 +259,7 @@ function TicketingSettings({ scrape }: { scrape: Scrape }) {
 }
 
 function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
+  const { llmModels } = useLoaderData<typeof loader>();
   const modelFetcher = useFetcher();
   const [selectedModel, setSelectedModel] = useState<LlmModel>(
     scrape.llmModel ?? "gpt_4o_mini"
@@ -265,71 +272,18 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
       description="Select the AI model to use for the messages across channels."
       fetcher={modelFetcher}
     >
-      <RadioCard
-        cols={2}
-        options={[
-          {
-            label: "OpenAI 4o-mini",
-            value: "gpt_4o_mini",
-
-            description: "Base model, not for production.",
-            summary: "1 credit / message",
-            content: (
-              <div className="badge badge-accent badge-soft">
-                <TbBolt /> Fast
-              </div>
-            ),
-          },
-          {
-            label: "Claude Haiku 4.5",
-            value: "haiku_4_5",
-
-            description:
-              "Best for complex use cases, programming docs, better searches.",
-            summary: "2 credits / message",
-            content: (
-              <div className="flex gap-2 flex-wrap">
-                <div className="badge badge-accent badge-soft">
-                  <TbBrain /> Good + Fast
-                </div>
-              </div>
-            ),
-          },
-          {
-            label: "OpenAI GPT 5",
-            value: "gpt_5",
-
-            description:
-              "Best for complex use cases, programming docs, better searches.",
-            summary: "4 credits / message",
-            content: (
-              <div className="flex gap-2">
-                <div className="badge badge-accent badge-soft">
-                  <TbStar /> Takes time & Best
-                </div>
-              </div>
-            ),
-          },
-          {
-            label: "Claude Sonnet 4.5",
-            value: "sonnet_4_5",
-
-            description:
-              "Best for technical use cases, programming docs. Can take more context.",
-            summary: "6 credits / message",
-            content: (
-              <div className="flex gap-2 flex-wrap">
-                <div className="badge badge-accent badge-soft">
-                  <TbStar /> Fast & Best
-                </div>
-              </div>
-            ),
-          },
-        ]}
-        name="llmModel"
+      <select
         value={selectedModel}
-        onChange={(value) => setSelectedModel(value as LlmModel)}
-      />
+        onChange={(e) => setSelectedModel(e.target.value as LlmModel)}
+        className="select"
+        name="llmModel"
+      >
+        {llmModels.map((item) => (
+          <option key={item.value} value={item.value}>
+            {item.label} [{item.credits}]
+          </option>
+        ))}
+      </select>
     </SettingsSection>
   );
 }
