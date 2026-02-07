@@ -10,6 +10,11 @@ import { MultimodalContent } from "@packages/common/llm-message";
 import zodToJsonSchema from "zod-to-json-schema";
 import { LlmConfig } from "./config";
 import { makeSearchTool, SearchToolContext } from "./search-tool";
+import {
+  makeTextSearchTool,
+  makeTextSearchRegexTool,
+  TextSearchToolContext,
+} from "./text-search-tool";
 import { makeActionTools } from "./action-tool";
 import { CustomMessage } from "./custom-message";
 import { makeDataGapTool } from "./data-gap-tool";
@@ -52,11 +57,23 @@ export function makeRagAgent(
     queries: [],
   };
 
+  const textSearchContext: TextSearchToolContext = {
+    callCount: 0,
+  };
+
   const ragTool = makeSearchTool(scrapeId, indexerKey, {
     onPreSearch: options?.onPreSearch,
     topN: options?.llmConfig.ragTopN,
     minScore: options?.minScore,
     queryContext,
+  });
+
+  const textSearchTool = makeTextSearchTool(scrapeId, {
+    textSearchContext,
+  });
+
+  const textSearchRegexTool = makeTextSearchRegexTool(scrapeId, {
+    textSearchContext,
   });
 
   const enabledRichBlocks = options?.richBlocks
@@ -173,6 +190,10 @@ export function makeRagAgent(
       "Do NOT use report_data_gap if search_data returned no results.",
       "Do NOT use report_data_gap for questions unrelated to the knowledge base (e.g., general chat, greetings, off-topic questions).",
 
+      "Use search_data first for semantic search. Use text_search or text_search_regex only as fallbacks when search_data has already been tried and got poor results.",
+      "text_search does phrase search; text_search_regex does regex-based search.",
+      "Both accept snippetWindow to control how many characters of context appear before and after each match (default 80).",
+
       options?.githubRepoPath
         ? multiLinePrompt([
             "You have access to a codebase through the following tools:",
@@ -198,7 +219,14 @@ export function makeRagAgent(
 
       `<client-data>\n${JSON.stringify(options?.clientData)}\n</client-data>`,
     ]),
-    tools: [ragTool, ...actionTools, dataGapTool, ...codebaseTools],
+    tools: [
+      // ragTool,
+      textSearchTool,
+      textSearchRegexTool,
+      dataGapTool,
+      ...actionTools,
+      ...codebaseTools,
+    ],
     model: options?.llmConfig.model,
     baseURL: options?.llmConfig.baseURL,
     apiKey: options?.llmConfig.apiKey,
