@@ -541,7 +541,7 @@ export function SideMenu({
           )}
         >
           <CreditProgress
-            title="Messages"
+            title="Message credits"
             used={usedMessages}
             total={totalMessages}
           />
