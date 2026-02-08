@@ -28,6 +28,7 @@ export default [
     route("profile", "profile.tsx"),
 
     route("settings", "settings/scrape.tsx"),
+    route("settings/byok-api-key", "settings/byok-api-key.ts"),
     route("settings/helpdesk", "settings/helpdesk.tsx"),
     route("tickets", "tickets/list.tsx"),
     route("tickets/settings", "tickets/settings.tsx"),

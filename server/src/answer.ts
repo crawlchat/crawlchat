@@ -21,10 +21,12 @@ import {
 import { Role, Usage } from "@packages/agentic";
 import { FlowMessage } from "./llm/flow";
 import { CustomMessage, DataGap } from "./llm/custom-message";
-import { consumeCredits } from "@packages/common/user-plan";
+import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
 import { fillMessageAnalysis } from "./analyse-message";
 import { ensureRepoCloned } from "@packages/flash";
 import { extractCitations } from "@packages/common/citation";
+import { getAiApiKey } from "@packages/common";
+import { createToken } from "@packages/common/jwt";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
@@ -49,6 +51,7 @@ export type AnswerCompleteEvent = {
   context: string[];
   dataGap?: DataGap;
   toolCalls: ToolCall[];
+  byok: boolean;
 };
 
 export type ToolCallEvent = {
@@ -267,11 +270,23 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     }
   }
 
+  const apiKey = getAiApiKey(llmConfig, {
+    openrouter: scrape.openrouterApiKey ?? undefined,
+  });
+
+  await hasEnoughCredits(scrape.userId, "messages", {
+    alert: {
+      scrapeId: scrape.id,
+      token: createToken(scrape.userId),
+    },
+  });
+
   const ragAgent = makeRagAgent(
     thread,
     scrape.id,
     options?.prompt ?? scrape.chatPrompt ?? "",
     scrape.indexer,
+    apiKey,
     {
       onPreSearch: async (query) => {
         options?.listen?.({
@@ -348,6 +363,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     dataGap: collectDataGap(flow.flowState.state.messages),
     question: query,
     toolCalls,
+    byok: apiKey.byok,
   };
   options?.listen?.(answer);
 
@@ -364,7 +380,9 @@ export async function saveAnswer(
   fingerprint?: string,
   onFollowUpQuestion?: (questions: string[]) => void
 ) {
-  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
+  if (!answer.byok) {
+    await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
+  }
 
   const { citedLinks } = extractCitations(answer.content, answer.sources);
   const links = answer.sources.map((link) => ({
@@ -384,7 +402,7 @@ export async function saveAnswer(
       channel,
       apiActionCalls: answer.actionCalls as any,
       llmModel,
-      creditsUsed: answer.creditsUsed,
+      creditsUsed: answer.byok ? null : answer.creditsUsed,
       promptTokens: answer.promptTokens,
       completionTokens: answer.completionTokens,
       totalTokens: answer.totalTokens,
@@ -393,6 +411,7 @@ export async function saveAnswer(
       questionId: questionMessageId,
       dataGap: answer.dataGap,
       toolCalls: answer.toolCalls,
+      byok: answer.byok,
     },
   });
 

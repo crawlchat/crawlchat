@@ -36,7 +36,8 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { Timestamp } from "~/components/timestamp";
 import { hideModal, showModal } from "~/components/daisy-utils";
-import { models, oldModels } from "@packages/common";
+import { models, oldModels } from "@packages/common/models";
+import { useFetcherToast } from "~/components/use-fetcher-toast";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -598,6 +599,52 @@ function CategorySettings({ scrape }: { scrape: Scrape }) {
   );
 }
 
+function BYOKSettings({ scrape }: { scrape: Scrape }) {
+  const fetcher = useFetcher();
+  const [editable, setEditable] = useState(!scrape.openrouterApiKey);
+
+  useFetcherToast(fetcher);
+
+  useEffect(() => {
+    if (fetcher.data?.success) {
+      setEditable(false);
+    }
+  }, [fetcher.data?.success]);
+
+  return (
+    <SettingsSection
+      id="byok"
+      title="BYOK"
+      description="Enable this to use your own AI model for the chatbot."
+      fetcher={fetcher}
+      action="/settings/byok-api-key"
+    >
+      <input type="hidden" name="intent" value="save" />
+      <fieldset className="fieldset flex-2">
+        <legend className="fieldset-legend">OpenRouter API Key</legend>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            className="input w-full"
+            name="openrouterApiKey"
+            placeholder={!editable ? "********" : "Ex: sk-or-v1-..."}
+            disabled={!editable}
+          />
+          {!editable && (
+            <button
+              className="btn"
+              type="button"
+              onClick={() => setEditable(true)}
+            >
+              Change
+            </button>
+          )}
+        </div>
+      </fieldset>
+    </SettingsSection>
+  );
+}
+
 export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
   const nameFetcher = useFetcher();
   const deleteFetcher = useFetcher();
@@ -755,6 +802,8 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
           />
 
           <CategorySettings scrape={loaderData.scrape} />
+
+          <BYOKSettings scrape={loaderData.scrape} />
 
           <SettingsSection
             id="delete-collection"

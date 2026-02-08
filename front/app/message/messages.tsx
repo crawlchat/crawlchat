@@ -43,6 +43,7 @@ import { CreditsUsedBadge } from "./credits-used-badge";
 import { SentimentBadge } from "./sentiment-badge";
 import Avatar from "boring-avatars";
 import { LanguageBadge } from "./language-badge";
+import { CostBadge } from "./cost-badge";
 
 function isLowRating(message: Message) {
   if (message.analysis?.questionSentiment === "sad") return true;
@@ -503,6 +504,13 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                               llmModel={pair.responseMessage.llmModel}
                             />
                           )}
+                          {pair.responseMessage.byok &&
+                            pair.responseMessage.llmCost !== null && (
+                              <CostBadge
+                                cost={pair.responseMessage.llmCost}
+                                llmModel={pair.responseMessage.llmModel}
+                              />
+                            )}
                           {pair.responseMessage.analysis?.language && (
                             <LanguageBadge
                               language={pair.responseMessage.analysis.language}

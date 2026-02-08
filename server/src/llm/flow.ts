@@ -18,6 +18,7 @@ import { makeActionTools } from "./action-tool";
 import { CustomMessage } from "./custom-message";
 import { makeDataGapTool } from "./data-gap-tool";
 import { createCodebaseTools } from "@packages/flash";
+import { AiApiKey } from "@packages/common";
 
 export type FlowMessage<CustomMessage> = {
   llmMessage: Message;
@@ -34,6 +35,7 @@ export function makeRagAgent(
   scrapeId: string,
   systemPrompt: string,
   indexerKey: string | null,
+  apiKey: AiApiKey,
   options?: {
     onPreSearch?: (query: string) => Promise<void>;
     onPreAction?: (title: string) => void;
@@ -222,7 +224,7 @@ export function makeRagAgent(
     ],
     model: options?.llmConfig.model,
     baseURL: options?.llmConfig.baseURL,
-    apiKey: options?.llmConfig.apiKey,
+    apiKey: apiKey.key,
     user: thread.scrapeId,
   });
 }

@@ -17,6 +17,7 @@ export function SettingsSection({
   savePrimary = false,
   saveIcon,
   multipart = false,
+  action,
 }: {
   id?: string;
   children?: React.ReactNode;
@@ -31,6 +32,7 @@ export function SettingsSection({
   savePrimary?: boolean;
   saveIcon?: React.ReactNode;
   multipart?: boolean;
+  action?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [targeted, setTargeted] = useState(false);
@@ -130,6 +132,7 @@ export function SettingsSection({
     <fetcher.Form
       ref={formRef}
       method="post"
+      action={action}
       encType={
         multipart ? "multipart/form-data" : "application/x-www-form-urlencoded"
       }

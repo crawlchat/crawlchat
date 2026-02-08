@@ -192,6 +192,7 @@ model Scrape {
   showSources           Boolean?
   analyseMessage        Boolean?
   lowCreditsMailSentAt  DateTime?
+  openrouterApiKey      String?
 
   messageCategories     ScrapeMessageCategory[]
 
@@ -343,6 +344,7 @@ model Message {
   fingerprint               String?
   url                       String?
   toolCalls                 ToolCall[]
+  byok                      Boolean?
 
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt

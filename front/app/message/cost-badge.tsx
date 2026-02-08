@@ -1,17 +1,17 @@
-import { TbCoins } from "react-icons/tb";
+import { TbCurrencyDollar } from "react-icons/tb";
 
-export function CreditsUsedBadge({
-  creditsUsed,
+export function CostBadge({
+  cost,
   llmModel,
 }: {
-  creditsUsed: number;
+  cost: number;
   llmModel?: string | null;
 }) {
   return (
     <div className="tooltip" data-tip={llmModel}>
       <div className="badge badge-accent badge-soft px-2">
-        <TbCoins />
-        {creditsUsed}
+        <TbCurrencyDollar />
+        {cost.toFixed(2)}
       </div>
     </div>
   );
