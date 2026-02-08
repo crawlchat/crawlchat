@@ -18,7 +18,7 @@ import {
   MultimodalContent,
   removeImages,
 } from "@packages/common/llm-message";
-import { Role } from "@packages/agentic";
+import { Role, Usage } from "@packages/agentic";
 import { FlowMessage } from "./llm/flow";
 import { CustomMessage, DataGap } from "./llm/custom-message";
 import { consumeCredits } from "@packages/common/user-plan";
@@ -201,6 +201,16 @@ export function updateLastMessageAt(threadId: string) {
   });
 }
 
+function getUsageCredits(usage: Usage, defaultCredits: number) {
+  if (usage.totalTokens === 0) {
+    return defaultCredits;
+  }
+
+  const creditsPerDollar = 120;
+  const credits = Math.ceil(usage.cost * creditsPerDollar);
+  return Math.min(10, Math.max(1, credits));
+}
+
 export const baseAnswerer: Answerer = async (
   scrape,
   thread,
@@ -315,6 +325,9 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     params: JSON.stringify(toolCall.params),
     responseLength: toolCall.result.length,
   }));
+
+  const usageCredits = getUsageCredits(usage, llmConfig.creditsPerMessage);
+  console.log({ usageCredits, creditsPerMessage: llmConfig.creditsPerMessage });
 
   const answer: AnswerCompleteEvent = {
     type: "answer-complete",
