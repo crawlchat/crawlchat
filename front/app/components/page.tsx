@@ -1,5 +1,4 @@
 import cn from "@meltdownjs/cn";
-import type { LlmModel } from "@packages/common/prisma";
 import { useContext, useEffect, useMemo, useRef } from "react";
 import { TbArrowRight, TbMenu2, TbX } from "react-icons/tb";
 import { AppContext } from "~/components/app-context";
@@ -79,9 +78,6 @@ export function Page({
       },
     };
   }, [latestChangelog]);
-
-  const productionLlmModels: LlmModel[] = ["sonnet_4_5", "gpt_5", "haiku_4_5"];
-  const currentLlmModel = scrape?.llmModel ?? "gpt_4o_mini";
 
   return (
     <div className="flex flex-col flex-1">

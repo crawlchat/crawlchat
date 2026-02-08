@@ -10,7 +10,6 @@ import {
 } from "@packages/common/express-auth";
 import { v4 as uuidv4 } from "uuid";
 import {
-  LlmModel,
   Message,
   MessageAttachment,
   MessageChannel,
@@ -961,9 +960,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   }
 
   const prompt = req.body.prompt as string;
-  const oldMessages = JSON.parse((req.body.messages as string) || "[]");
   const formatText = req.body.formatText as string;
-  const llmModel = req.body.llmModel as LlmModel | undefined;
   const slate = req.body.slate as string;
   const content = req.body.content as string;
   const title = req.body.title as string;
@@ -979,7 +976,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     queries: [],
   };
 
-  const llmConfig = getConfig("gemini_2_5_flash");
+  const llmConfig = getConfig("openrouter/google/gemini-3-flash-preview");
   const agent = new Agent({
     id: "compose-agent",
     prompt: `
@@ -1264,7 +1261,7 @@ app.post("/extract-facts/:scrapeId", authenticate, async (req, res) => {
     queries: [],
   };
 
-  const llmConfig = getConfig("gemini_2_5_flash");
+  const llmConfig = getConfig("openrouter/google/gemini-3-flash-preview");
   const agent = new Agent({
     id: "extract-facts-agent",
     prompt: `Extract all facts mentioned in the given text. Each fact should be a complete, standalone statement that exactly matches the wording from the source text. Do not paraphrase, summarize, or combine facts. Each fact should be extracted verbatim from the source.
@@ -1344,7 +1341,7 @@ app.post("/fact-check/:scrapeId", authenticate, async (req, res) => {
     queries: [],
   };
 
-  const llmConfig = getConfig("gemini_2_5_flash");
+  const llmConfig = getConfig("openrouter/google/gemini-3-flash-preview");
   const agent = new Agent({
     id: "fact-check-agent",
     prompt: `You are a fact-checking assistant. Your task is to evaluate how accurate a given fact is based on the knowledge base context.

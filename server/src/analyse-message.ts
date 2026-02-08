@@ -128,7 +128,7 @@ export async function analyseMessage(
       );
   }
 
-  const llmConfig = getConfig("gpt_5");
+  const llmConfig = getConfig("openrouter/openai/gpt-5");
 
   const agent = new Agent({
     id: "analyser",

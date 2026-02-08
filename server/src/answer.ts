@@ -9,7 +9,6 @@ import {
   Scrape,
   Thread,
   ScrapeItem,
-  LlmModel,
   ToolCall,
 } from "@packages/common/prisma";
 import { getConfig } from "./llm/config";
@@ -348,7 +347,7 @@ export async function saveAnswer(
   threadId: string,
   channel: MessageChannel,
   questionMessageId: string,
-  llmModel?: LlmModel | null,
+  llmModel?: string | null,
   fingerprint?: string,
   onFollowUpQuestion?: (questions: string[]) => void
 ) {

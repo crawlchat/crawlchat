@@ -1,0 +1,199 @@
+export type AiModel = {
+  model: string;
+  ragTopN: number;
+  creditsPerMessage: number;
+  baseURL?: string;
+  supportsImages?: boolean;
+};
+
+export const oldModels: Record<string, AiModel> = {
+  gpt_4o_mini: {
+    model: "openai/gpt-4o-mini",
+    ragTopN: 4,
+    creditsPerMessage: 1,
+    supportsImages: true,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  o3_mini: {
+    model: "o3-mini",
+    ragTopN: 2,
+    creditsPerMessage: 1,
+  },
+  sonnet_3_7: {
+    model: "claude-3-7-sonnet-20250219",
+    ragTopN: 2,
+    baseURL: "https://api.anthropic.com/v1",
+    creditsPerMessage: 4,
+  },
+  sonnet_3_5: {
+    model: "claude-3-5-sonnet-20241022",
+    ragTopN: 2,
+    baseURL: "https://api.anthropic.com/v1",
+    creditsPerMessage: 4,
+  },
+  gemini_2_5_flash: {
+    model: "google/gemini-2.5-flash",
+    ragTopN: 6,
+    creditsPerMessage: 1,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  gemini_2_5_flash_lite: {
+    model: "gemini-2.5-flash-lite-preview-06-17",
+    ragTopN: 4,
+    creditsPerMessage: 1,
+    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+  },
+  gemini_3_flash: {
+    model: "google/gemini-3-flash-preview",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  o4_mini: {
+    model: "o4-mini",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    supportsImages: true,
+  },
+  gpt_5_nano: {
+    model: "openai/gpt-5-nano",
+    ragTopN: 4,
+    creditsPerMessage: 1,
+    supportsImages: true,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  gpt_5_mini: {
+    model: "openai/gpt-5-mini",
+    ragTopN: 4,
+    creditsPerMessage: 1,
+    supportsImages: true,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  gpt_5: {
+    model: "openai/gpt-5",
+    ragTopN: 4,
+    creditsPerMessage: 4,
+    supportsImages: true,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  gpt_5_1: {
+    model: "openai/gpt-5.1",
+    ragTopN: 4,
+    creditsPerMessage: 4,
+    supportsImages: true,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  gpt_5_2: {
+    model: "openai/gpt-5.2",
+    ragTopN: 4,
+    creditsPerMessage: 4,
+    supportsImages: true,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  sonnet_4_5: {
+    model: "anthropic/claude-sonnet-4.5",
+    ragTopN: 2,
+    creditsPerMessage: 6,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  haiku_4_5: {
+    model: "anthropic/claude-haiku-4.5",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  kimi_2_5: {
+    model: "moonshotai/kimi-k2.5",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  minimax_m_2_1: {
+    model: "minimax/minimax-m2.1",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  glm_4_7: {
+    model: "z-ai/glm-4.7",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+};
+
+export const models: Record<string, AiModel> = {
+  "openrouter/moonshotai/kimi-k2.5": {
+    model: "moonshotai/kimi-k2.5",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  "openrouter/minimax/minimax-m2.1": {
+    model: "minimax/minimax-m2.1",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+  },
+  "openrouter/google/gemini-3-flash-preview": {
+    model: "google/gemini-3-flash-preview",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  "openrouter/openai/gpt-5-nano": {
+    model: "openai/gpt-5-nano",
+    ragTopN: 4,
+    creditsPerMessage: 1,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  "openrouter/openai/gpt-5-mini": {
+    model: "openai/gpt-5-mini",
+    ragTopN: 4,
+    creditsPerMessage: 1,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  "openrouter/openai/gpt-5": {
+    model: "openai/gpt-5",
+    ragTopN: 4,
+    creditsPerMessage: 4,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  "openrouter/openai/gpt-5.1": {
+    model: "openai/gpt-5.1",
+    ragTopN: 4,
+    creditsPerMessage: 4,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  "openrouter/openai/gpt-5.2": {
+    model: "openai/gpt-5.2",
+    ragTopN: 4,
+    creditsPerMessage: 4,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  "openrouter/anthropic/claude-sonnet-4.5": {
+    model: "anthropic/claude-sonnet-4.5",
+    ragTopN: 2,
+    creditsPerMessage: 6,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+  "openrouter/anthropic/claude-haiku-4.5": {
+    model: "anthropic/claude-haiku-4.5",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
+};

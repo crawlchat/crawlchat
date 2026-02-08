@@ -1,12 +1,11 @@
 import type { Route } from "./+types/scrape";
 import type {
-  LlmModel,
   Prisma,
   Scrape,
   ScrapeMessageCategory,
   User,
 } from "@packages/common/prisma";
-import { redirect, useFetcher, useLoaderData } from "react-router";
+import { redirect, useFetcher } from "react-router";
 import {
   SettingsContainer,
   SettingsSection,
@@ -27,7 +26,7 @@ import {
   TbWorld,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { createToken } from "@packages/common/jwt";
 import { RadioCard } from "~/components/radio-card";
@@ -37,6 +36,7 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { Timestamp } from "~/components/timestamp";
 import { hideModal, showModal } from "~/components/daisy-utils";
+import { models, oldModels } from "@packages/common";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -54,18 +54,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  const llmModels = [
-    { label: "OpenAI 4o-mini", value: "gpt_4o_mini", credits: 1 },
-    { label: "OpenAI GPT-5", value: "gpt_5", credits: 4 },
-    { label: "Claude Haiku 4.5", value: "haiku_4_5", credits: 2 },
-    { label: "Claude Sonnet 4.5", value: "sonnet_4_5", credits: 6 },
-    { label: "Gemini 3 Flash", value: "gemini_3_flash", credits: 2 },
-    { label: "Kimi 2.5", value: "kimi_2_5", credits: 2 },
-    { label: "Minimax M2.1", value: "minimax_m_2_1", credits: 2 },
-    { label: "GLM 4.7", value: "glm_4_7", credits: 2 },
-  ];
-
-  return { scrape, user: user!, llmModels };
+  return { scrape, user: user! };
 }
 
 export function meta({ data }: Route.MetaArgs) {
@@ -109,7 +98,7 @@ export async function action({ request }: Route.ActionArgs) {
     update.title = title;
   }
   if (formData.has("llmModel")) {
-    update.llmModel = formData.get("llmModel") as LlmModel;
+    update.llmModel = formData.get("llmModel") as string;
   }
   if (formData.has("logoUrl")) {
     update.logoUrl = formData.get("logoUrl") as string;
@@ -260,11 +249,25 @@ function TicketingSettings({ scrape }: { scrape: Scrape }) {
   );
 }
 
-function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
-  const { llmModels } = useLoaderData<typeof loader>();
+function oldModelToModel(oldModel: string) {
+  if (!Object.keys(oldModels).includes(oldModel)) {
+    return oldModel;
+  }
+  const model = oldModels[oldModel].model;
+  for (const [key, value] of Object.entries(models)) {
+    if (value.model === model) {
+      return key;
+    }
+  }
+  throw new Error(`Unknown old model: ${oldModel}`);
+}
+
+function AiModelSettings({ scrape }: { scrape: Scrape }) {
   const modelFetcher = useFetcher();
-  const [selectedModel, setSelectedModel] = useState<LlmModel>(
-    scrape.llmModel ?? "gpt_4o_mini"
+  const [selectedModel, setSelectedModel] = useState<string>(
+    scrape.llmModel
+      ? oldModelToModel(scrape.llmModel)
+      : "openrouter/openai/gpt-4o-mini"
   );
 
   return (
@@ -276,13 +279,13 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
     >
       <select
         value={selectedModel}
-        onChange={(e) => setSelectedModel(e.target.value as LlmModel)}
+        onChange={(e) => setSelectedModel(e.target.value)}
         className="select"
         name="llmModel"
       >
-        {llmModels.map((item) => (
-          <option key={item.value} value={item.value}>
-            {item.label} [{item.credits}]
+        {Object.entries(models).map(([key, value]) => (
+          <option key={key} value={key}>
+            {value.model} [{value.creditsPerMessage}]
           </option>
         ))}
       </select>
@@ -739,10 +742,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             </div>
           </SettingsSection>
 
-          <AiModelSettings
-            scrape={loaderData.scrape}
-            user={loaderData.scrape.user}
-          />
+          <AiModelSettings scrape={loaderData.scrape} />
 
           <AnalyseMessageSettings
             scrape={loaderData.scrape}

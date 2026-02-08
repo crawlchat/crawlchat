@@ -192,6 +192,13 @@ const DEFAULT_MESSAGE: Message = {
   fingerprint: "test",
   url: null,
   answerId: "test",
+  promptTokens: 0,
+  completionTokens: 0,
+  totalTokens: 0,
+  toolCalls: [],
+  githubCommentId: null,
+  llmCost: 0,
+  dataGap: null,
 };
 
 function AskAIButton({
@@ -688,6 +695,8 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                             knowledgeGroupId: "test",
                             fetchUniqueId: "54660",
                             searchQuery: "test",
+                            searchType: "test",
+                            cited: true,
                           },
                         ],
                       },

@@ -107,32 +107,6 @@ type DiscordConfig {
   sendImages Boolean?
 }
 
-enum LlmModel {
-  gpt_4o_mini
-  o3_mini
-  sonnet_3_7
-  sonnet_3_5
-  gemini_2_5_flash
-  gemini_2_5_flash_lite
-  gemini_3_flash
-  o4_mini
-
-  gpt_5_nano
-  gpt_5_mini
-  gpt_5
-  gpt_5_1
-  gpt_5_2
-
-  sonnet_4_5
-  haiku_4_5
-
-  kimi_2_5
-
-  minimax_m_2_1
-
-  glm_4_7
-}
-
 type RichBlockConfig {
   name                String
   key                 String
@@ -211,7 +185,7 @@ model Scrape {
   private               Boolean?
 
   analytics             ScrapeAnalytics?
-  llmModel              LlmModel?
+  llmModel              String?
   richBlocksConfig      RichBlocksConfig?
   minScore              Float?
   slug                  String?
@@ -360,7 +334,7 @@ model Message {
   githubCommentId           String?
   analysis                  MessageAnalysis?
   dataGap                   DataGap?
-  llmModel                  LlmModel?
+  llmModel                  String?
   creditsUsed               Int?
   promptTokens              Int?
   completionTokens          Int?

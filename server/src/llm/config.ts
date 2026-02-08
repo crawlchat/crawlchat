@@ -1,161 +1,74 @@
-import { LlmModel } from "@packages/common/prisma";
+import { AiModel, models, oldModels } from "@packages/common";
 
-export type LlmConfig = {
-  model: string;
+export type LlmConfig = AiModel & {
   apiKey: string;
-  ragTopN: number;
-  creditsPerMessage: number;
-  baseURL?: string;
-  supportsImages?: boolean;
 };
 
-export const getConfig = (model?: LlmModel | null): LlmConfig => {
-  if (model === "o3_mini") {
+type ParsedModelString = {
+  model: string;
+  company?: string;
+  provider?: string;
+};
+
+export function parseModelString(model: string): ParsedModelString {
+  const parts = model.split("/");
+  if (parts.length === 1) {
     return {
-      model: "o3-mini",
-      apiKey: process.env.OPENAI_API_KEY!,
-      ragTopN: 2,
-      creditsPerMessage: 1,
+      model: model,
     };
   }
-  if (model === LlmModel.sonnet_3_5) {
+  if (parts.length === 2) {
     return {
-      model: "claude-3-5-sonnet-20241022",
-      apiKey: process.env.ANTHROPIC_API_KEY!,
-      ragTopN: 2,
-      baseURL: "https://api.anthropic.com/v1",
-      creditsPerMessage: 4,
-    };
-  }
-  if (model === LlmModel.sonnet_3_7) {
-    return {
-      model: "claude-3-7-sonnet-20250219",
-      apiKey: process.env.ANTHROPIC_API_KEY!,
-      ragTopN: 2,
-      baseURL: "https://api.anthropic.com/v1",
-      creditsPerMessage: 4,
-    };
-  }
-  if (model === LlmModel.gemini_2_5_flash) {
-    return {
-      model: "google/gemini-2.5-flash",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 6,
-      creditsPerMessage: 1,
-      baseURL: "https://openrouter.ai/api/v1",
-    };
-  }
-  if (model === LlmModel.gemini_2_5_flash_lite) {
-    return {
-      model: "gemini-2.5-flash-lite-preview-06-17",
-      apiKey: process.env.GEMINI_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 1,
-      baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    };
-  }
-  if (model === LlmModel.o4_mini) {
-    return {
-      model: "o4-mini",
-      apiKey: process.env.OPENAI_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 2,
-      supportsImages: true,
-    };
-  }
-  if (model === LlmModel.gpt_5_nano) {
-    return {
-      model: "openai/gpt-5-nano",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 1,
-      supportsImages: true,
-      baseURL: "https://openrouter.ai/api/v1",
-    };
-  }
-  if (model === LlmModel.gpt_5_mini) {
-    return {
-      model: "openai/gpt-5-mini",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 1,
-      supportsImages: true,
-      baseURL: "https://openrouter.ai/api/v1",
-    };
-  }
-  if (model === LlmModel.gpt_5) {
-    return {
-      model: "openai/gpt-5.1",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 4,
-      supportsImages: true,
-      baseURL: "https://openrouter.ai/api/v1",
-    };
-  }
-  if (model === LlmModel.sonnet_4_5) {
-    return {
-      model: "anthropic/claude-sonnet-4.5",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 2,
-      creditsPerMessage: 6,
-      baseURL: "https://openrouter.ai/api/v1",
-      supportsImages: true,
-    };
-  }
-  if (model === LlmModel.haiku_4_5) {
-    return {
-      model: "anthropic/claude-haiku-4.5",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 2,
-      baseURL: "https://openrouter.ai/api/v1",
-      supportsImages: true,
-    };
-  }
-  if (model === LlmModel.kimi_2_5) {
-    return {
-      model: "moonshotai/kimi-k2.5",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 2,
-      baseURL: "https://openrouter.ai/api/v1",
-      supportsImages: true,
-    };
-  }
-  if (model === LlmModel.minimax_m_2_1) {
-    return {
-      model: "minimax/minimax-m2.1",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 2,
-      baseURL: "https://openrouter.ai/api/v1",
-    };
-  }
-  if (model === LlmModel.glm_4_7) {
-    return {
-      model: "z-ai/glm-4.7",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 2,
-      baseURL: "https://openrouter.ai/api/v1",
-    };
-  }
-  if (model === LlmModel.gemini_3_flash) {
-    return {
-      model: "google/gemini-3-flash-preview",
-      apiKey: process.env.OPENROUTER_API_KEY!,
-      ragTopN: 4,
-      creditsPerMessage: 2,
-      baseURL: "https://openrouter.ai/api/v1",
-      supportsImages: true,
+      company: parts[0],
+      model: parts[1],
     };
   }
   return {
-    model: "gpt-4o-mini",
-    apiKey: process.env.OPENAI_API_KEY!,
-    ragTopN: 4,
-    creditsPerMessage: 1,
-    supportsImages: true,
+    provider: parts[0],
+    company: parts[1],
+    model: parts[2],
   };
+}
+
+function getApiKey(model: AiModel): string {
+  if (model.baseURL === "https://openrouter.ai/api/v1") {
+    return process.env.OPENROUTER_API_KEY!;
+  }
+  if (model.baseURL === "https://api.anthropic.com/v1") {
+    return process.env.ANTHROPIC_API_KEY!;
+  }
+  if (
+    model.baseURL === "https://generativelanguage.googleapis.com/v1beta/openai/"
+  ) {
+    return process.env.GEMINI_API_KEY!;
+  }
+  if (model.baseURL === "https://api.openai.com/v1") {
+    return process.env.OPENAI_API_KEY!;
+  }
+  throw new Error(`Unknown base URL: ${model.baseURL}`);
+}
+
+export const getConfig = (model?: string | null): LlmConfig => {
+  if (!model) {
+    return {
+      ...models["openrouter/openai/gpt-4o-mini"],
+      apiKey: getApiKey(models["openrouter/openai/gpt-4o-mini"]),
+    };
+  }
+
+  if (oldModels[model]) {
+    return {
+      ...oldModels[model],
+      apiKey: getApiKey(oldModels[model]),
+    };
+  }
+
+  if (models[model]) {
+    return {
+      ...models[model],
+      apiKey: getApiKey(models[model]),
+    };
+  }
+
+  throw new Error(`Unknown model: ${model}`);
 };
