@@ -129,13 +129,7 @@ async function getContextMessages(
       messages = replies.messages;
     }
   } else {
-    const history = await client.conversations.history({
-      channel: message.channel,
-      limit: 15,
-    });
-    if (history.messages) {
-      messages = history.messages.reverse();
-    }
+    messages = [message];
   }
 
   return messages.map((m) => ({
@@ -226,6 +220,7 @@ Only following blocks are allowed:
 8. Link — <url|label>
 
 You should use only the above formatting in the answer.
+Don't use ** or __ for bold, use * instead. This is very important. Don't use markdown.
 `,
     fingerprint: (message as any).user,
   });
