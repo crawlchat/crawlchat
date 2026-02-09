@@ -7,6 +7,7 @@ export function makeDataGapTool() {
     description: multiLinePrompt([
       "Report a gap or missing information in the knowledge base.",
       "Use this when search_data returned results but they don't match or answer the user's query.",
+      "Use this when user asks question related to the <context> but you don't have the answer.",
       "Do NOT use this if search_data returned no results.",
       "Do NOT use this for questions unrelated to the knowledge base topic.",
     ]),
