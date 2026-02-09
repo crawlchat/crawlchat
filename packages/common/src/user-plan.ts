@@ -424,13 +424,18 @@ export const addTopup = async (
 };
 
 export async function hasEnoughCredits(
-  userId: string,
+  scrape: { userId: string; openrouterApiKey?: string | null; id: string },
   type: "messages" | "scrapes",
-  options?: { amount?: number; alert?: { scrapeId: string; token: string } }
+  options?: { amount?: number; alert?: { token: string } }
 ) {
   const amount = options?.amount ?? 1;
+
+  if (type === "messages" && scrape.openrouterApiKey) {
+    return true;
+  }
+
   const user = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { id: scrape.userId },
     select: { plan: true },
   });
   const available = user?.plan?.credits?.[type] ?? 0;
@@ -442,7 +447,7 @@ export async function hasEnoughCredits(
         method: "POST",
         body: JSON.stringify({
           intent: "low-credits",
-          scrapeId: options.alert.scrapeId,
+          scrapeId: scrape.id,
           creditType: type,
           amount,
         }),

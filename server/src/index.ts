@@ -200,9 +200,8 @@ app.get("/mcp/:scrapeId", async (req, res) => {
   }
 
   if (
-    !(await hasEnoughCredits(scrape.userId, "messages", {
+    !(await hasEnoughCredits(scrape, "messages", {
       alert: {
-        scrapeId: scrape.id,
         token: createToken(scrape.userId),
       },
     }))
@@ -384,9 +383,8 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   authoriseScrapeUser(req.user!.scrapeUsers, scrape.id, res);
 
   if (
-    !(await hasEnoughCredits(scrape.userId, "messages", {
+    !(await hasEnoughCredits(scrape, "messages", {
       alert: {
-        scrapeId: scrape.id,
         token: createToken(scrape.userId),
       },
     }))
@@ -616,9 +614,8 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
   authoriseScrapeUser(user.scrapeUsers, scrape.id, res);
 
   if (
-    !(await hasEnoughCredits(scrape.userId, "messages", {
+    !(await hasEnoughCredits(scrape, "messages", {
       alert: {
-        scrapeId: scrape.id,
         token: createToken(scrape.userId),
       },
     }))
@@ -952,9 +949,8 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   authoriseScrapeUser(req.user!.scrapeUsers, scrape.id, res);
 
   if (
-    !(await hasEnoughCredits(scrape.userId, "messages", {
+    !(await hasEnoughCredits(scrape, "messages", {
       alert: {
-        scrapeId: scrape.id,
         token: createToken(scrape.userId),
       },
     }))
@@ -1146,10 +1142,13 @@ app.post("/fix-message", authenticate, async (req, res) => {
 
   authoriseScrapeUser(req.user!.scrapeUsers, message.scrapeId, res);
 
+  const scrapeForMessage = await prisma.scrape.findFirstOrThrow({
+    where: { id: message.scrapeId },
+  });
+
   if (
-    !(await hasEnoughCredits(userId, "messages", {
+    !(await hasEnoughCredits(scrapeForMessage, "messages", {
       alert: {
-        scrapeId: message.scrapeId,
         token: createToken(userId),
       },
     }))
@@ -1262,9 +1261,8 @@ app.post("/extract-facts/:scrapeId", authenticate, async (req, res) => {
   authoriseScrapeUser(req.user!.scrapeUsers, scrape.id, res);
 
   if (
-    !(await hasEnoughCredits(scrape.userId, "messages", {
+    !(await hasEnoughCredits(scrape, "messages", {
       alert: {
-        scrapeId: scrape.id,
         token: createToken(scrape.userId),
       },
     }))
@@ -1342,9 +1340,8 @@ app.post("/fact-check/:scrapeId", authenticate, async (req, res) => {
   authoriseScrapeUser(req.user!.scrapeUsers, scrape.id, res);
 
   if (
-    !(await hasEnoughCredits(scrape.userId, "messages", {
+    !(await hasEnoughCredits(scrape, "messages", {
       alert: {
-        scrapeId: scrape.id,
         token: createToken(scrape.userId),
       },
     }))

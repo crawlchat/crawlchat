@@ -137,9 +137,8 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
     }
 
     if (
-      !(await hasEnoughCredits(scrape.userId, "messages", {
+      !(await hasEnoughCredits(scrape, "messages", {
         alert: {
-          scrapeId: scrape.id,
           token: createToken(scrape.userId),
         },
       }))

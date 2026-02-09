@@ -274,9 +274,8 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     openrouter: scrape.openrouterApiKey ?? undefined,
   });
 
-  await hasEnoughCredits(scrape.userId, "messages", {
+  await hasEnoughCredits(scrape, "messages", {
     alert: {
-      scrapeId: scrape.id,
       token: createToken(scrape.userId),
     },
   });

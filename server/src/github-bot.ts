@@ -365,9 +365,8 @@ async function answer(data: {
   }
 
   if (
-    !(await hasEnoughCredits(scrape.userId, "messages", {
+    !(await hasEnoughCredits(scrape, "messages", {
       alert: {
-        scrapeId: scrape.id,
         token: createToken(scrape.userId),
       },
     }))
