@@ -17,7 +17,7 @@ import {
   Thread,
 } from "@packages/common/prisma";
 import { makeIndexer } from "@packages/indexer";
-import { name } from "@packages/common";
+import { getAiApiKey, name } from "@packages/common";
 import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
 import { CustomMessage } from "./llm/custom-message";
 import { makeSearchTool, SearchToolContext } from "./llm/search-tool";
@@ -1043,6 +1043,9 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     }),
     user: scrape.id,
     maxTokens: 8000,
+    apiKey: getAiApiKey(llmConfig, {
+      openrouter: scrape.openrouterApiKey ?? undefined,
+    }).key,
     ...llmConfig,
   });
 
@@ -1186,6 +1189,9 @@ app.post("/fix-message", authenticate, async (req, res) => {
         description: "The short title of the answer under 6 words",
       }),
     }),
+    apiKey: getAiApiKey(getConfig("openrouter/openai/gpt-5.1"), {
+      openrouter: scrapeForMessage.openrouterApiKey ?? undefined,
+    }).key,
   });
 
   function massageToText(message: Message) {
@@ -1302,6 +1308,9 @@ ${text}`,
     }),
     user: scrape.id,
     maxTokens: 4000,
+    apiKey: getAiApiKey(llmConfig, {
+      openrouter: scrape.openrouterApiKey ?? undefined,
+    }).key,
     ...llmConfig,
   });
 
@@ -1379,6 +1388,9 @@ Fact to check: ${fact}`,
     }),
     user: scrape.id,
     maxTokens: 2000,
+    apiKey: getAiApiKey(llmConfig, {
+      openrouter: scrape.openrouterApiKey ?? undefined,
+    }).key,
     ...llmConfig,
   });
 

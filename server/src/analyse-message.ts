@@ -2,6 +2,7 @@ import {
   MessageAnalysis,
   prisma,
   QuestionSentiment,
+  Scrape,
   ScrapeMessageCategory,
 } from "@packages/common/prisma";
 import { Agent } from "@packages/agentic";
@@ -9,14 +10,15 @@ import { z } from "zod";
 import { Flow } from "@packages/agentic";
 import { getConfig } from "./llm/config";
 import { consumeCredits } from "@packages/common/user-plan";
+import { getAiApiKey } from "@packages/common/ai-api-key";
 
 export async function analyseMessage(
+  scrape: Scrape,
   question: string,
   answer: string,
   recentQuestions: string[],
   threadQuestions: string[],
-  categories: ScrapeMessageCategory[],
-  scrapeId: string
+  categories: ScrapeMessageCategory[]
 ) {
   let prompt = `
     You are a helpful assistant that analyses a message and returns a message analysis.
@@ -134,8 +136,11 @@ export async function analyseMessage(
     id: "analyser",
     prompt,
     schema: z.object(schema),
-    user: `analyser/${scrapeId}`,
+    user: `analyser/${scrape.id}`,
     maxTokens: 4096,
+    apiKey: getAiApiKey(llmConfig, {
+      openrouter: scrape.openrouterApiKey ?? undefined,
+    }).key,
     ...llmConfig,
   });
 
@@ -252,12 +257,12 @@ export async function fillMessageAnalysis(
     );
 
     const partialAnalysis = await analyseMessage(
+      message.scrape,
       question,
       answer,
       recentQuestions,
       threadQuestions,
-      [...(options?.categories ?? []), ...uniqueCategories],
-      message.scrapeId
+      [...(options?.categories ?? []), ...uniqueCategories]
     );
 
     if (

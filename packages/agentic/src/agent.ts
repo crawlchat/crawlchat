@@ -44,16 +44,16 @@ export class Agent<CustomMessage = {}> {
   }: {
     id: string;
     prompt: string;
+    apiKey: string;
     schema?: ZodSchema<any>;
     tools?: Tool<any, CustomMessage>[];
     model?: string;
     baseURL?: string;
-    apiKey?: string;
     user?: string;
     maxTokens?: number;
   }) {
     this.openai = new OpenAI({
-      apiKey: apiKey ?? process.env.OPENAI_API_KEY,
+      apiKey,
       baseURL,
     });
     this.model = model ?? "gpt-4o-mini";
