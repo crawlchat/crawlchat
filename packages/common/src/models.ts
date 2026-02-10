@@ -147,6 +147,13 @@ export const models: Record<string, AiModel> = {
     baseURL: "https://openrouter.ai/api/v1",
     supportsImages: true,
   },
+  "openrouter/openai/gpt-4o-mini": {
+    model: "openai/gpt-4o-mini",
+    ragTopN: 4,
+    creditsPerMessage: 1,
+    baseURL: "https://openrouter.ai/api/v1",
+    supportsImages: true,
+  },
   "openrouter/openai/gpt-5-nano": {
     model: "openai/gpt-5-nano",
     ragTopN: 4,
@@ -195,5 +202,11 @@ export const models: Record<string, AiModel> = {
     creditsPerMessage: 2,
     baseURL: "https://openrouter.ai/api/v1",
     supportsImages: true,
+  },
+  "openrouter/z-ai/glm-4.7": {
+    model: "z-ai/glm-4.7",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
   },
 };
