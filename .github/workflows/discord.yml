@@ -1,6 +1,12 @@
 name: Discord notifications
 
-on: [push, pull_request_target]
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    branches:
+      - main
 
 jobs:
   notify_discord:
@@ -11,4 +17,3 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: IdanHo/action-discord@754598254f288e6d8e9fca637832e3c163515ba8
-        if: ${{ (github.event['pull_request'] && github.event['action'] == 'opened') || github.event['commits'] }}
