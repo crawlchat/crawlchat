@@ -82,10 +82,19 @@ export function useScrapeChat({
     }));
   }, [messages, content]);
 
+  function startHeartbeat() {
+    const interval = setInterval(() => {
+      if (socket.current?.readyState !== WebSocket.OPEN) return;
+      socket.current.send(makeMessage("ping", { timestamp: Date.now() }));
+    }, 8000);
+    return () => clearInterval(interval);
+  }
+
   function connect() {
     socket.current = new WebSocket(window.ENV.VITE_SERVER_WS_URL);
     socket.current.onopen = () => {
       joinRoom();
+      startHeartbeat();
     };
     socket.current.onmessage = (event) => {
       const message = JSON.parse(event.data);

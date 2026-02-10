@@ -44,6 +44,21 @@ async function updateLastMessageAt(threadId: string) {
 
 export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
   let userId: string | null = null;
+  const socket = ws as WebSocket & { isAlive?: boolean };
+  socket.isAlive = true;
+  socket.on("pong", () => {
+    socket.isAlive = true;
+  });
+
+  const heartbeat = setInterval(() => {
+    if (socket.readyState !== 1) return;
+    if (socket.isAlive === false) {
+      socket.terminate();
+      return;
+    }
+    socket.isAlive = false;
+    socket.ping();
+  }, 10000);
 
   const onError = (error: unknown) => {
     console.error(error);
@@ -289,5 +304,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
   ws.on("close", () => {
     userId = null;
     removeFromAllThreads(ws);
+    clearInterval(heartbeat);
   });
 };
