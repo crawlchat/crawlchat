@@ -597,4 +597,8 @@ client.on(Events.ClientReady, async () => {
   }
 });
 
+client.on(Events.Error, (error) => {
+  console.error("Error in Discord bot:", error);
+});
+
 client.login(process.env.DISCORD_TOKEN);
