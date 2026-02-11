@@ -22,10 +22,7 @@ export function SearchTypeBadge({
     return [<TbSearch />, "Semantic"];
   }, [searchType]);
   return (
-    <div
-      className="tooltip"
-      data-tip={onlyIcon ? text : null}
-    >
+    <div className="tooltip" data-tip={onlyIcon ? text : null}>
       <div
         className={cn(
           "badge badge-soft",
