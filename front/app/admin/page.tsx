@@ -395,51 +395,6 @@ function MessagesTable({
   );
 }
 
-const data = [
-  {
-    name: "Page A",
-    uv: 4000,
-    pv: 2400,
-    amt: 2400,
-  },
-  {
-    name: "Page B",
-    uv: 3000,
-    pv: 1398,
-    amt: 2210,
-  },
-  {
-    name: "Page C",
-    uv: 2000,
-    pv: 9800,
-    amt: 2290,
-  },
-  {
-    name: "Page D",
-    uv: 2780,
-    pv: 3908,
-    amt: 2000,
-  },
-  {
-    name: "Page E",
-    uv: 1890,
-    pv: 4800,
-    amt: 2181,
-  },
-  {
-    name: "Page F",
-    uv: 2390,
-    pv: 3800,
-    amt: 2500,
-  },
-  {
-    name: "Page G",
-    uv: 3490,
-    pv: 4300,
-    amt: 2100,
-  },
-];
-
 function MessagesChart() {
   const dailyMessages = useLoaderData<typeof loader>().dailyMessages;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -513,6 +468,14 @@ export default function Admin({ loaderData }: Route.ComponentProps) {
       <div className="text-2xl font-bold">Users</div>
       <UsersTable userDetails={loaderData.userDetails} />
       <div className="text-2xl font-bold mt-4">Messages</div>
+      <div className="mb-2">
+        <Link
+          to="/admin-fowl/unanswered-messages"
+          className="link link-primary link-hover"
+        >
+          Unanswered Messages
+        </Link>
+      </div>
       <MessagesTable messageDetails={loaderData.messageDetails} />
       <Toaster />
     </div>
