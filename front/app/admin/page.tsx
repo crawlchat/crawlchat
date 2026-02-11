@@ -10,13 +10,11 @@ import { getAuthUser } from "~/auth/middleware";
 import { Link, redirect, useLoaderData } from "react-router";
 import { prisma } from "@packages/common/prisma";
 import { MarkdownProse } from "~/widget/markdown-prose";
-import { getQueryString } from "@packages/common/llm-message";
-import { TbConfetti, TbCopy } from "react-icons/tb";
+import { TbChartBarOff, TbConfetti, TbFolder } from "react-icons/tb";
 import { toast, Toaster } from "react-hot-toast";
 import { makeMeta } from "~/meta";
-import cn from "@meltdownjs/cn";
-import Avatar from "boring-avatars";
 import { SearchTypeBadge } from "~/message/search-type-badge";
+import { ChannelBadge } from "~/components/channel-badge";
 import {
   Bar,
   BarChart,
@@ -29,6 +27,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import moment from "moment";
 import { adminEmails } from "./emails";
+import { ScoreBadge } from "~/components/score-badge";
+import { getMessageContent } from "~/message/messages";
 
 type UserDetail = {
   user: User;
@@ -230,17 +230,6 @@ function UsersTable({ userDetails }: { userDetails: UserDetail[] }) {
   );
 }
 
-function Score({ message }: { message: Message }) {
-  if (message.links.length === 0) return "NA";
-  const min = Math.min(...message.links.map((l) => l.score ?? 0)).toFixed(2);
-  const max = Math.max(...message.links.map((l) => l.score ?? 0)).toFixed(2);
-  const avg = (
-    message.links.reduce((acc, l) => acc + (l.score ?? 0), 0) /
-    message.links.length
-  ).toFixed(2);
-  return `[${min}, ${avg}, ${max}]`;
-}
-
 function MessagesTable({
   messageDetails,
 }: {
@@ -256,17 +245,11 @@ function MessagesTable({
       <table className="table">
         <thead>
           <tr>
-            <th>Collection</th>
-            <th>User</th>
             <th>Id</th>
-            <th>Category</th>
-            <th>Score</th>
-            <th>Search types</th>
-            <th>Channel</th>
-            <th>LLM</th>
-            <th>Cost</th>
-            <th>Data gap</th>
-            <th>Created At</th>
+            <th>Collection</th>
+            <th>Content</th>
+            <th>Details</th>
+            <th className="text-right">Created At</th>
           </tr>
         </thead>
         <tbody>
@@ -276,6 +259,16 @@ function MessagesTable({
               data-message-id={messageDetail.message.id}
             >
               <td>
+                <div
+                  className="flex items-center gap-2"
+                  onClick={() => handleCopy(messageDetail.message.id)}
+                >
+                  {messageDetail.message.id.substring(
+                    messageDetail.message.id.length - 4
+                  )}
+                </div>
+              </td>
+              <td>
                 <Link
                   to={`/admin-fowl/collection/${messageDetail.scrape.id}`}
                   className="link link-primary link-hover"
@@ -283,110 +276,82 @@ function MessagesTable({
                   {messageDetail.scrape.title}
                 </Link>
               </td>
+              <td
+                className="max-w-md truncate"
+                title={getMessageContent(messageDetail.message)}
+              >
+                {getMessageContent(messageDetail.message)}
+              </td>
               <td>
-                <div className="flex items-center gap-2">
-                  {messageDetail.message.fingerprint && (
-                    <Avatar
-                      name={messageDetail.message.fingerprint}
-                      size={24}
-                      variant="beam"
-                    />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <ChannelBadge
+                    channel={messageDetail.message.channel}
+                    onlyIcon
+                  />
+                  {messageDetail.message.llmCost && (
+                    <span className="badge badge-soft badge-neutral">
+                      ${messageDetail.message.llmCost?.toFixed(2)}
+                    </span>
                   )}
-                  <Link
-                    to={`/admin-fowl/user/${messageDetail.user.id}`}
-                    className="link link-primary link-hover"
-                  >
-                    {messageDetail.user.email}
-                  </Link>
-                </div>
-              </td>
-              <td>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn(
-                      "tooltip",
-                      index < 10 && "first:tooltip-bottom"
-                    )}
-                    data-tip={getQueryString(
-                      (messageDetail.message.llmMessage as any).content
-                    )}
-                  >
-                    {messageDetail.message.id.substring(
-                      messageDetail.message.id.length - 4
-                    )}
-                  </div>
-                  <button
-                    className="btn btn-xs btn-square"
-                    onClick={() => handleCopy(messageDetail.message.id)}
-                  >
-                    <TbCopy />
-                  </button>
-                </div>
-              </td>
-              <td>{messageDetail.message.analysis?.category}</td>
-              <td>
-                <div className="flex items-center gap-2">
+                  {messageDetail.message.llmModel && (
+                    <span className="badge badge-soft badge-neutral">
+                      {messageDetail.message.llmModel.split("/").pop()}
+                    </span>
+                  )}
                   {messageDetail.message.analysis?.resolved && (
                     <div className="badge badge-primary badge-soft gap-1 px-2">
                       <TbConfetti />
                     </div>
                   )}
-                  <Score message={messageDetail.message} />
-                </div>
-              </td>
-              <td>
-                <div className="flex flex-wrap gap-1">
+                  {messageDetail.message.links.length > 0 && (
+                    <ScoreBadge
+                      score={Math.max(
+                        ...messageDetail.message.links.map((l) => l.score ?? 0)
+                      )}
+                    />
+                  )}
                   {[
                     ...new Set(
                       messageDetail.message.links
                         .map((l) => l.searchType)
-                        .filter((t): t is string => t != null)
+                        .filter((t): t is string => t !== null)
                     ),
                   ].map((searchType) => (
-                    <SearchTypeBadge key={searchType} searchType={searchType} />
+                    <SearchTypeBadge
+                      key={searchType}
+                      searchType={searchType}
+                      onlyIcon
+                    />
                   ))}
-                  {messageDetail.message.links.length === 0 && "-"}
+                  {messageDetail.message.analysis?.category && (
+                    <span className="badge badge-soft badge-accent whitespace-nowrap">
+                      <TbFolder />
+                      {messageDetail.message.analysis?.category}
+                    </span>
+                  )}
+                  {messageDetail.message.dataGap?.title && (
+                    <div className="dropdown dropdown-end">
+                      <span className="badge badge-soft badge-error whitespace-nowrap">
+                        <TbChartBarOff />
+                      </span>
+                      <div
+                        tabIndex={0}
+                        className="dropdown-content bg-base-100 rounded-box z-1 w-80 p-4 shadow-sm"
+                      >
+                        <div className="text-lg font-bold mb-2">
+                          {messageDetail.message.dataGap.title}
+                        </div>
+                        <MarkdownProse>
+                          {messageDetail.message.dataGap.description}
+                        </MarkdownProse>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </td>
-              <td>{messageDetail.message.channel ?? "chatbot"}</td>
-              <td>
-                {`${messageDetail.message.llmModel ?? "-"}, ${
-                  messageDetail.message.creditsUsed ?? "-"
-                }`}
+              <td className="text-right">
+                {messageDetail.message.createdAt.toLocaleString()}
               </td>
-              <td>
-                {messageDetail.message.llmCost != null ? (
-                  <div
-                    className="tooltip"
-                    data-tip={`${messageDetail.message.promptTokens ?? 0} input tokens`}
-                  >
-                    ${messageDetail.message.llmCost.toFixed(4)}
-                  </div>
-                ) : (
-                  "-"
-                )}
-              </td>
-              <td>
-                {messageDetail.message.dataGap?.title && (
-                  <div className="dropdown dropdown-end">
-                    <div tabIndex={0} className="btn mb-1">
-                      Yes
-                    </div>
-                    <div
-                      tabIndex={0}
-                      className="dropdown-content bg-base-100 rounded-box z-1 w-80 p-4 shadow-sm"
-                    >
-                      <div className="text-lg font-bold mb-2">
-                        {messageDetail.message.dataGap.title}
-                      </div>
-                      <MarkdownProse>
-                        {messageDetail.message.dataGap.description}
-                      </MarkdownProse>
-                    </div>
-                  </div>
-                )}
-              </td>
-              <td>{messageDetail.message.createdAt.toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
