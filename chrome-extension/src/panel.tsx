@@ -185,7 +185,7 @@ const Panel = ({
       data-theme="brand"
       className={cn(
         "crawlchat-panel w-full h-full bg-white",
-        "border-l border-t border-r border-base-300",
+        "border-l border-t border-r border-base-300 border-solid",
         "shadow-2xl flex flex-col font-sans",
         "rounded-t-box overflow-hidden"
       )}

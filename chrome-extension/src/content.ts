@@ -48,6 +48,10 @@ async function createGlobalButton(): Promise<void> {
     return;
   }
 
+  if (!config || !config.scrapeId) {
+    return;
+  }
+
   injectStickyButtonCSS();
 
   globalButton = document.createElement("button");
@@ -321,8 +325,10 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     const config = await getConfig();
     if (config && config.stickyButton === false) {
       removeGlobalButton();
-    } else {
+    } else if (config && config.scrapeId) {
       createGlobalButton();
+    } else {
+      removeGlobalButton();
     }
   }
 });
