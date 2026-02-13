@@ -76,16 +76,14 @@ function Home() {
         <fieldset className="fieldset">
           <legend className="fieldset-legend pt-0">Collection</legend>
           <select
-            value={
-              scrapes === undefined
-                ? "loading"
-                : (config?.scrapeId ?? "")
-            }
+            value={scrapes === undefined ? "loading" : (config?.scrapeId ?? "")}
             className="select"
             onChange={(e) => handleChangeScrape(e.target.value || null)}
           >
             {scrapes === undefined && (
-              <option value={"loading"}>Loading</option>
+              <option value={"loading"} disabled>
+                Loading
+              </option>
             )}
             <option value={""}>None</option>
             {scrapes?.map((scrape) => (
