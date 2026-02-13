@@ -1,6 +1,6 @@
 {
   "name": "chrome-extension",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "type": "module",
   "description": "CrawlChat Chrome extension built with TypeScript and React",
   "main": "dist/index.js",
