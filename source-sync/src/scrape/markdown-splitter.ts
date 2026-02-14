@@ -1,4 +1,4 @@
-const size = 7680;
+const MAX_CHUNK_SIZE = 7680;
 
 type Heading = {
   level: number;
@@ -23,26 +23,30 @@ function makeContextLines({
   tableLines: {
     header: string;
     separator: string;
+    rowsCount: number;
   };
 }) {
   const contextLines: string[] = [];
 
   for (const heading of headings) {
     contextLines.push(
-      `${Array(heading.level).fill("#").join("")} ${heading.text}`
+      `${Array(heading.level).fill("#").join("")}${heading.text}`
     );
   }
 
-  if (tableLines.header && tableLines.separator) {
+  const tableConsidered =
+    tableLines.header && tableLines.separator && tableLines.rowsCount > 0;
+
+  if (tableConsidered) {
     contextLines.push(tableLines.header);
     contextLines.push(tableLines.separator);
   }
 
-  return contextLines;
+  return { contextLines, tableConsidered };
 }
 
-function getChunkSize(chunk: string[]) {
-  return chunk.reduce((acc, line) => acc + line.length, 0) + chunk.length;
+export function getChunkSize(chunk: string[]) {
+  return chunk.reduce((acc, line) => acc + line.length, 0) + chunk.length - 1;
 }
 
 function plainChunk(line: string, chunkSize: number): string[] {
@@ -57,60 +61,71 @@ export async function splitMarkdown(
   markdown: string,
   options?: {
     context?: string;
+    size?: number;
   }
 ) {
+  const size = options?.size ?? MAX_CHUNK_SIZE;
+
   function addContext(lines: string[]) {
     if (options?.context) {
-      return [`Context: ${options.context}\n---\n\n`, ...lines];
+      return [`Context: ${options.context}\n---\n`, ...lines];
     }
     return lines;
   }
 
   const originalLines: string[] = markdown.split("\n");
-  const chunks: string[] = [];
-  let currentChunk: string[] = [];
+  const shortenedLines: string[] = [];
 
-  const lines: string[] = [];
   for (let i = 0; i < originalLines.length; i++) {
-    const chunks = plainChunk(originalLines[i], size / 3);
+    const line = originalLines[i];
+    const chunks = plainChunk(line, size);
     for (const chunk of chunks) {
-      lines.push(chunk);
+      shortenedLines.push(chunk);
     }
   }
 
-  let headingsAtSplit: Heading[] | undefined = undefined;
-  const headings: Heading[] = [];
+  const resultChunks: string[] = [];
+  let headings: Heading[] = [];
   const tableLines = {
     header: "",
     separator: "",
+    rowsCount: 0,
   };
 
-  function getFutureChunk(chunk?: string[]) {
-    let chunksToPush = [...currentChunk, ...(chunk ?? [])];
-    if (headingsAtSplit) {
-      chunksToPush = [
-        ...makeContextLines({ headings: headingsAtSplit, tableLines }),
-        ...chunksToPush,
-      ];
-    }
-
-    return addContext(chunksToPush);
+  function makeCarryForwardLines() {
+    const { contextLines } = makeContextLines({
+      headings,
+      tableLines,
+    });
+    return addContext(contextLines);
   }
 
-  function addChunk(size: number) {
-    let chunksToPush = getFutureChunk();
-    const chunkSize = getChunkSize(chunksToPush);
-
-    if (chunkSize > size) {
-      throw new Error(`Size exceeded. ${chunkSize} > ${size}`);
+  function pushToResultChunks(lines: string[]) {
+    for (let i = 0; i < lines.length; i++) {
+      const consideredLines = lines.slice(i);
+      if (getChunkSize(consideredLines) <= size) {
+        resultChunks.push(consideredLines.join("\n"));
+        return;
+      }
     }
 
-    chunks.push(chunksToPush.join("\n"));
-    currentChunk = [];
+    throw new Error("Lines are too long");
   }
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  let carryForwardLines: string[] = makeCarryForwardLines();
+
+  for (let i = 0; i < shortenedLines.length; i++) {
+    const line = shortenedLines[i];
+
+    carryForwardLines.push(line);
+    if (getChunkSize(carryForwardLines) > size) {
+      const lastLine = carryForwardLines.pop();
+      pushToResultChunks(carryForwardLines);
+      carryForwardLines = makeCarryForwardLines();
+      if (lastLine) {
+        carryForwardLines.push(lastLine);
+      }
+    }
 
     if (line.startsWith("#")) {
       const level = line.match(/^#+/)![0].length;
@@ -125,28 +140,25 @@ export async function splitMarkdown(
       headings.push({ level, text });
     }
 
-    if (isTableLine(lines[i])) {
+    if (isTableLine(line)) {
       if (tableLines.header === "") {
         tableLines.header = line;
-        tableLines.separator = lines[i + 1];
-        i++;
+      }
+      if (tableLines.separator === "") {
+        tableLines.separator = line;
+      }
+      if (tableLines.header && tableLines.separator) {
+        tableLines.rowsCount++;
       }
     } else {
       tableLines.header = "";
       tableLines.separator = "";
     }
-
-    if (getChunkSize(getFutureChunk([line])) > size) {
-      addChunk(size);
-      headingsAtSplit = [...headings];
-    }
-
-    currentChunk.push(line);
   }
 
-  if (currentChunk.length > 0) {
-    addChunk(size);
+  if (carryForwardLines.length > 0) {
+    pushToResultChunks(carryForwardLines);
   }
 
-  return chunks;
+  return resultChunks;
 }
