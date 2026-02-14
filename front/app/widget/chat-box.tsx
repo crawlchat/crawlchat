@@ -222,12 +222,8 @@ function ChatInput() {
   }
 
   const isDisabled = screen !== "chat" || readOnly || chat.askStage !== "idle";
-  const bg = scrape.widgetConfig?.applyColorsToChatbox
-    ? scrape.widgetConfig.primaryColor
-    : undefined;
-  const color = scrape.widgetConfig?.applyColorsToChatbox
-    ? scrape.widgetConfig.buttonTextColor
-    : undefined;
+  const backgroundColor = scrape.widgetConfig?.chatboxBgColor ?? undefined;
+  const color = scrape.widgetConfig?.chatboxTextColor ?? undefined;
 
   return (
     <div>
@@ -279,7 +275,7 @@ function ChatInput() {
           onClick={handleAsk}
           disabled={isDisabled}
           style={{
-            backgroundColor: !isDisabled ? (bg ?? undefined) : undefined,
+            backgroundColor: !isDisabled ? backgroundColor : undefined,
             color: !isDisabled ? (color ?? undefined) : undefined,
           }}
         >
@@ -531,13 +527,9 @@ export function AssistantMessage({
     }
   }
 
-  const color = scrape.widgetConfig?.applyColorsToChatbox
-    ? scrape.widgetConfig.primaryColor
-    : undefined;
-
   return (
     <div className={cn("flex flex-col gap-2", pullUp && "-mt-6")}>
-      <Sources citation={citation} color={color ?? undefined} />
+      <Sources citation={citation} />
 
       <div className="flex flex-col gap-4">
         <MarkdownProse
@@ -803,12 +795,8 @@ function Toolbar() {
   }
 
   const widgetConfig = scrape.widgetConfig;
-  const bg = widgetConfig?.applyColorsToChatbox
-    ? widgetConfig.primaryColor
-    : undefined;
-  const color = widgetConfig?.applyColorsToChatbox
-    ? widgetConfig.buttonTextColor
-    : undefined;
+  const backgroundColor = widgetConfig?.chatboxBgColor ?? undefined;
+  const color = widgetConfig?.chatboxTextColor ?? undefined;
 
   return (
     <div
@@ -817,11 +805,11 @@ function Toolbar() {
         "flex h-[60px] gap-2 border-b border-base-300",
         "p-4 w-full justify-between bg-base-200 items-center",
         "items-center",
-        scrape.widgetConfig?.applyColorsToChatbox && "border-0"
+        backgroundColor && "border-0"
       )}
       style={{
-        backgroundColor: bg ?? undefined,
-        color: color ?? undefined,
+        backgroundColor,
+        color,
       }}
     >
       <div className="flex flex-1 gap-2 items-center">
@@ -957,9 +945,7 @@ export function ChatboxContainer({
     }
   }
 
-  const borderColor = scrape.widgetConfig?.applyColorsToChatbox
-    ? scrape.widgetConfig.primaryColor
-    : undefined;
+  const borderColor = scrape.widgetConfig?.chatboxBgColor ?? undefined;
 
   return (
     <div
@@ -979,7 +965,7 @@ export function ChatboxContainer({
           !noShadow && "md:shadow-2xl"
         )}
         style={{
-          borderColor: borderColor ?? undefined,
+          borderColor,
         }}
       >
         {children}

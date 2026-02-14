@@ -67,16 +67,23 @@ type WidgetConfig {
   welcomeMessage        String?
   showMcpSetup          Boolean?
   textInputPlaceholder  String?
+  
+  showLogo              Boolean?
+  tooltip               String?
+  
+  applyColorsToChatbox  Boolean?
+  hideBranding          Boolean?
+  currentPageContext    Boolean?
+
   primaryColor          String?
   buttonText            String?
   buttonTextColor       String?
-  showLogo              Boolean?
-  tooltip               String?
+  buttonLogoUrl         String?
+
   logoUrl               String?
-  applyColorsToChatbox  Boolean?
   title                 String?
-  hideBranding          Boolean?
-  currentPageContext    Boolean?
+  chatboxBgColor        String?
+  chatboxTextColor      String?
 }
 
 type ScrapeAnalyticsCategoryMessageId {

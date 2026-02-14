@@ -204,10 +204,14 @@ class CrawlChatEmbed {
       this.widgetConfig.buttonTextColor ||
       script.getAttribute("data-ask-ai-color") ||
       "white";
+    const logoUrl =
+      this.widgetConfig.buttonLogoUrl ||
+      script.getAttribute("data-ask-ai-logo-url");
+
     const position = script.getAttribute("data-ask-ai-position") ?? "br";
     const marginX = script.getAttribute("data-ask-ai-margin-x") ?? "20px";
     const marginY = script.getAttribute("data-ask-ai-margin-y") ?? "20px";
-    const radius = script.getAttribute("data-ask-ai-radius") ?? "20px";
+    const radius = script.getAttribute("data-ask-ai-radius") ?? undefined;
     const fontSize = script.getAttribute("data-ask-ai-font-size");
 
     let bottom = undefined;
@@ -240,6 +244,14 @@ class CrawlChatEmbed {
     div.style.color = color;
     div.style.borderRadius = radius;
     div.style.fontSize = fontSize;
+
+    if (logoUrl) {
+      div.classList.add("square");
+      const img = document.createElement("img");
+      img.src = logoUrl;
+      img.className = "logo";
+      div.appendChild(img);
+    }
 
     const span = document.createElement("span");
     span.innerText = text;
