@@ -29,6 +29,10 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { Page } from "~/components/page";
 
+function cleanColor(color: string | null | undefined) {
+  return color && ["null", "#abcdef"].includes(color) ? null : color;
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
@@ -114,21 +118,15 @@ export async function action({ request }: Route.ActionArgs) {
     ) as string;
   }
   if (formData.has("primaryColor")) {
-    update.primaryColor = formData.get("primaryColor") as string;
-    update.primaryColor = ["null", "#abcdef"].includes(update.primaryColor)
-      ? null
-      : update.primaryColor;
+    update.primaryColor =
+      cleanColor(formData.get("primaryColor") as string) ?? null;
   }
   if (formData.has("buttonText")) {
     update.buttonText = formData.get("buttonText") as string;
   }
   if (formData.has("buttonTextColor")) {
-    update.buttonTextColor = formData.get("buttonTextColor") as string;
-    update.buttonTextColor = ["null", "#abcdef"].includes(
-      update.buttonTextColor
-    )
-      ? null
-      : update.buttonTextColor;
+    update.buttonTextColor =
+      cleanColor(formData.get("buttonTextColor") as string) ?? null;
   }
   if (formData.has("logoUrl")) {
     update.logoUrl = formData.get("logoUrl") as string;
@@ -149,10 +147,12 @@ export async function action({ request }: Route.ActionArgs) {
     update.currentPageContext = formData.get("currentPageContext") === "on";
   }
   if (formData.has("chatboxBgColor")) {
-    update.chatboxBgColor = formData.get("chatboxBgColor") as string;
+    update.chatboxBgColor =
+      cleanColor(formData.get("chatboxBgColor") as string) ?? null;
   }
   if (formData.has("chatboxTextColor")) {
-    update.chatboxTextColor = formData.get("chatboxTextColor") as string;
+    update.chatboxTextColor =
+      cleanColor(formData.get("chatboxTextColor") as string) ?? null;
   }
   if (formData.has("buttonLogoUrl")) {
     update.buttonLogoUrl = formData.get("buttonLogoUrl") as string;
