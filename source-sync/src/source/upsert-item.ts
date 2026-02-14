@@ -1,5 +1,5 @@
 import type { KnowledgeGroup, Scrape, UserPlan } from "@packages/common/prisma";
-import { splitMarkdown } from "../scrape/markdown-splitter";
+import { MarkdownSplitter } from "../scrape/markdown-splitter";
 import { assertLimit } from "../assert-limit";
 import { makeIndexer } from "@packages/indexer";
 import { v4 as uuidv4 } from "uuid";
@@ -14,9 +14,10 @@ export async function upsertItem(
   title: string,
   text: string
 ) {
-  const chunks = await splitMarkdown(text, {
+  const splitter = new MarkdownSplitter({
     context: knowledgeGroup.itemContext ?? undefined,
   });
+  const chunks = await splitter.split(text);
 
   await assertLimit(
     url,
