@@ -47,6 +47,10 @@ function merge(...strings: Array<string | undefined | null>) {
   return strings.filter((s) => s !== "" && typeof s === "string").join("\n");
 }
 
+function isOnlyHeadings(lines: string) {
+  return lines.split("\n").every((line) => isHeadingLine(line));
+}
+
 export class MarkdownSplitter {
   private readonly size: number;
   private readonly context?: string;
@@ -111,7 +115,11 @@ export class MarkdownSplitter {
         chunks[chunks.length - 1] = probableFull;
         remaining = "";
       } else if (chunks[chunks.length - 1] !== "") {
-        chunks.push("");
+        if (isOnlyHeadings(chunks[chunks.length - 1])) {
+          chunks[chunks.length - 1] += "\n";
+        } else {
+          chunks.push("");
+        }
       }
 
       while (remaining.length > 0) {
@@ -124,6 +132,9 @@ export class MarkdownSplitter {
 
         if (this.size <= chunks[chunks.length - 1].length) {
           chunks.push(prefix);
+          if (prefix) {
+            chunks[chunks.length - 1] += "\n";
+          }
         }
 
         const textToAdd = remaining.slice(
