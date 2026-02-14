@@ -54,8 +54,8 @@ function isOnlyHeadings(lines: string) {
 export class MarkdownSplitter {
   private readonly size: number;
   private readonly context?: string;
-  private readonly headings: Heading[] = [];
-  private readonly tableLines = {
+  private headings: Heading[] = [];
+  private tableLines = {
     header: "",
     separator: "",
   };
@@ -100,7 +100,13 @@ export class MarkdownSplitter {
     }
   }
 
-  async split(markdown: string) {
+  split(markdown: string) {
+    this.headings = [];
+    this.tableLines = {
+      header: "",
+      separator: "",
+    };
+
     const lines: string[] = markdown.split("\n");
     const chunks: string[] = [this.buildPrefix()];
 
@@ -109,6 +115,12 @@ export class MarkdownSplitter {
       let remaining = line;
 
       const prefix = this.buildPrefix();
+
+      if (prefix.length > this.size) {
+        throw new Error(
+          `Prefix is too large - ${prefix.length} (max: ${this.size})`
+        );
+      }
 
       const probableFull = merge(chunks[chunks.length - 1], remaining);
       if (probableFull.length <= this.size) {
