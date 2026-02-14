@@ -9,7 +9,8 @@
     "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "dotenv -e ../.env -- npx tsx watch -r tsconfig-paths/register src/index.ts",
     "prettier": "prettier src --check",
-    "cron": "npx tsc && node dist/cron.js \"$@\""
+    "cron": "npx tsc && node dist/cron.js \"$@\"",
+    "test": "npx tsc && node --test dist/tests"
   },
   "author": "",
   "license": "ISC",

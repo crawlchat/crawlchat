@@ -1,4 +1,4 @@
-const size = 7680;
+const MAX_CHUNK_SIZE = 7680;
 
 type Heading = {
   level: number;
@@ -15,138 +15,160 @@ function isTableLine(line: string) {
   return false;
 }
 
-function makeContextLines({
+function isHeadingLine(line: string) {
+  return line.startsWith("#");
+}
+
+function makeStructureLines({
   headings,
   tableLines,
 }: {
   headings: Heading[];
   tableLines: {
-    header: string;
-    separator: string;
+    header?: string;
+    separator?: string;
   };
 }) {
-  const contextLines: string[] = [];
+  const lines: string[] = [];
 
   for (const heading of headings) {
-    contextLines.push(
-      `${Array(heading.level).fill("#").join("")} ${heading.text}`
-    );
+    lines.push(`${Array(heading.level).fill("#").join("")}${heading.text}`);
   }
 
   if (tableLines.header && tableLines.separator) {
-    contextLines.push(tableLines.header);
-    contextLines.push(tableLines.separator);
+    lines.push(tableLines.header);
+    lines.push(tableLines.separator);
   }
 
-  return contextLines;
+  return lines;
 }
 
-function getChunkSize(chunk: string[]) {
-  return chunk.reduce((acc, line) => acc + line.length, 0) + chunk.length;
+function merge(...strings: Array<string | undefined | null>) {
+  return strings.filter((s) => s !== "" && typeof s === "string").join("\n");
 }
 
-function plainChunk(line: string, chunkSize: number): string[] {
-  const chunks: string[] = [];
-  for (let i = 0; i < line.length; i += chunkSize) {
-    chunks.push(line.slice(i, i + chunkSize));
-  }
-  return chunks;
+function isOnlyHeadings(lines: string) {
+  return lines.split("\n").every((line) => isHeadingLine(line));
 }
 
-export async function splitMarkdown(
-  markdown: string,
-  options?: {
-    context?: string;
-  }
-) {
-  function addContext(lines: string[]) {
-    if (options?.context) {
-      return [`Context: ${options.context}\n---\n\n`, ...lines];
-    }
-    return lines;
-  }
-
-  const originalLines: string[] = markdown.split("\n");
-  const chunks: string[] = [];
-  let currentChunk: string[] = [];
-
-  const lines: string[] = [];
-  for (let i = 0; i < originalLines.length; i++) {
-    const chunks = plainChunk(originalLines[i], size / 3);
-    for (const chunk of chunks) {
-      lines.push(chunk);
-    }
-  }
-
-  let headingsAtSplit: Heading[] | undefined = undefined;
-  const headings: Heading[] = [];
-  const tableLines = {
+export class MarkdownSplitter {
+  private readonly size: number;
+  private readonly context?: string;
+  private headings: Heading[] = [];
+  private tableLines = {
     header: "",
     separator: "",
   };
 
-  function getFutureChunk(chunk?: string[]) {
-    let chunksToPush = [...currentChunk, ...(chunk ?? [])];
-    if (headingsAtSplit) {
-      chunksToPush = [
-        ...makeContextLines({ headings: headingsAtSplit, tableLines }),
-        ...chunksToPush,
-      ];
-    }
-
-    return addContext(chunksToPush);
+  constructor(options?: { size?: number; context?: string }) {
+    this.size = options?.size ?? MAX_CHUNK_SIZE;
+    this.context = options?.context;
   }
 
-  function addChunk(size: number) {
-    let chunksToPush = getFutureChunk();
-    const chunkSize = getChunkSize(chunksToPush);
-
-    if (chunkSize > size) {
-      throw new Error(`Size exceeded. ${chunkSize} > ${size}`);
-    }
-
-    chunks.push(chunksToPush.join("\n"));
-    currentChunk = [];
+  private buildPrefix(): string {
+    const contextLine = this.context ? [`Context: ${this.context}\n---\n`] : [];
+    const structureLines = makeStructureLines({
+      headings: this.headings,
+      tableLines: this.tableLines,
+    });
+    return merge(...contextLine, ...structureLines);
   }
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  private processStructure(line: string) {
+    if (isTableLine(line)) {
+      if (this.tableLines.header === "") {
+        this.tableLines.header = line;
+      } else if (this.tableLines.separator === "") {
+        this.tableLines.separator = line;
+      }
+    } else {
+      this.tableLines.header = "";
+      this.tableLines.separator = "";
+    }
 
-    if (line.startsWith("#")) {
+    if (isHeadingLine(line)) {
       const level = line.match(/^#+/)![0].length;
       const text = line.slice(level);
 
-      const levelDiff = (headings[headings.length - 1]?.level ?? 0) - level;
-
+      const lastLevel = this.headings[this.headings.length - 1]?.level ?? 0;
+      const levelDiff = lastLevel - level;
       for (let j = 0; j < levelDiff + 1; j++) {
-        headings.pop();
+        this.headings.pop();
       }
 
-      headings.push({ level, text });
+      this.headings.push({ level, text });
     }
+  }
 
-    if (isTableLine(lines[i])) {
-      if (tableLines.header === "") {
-        tableLines.header = line;
-        tableLines.separator = lines[i + 1];
-        i++;
+  split(markdown: string) {
+    this.headings = [];
+    this.tableLines = {
+      header: "",
+      separator: "",
+    };
+
+    const lines: string[] = markdown.split("\n");
+    const chunks: string[] = [this.buildPrefix()];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      let remaining = line;
+
+      const prefix = this.buildPrefix();
+
+      if (prefix.length > this.size) {
+        throw new Error(
+          `Prefix is too large - ${prefix.length} (max: ${this.size})`
+        );
       }
-    } else {
-      tableLines.header = "";
-      tableLines.separator = "";
+
+      const probableFull = merge(chunks[chunks.length - 1], remaining);
+      if (probableFull.length <= this.size) {
+        chunks[chunks.length - 1] = probableFull;
+        remaining = "";
+      } else if (chunks[chunks.length - 1] !== "") {
+        if (isOnlyHeadings(chunks[chunks.length - 1])) {
+          chunks[chunks.length - 1] += "\n";
+        } else {
+          chunks.push("");
+        }
+      }
+
+      while (remaining.length > 0) {
+        if (chunks[chunks.length - 1] === "") {
+          chunks[chunks.length - 1] = prefix;
+          if (prefix) {
+            chunks[chunks.length - 1] += "\n";
+          }
+        }
+
+        if (this.size <= chunks[chunks.length - 1].length) {
+          chunks.push(prefix);
+          if (prefix) {
+            chunks[chunks.length - 1] += "\n";
+          }
+        }
+
+        const textToAdd = remaining.slice(
+          0,
+          this.size - chunks[chunks.length - 1].length
+        );
+        remaining = remaining.slice(textToAdd.length);
+
+        chunks[chunks.length - 1] += textToAdd;
+      }
+
+      this.processStructure(line);
     }
 
-    if (getChunkSize(getFutureChunk([line])) > size) {
-      addChunk(size);
-      headingsAtSplit = [...headings];
+    for (let i = 0; i < chunks.length; i++) {
+      if (chunks[i].length > this.size) {
+        throw new Error(
+          `Chunk ${i} is too large - ${chunks[i].length} (max: ${this.size})`
+        );
+      }
     }
 
-    currentChunk.push(line);
+    return chunks.filter((chunk) => chunk);
   }
-
-  if (currentChunk.length > 0) {
-    addChunk(size);
-  }
-
-  return chunks;
 }
