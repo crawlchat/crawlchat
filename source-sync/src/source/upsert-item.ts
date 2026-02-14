@@ -73,6 +73,7 @@ export async function upsertItem(
       embeddings,
       status: "completed",
       sourcePageId,
+      error: null,
     },
     create: {
       userId: knowledgeGroup.userId,
@@ -85,6 +86,7 @@ export async function upsertItem(
       markdown: text,
       metaTags: [],
       embeddings,
+      error: null,
     },
   });
 }
