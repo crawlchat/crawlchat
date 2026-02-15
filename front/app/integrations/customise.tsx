@@ -56,6 +56,15 @@ export function meta({ data }: Route.MetaArgs) {
   });
 }
 
+export function links() {
+  return [
+    {
+      rel: "stylesheet",
+      href: "/embed.css",
+    },
+  ];
+}
+
 export async function action({ request }: Route.ActionArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
@@ -218,31 +227,20 @@ function AskAIButton({
   text?: string | null;
   logoUrl?: string | null;
 }) {
-  const square = !!logoUrl;
   return (
     <div
-      className={cn("transition-all cursor-pointer hover:scale-105")}
+      id="crawlchat-ask-ai-button"
+      className={cn(logoUrl && "square")}
       style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexDirection: "column",
-        gap: "2px",
+        position: "relative", // Override fixed position from embed.css for preview
+        bottom: "auto", // Reset positioning offset
+        right: "auto", // Reset positioning offset
         backgroundColor: bg ?? "#7b2cbf",
         color: color ?? "white",
-        borderRadius: square ? "8px" : "20px",
-        padding: square ? "8px 12px" : "8px 20px",
-        boxShadow: "rgba(0, 0, 0, 0.1) 0px 2px 4px",
       }}
     >
-      {logoUrl && (
-        <img
-          src={logoUrl}
-          alt="Logo"
-          style={{ width: "32px", height: "32px" }}
-        />
-      )}
-      {text || "Ask AI"}
+      {logoUrl && <img src={logoUrl} alt="Logo" className="logo" />}
+      <span>{text || "Ask AI"}</span>
     </div>
   );
 }
