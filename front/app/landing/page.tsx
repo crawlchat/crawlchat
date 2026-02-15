@@ -272,7 +272,7 @@ export function UsedBy() {
           <img
             src="/used-by/remotion.png"
             alt="Remotion"
-            className="max-h-[38px] shrink-0 grayscale hover:grayscale-0 transition-all"
+            className="max-h-[34px] shrink-0 grayscale hover:grayscale-0 transition-all"
           />
         </UsedByItem>
 
@@ -301,6 +301,15 @@ export function UsedBy() {
             className="max-h-[38px]"
           />
           <div className="font-medium text-xl">Polotno</div>
+        </UsedByItem>
+
+        <UsedByItem href="https://localstack.cloud" target="_blank">
+          <img
+            src="/used-by/localstack.png"
+            alt="LocalStack"
+            className="max-h-[38px]"
+          />
+          <div className="font-medium text-xl">LocalStack</div>
         </UsedByItem>
 
         <UsedByItem href="https://backpackforlaravel.com" target="_blank">
