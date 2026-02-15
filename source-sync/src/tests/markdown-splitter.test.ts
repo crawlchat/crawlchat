@@ -1,19 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert";
-import { MarkdownSplitter } from "../scrape/markdown-splitter";
+import { splitMarkdown } from "../scrape/markdown-splitter";
 
 test("splitMarkdown returns simple markdown", async () => {
   const markdown = `Hello how are you?`;
-  const splitter = new MarkdownSplitter();
-  const chunks = await splitter.split(markdown);
+  const chunks = splitMarkdown(markdown);
   assert.strictEqual(chunks.length, 1);
   assert.strictEqual(chunks[0], markdown);
 });
 
 test("splitMarkdown splits simple markdown", async () => {
   const markdown = `Hello how are you?`;
-  const splitter = new MarkdownSplitter({ size: 10 });
-  const chunks = await splitter.split(markdown);
+  const chunks = splitMarkdown(markdown, { size: 10 });
   assert.strictEqual(chunks.length, 2);
   assert.strictEqual(chunks[0], markdown.slice(0, 10));
   assert.strictEqual(chunks[1], markdown.slice(10));
@@ -23,8 +21,7 @@ test("splitMarkdown splits multiple lines", async () => {
   const markdown = `Hello how are you?
 Just!
 This is a test`;
-  const splitter = new MarkdownSplitter({ size: 10 });
-  const chunks = await splitter.split(markdown);
+  const chunks = splitMarkdown(markdown, { size: 10 });
   assert.strictEqual(chunks.length, 5);
   assert.strictEqual(chunks[0], "Hello how ");
   assert.strictEqual(chunks[1], "are you?");
@@ -40,14 +37,12 @@ A line about heading 1.1 and a long line that should be split into multiple chun
 A line about heading 1.2 and a long line that should be split into multiple chunks`;
 
 test("splitMarkdown large size", async () => {
-  const splitter = new MarkdownSplitter({ size: 2000 });
-  const chunks = await splitter.split(simpleHeadingMarkdown);
+  const chunks = splitMarkdown(simpleHeadingMarkdown, { size: 2000 });
   assert.strictEqual(chunks.length, 1);
 });
 
 test("splitMarkdown heading carry forward varied size", async () => {
-  const splitter = new MarkdownSplitter({ size: 200 });
-  const chunks = await splitter.split(simpleHeadingMarkdown);
+  const chunks = splitMarkdown(simpleHeadingMarkdown, { size: 200 });
   assert.strictEqual(chunks.length, 2);
   const lastChunk = chunks[chunks.length - 1];
   assert.strict(lastChunk.startsWith("# Heading 1"));
@@ -56,8 +51,10 @@ test("splitMarkdown heading carry forward varied size", async () => {
 });
 
 test("splitMarkdown with context", async () => {
-  const splitter = new MarkdownSplitter({ size: 100, context: "Test" });
-  const chunks = await splitter.split(simpleHeadingMarkdown);
+  const chunks = splitMarkdown(simpleHeadingMarkdown, {
+    size: 100,
+    context: "Test",
+  });
   for (const chunk of chunks) {
     assert.strict(chunk.startsWith("Context: Test"));
   }
@@ -82,8 +79,7 @@ const table = `| Header 1 | Header 2 |
 | Data 23   | Data 24   |`;
 
 test("splitMarkdown with table", async () => {
-  const splitter = new MarkdownSplitter({ size: 200 });
-  const chunks = await splitter.split(table);
+  const chunks = splitMarkdown(table, { size: 200 });
   assert.strictEqual(chunks.length, 3);
   const headers = "| Header 1 | Header 2 |\n|----------|----------|";
   for (let i = 1; i < chunks.length; i++) {
@@ -93,8 +89,7 @@ test("splitMarkdown with table", async () => {
 
 test("splitMarkdown with table and following text", async () => {
   const text = "I am Pramod";
-  const splitter = new MarkdownSplitter({ size: 200 });
-  const chunks = await splitter.split(`${table}\n\n${text}`);
+  const chunks = splitMarkdown(`${table}\n\n${text}`, { size: 200 });
   assert.strict(chunks.pop()?.endsWith("I am Pramod"));
 });
 
@@ -111,16 +106,14 @@ This is a text
 | Jack | South Africa |
 | Jill | New Zealand |`;
 
-  const splitter = new MarkdownSplitter({ size: 150 });
-  const chunks = await splitter.split(markdown);
+  const chunks = splitMarkdown(markdown, { size: 150 });
   assert.strictEqual(chunks.length, 2);
   assert.strict(chunks[0].startsWith("# Heading 1"));
   assert.strict(chunks[1].startsWith("# Heading 1"));
   assert.strict(chunks[0].includes("| Name | Country |"));
   assert.strict(chunks[1].includes("| Name | Country |"));
 
-  const splitter2 = new MarkdownSplitter({ size: 190 });
-  const chunks2 = await splitter2.split(markdown);
+  const chunks2 = splitMarkdown(markdown, { size: 190 });
   assert.strictEqual(chunks2.length, 2);
   assert.strictEqual(
     chunks2[1],
@@ -134,8 +127,7 @@ test("splitMarkdown with long paragraph", async () => {
   const markdown = `# Heading
 ${paragraph}`;
 
-  const splitter = new MarkdownSplitter({ size: 100 });
-  const chunks = await splitter.split(markdown);
+  const chunks = splitMarkdown(markdown, { size: 100 });
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
     assert.strict(chunk.length <= 100);
@@ -163,8 +155,7 @@ ${table}
 
 ${table}`;
 
-  const splitter = new MarkdownSplitter({ size: 500 });
-  const chunks = await splitter.split(markdown);
+  const chunks = splitMarkdown(markdown, { size: 500 });
   assert.strictEqual(chunks.length, 11);
   assert.strict(
     chunks
@@ -423,8 +414,7 @@ It converts "HTML", but keep intact partial entries like "xxxHTMLyyy" and so on.
 :::
 `;
 
-  const splitter = new MarkdownSplitter({ size: 500 });
-  const chunks = await splitter.split(markdown);
+  const chunks = splitMarkdown(markdown, { size: 500 });
   const lines = markdown.split("\n");
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];

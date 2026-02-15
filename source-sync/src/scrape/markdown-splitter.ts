@@ -51,79 +51,71 @@ function isOnlyHeadings(lines: string) {
   return lines.split("\n").every((line) => isHeadingLine(line));
 }
 
-export class MarkdownSplitter {
-  private readonly size: number;
-  private readonly context?: string;
-  private headings: Heading[] = [];
-  private tableLines = {
+export function splitMarkdown(
+  markdown: string,
+  options?: { size?: number; context?: string }
+) {
+  const size = options?.size ?? MAX_CHUNK_SIZE;
+  const context = options?.context;
+  const headings: Heading[] = [];
+  const tableLines = {
     header: "",
     separator: "",
   };
 
-  constructor(options?: { size?: number; context?: string }) {
-    this.size = options?.size ?? MAX_CHUNK_SIZE;
-    this.context = options?.context;
-  }
-
-  private buildPrefix(): string {
-    const contextLine = this.context ? [`Context: ${this.context}\n---\n`] : [];
+  const buildPrefix = (): string => {
+    const contextLine = context ? [`Context: ${context}\n---\n`] : [];
     const structureLines = makeStructureLines({
-      headings: this.headings,
-      tableLines: this.tableLines,
+      headings,
+      tableLines,
     });
     return merge(...contextLine, ...structureLines);
-  }
+  };
 
-  private processStructure(line: string) {
+  const processStructure = (line: string) => {
     if (isTableLine(line)) {
-      if (this.tableLines.header === "") {
-        this.tableLines.header = line;
-      } else if (this.tableLines.separator === "") {
-        this.tableLines.separator = line;
+      if (tableLines.header === "") {
+        tableLines.header = line;
+      } else if (tableLines.separator === "") {
+        tableLines.separator = line;
       }
     } else {
-      this.tableLines.header = "";
-      this.tableLines.separator = "";
+      tableLines.header = "";
+      tableLines.separator = "";
     }
 
     if (isHeadingLine(line)) {
       const level = line.match(/^#+/)![0].length;
       const text = line.slice(level);
 
-      const lastLevel = this.headings[this.headings.length - 1]?.level ?? 0;
+      const lastLevel = headings[headings.length - 1]?.level ?? 0;
       const levelDiff = lastLevel - level;
       for (let j = 0; j < levelDiff + 1; j++) {
-        this.headings.pop();
+        headings.pop();
       }
 
-      this.headings.push({ level, text });
+      headings.push({ level, text });
     }
-  }
+  };
 
-  split(markdown: string) {
-    this.headings = [];
-    this.tableLines = {
-      header: "",
-      separator: "",
-    };
-
+  const split = (markdown: string) => {
     const lines: string[] = markdown.split("\n");
-    const chunks: string[] = [this.buildPrefix()];
+    const chunks: string[] = [buildPrefix()];
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       let remaining = line;
 
-      const prefix = this.buildPrefix();
+      const prefix = buildPrefix();
 
-      if (prefix.length > this.size) {
+      if (prefix.length > size) {
         throw new Error(
-          `Prefix is too large - ${prefix.length} (max: ${this.size})`
+          `Prefix is too large - ${prefix.length} (max: ${size})`
         );
       }
 
       const probableFull = merge(chunks[chunks.length - 1], remaining);
-      if (probableFull.length <= this.size) {
+      if (probableFull.length <= size) {
         chunks[chunks.length - 1] = probableFull;
         remaining = "";
       } else if (chunks[chunks.length - 1] !== "") {
@@ -142,7 +134,7 @@ export class MarkdownSplitter {
           }
         }
 
-        if (this.size <= chunks[chunks.length - 1].length) {
+        if (size <= chunks[chunks.length - 1].length) {
           chunks.push(prefix);
           if (prefix) {
             chunks[chunks.length - 1] += "\n";
@@ -151,24 +143,26 @@ export class MarkdownSplitter {
 
         const textToAdd = remaining.slice(
           0,
-          this.size - chunks[chunks.length - 1].length
+          size - chunks[chunks.length - 1].length
         );
         remaining = remaining.slice(textToAdd.length);
 
         chunks[chunks.length - 1] += textToAdd;
       }
 
-      this.processStructure(line);
+      processStructure(line);
     }
 
     for (let i = 0; i < chunks.length; i++) {
-      if (chunks[i].length > this.size) {
+      if (chunks[i].length > size) {
         throw new Error(
-          `Chunk ${i} is too large - ${chunks[i].length} (max: ${this.size})`
+          `Chunk ${i} is too large - ${chunks[i].length} (max: ${size})`
         );
       }
     }
 
     return chunks.filter((chunk) => chunk);
-  }
+  };
+
+  return split(markdown);
 }
