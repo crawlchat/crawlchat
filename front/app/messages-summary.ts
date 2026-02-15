@@ -65,22 +65,6 @@ export function getMessagesSummary(
   const todayKey = today.toISOString().split("T")[0];
   const messagesToday = dailyMessages[todayKey]?.count ?? 0;
 
-  const scoreDestribution: Record<number, { count: number }> = {};
-  const points = 10;
-  for (let i = 0; i < points; i++) {
-    scoreDestribution[i] = { count: 0 };
-  }
-
-  for (const message of messages) {
-    if (!message.links || message.links.length === 0) continue;
-
-    const max = Math.max(...message.links.map((l) => l.score ?? 0));
-    const index = Math.floor(max * points);
-    scoreDestribution[index] = {
-      count: (scoreDestribution[index]?.count ?? 0) + 1,
-    };
-  }
-
   const ratingUpCount = full
     ? messages.filter((m) => m.rating === "up").length
     : null;
