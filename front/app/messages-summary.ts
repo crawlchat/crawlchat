@@ -15,7 +15,10 @@ type MessageForSummary = {
   links: MessageSourceLink[];
 };
 
-export function getMessagesSummary(messages: MessageForSummary[]) {
+export function getMessagesSummary(
+  messages: MessageForSummary[],
+  full: boolean = false
+) {
   const dailyMessages: Record<
     string,
     {
@@ -78,7 +81,9 @@ export function getMessagesSummary(messages: MessageForSummary[]) {
     };
   }
 
-  const ratingUpCount = messages.filter((m) => m.rating === "up").length;
+  const ratingUpCount = full
+    ? messages.filter((m) => m.rating === "up").length
+    : null;
   const ratingDownCount = messages.filter((m) => m.rating === "down").length;
 
   const itemCounts: Record<
@@ -105,13 +110,6 @@ export function getMessagesSummary(messages: MessageForSummary[]) {
   const topItems = Object.values(itemCounts)
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
-
-  const latestQuestions = messages
-    .filter((m) => (m.llmMessage as any)?.role === "user")
-    .sort(
-      (a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
-    )
-    .slice(0, 5);
 
   let lowRatingQueries = [];
   let lastUserMessage: MessageForSummary | null = null;
@@ -163,7 +161,6 @@ export function getMessagesSummary(messages: MessageForSummary[]) {
   }
   const happyPct = questions > 0 ? sentimentCounts.happy / questions : 0;
   const sadPct = questions > 0 ? sentimentCounts.sad / questions : 0;
-  const neutralPct = questions > 0 ? sentimentCounts.neutral / questions : 0;
 
   const categorySuggestions = messages
     .filter((m) => m.analysis?.categorySuggestions)
@@ -207,18 +204,15 @@ export function getMessagesSummary(messages: MessageForSummary[]) {
     ),
     dailyMessages,
     messagesToday,
-    scoreDestribution,
     ratingUpCount,
     ratingDownCount,
     topItems,
-    latestQuestions,
     lowRatingQueries,
     avgScore,
     questions,
     resolvedCount,
     happyPct,
     sadPct,
-    neutralPct,
     languagesDistribution,
     tags: categoryCounts,
   };
