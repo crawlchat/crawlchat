@@ -87,7 +87,23 @@ export class Flow<CustomState, CustomMessage> {
       }
       for (const tool of tools) {
         if (tool.id === toolId) {
-          const { content, customMessage } = await tool.execute(args);
+          let content: string;
+          let customMessage: CustomMessage | undefined;
+
+          try {
+            const result = await tool.execute(args);
+            content = result.content;
+            customMessage = result.customMessage;
+          } catch (error) {
+            const errorMessage =
+              error instanceof Error ? error.message : String(error);
+            console.error(
+              `Tool ${toolId} failed:`,
+              errorMessage
+            );
+            content = `Tool encountered an error: ${errorMessage}. Please proceed without this tool's result.`;
+          }
+
           const message: FlowMessage<CustomMessage> = {
             llmMessage: {
               role: "tool",
