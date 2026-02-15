@@ -313,11 +313,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 
   if (message.type === "OPEN_MODAL_FROM_SHORTCUT") {
-    handleShortcutOpenPanel();
+    handleShortcutOpenPanel(message.selectedText);
   }
 
   if (message.type === "OPEN_MODAL_AUTO_USE_FROM_SHORTCUT") {
-    handleShortcutOpenPanelAutoUse();
+    handleShortcutOpenPanelAutoUse(message.selectedText);
   }
 
   if (message.type === "CONFIG_UPDATED") {
@@ -333,7 +333,7 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 });
 
-async function handleShortcutOpenPanel() {
+async function handleShortcutOpenPanel(selectedText?: string) {
   const config = await getConfig();
 
   if (config && config.apiKey && config.scrapeId) {
@@ -343,12 +343,27 @@ async function handleShortcutOpenPanel() {
         | HTMLInputElement
         | HTMLTextAreaElement
         | HTMLElement);
+
+    // If selectedText is provided from context menu, use it to pre-fill the input
+    if (selectedText && targetElement) {
+      if (
+        targetElement instanceof HTMLInputElement ||
+        targetElement instanceof HTMLTextAreaElement
+      ) {
+        targetElement.value = selectedText;
+      } else if (
+        targetElement instanceof HTMLElement &&
+        targetElement.contentEditable === "true"
+      ) {
+        targetElement.innerHTML = selectedText.replace(/\n/g, "<br>");
+      }
+    }
 
     openPanel(config, targetElement, { submit: true });
   }
 }
 
-async function handleShortcutOpenPanelAutoUse() {
+async function handleShortcutOpenPanelAutoUse(selectedText?: string) {
   const config = await getConfig();
 
   if (config && config.apiKey && config.scrapeId) {
@@ -358,6 +373,21 @@ async function handleShortcutOpenPanelAutoUse() {
         | HTMLInputElement
         | HTMLTextAreaElement
         | HTMLElement);
+
+    // If selectedText is provided from context menu, use it to pre-fill the input
+    if (selectedText && targetElement) {
+      if (
+        targetElement instanceof HTMLInputElement ||
+        targetElement instanceof HTMLTextAreaElement
+      ) {
+        targetElement.value = selectedText;
+      } else if (
+        targetElement instanceof HTMLElement &&
+        targetElement.contentEditable === "true"
+      ) {
+        targetElement.innerHTML = selectedText.replace(/\n/g, "<br>");
+      }
+    }
 
     openPanel(config, targetElement, { submit: true, autoUse: true });
   }

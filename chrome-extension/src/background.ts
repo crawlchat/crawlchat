@@ -6,6 +6,19 @@ const API_HOST = "https://wings.crawlchat.app";
 // Listen for extension installation
 chrome.runtime.onInstalled.addListener((details) => {
   console.log("Extension installed:", details);
+
+  // Create context menus when extension is installed
+  chrome.contextMenus.create({
+    id: "compose-with-crawlchat",
+    title: "Compose with CrawlChat",
+    contexts: ["editable"],
+  });
+
+  chrome.contextMenus.create({
+    id: "fill-with-crawlchat",
+    title: "Fill with CrawlChat",
+    contexts: ["editable"],
+  });
 });
 
 // Listen for keyboard shortcuts
@@ -27,6 +40,27 @@ chrome.commands.onCommand.addListener((command) => {
           type: "OPEN_MODAL_AUTO_USE_FROM_SHORTCUT",
         });
       }
+    });
+  }
+});
+
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (!tab?.id) return;
+
+  if (info.menuItemId === "compose-with-crawlchat") {
+    // Maps to Cmd+Shift+P (open-modal-auto-use)
+    chrome.tabs.sendMessage(tab.id, {
+      type: "OPEN_MODAL_AUTO_USE_FROM_SHORTCUT",
+      selectedText: info.selectionText,
+    });
+  }
+
+  if (info.menuItemId === "fill-with-crawlchat") {
+    // Maps to Cmd+Shift+I (open-modal)
+    chrome.tabs.sendMessage(tab.id, {
+      type: "OPEN_MODAL_FROM_SHORTCUT",
+      selectedText: info.selectionText,
     });
   }
 });
