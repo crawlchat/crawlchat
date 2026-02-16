@@ -100,10 +100,10 @@ export default function Customers({ loaderData }: Route.ComponentProps) {
             <tr>
               <th>Email</th>
               <th>Plan</th>
-              <th>Scrapes (used / allowed)</th>
-              <th>Messages (used / allowed)</th>
+              <th>Collections</th>
+              <th>Messages</th>
               <th>Billing Cycle Start</th>
-              <th>Message Cost (cycle)</th>
+              <th>Message Cost</th>
             </tr>
           </thead>
           <tbody>
