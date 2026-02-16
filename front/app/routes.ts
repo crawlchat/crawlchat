@@ -24,7 +24,7 @@ export default [
 
   route("/logout", "auth/logout.tsx"),
   layout("layout.tsx", [
-    route("app", "summary.tsx"),
+    route("app", "summary/page.tsx"),
     route("profile", "profile.tsx"),
 
     route("settings", "settings/scrape.tsx"),
