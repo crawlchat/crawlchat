@@ -24,7 +24,7 @@ export default [
 
   route("/logout", "auth/logout.tsx"),
   layout("layout.tsx", [
-    route("app", "summary.tsx"),
+    route("app", "summary/page.tsx"),
     route("profile", "profile.tsx"),
 
     route("settings", "settings/scrape.tsx"),
@@ -117,6 +117,7 @@ export default [
 
   ...prefix("admin-fowl", [
     index("admin/page.tsx"),
+    route("customers", "admin/customers.tsx"),
     route("user/:userId", "admin/user.tsx"),
     route("collection/:collectionId", "admin/collection.tsx"),
     route("unanswered-messages", "admin/unanswered-messages.tsx"),

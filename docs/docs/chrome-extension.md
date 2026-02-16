@@ -10,7 +10,7 @@ The CrawlChat Chrome Extension lets you generate text content from your document
 
 #### 1. Install the Extension
 
-Install the CrawlChat Chrome Extension from the ![Chrome Web Store](https://chromewebstore.google.com/detail/crawlchat/icimflpdiioobolkjdbldmmomflainie).
+Install the CrawlChat Chrome Extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/crawlchat/icimflpdiioobolkjdbldmmomflainie).
 
 #### 2. Get Your API Key
 
@@ -49,6 +49,17 @@ Install the CrawlChat Chrome Extension from the ![Chrome Web Store](https://chro
 2. Enter `@` following by any instruction for the text to be created. Ex: `@ write about pricing`
 3. Press **Cmd + Shift + P** (Mac) or **Ctrl + Shift + P** (Windows)
 4. Takes few seconds and the text will be replaced by the created text
+
+#### Method 4: Context menu
+
+1. Click on any text field
+2. Give the instruction to compose. Ex: `write about installation under 50 words`
+3. Right click on the text field
+4. Go to `CrawlChat`
+5. Select `Compose` to **Use it** as mentioned above
+6. Select `Fill` for **Instant** fill as mentioned above
+
+![Chrome extension context menu](./images/chrome-context-menu.png)
 
 ### Requirements
 

@@ -29,9 +29,8 @@ export default function LanguageDistribution({
           data={data}
           innerRadius="80%"
           outerRadius="100%"
-          cornerRadius="50%"
+          cornerRadius="10%"
           fill="#8884d8"
-          paddingAngle={5}
           dataKey="count"
           isAnimationActive={true}
         />
