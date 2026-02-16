@@ -16,6 +16,7 @@ const Panel = ({
   onFocus,
   submit,
   autoUse,
+  isPrompt,
 }: {
   config: Config;
   currentValue: string;
@@ -25,8 +26,16 @@ const Panel = ({
   onFocus: () => void;
   submit?: boolean;
   autoUse?: boolean;
+  isPrompt?: boolean;
 }) => {
   const input = useMemo(() => {
+    if (isPrompt) {
+      return {
+        content: "",
+        messages: [],
+        prompt: trimContent(currentValue),
+      };
+    }
     if (currentValue.startsWith("@")) {
       return {
         content: "",
@@ -44,7 +53,7 @@ const Panel = ({
       ],
       prompt: "",
     };
-  }, [currentValue]);
+  }, [currentValue, isPrompt]);
   const [compose, setCompose] = useState<{
     content: string;
     messages: any;

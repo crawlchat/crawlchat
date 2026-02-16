@@ -61,10 +61,14 @@ async function buildExtension() {
   console.log("Copying static files...");
 
   // Copy entire static directory to dist
-  execSync("cp -r static/* build/dist/", { stdio: "inherit" });
+  const { cpSync, copyFileSync, existsSync } = await import("fs");
+
+  if (existsSync("static")) {
+    cpSync("static", "build/dist", { recursive: true });
+  }
 
   // Copy popup.html from src to dist
-  execSync("cp src/popup.html build/dist/", { stdio: "inherit" });
+  copyFileSync("src/popup.html", "build/dist/popup.html");
 
   console.log("Build complete!");
 }

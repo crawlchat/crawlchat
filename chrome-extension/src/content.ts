@@ -172,6 +172,7 @@ async function openPanel(
   options?: {
     submit?: boolean;
     autoUse?: boolean;
+    isPrompt?: boolean;
   }
 ) {
   const existingPanel = document.getElementById("crawlchat-panel");
@@ -257,6 +258,7 @@ async function openPanel(
       onFocus: handleFocusElement,
       submit: options?.submit,
       autoUse: options?.autoUse,
+      isPrompt: options?.isPrompt,
     })
   );
 }
@@ -359,7 +361,10 @@ async function handleShortcutOpenPanel(selectedText?: string) {
       }
     }
 
-    openPanel(config, targetElement, { submit: true });
+    openPanel(config, targetElement, {
+      submit: true,
+      isPrompt: !!selectedText,
+    });
   }
 }
 
@@ -389,6 +394,10 @@ async function handleShortcutOpenPanelAutoUse(selectedText?: string) {
       }
     }
 
-    openPanel(config, targetElement, { submit: true, autoUse: true });
+    openPanel(config, targetElement, {
+      submit: true,
+      autoUse: true,
+      isPrompt: !!selectedText,
+    });
   }
 }
