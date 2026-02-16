@@ -1,11 +1,9 @@
-import type { Route } from "./+types/summary";
+import type { Route } from "./+types/page";
 import {
   TbChartLine,
-  TbCheck,
   TbConfetti,
   TbCrown,
   TbDatabase,
-  TbFolder,
   TbMessage,
   TbMoodCry,
   TbMoodHappy,
@@ -19,7 +17,6 @@ import {
   XAxis,
   CartesianGrid,
   Tooltip,
-  LineChart,
   Line,
   ComposedChart,
   Bar,
@@ -33,24 +30,24 @@ import {
 } from "react";
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
-import { redirect, useFetcher } from "react-router";
+import { redirect, useSearchParams } from "react-router";
 import { getLimits } from "@packages/common/user-plan";
-import { hideModal, showModal } from "~/components/daisy-utils";
+import { showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
 import cn from "@meltdownjs/cn";
-import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import { dodoGateway } from "~/payment/gateway-dodo";
 import { track } from "~/components/track";
 import { getMessagesSummary } from "~/messages-summary";
 import type { Payload } from "recharts/types/component/DefaultTooltipContent";
-import LanguageDistribution from "./summary/language-distribution";
-import { TopPages } from "./summary/top-pages";
-import { BRIGHT_COLORS } from "./summary/bright-colors";
-import CategoryCard from "./summary/category-card";
-import StatCard from "./summary/stat-card";
-import Tags from "./summary/tags";
+import LanguageDistribution from "./language-distribution";
+import { TopPages } from "./top-pages";
+import { BRIGHT_COLORS } from "./bright-colors";
+import CategoryCard from "./category-card";
+import StatCard from "./stat-card";
+import Tags from "./tags";
+import { NewCollectionModal } from "./new-collection-modal";
 
 function monoString(str: string) {
   return str.trim().toLowerCase().replace(/^\n+/, "").replace(/\n+$/, "");
@@ -97,13 +94,17 @@ export async function loader({ request }: Route.LoaderArgs) {
     });
   }
 
-  const ONE_WEEK = 1000 * 60 * 60 * 24 * 7;
+  const url = new URL(request.url);
+  const VALID_DAYS = [7, 14, 30, 90, 180];
+  const daysParam = parseInt(url.searchParams.get("days") ?? "14", 10);
+  const days = VALID_DAYS.includes(daysParam) ? daysParam : 14;
+  const DAY_MS = 1000 * 60 * 60 * 24;
 
   const messages = await prisma.message.findMany({
     where: {
       scrapeId,
       createdAt: {
-        gte: new Date(Date.now() - ONE_WEEK * 2),
+        gte: new Date(Date.now() - days * DAY_MS),
       },
     },
     select: {
@@ -137,7 +138,8 @@ export async function loader({ request }: Route.LoaderArgs) {
           (m) =>
             m.analysis?.category &&
             monoString(m.analysis.category) === monoString(category.title)
-        )
+        ),
+        true
       ),
     }))
     .sort((a, b) => b.summary.messagesCount - a.summary.messagesCount);
@@ -180,6 +182,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     messagesSummary,
     categoriesSummary,
     topItems,
+    days,
   };
 }
 
@@ -318,10 +321,18 @@ export function Heading({
   );
 }
 
+const DATE_RANGE_OPTIONS = [
+  { value: 7, label: "Last week" },
+  { value: 14, label: "Last 2 weeks" },
+  { value: 30, label: "Last 1 month" },
+  { value: 90, label: "Last 3 months" },
+  { value: 180, label: "Last 6 months" },
+];
+
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
-  const newCollectionFetcher = useFetcher();
+  const [searchParams, setSearchParams] = useSearchParams();
   const canCreateCollection = useMemo(() => {
     if (loaderData.user?.plan?.subscriptionId) {
       return true;
@@ -331,26 +342,78 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     const data = [];
     const today = new Date();
     const DAY_MS = 1000 * 60 * 60 * 24;
+    const groupByMonth = loaderData.days > 60;
 
-    for (let i = 0; i < 14; i++) {
-      const date = new Date(today.getTime() - i * DAY_MS);
-      const key = date.toISOString().split("T")[0];
-      const name = moment(date).format("MMM D");
+    if (groupByMonth) {
+      const monthlyData: Record<string, Record<string, number | string>> = {};
 
-      const item = loaderData.messagesSummary.dailyMessages[key];
+      const startDate = new Date(today.getTime() - loaderData.days * DAY_MS);
+      const startMonth = moment(startDate).startOf("month");
+      const endMonth = moment(today).startOf("month");
 
-      const record: Record<string, number | string> = {
-        name,
-        Questions: item?.count ?? 0,
-        Unhappy: item?.unhappy ?? 0,
-        Other: item?.categories["Other"] ?? 0,
-      };
-
-      for (const category of loaderData.scrape?.messageCategories ?? []) {
-        record[category.title] = item?.categories[category.title] ?? 0;
+      for (
+        let m = startMonth.clone();
+        m.isSameOrBefore(endMonth);
+        m.add(1, "month")
+      ) {
+        const monthKey = m.format("YYYY-MM");
+        monthlyData[monthKey] = {
+          name: m.format("MMM YYYY"),
+          Questions: 0,
+          Unhappy: 0,
+          Other: 0,
+        };
+        for (const category of loaderData.scrape?.messageCategories ?? []) {
+          monthlyData[monthKey][category.title] = 0;
+        }
       }
 
-      data.push(record);
+      for (const [dayKey, item] of Object.entries(
+        loaderData.messagesSummary.dailyMessages
+      )) {
+        const monthKey = dayKey.substring(0, 7);
+        if (!monthlyData[monthKey]) continue;
+        monthlyData[monthKey].Questions =
+          (monthlyData[monthKey].Questions as number) + item.count;
+        monthlyData[monthKey].Unhappy =
+          (monthlyData[monthKey].Unhappy as number) + item.unhappy;
+        monthlyData[monthKey].Other =
+          (monthlyData[monthKey].Other as number) +
+          (item.categories["Other"] ?? 0);
+        for (const category of loaderData.scrape?.messageCategories ?? []) {
+          monthlyData[monthKey][category.title] =
+            (monthlyData[monthKey][category.title] as number) +
+            (item.categories[category.title] ?? 0);
+        }
+      }
+
+      const sortedKeys = Object.keys(monthlyData).sort();
+      for (const key of sortedKeys) {
+        data.push(monthlyData[key]);
+      }
+    } else {
+      for (let i = 0; i < loaderData.days; i++) {
+        const date = new Date(today.getTime() - i * DAY_MS);
+        const key = date.toISOString().split("T")[0];
+        const name = moment(date).format("MMM D");
+
+        const item = loaderData.messagesSummary.dailyMessages[key];
+
+        const record: Record<string, number | string> = {
+          name,
+          Questions: item?.count ?? 0,
+          Unhappy: item?.unhappy ?? 0,
+          Other: item?.categories["Other"] ?? 0,
+        };
+
+        for (const category of loaderData.scrape?.messageCategories ?? []) {
+          record[category.title] = item?.categories[category.title] ?? 0;
+        }
+
+        data.push(record);
+      }
+
+      data.reverse();
     }
 
     const categories = new Set<string>(["Other"]);
@@ -358,8 +421,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       categories.add(category.title);
     }
 
-    return [data.reverse(), categories];
-  }, [loaderData.messagesSummary.dailyMessages]);
+    return [data, categories];
+  }, [loaderData.messagesSummary.dailyMessages, loaderData.days]);
 
   const [tagsOrder, setTagsOrder] = useState<"top" | "latest">("top");
   const tags = useMemo(() => {
@@ -395,19 +458,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       showModal("new-collection-dialog");
     }
   }, [loaderData.noScrapes, canCreateCollection]);
-
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if (url.searchParams.get("created")) {
-      hideModal("new-collection-dialog");
-    }
-  }, [newCollectionFetcher.state]);
-
-  useEffect(() => {
-    if (newCollectionFetcher.data?.error) {
-      toast.error(newCollectionFetcher.data.error);
-    }
-  }, [newCollectionFetcher.data]);
 
   function renderTick(props: {
     x: number;
@@ -481,16 +531,36 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     <Page
       title="Summary"
       icon={<TbChartLine />}
-      description="For last 14 days"
       right={
         <div className="flex gap-2">
+          <select
+            className="select"
+            value={loaderData.days}
+            onChange={(e) => {
+              setSearchParams({ days: e.target.value });
+            }}
+          >
+            {DATE_RANGE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
           {canCreateCollection && (
             <button
-              className="btn btn-soft"
+              className="btn btn-soft hidden md:flex"
               onClick={() => showModal("new-collection-dialog")}
             >
               <TbPlus />
               Collection
+            </button>
+          )}
+          {canCreateCollection && (
+            <button
+              className="btn btn-soft btn-square md:hidden"
+              onClick={() => showModal("new-collection-dialog")}
+            >
+              <TbPlus />
             </button>
           )}
           {loaderData.scrape && (
@@ -685,54 +755,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      <dialog id="new-collection-dialog" className="modal">
-        <div className="modal-box">
-          <newCollectionFetcher.Form method="post">
-            <input type="hidden" name="intent" value="create-collection" />
-            <h3 className="font-bold text-lg flex gap-2 items-center">
-              <TbPlus />
-              New collection
-            </h3>
-            <div className="py-4">
-              <div className="text-base-content/50">
-                A collection lets you setup your knowledge base and lets you
-                connect bot on multiple channels.
-              </div>
-              <fieldset className="fieldset">
-                <legend className="fieldset-legend">Give it a name</legend>
-                <input
-                  type="text"
-                  name="name"
-                  className="input w-full"
-                  placeholder="Ex: MyBot"
-                  required
-                />
-              </fieldset>
-            </div>
-            <div className="modal-action">
-              <button
-                className="btn"
-                type="button"
-                onClick={() => hideModal("new-collection-dialog")}
-              >
-                Close
-              </button>
-
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={newCollectionFetcher.state !== "idle"}
-              >
-                {newCollectionFetcher.state !== "idle" && (
-                  <span className="loading loading-spinner loading-xs" />
-                )}
-                Create
-                <TbCheck />
-              </button>
-            </div>
-          </newCollectionFetcher.Form>
-        </div>
-      </dialog>
+      <NewCollectionModal />
     </Page>
   );
 }

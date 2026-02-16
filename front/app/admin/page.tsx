@@ -430,6 +430,14 @@ export default function Admin({ loaderData }: Route.ComponentProps) {
   return (
     <div className="flex flex-col gap-2 p-4">
       <MessagesChart />
+      <div className="mb-2">
+        <Link
+          to="/admin-fowl/customers"
+          className="link link-primary link-hover"
+        >
+          Customers
+        </Link>
+      </div>
       <div className="text-2xl font-bold">Users</div>
       <UsersTable userDetails={loaderData.userDetails} />
       <div className="text-2xl font-bold mt-4">Messages</div>
