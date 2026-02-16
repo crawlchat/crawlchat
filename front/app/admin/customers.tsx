@@ -17,8 +17,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     where: {
       plan: {
         is: {
-          subscriptionId: { not: undefined },
-          status: "ACTIVE",
+          planId: { not: PLAN_FREE.id },
         },
       },
     },
