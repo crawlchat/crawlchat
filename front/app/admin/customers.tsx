@@ -29,9 +29,15 @@ export async function loader({ request }: Route.LoaderArgs) {
   const customerData = await Promise.all(
     users.map(async (user) => {
       const plan = planMap[user.plan?.planId ?? PLAN_FREE.id];
-      const allowedScrapes = plan.credits.scrapes;
-      const remainingScrapes = user.plan?.credits?.scrapes ?? 0;
-      const usedScrapes = allowedScrapes - remainingScrapes;
+      const allowedScrapes = plan.limits.scrapes;
+
+      const scrapes = await prisma.scrape.count({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      const usedScrapes = scrapes;
 
       const allowedMessages = plan.credits.messages;
       const remainingMessages = user.plan?.credits?.messages ?? 0;
