@@ -10,7 +10,7 @@ function chunk<T>(array: T[], size: number): T[][] {
 
 export async function cleanupMessages() {
   const DAY_MILLIS = 24 * 60 * 60 * 1000;
-  const AGO = new Date(Date.now() - 8 * DAY_MILLIS);
+  const AGO = new Date(Date.now() - 366 * DAY_MILLIS);
   const messages = await prisma.message.findMany({
     where: {
       createdAt: {
