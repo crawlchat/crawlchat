@@ -12,7 +12,8 @@ export async function upsertItem(
   url: string,
   sourcePageId: string,
   title: string,
-  text: string
+  text: string,
+  processId: string
 ) {
   const chunks = splitMarkdown(text, {
     context: knowledgeGroup.itemContext ?? undefined,
@@ -73,6 +74,7 @@ export async function upsertItem(
       status: "completed",
       sourcePageId,
       error: null,
+      lastProcessId: processId,
     },
     create: {
       userId: knowledgeGroup.userId,
@@ -86,6 +88,7 @@ export async function upsertItem(
       metaTags: [],
       embeddings,
       error: null,
+      lastProcessId: processId,
     },
   });
 }
@@ -93,7 +96,8 @@ export async function upsertItem(
 export async function upsertFailedItem(
   knowledgeGroupId: string,
   url: string,
-  error: string
+  error: string,
+  processId: string
 ) {
   const knowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
     where: { id: knowledgeGroupId },
@@ -116,6 +120,7 @@ export async function upsertFailedItem(
     update: {
       status: "failed",
       error,
+      lastProcessId: processId,
     },
     create: {
       userId: knowledgeGroup.scrape.userId,
@@ -124,6 +129,7 @@ export async function upsertFailedItem(
       url,
       status: "failed",
       error,
+      lastProcessId: processId,
     },
   });
 }

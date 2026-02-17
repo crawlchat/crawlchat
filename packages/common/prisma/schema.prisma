@@ -437,6 +437,7 @@ model ScrapeItem {
   status                  ScrapeItemStatus?
   error                   String?
   sourcePageId            String?
+  lastProcessId           String?
 
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
@@ -599,6 +600,7 @@ model KnowledgeGroup {
   fetchError                                String?
   urls                                      KnowledgeGroupUrlItem[]
   loadDynamically                           Boolean?
+  removeStalePages                          Boolean?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt
