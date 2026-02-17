@@ -9,7 +9,9 @@ type MessageForUniqueUser = {
   thread: { location: Location | null };
 };
 
-export function calcUniqueUsers(messages: MessageForUniqueUser[]): UniqueUser[] {
+export function calcUniqueUsers(
+  messages: MessageForUniqueUser[]
+): UniqueUser[] {
   const usersMap = new Map<string, UniqueUser>();
 
   for (const message of messages) {
@@ -42,6 +44,7 @@ export function calcUniqueUsers(messages: MessageForUniqueUser[]): UniqueUser[] 
     }
   }
 
-  return Array.from(usersMap.values())
-    .sort((a, b) => b.lastAsked.getTime() - a.lastAsked.getTime());
+  return Array.from(usersMap.values()).sort(
+    (a, b) => b.lastAsked.getTime() - a.lastAsked.getTime()
+  );
 }
