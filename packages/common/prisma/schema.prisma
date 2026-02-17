@@ -591,6 +591,7 @@ model KnowledgeGroup {
 
   fetchError                                String?
   urls                                      KnowledgeGroupUrlItem[]
+  loadDynamically                           Boolean?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt

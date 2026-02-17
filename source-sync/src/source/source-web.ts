@@ -39,6 +39,7 @@ export class WebSource implements Source {
         skipRegex: group.skipPageRegex
           ? group.skipPageRegex.split(",").map((r) => new RegExp(r))
           : undefined,
+        loadDynamically: group.loadDynamically ?? false,
       });
     } catch (err) {
       if (

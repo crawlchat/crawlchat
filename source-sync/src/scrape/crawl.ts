@@ -92,18 +92,27 @@ export async function scrape(
     removeHtmlTags?: string;
     scrollSelector?: string;
     maxWait?: number;
+    loadDynamically?: boolean;
   }
 ): Promise<ScrapeResult> {
-  const { dynamicFallbackContentLength = 100 } = options ?? {};
+  const {
+    dynamicFallbackContentLength = 100,
+    loadDynamically = false,
+    scrollSelector,
+    maxWait,
+  } = options ?? {};
   let { text, statusCode } = await scrapeFetch(url);
   const parsedText = parseHtml(text, options);
   let error = undefined;
 
-  if (parsedText.text.length <= dynamicFallbackContentLength) {
+  if (
+    parsedText.text.length <= dynamicFallbackContentLength ||
+    loadDynamically
+  ) {
     try {
       const pwResult = await scrapePw(url, {
-        scrollSelector: options?.scrollSelector,
-        maxWait: options?.maxWait,
+        scrollSelector,
+        maxWait: loadDynamically ? 20000 : maxWait,
       });
       text = pwResult.text;
       statusCode = pwResult.statusCode;
@@ -124,6 +133,7 @@ export type ScrapeWithLinksOptions = {
   allowOnlyRegex?: RegExp;
   scrollSelector?: string;
   maxWait?: number;
+  loadDynamically?: boolean;
 };
 
 export class StatusCodeError extends Error {
