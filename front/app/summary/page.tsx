@@ -1,7 +1,6 @@
 import type { Route } from "./+types/page";
 import {
   TbChartLine,
-  TbConfetti,
   TbCrown,
   TbDatabase,
   TbMessage,
@@ -9,6 +8,7 @@ import {
   TbMoodHappy,
   TbPlus,
   TbThumbDown,
+  TbUser,
 } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "@packages/common/prisma";
@@ -40,6 +40,8 @@ import { makeMeta } from "~/meta";
 import { dodoGateway } from "~/payment/gateway-dodo";
 import { track } from "~/components/track";
 import { getMessagesSummary } from "~/messages-summary";
+import { UniqueUsers } from "./unique-users";
+import { calcUniqueUsers } from "./calc-unique-users";
 import type { Payload } from "recharts/types/component/DefaultTooltipContent";
 import LanguageDistribution from "./language-distribution";
 import { TopPages } from "./top-pages";
@@ -117,6 +119,13 @@ export async function loader({ request }: Route.LoaderArgs) {
       rating: true,
       analysis: true,
       links: true,
+      fingerprint: true,
+      channel: true,
+      thread: {
+        select: {
+          location: true,
+        },
+      },
     },
   });
 
@@ -173,6 +182,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     }
   }
 
+  const allUniqueUsers = calcUniqueUsers(messages);
+  const uniqueUsers = allUniqueUsers.slice(0, 10);
+
   return {
     user,
     scrapeId,
@@ -182,6 +194,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     messagesSummary,
     categoriesSummary,
     topItems,
+    uniqueUsers,
+    uniqueUsersCount: allUniqueUsers.length,
     days,
   };
 }
@@ -637,13 +651,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
           <div className="flex flex-col justify-stretch md:flex-row gap-4 items-center">
             <StatCard
-              label="Resolved"
-              value={loaderData.messagesSummary.resolvedCount}
-              icon={
-                <span className="text-primary">
-                  <TbConfetti />
-                </span>
-              }
+              label="Users"
+              value={loaderData.uniqueUsersCount}
+              icon={<TbUser />}
             />
             <StatCard
               label="Happy"
@@ -721,6 +731,18 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             <div>
               <Heading>Top cited pages</Heading>
               <TopPages topItems={loaderData.topItems} />
+            </div>
+          )}
+
+          {loaderData.uniqueUsers.length > 0 && (
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Heading className="mb-0">Users</Heading>
+                <a href="/users" className="btn btn-sm btn-soft">
+                  Show all
+                </a>
+              </div>
+              <UniqueUsers users={loaderData.uniqueUsers} />
             </div>
           )}
 
