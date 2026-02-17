@@ -256,87 +256,96 @@ function UsedByItem({
 }
 
 export function UsedBy() {
+  const items = (
+    <>
+      <UsedByItem href="https://remotion.dev" target="_blank">
+        <img
+          src="/used-by/remotion.png"
+          alt="Remotion"
+          className="max-h-[34px] shrink-0 grayscale hover:grayscale-0 transition-all"
+        />
+      </UsedByItem>
+
+      <UsedByItem href="https://konvajs.org" target="_blank">
+        <img src="/used-by/konvajs.png" alt="Konva" className="max-h-[38px]" />
+        <div className="font-medium text-xl">Konvajs</div>
+      </UsedByItem>
+
+      <UsedByItem href="https://270degrees.nl" target="_blank">
+        <img
+          src="/used-by/270logo.svg"
+          alt="270Degrees.nl"
+          className="max-h-[38px]"
+        />
+        <div className="font-medium text-xl">270Degrees</div>
+      </UsedByItem>
+
+      <UsedByItem href="https://polotno.com" target="_blank">
+        <img
+          src="/used-by/polotno.png"
+          alt="Polotno"
+          className="max-h-[38px]"
+        />
+        <div className="font-medium text-xl">Polotno</div>
+      </UsedByItem>
+
+      <UsedByItem href="https://localstack.cloud" target="_blank">
+        <img
+          src="/used-by/localstack.png"
+          alt="LocalStack"
+          className="max-h-[38px]"
+        />
+        <div className="font-medium text-xl">LocalStack</div>
+      </UsedByItem>
+
+      <UsedByItem href="https://backpackforlaravel.com" target="_blank">
+        <img
+          src="/used-by/backpack-laravel.png"
+          alt="Backpack for Laravel"
+          className="max-h-[38px]"
+        />
+      </UsedByItem>
+
+      <UsedByItem href="https://postiz.com" target="_blank">
+        <div className="bg-gray-900 rounded-box p-3 px-4 pb-2 rounded-full shrink-0">
+          <img
+            src="/used-by/postiz.svg"
+            alt="Postiz"
+            className="max-h-[24px] grayscale"
+          />
+        </div>
+      </UsedByItem>
+
+      <UsedByItem href="https://nobl9.com" target="_blank">
+        <img
+          src="/used-by/nobl9.png"
+          alt="Nobl9"
+          className="max-h-[34px] grayscale"
+        />
+      </UsedByItem>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <h3 className="text-center text-xl font-medium opacity-50">
         Trusted by leading companies
       </h3>
 
-      <div
-        className={cn(
-          "flex justify-center items-center gap-8 md:gap-16",
-          "flex-wrap"
-        )}
-      >
-        <UsedByItem href="https://remotion.dev" target="_blank">
-          <img
-            src="/used-by/remotion.png"
-            alt="Remotion"
-            className="max-h-[34px] shrink-0 grayscale hover:grayscale-0 transition-all"
-          />
-        </UsedByItem>
+      <div className="relative overflow-hidden used-by-scroll-container">
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-24 z-10 bg-linear-to-r from-base-100 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 z-10 bg-linear-to-l from-base-100 to-transparent" />
 
-        <UsedByItem href="https://konvajs.org" target="_blank">
-          <img
-            src="/used-by/konvajs.png"
-            alt="Konva"
-            className="max-h-[38px]"
-          />
-          <div className="font-medium text-xl">Konvajs</div>
-        </UsedByItem>
-
-        <UsedByItem href="https://270degrees.nl" target="_blank">
-          <img
-            src="/used-by/270logo.svg"
-            alt="270Degrees.nl"
-            className="max-h-[38px]"
-          />
-          <div className="font-medium text-xl">270Degrees</div>
-        </UsedByItem>
-
-        <UsedByItem href="https://polotno.com" target="_blank">
-          <img
-            src="/used-by/polotno.png"
-            alt="Polotno"
-            className="max-h-[38px]"
-          />
-          <div className="font-medium text-xl">Polotno</div>
-        </UsedByItem>
-
-        <UsedByItem href="https://localstack.cloud" target="_blank">
-          <img
-            src="/used-by/localstack.png"
-            alt="LocalStack"
-            className="max-h-[38px]"
-          />
-          <div className="font-medium text-xl">LocalStack</div>
-        </UsedByItem>
-
-        <UsedByItem href="https://backpackforlaravel.com" target="_blank">
-          <img
-            src="/used-by/backpack-laravel.png"
-            alt="Backpack for Laravel"
-            className="max-h-[38px]"
-          />
-        </UsedByItem>
-
-        <UsedByItem href="https://postiz.com" target="_blank">
-          <div className="bg-gray-900 rounded-box p-3 px-4 pb-2 rounded-full shrink-0">
-            <img
-              src="/used-by/postiz.svg"
-              alt="Postiz"
-              className="max-h-[24px] grayscale"
-            />
-          </div>
-        </UsedByItem>
-
-        <UsedByItem href="https://nobl9.com" target="_blank">
-          <img
-            src="/used-by/nobl9.png"
-            alt="Nobl9"
-            className="max-h-[38px] grayscale"
-          />
-        </UsedByItem>
+        <div className="inline-flex flex-nowrap items-center">
+          {Array.from(Array(4)).map((_, i) => (
+            <div
+              key={i}
+              className="flex gap-12 pr-12 shrink-0 items-center animate-used-by-scroll"
+            >
+              {items}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

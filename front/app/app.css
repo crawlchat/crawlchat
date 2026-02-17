@@ -178,6 +178,23 @@
   animation-play-state: paused !important;
 }
 
+@keyframes used-by-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-used-by-scroll {
+  animation: used-by-scroll 25s linear infinite;
+}
+
+.used-by-scroll-container:hover .animate-used-by-scroll {
+  animation-play-state: paused;
+}
+
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
