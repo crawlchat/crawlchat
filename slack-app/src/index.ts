@@ -368,6 +368,140 @@ async function handleReaction(
       });
     } catch {}
   }
+
+  if (
+    type === "added" &&
+    (event.reaction === "question" ||
+      event.reaction === "bulb" ||
+      event.reaction === "brain")
+  ) {
+    const message = await getReactionMessage(client, event);
+    if (!message) return;
+
+    // Check if user is admin
+    const userInfo = await client.users.info({ user: event.user });
+    const isAdmin = userInfo.user?.is_admin || userInfo.user?.is_owner;
+    // Optional: limit to admins if needed, currently allowing all or check config
+    // if (!isAdmin) return;
+
+    const scrape = await prisma.scrape.findFirst({
+      where: {
+        slackTeamId: context.teamId,
+      },
+    });
+
+    if (!scrape) {
+      await client.chat.postEphemeral({
+        channel: event.item.channel,
+        user: event.user,
+        text: "You need to integrate your Slack with CrawlChat.app first!",
+      });
+      return;
+    }
+
+    try {
+      await client.reactions.add({
+        token: context.botToken,
+        channel: event.item.channel,
+        timestamp: message.ts,
+        name: LOADING_REACTION,
+      });
+    } catch {}
+
+    try {
+      const llmMessages = await getContextMessages(
+        { ...message, channel: event.item.channel },
+        client,
+        context.botUserId!
+      );
+
+      let specificInstruction = "";
+      if (event.reaction === "bulb")
+        specificInstruction =
+          "Explain the content of this message and context in detail. Be educational and clear.";
+      else if (event.reaction === "brain")
+        specificInstruction =
+          "Summarize the discussion context and the specific message. Be concise.";
+      else
+        specificInstruction =
+          "Answer the question or respond to the message helpfully.";
+
+      const {
+        answer,
+        error,
+        message: answerMessage,
+      } = await query(scrape.id, llmMessages, createToken(scrape.userId), {
+        prompt: `
+This would be a Slack message.
+Task: ${specificInstruction}
+
+Keep it short and concise. Don't use markdown for formatting.
+Keep the format plain, if possible use the Slack blocks for formatting bold, italic, tables, links, etc.
+Only following blocks are allowed:
+1. Bold — *text*
+2. Italic — _text_
+3. Strikethrough — ~text~
+4. Inline code — \`code\`
+5. Code block —  code 
+6. Blockquote — > text
+7. List — • Item or - Item or 1. Item
+8. Link — <url|label>
+
+You should use only the above formatting in the answer.
+Don't use ** or __ for bold, use * instead. This is very important. Don't use markdown.
+`,
+        fingerprint: (message as any).user,
+      });
+
+      if (error) {
+        await client.chat.postEphemeral({
+          channel: event.item.channel,
+          user: event.user,
+          text: `Error: ${error}`,
+        });
+        return;
+      }
+
+      const result = await client.chat.postMessage({
+        text: answer,
+        mrkdwn: true,
+        thread_ts: message.ts,
+        channel: event.item.channel,
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: answer,
+            },
+          },
+        ],
+        reply_broadcast: scrape.slackConfig?.replyBroadcast ?? false,
+      });
+
+      if (result.message) {
+        await prisma.message.update({
+          where: {
+            id: answerMessage.id,
+          },
+          data: {
+            slackMessageId: `${result.channel}|${result.message.ts}`,
+          },
+        });
+      }
+    } catch (e) {
+      console.error("Error handling slack reaction", e);
+    } finally {
+      try {
+        await client.reactions.remove({
+          token: context.botToken,
+          channel: event.item.channel,
+          timestamp: message.ts,
+          name: LOADING_REACTION,
+        });
+      } catch {}
+    }
+  }
 }
 
 app.event("reaction_added", async ({ event, client, context }) => {

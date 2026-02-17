@@ -523,6 +523,123 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     return learnMessage(await reaction.message.fetch(), true);
   }
 
+  if (emojiStr === "❓" || emojiStr === "💡" || emojiStr === "🧠") {
+    // Check for duplicate execution
+    if (reaction.count && reaction.count > 1) {
+      return;
+    }
+
+    const member = await reaction.message.guild!.members.fetch(user.id);
+    const hasRequiredPermissions =
+      member.permissions.has(PermissionsBitField.Flags.Administrator) ||
+      member.permissions.has(PermissionsBitField.Flags.ManageGuild) ||
+      member.permissions.has(PermissionsBitField.Flags.ManageMessages);
+
+    if (!hasRequiredPermissions) {
+      return;
+    }
+
+    const { stopTyping } = await sendTyping(
+      reaction.message.channel as TextChannel
+    );
+
+    try {
+      const message = await reaction.message.fetch();
+
+      // Double check - if we already answered this specific message with this specific emoji action
+      // Ideally we should track this in DB but for now reaction count + local check is a good start
+      // A more robust way would be to check if the bot has already reacted with specific emoji or check DB logs
+
+      const previousMessages = await getPreviousMessages(
+        message,
+        !scrape.discordConfig?.replyAsThread
+      );
+
+      const messages = await Promise.all(
+        previousMessages
+          .sort((a, b) => a.createdTimestamp - b.createdTimestamp)
+          .map((m) => makeMessage(m, scrape))
+      );
+
+      messages.push(await makeMessage(message, scrape));
+
+      const publicThreadId =
+        message.channel.type === ChannelType.PublicThread
+          ? message.channel.id
+          : undefined;
+
+      let discordThread = null;
+      if (
+        scrape.discordConfig?.replyAsThread &&
+        message.channel.type !== ChannelType.PublicThread
+      ) {
+        const shortQuery = cleanContent(
+          removeBotMentions(message.content)
+        ).substring(0, 50);
+        discordThread = await message.startThread({
+          name: `Response to: ${shortQuery}${
+            shortQuery.length > 50 ? "..." : ""
+          }`,
+          autoArchiveDuration: ThreadAutoArchiveDuration.ThreeDays,
+        });
+      }
+
+      let specificInstruction = "";
+      if (emojiStr === "💡")
+        specificInstruction =
+          "Explain the content of this message and context in detail. Be educational and clear.";
+      else if (emojiStr === "🧠")
+        specificInstruction =
+          "Summarize the discussion context and the specific message. Be concise.";
+      else
+        specificInstruction =
+          "Answer the question or respond to the message helpfully.";
+
+      const prompt = `${defaultPrompt}\n\nTask: ${specificInstruction}`;
+
+      const {
+        answer,
+        error,
+        message: answerMessage,
+      } = await query(scrape.id, messages, createToken(scrape.userId), {
+        prompt,
+        clientThreadId: discordThread?.id ?? publicThreadId,
+        fingerprint: message.author.id,
+      });
+
+      let response = "Something went wrong";
+      if (error) {
+        response = `‼️ Attention required: ${error}`;
+      }
+      if (answer) {
+        response = answer;
+      }
+
+      let replyResult;
+      if (discordThread) {
+        replyResult = await discordThread.send(response);
+      } else {
+        replyResult = await message.reply(response);
+      }
+
+      await prisma.message.update({
+        where: { id: answerMessage.id },
+        data: {
+          discordMessageId: replyResult.id,
+        },
+      });
+    } catch (e) {
+      console.error("Error handling reaction:", e);
+    } finally {
+      stopTyping();
+      try {
+        await reaction.remove();
+      } catch {}
+    }
+
+    return;
+  }
+
   if (emojiStr === draftEmoji && draftDestinationChannelId) {
     const channel = await reaction.message.client.channels.fetch(
       draftDestinationChannelId
