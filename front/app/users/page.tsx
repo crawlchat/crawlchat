@@ -35,6 +35,11 @@ export async function loader({ request }: Route.LoaderArgs) {
       createdAt: {
         gte: new Date(Date.now() - days * DAY_MS),
       },
+      llmMessage: {
+        is: {
+          role: "user",
+        },
+      },
     },
     select: {
       createdAt: true,
