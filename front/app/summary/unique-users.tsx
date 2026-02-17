@@ -3,12 +3,14 @@ import Avatar from "boring-avatars";
 import { CountryFlag } from "~/message/country-flag";
 import { ChannelBadge } from "~/components/channel-badge";
 import { Timestamp } from "~/components/timestamp";
+import { Link } from "react-router";
 
 export type UniqueUser = {
   fingerprint: string;
   questionsCount: number;
   firstAsked: Date;
   lastAsked: Date;
+  ageDays: number;
   channel: MessageChannel | null;
   location: Location | null;
 };
@@ -21,6 +23,7 @@ export function UniqueUsers({ users }: { users: UniqueUser[] }) {
           <tr>
             <th>User</th>
             <th>Questions</th>
+            <th>Age</th>
             <th>First asked</th>
             <th>Last asked</th>
             <th>Channel</th>
@@ -30,7 +33,10 @@ export function UniqueUsers({ users }: { users: UniqueUser[] }) {
           {users.map((user) => (
             <tr key={user.fingerprint}>
               <td>
-                <div className="flex items-center gap-2">
+                <Link
+                  to={`/questions?fingerprint=${user.fingerprint}`}
+                  className="flex items-center gap-2 link-hover text-primary"
+                >
                   <Avatar
                     name={user.fingerprint}
                     size={24}
@@ -43,10 +49,13 @@ export function UniqueUsers({ users }: { users: UniqueUser[] }) {
                   <span className="whitespace-nowrap">
                     #{user.fingerprint.slice(0, 6)}
                   </span>
-                </div>
+                </Link>
               </td>
               <td>
                 <span className="badge badge-soft">{user.questionsCount}</span>
+              </td>
+              <td>
+                <span className="badge badge-soft">{user.ageDays}d</span>
               </td>
               <td className="whitespace-nowrap">
                 <Timestamp date={user.firstAsked} />

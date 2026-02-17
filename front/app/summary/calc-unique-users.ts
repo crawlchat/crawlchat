@@ -9,10 +9,12 @@ type MessageForUniqueUser = {
   thread: { location: Location | null };
 };
 
+type UserAcc = Omit<UniqueUser, "ageDays">;
+
 export function calcUniqueUsers(
   messages: MessageForUniqueUser[]
 ): UniqueUser[] {
-  const usersMap = new Map<string, UniqueUser>();
+  const usersMap = new Map<string, UserAcc>();
 
   for (const message of messages) {
     const fp = message.fingerprint;
@@ -44,7 +46,14 @@ export function calcUniqueUsers(
     }
   }
 
-  return Array.from(usersMap.values()).sort(
-    (a, b) => b.lastAsked.getTime() - a.lastAsked.getTime()
-  );
+  const DAY_MS = 1000 * 60 * 60 * 24;
+
+  return Array.from(usersMap.values())
+    .map((u) => ({
+      ...u,
+      ageDays: Math.ceil(
+        (u.lastAsked.getTime() - u.firstAsked.getTime()) / DAY_MS
+      ),
+    }))
+    .sort((a, b) => b.ageDays - a.ageDays);
 }

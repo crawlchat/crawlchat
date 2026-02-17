@@ -92,6 +92,9 @@ export async function loader({ request }: Route.LoaderArgs) {
       },
     };
   }
+  if (url.searchParams.get("fingerprint")) {
+    where.fingerprint = url.searchParams.get("fingerprint");
+  }
   if (url.searchParams.get("mcp")) {
     delete where.OR;
   }
