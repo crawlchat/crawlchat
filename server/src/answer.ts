@@ -364,8 +364,6 @@ export async function saveAnswer(
   fingerprint?: string,
   onFollowUpQuestion?: (questions: string[]) => void
 ) {
-  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
-
   const { citedLinks } = extractCitations(answer.content, answer.sources);
   const links = answer.sources.map((link) => ({
     ...link,
@@ -402,6 +400,8 @@ export async function saveAnswer(
   });
 
   await updateLastMessageAt(threadId);
+
+  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
 
   if (scrape.analyseMessage) {
     fillMessageAnalysis(

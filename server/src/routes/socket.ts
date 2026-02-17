@@ -190,29 +190,22 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       });
     }
 
-    let questionMessage: any = null;
+    const questionMessage = await prisma.message.create({
+      data: {
+        threadId,
+        scrapeId: scrape.id,
+        llmMessage: { role: "user", content: message.data.query },
+        ownerUserId: scrape.userId,
+        channel: "widget",
+        fingerprint,
+        url: currentItem?.url,
+      },
+    });
+    await updateLastMessageAt(threadId);
+    broadcastToThread(threadId, makeMessage("query-message", questionMessage));
 
-    const answerListener: AnswerListener = async (event) => {
+    const answerListener: AnswerListener = (event) => {
       switch (event.type) {
-        case "init":
-          questionMessage = await prisma.message.create({
-            data: {
-              threadId,
-              scrapeId: scrape.id,
-              llmMessage: { role: "user", content: event.query },
-              ownerUserId: scrape.userId,
-              channel: "widget",
-              fingerprint,
-              url: currentItem?.url,
-            },
-          });
-          await updateLastMessageAt(threadId);
-          broadcastToThread(
-            threadId,
-            makeMessage("query-message", questionMessage)
-          );
-          break;
-
         case "stream-delta":
           if (event.delta) {
             broadcastToThread(
@@ -232,39 +225,13 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             })
           );
           break;
-
-        case "answer-complete":
-          const newAnswerMessage = await saveAnswer(
-            event,
-            scrape,
-            threadId,
-            "widget",
-            questionMessage?.id ?? null,
-            scrape.llmModel,
-            fingerprint,
-            (questions) => {
-              broadcastToThread(
-                threadId,
-                makeMessage("follow-up-questions", { questions })
-              );
-            }
-          );
-          broadcastToThread(
-            threadId,
-            makeMessage("llm-chunk", {
-              end: true,
-              content: event.content,
-              message: newAnswerMessage,
-            })
-          );
-          break;
       }
     };
 
     const recentMessages = thread.messages.slice(-40);
 
-    await retry(async () => {
-      baseAnswerer(
+    const answer = await retry(async () => {
+      return await baseAnswerer(
         scrape,
         thread,
         message.data.query,
@@ -295,6 +262,31 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
         }
       );
     });
+
+    const newAnswerMessage = await saveAnswer(
+      answer,
+      scrape,
+      threadId,
+      "widget",
+      questionMessage.id,
+      scrape.llmModel,
+      fingerprint,
+      (questions) => {
+        broadcastToThread(
+          threadId,
+          makeMessage("follow-up-questions", { questions })
+        );
+      }
+    );
+
+    broadcastToThread(
+      threadId,
+      makeMessage("llm-chunk", {
+        end: true,
+        content: answer.content,
+        message: newAnswerMessage,
+      })
+    );
   };
 
   ws.on("message", (msg: Buffer | string) => {
