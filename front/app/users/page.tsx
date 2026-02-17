@@ -3,9 +3,6 @@ import { TbUsers } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "@packages/common/prisma";
 import { Page } from "~/components/page";
-import { getSession } from "~/session";
-import { redirect } from "react-router";
-import { commitSession } from "~/session";
 import { makeMeta } from "~/meta";
 import { UniqueUsers } from "~/summary/unique-users";
 import { calcUniqueUsers } from "~/summary/calc-unique-users";
@@ -22,7 +19,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     select: {
       createdAt: true,
-      llmMessage: true,
+      llmMessage: {
+        select: {
+          role: true,
+        },
+      },
       fingerprint: true,
       channel: true,
       thread: {
