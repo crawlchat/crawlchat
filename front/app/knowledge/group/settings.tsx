@@ -307,6 +307,9 @@ export async function action({ request, params }: Route.ActionArgs) {
       .map((url) => ({ url: url.trim() }));
     update.urls = urls;
   }
+  if (formData.has("from-load-dynamically")) {
+    update.loadDynamically = formData.get("loadDynamically") === "on";
+  }
 
   const group = await prisma.knowledgeGroup.update({
     where: { id: groupId, scrapeId },
@@ -417,7 +420,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
   const include404Pages = useFetcher();
   const skipRegexFetcher = useFetcher();
   const scrollSelectorFetcher = useFetcher();
-
+  const loadDynamicallyFetcher = useFetcher();
   const itemContextFetcher = useFetcher();
   const details = useMemo(() => {
     return [
@@ -523,6 +526,24 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           defaultValue={group.scrollSelector ?? ""}
           name="scrollSelector"
         />
+      </SettingsSection>
+
+      <SettingsSection
+        id="load-dynamically"
+        fetcher={loadDynamicallyFetcher}
+        title="Load dynamically"
+        description="If enabled, it will load the page dynamically. It is useful to scrape pages that have infinite scroll."
+      >
+        <input type="hidden" name="from-load-dynamically" value={"true"} />
+        <label className="label">
+          <input
+            type="checkbox"
+            name="loadDynamically"
+            defaultChecked={group.loadDynamically ?? false}
+            className="toggle"
+          />
+          Active
+        </label>
       </SettingsSection>
     </div>
   );
