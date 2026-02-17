@@ -111,7 +111,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     select: {
       createdAt: true,
-      llmMessage: true,
+      llmMessage: {
+        select: {
+          role: true,
+        },
+      },
       rating: true,
       analysis: true,
       links: true,
