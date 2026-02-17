@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # MCP API
 
-You can use this REST API to search your collection and get relevant results. This is the same endpoint used by the [MCP Server](/docs/connect/mcp-server) integration. Unlike other APIs, this is a **public endpoint** and does not require an API key. It only works with **public collections** (non-private).
+You can use this REST API to search your collection and get relevant results. This is the same endpoint used by the [MCP Server](/connect/mcp-server) integration. Unlike other APIs, this is a **public endpoint** and does not require an API key. It only works with **public collections** (non-private).
 
 :::warning Rate Limited
 This is a public endpoint and is rate limited. Excessive requests will be throttled.
