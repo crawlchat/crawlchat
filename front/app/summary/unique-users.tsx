@@ -45,7 +45,9 @@ export function UniqueUsers({ users }: { users: UniqueUser[] }) {
                   </span>
                 </div>
               </td>
-              <td>{user.questionsCount}</td>
+              <td>
+                <span className="badge badge-soft">{user.questionsCount}</span>
+              </td>
               <td className="whitespace-nowrap">
                 <Timestamp date={user.firstAsked} />
               </td>
