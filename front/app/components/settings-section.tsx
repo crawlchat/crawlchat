@@ -17,6 +17,7 @@ export function SettingsSection({
   savePrimary = false,
   saveIcon,
   multipart = false,
+  dirty = false,
 }: {
   id?: string;
   children?: React.ReactNode;
@@ -31,6 +32,7 @@ export function SettingsSection({
   savePrimary?: boolean;
   saveIcon?: React.ReactNode;
   multipart?: boolean;
+  dirty?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [targeted, setTargeted] = useState(false);
@@ -104,7 +106,8 @@ export function SettingsSection({
                   className={cn(
                     "btn",
                     danger && "btn-error",
-                    savePrimary && "btn-primary"
+                    savePrimary && "btn-primary",
+                    dirty && "btn-primary"
                   )}
                   disabled={fetcher.state !== "idle"}
                 >
