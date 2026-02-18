@@ -115,13 +115,31 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       },
     });
 
+    const scrape = await prisma.scrape.findFirstOrThrow({
+      where: { id: thread.scrapeId },
+    });
+
     if (message.data.query.length > 3000) {
-      ws.send(
-        makeMessage("error", {
-          message: "Question too long. Please shorten it.",
-        })
+      // repeated code
+      const user = await prisma.user.findFirst({
+        where: { id: userId },
+        include: {
+          scrapeUsers: true,
+        },
+      });
+
+      const isMember = user?.scrapeUsers.some(
+        (su) => su.scrapeId === scrape.id
       );
-      return;
+
+      if (!isMember || message.data.query.length > 8000) {
+        ws.send(
+          makeMessage("error", {
+            message: "Question too long. Please shorten it.",
+          })
+        );
+        return;
+      }
     }
 
     if (deleteIds) {
@@ -129,10 +147,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
         where: { id: { in: deleteIds }, threadId },
       });
     }
-
-    const scrape = await prisma.scrape.findFirstOrThrow({
-      where: { id: thread.scrapeId },
-    });
 
     if (scrape.private) {
       const user = await prisma.user.findFirst({
