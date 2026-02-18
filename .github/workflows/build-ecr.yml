@@ -37,26 +37,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - build_app: slack-app
-            image_name: crawlchat-slack
-            dockerfile: docker/Dockerfile
-          - build_app: discord-bot
-            image_name: crawlchat-discord
-            dockerfile: docker/Dockerfile
-          - build_app: docs
-            image_name: crawlchat-docs
-            dockerfile: docker/Dockerfile
           - build_app: front
             image_name: crawlchat-front
-            dockerfile: docker/Dockerfile
-          - build_app: marker
-            image_name: crawlchat-marker
-            dockerfile: docker/Dockerfile.marker
-          - build_app: server
-            image_name: crawlchat-server
-            dockerfile: docker/Dockerfile
-          - build_app: source-sync
-            image_name: crawlchat-source-sync
             dockerfile: docker/Dockerfile
 
     steps:
