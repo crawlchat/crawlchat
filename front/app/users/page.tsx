@@ -163,7 +163,12 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
         </div>
       }
     >
-      <UniqueUsers users={loaderData.uniqueUsers} sortBy={loaderData.sortBy} sortOrder={loaderData.sortOrder} onSort={handleSort} />
+      <UniqueUsers
+        users={loaderData.uniqueUsers}
+        sortBy={loaderData.sortBy}
+        sortOrder={loaderData.sortOrder}
+        onSort={handleSort}
+      />
     </Page>
   );
 }

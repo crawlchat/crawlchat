@@ -16,7 +16,13 @@ export type UniqueUser = {
   location: Location | null;
 };
 
-const SORT_FIELDS = ["questionsCount", "ageDays", "firstAsked", "lastAsked", "channel"];
+const SORT_FIELDS = [
+  "questionsCount",
+  "ageDays",
+  "firstAsked",
+  "lastAsked",
+  "channel",
+];
 
 function SortHeader({
   field,
@@ -75,14 +81,32 @@ export function UniqueUsers({
                 {onSort ? (
                   <SortHeader
                     field={field}
-                    label={field === "questionsCount" ? "Questions" : field === "ageDays" ? "Age" : field === "firstAsked" ? "First asked" : field === "lastAsked" ? "Last asked" : "Channel"}
+                    label={
+                      field === "questionsCount"
+                        ? "Questions"
+                        : field === "ageDays"
+                          ? "Age"
+                          : field === "firstAsked"
+                            ? "First asked"
+                            : field === "lastAsked"
+                              ? "Last asked"
+                              : "Channel"
+                    }
                     currentSortBy={sortBy}
                     currentSortOrder={sortOrder}
                     onSort={handleSort}
                   />
                 ) : (
                   <span className="font-medium">
-                    {field === "questionsCount" ? "Questions" : field === "ageDays" ? "Age" : field === "firstAsked" ? "First asked" : field === "lastAsked" ? "Last asked" : "Channel"}
+                    {field === "questionsCount"
+                      ? "Questions"
+                      : field === "ageDays"
+                        ? "Age"
+                        : field === "firstAsked"
+                          ? "First asked"
+                          : field === "lastAsked"
+                            ? "Last asked"
+                            : "Channel"}
                   </span>
                 )}
               </th>
