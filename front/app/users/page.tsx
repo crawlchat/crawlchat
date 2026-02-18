@@ -4,7 +4,7 @@ import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "@packages/common/prisma";
 import { Page } from "~/components/page";
 import { makeMeta } from "~/meta";
-import { UniqueUsers, SORT_FIELDS, FIELD_LABELS } from "~/summary/unique-users";
+import { UniqueUsers, FIELD_LABELS } from "~/summary/unique-users";
 import { calcUniqueUsers } from "~/summary/calc-unique-users";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { useSearchParams } from "react-router";
@@ -25,9 +25,8 @@ function sortUsers(
   sortBy: string,
   sortOrder: string
 ) {
-  const sortField = SORT_FIELDS.includes(sortBy as (typeof SORT_FIELDS)[number])
-    ? sortBy
-    : "lastAsked";
+  const validFields = Object.keys(FIELD_LABELS);
+  const sortField = validFields.includes(sortBy) ? sortBy : "lastAsked";
   const sortDir = sortOrder === "asc" ? 1 : -1;
 
   return [...users].sort((a, b) => {

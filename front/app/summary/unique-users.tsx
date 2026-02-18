@@ -17,14 +17,6 @@ export type UniqueUser = {
   location: Location | null;
 };
 
-export const SORT_FIELDS = [
-  "questionsCount",
-  "ageDays",
-  "firstAsked",
-  "lastAsked",
-  "channel",
-] as const;
-
 export const FIELD_LABELS: Record<string, string> = {
   questionsCount: "Questions",
   ageDays: "Age",
@@ -79,13 +71,14 @@ export function UniqueUsers({
   sortOrder?: string;
   onSort?: (field: string) => void;
 }) {
+  const fields = Object.keys(FIELD_LABELS);
   return (
     <div className="overflow-x-auto rounded-box border border-base-300 bg-base-100">
       <table className="table">
         <thead>
           <tr>
             <th>User</th>
-            {SORT_FIELDS.map((field) => (
+            {fields.map((field) => (
               <th key={field}>
                 {onSort ? (
                   <SortHeader
