@@ -118,6 +118,13 @@ async function getContextMessages(
   client: any,
   botUserId: string
 ) {
+  return [message].map((m) => ({
+    role: m.user === botUserId ? "assistant" : "user",
+    content: cleanText(m.text ?? ""),
+  }));
+}
+
+async function getContextHistory(message: any, client: any) {
   let messages: Message[] = [];
 
   if ((message as any).thread_ts) {
@@ -126,16 +133,31 @@ async function getContextMessages(
       ts: (message as any).thread_ts,
     });
     if (replies.messages) {
-      messages = replies.messages;
+      messages = replies.messages.filter(
+        (m: any) => Number(m.ts) < Number(message.ts)
+      );
     }
   } else {
-    messages = [message];
+    const history = await client.conversations.history({
+      channel: message.channel,
+      limit: 20,
+      latest: message.ts,
+      inclusive: false,
+    });
+    if (history.messages) {
+      messages = history.messages;
+    }
   }
 
-  return messages.map((m) => ({
-    role: m.user === botUserId ? "assistant" : "user",
-    content: cleanText(m.text ?? ""),
-  }));
+  return (
+    messages
+      .sort((a: any, b: any) => Number(a.ts) - Number(b.ts))
+      .map((m: any) => {
+        const date = new Date(Number(m.ts.split(".")[0]));
+        return `${m.user} (${date.toLocaleString()}): ${cleanText(m.text ?? "")}`;
+      })
+      .join("\n\n") || "No context available"
+  );
 }
 
 async function getLearnMessages(message: any, client: any, botUserId: string) {
@@ -200,6 +222,7 @@ app.message(async ({ message, say, client, context }) => {
     client,
     context.botUserId!
   );
+  const history = await getContextHistory(message, client);
   const {
     answer,
     error,
@@ -221,6 +244,12 @@ Only following blocks are allowed:
 
 You should use only the above formatting in the answer.
 Don't use ** or __ for bold, use * instead. This is very important. Don't use markdown.
+
+Only answer the current tagged message and use previous messages only for context.
+
+<message-history>
+${history}
+</message-history>
 `,
     fingerprint: (message as any).user,
   });
