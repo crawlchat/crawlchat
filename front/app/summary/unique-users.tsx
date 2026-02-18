@@ -5,6 +5,7 @@ import { ChannelBadge } from "~/components/channel-badge";
 import { Timestamp } from "~/components/timestamp";
 import { Link } from "react-router";
 import { TbArrowUp, TbArrowDown } from "react-icons/tb";
+import cn from "@meltdownjs/cn";
 
 export type UniqueUser = {
   fingerprint: string;
@@ -16,15 +17,15 @@ export type UniqueUser = {
   location: Location | null;
 };
 
-const SORT_FIELDS = [
+export const SORT_FIELDS = [
   "questionsCount",
   "ageDays",
   "firstAsked",
   "lastAsked",
   "channel",
-];
+] as const;
 
-const FIELD_LABELS: Record<string, string> = {
+export const FIELD_LABELS: Record<string, string> = {
   questionsCount: "Questions",
   ageDays: "Age",
   firstAsked: "First asked",
@@ -49,7 +50,10 @@ function SortHeader({
   const isActive = currentSortBy === field;
   return (
     <button
-      className={`flex items-center gap-1 font-medium hover:text-primary ${isActive ? "text-primary" : ""}`}
+      className={cn(
+        "flex items-center gap-1 font-medium hover:text-primary",
+        isActive && "text-primary"
+      )}
       onClick={() => onSort?.(field)}
     >
       {displayLabel}

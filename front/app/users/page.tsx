@@ -4,7 +4,7 @@ import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "@packages/common/prisma";
 import { Page } from "~/components/page";
 import { makeMeta } from "~/meta";
-import { UniqueUsers } from "~/summary/unique-users";
+import { UniqueUsers, SORT_FIELDS, FIELD_LABELS } from "~/summary/unique-users";
 import { calcUniqueUsers } from "~/summary/calc-unique-users";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { useSearchParams } from "react-router";
@@ -20,25 +20,14 @@ const DATE_RANGE_OPTIONS = [
 
 const VALID_DAYS = DATE_RANGE_OPTIONS.map((o) => o.value);
 
-const SORT_OPTIONS = [
-  { value: "questionsCount", label: "Questions" },
-  { value: "ageDays", label: "Age" },
-  { value: "firstAsked", label: "First asked" },
-  { value: "lastAsked", label: "Last asked" },
-  { value: "channel", label: "Channel" },
-];
-
-const VALID_SORT_FIELDS = SORT_OPTIONS.map((o) => o.value);
-const FIELD_LABELS: Record<string, string> = Object.fromEntries(
-  SORT_OPTIONS.map((o) => [o.value, o.label])
-);
-
 function sortUsers(
   users: typeof loaderData extends { uniqueUsers: infer T } ? T : never,
   sortBy: string,
   sortOrder: string
 ) {
-  const sortField = VALID_SORT_FIELDS.includes(sortBy) ? sortBy : "lastAsked";
+  const sortField = SORT_FIELDS.includes(sortBy as (typeof SORT_FIELDS)[number])
+    ? sortBy
+    : "lastAsked";
   const sortDir = sortOrder === "asc" ? 1 : -1;
 
   return [...users].sort((a, b) => {
