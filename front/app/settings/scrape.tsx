@@ -5,7 +5,7 @@ import type {
   ScrapeMessageCategory,
   User,
 } from "@packages/common/prisma";
-import { redirect, useFetcher } from "react-router";
+import { Link, redirect, useFetcher, useSearchParams } from "react-router";
 import {
   SettingsContainer,
   SettingsSection,
@@ -264,11 +264,18 @@ function oldModelToModel(oldModel: string) {
 
 function AiModelSettings({ scrape }: { scrape: Scrape }) {
   const modelFetcher = useFetcher();
+  const [searchParams] = useSearchParams();
   const [selectedModel, setSelectedModel] = useState<string>(
     scrape.llmModel
       ? oldModelToModel(scrape.llmModel)
       : "openrouter/openai/gpt-4o-mini"
   );
+
+  useEffect(() => {
+    if (searchParams.get("model")) {
+      setSelectedModel(searchParams.get("model") as string);
+    }
+  }, [searchParams]);
 
   return (
     <SettingsSection
@@ -276,6 +283,12 @@ function AiModelSettings({ scrape }: { scrape: Scrape }) {
       title="AI Model"
       description="Select the AI model to use for the messages across channels."
       fetcher={modelFetcher}
+      dirty={selectedModel !== scrape.llmModel}
+      actionRight={
+        <Link to={`/ai-models`} className="btn btn-ghost btn-primary">
+          Compare
+        </Link>
+      }
     >
       <select
         value={selectedModel}

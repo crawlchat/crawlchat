@@ -1,0 +1,18 @@
+---
+sidebar_position: 3
+---
+
+# AI Models
+
+AI model that is used for the chatbot plays an important role in maintaining better balance between the accuracy and speed. CrawlChat provides multiple AI models so that they serve different purposes and use cases. Here are the AI models available
+
+import { models } from "@packages/common";
+
+{Object.entries(models).map(([key, value]) => (
+
+  <ul key={key}>
+    <li>{value.displayName} - uses <strong>{value.creditsPerMessage}</strong> credits per message</li>
+  </ul>
+))}
+
+Check [AI Models](https://crawlchat.app/ai-models) for comparison of the models.

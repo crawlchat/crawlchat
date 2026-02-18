@@ -5,7 +5,10 @@ import {
   HeadingDescription,
   HeadingHighlight,
 } from "./page";
-import { TbArrowRight, TbCheck, TbX } from "react-icons/tb";
+import { models } from "@packages/common";
+import { TbArrowRight, TbCheck, TbCoins, TbX } from "react-icons/tb";
+import cn from "@meltdownjs/cn";
+import { Link } from "react-router";
 
 export function meta() {
   return makeMeta({
@@ -15,7 +18,12 @@ export function meta() {
 
 function Check() {
   return (
-    <div className="aspect-square w-6 bg-primary text-primary-content rounded-box flex items-center justify-center">
+    <div
+      className={cn(
+        "aspect-square w-6 bg-primary/20",
+        "text-primary rounded-box flex items-center justify-center"
+      )}
+    >
       <TbCheck />
       <span className="hidden">Yes</span>
     </div>
@@ -24,72 +32,29 @@ function Check() {
 
 function X() {
   return (
-    <div className="aspect-square w-6 bg-error text-error-content rounded-box flex items-center justify-center">
+    <div
+      className={cn(
+        "aspect-square w-6 bg-error/20 text-error",
+        "rounded-box flex items-center justify-center"
+      )}
+    >
       <TbX />
       <span className="hidden">No</span>
     </div>
   );
 }
 
+function isNew(date: Date) {
+  return date > new Date(Date.now() - 1000 * 60 * 60 * 24 * 30);
+}
+
 export default function AIModels() {
-  const features = [
-    {
-      feature: "Provider",
-      gpt_4o_mini: "OpenAI",
-      haiku_4_5: "Anthropic",
-      gpt_5: "OpenAI",
-      sonnet_4_5: "Anthropic",
-    },
-    {
-      feature: "Credits per message",
-      gpt_4o_mini: "1",
-      haiku_4_5: "2",
-      gpt_5: "4",
-      sonnet_4_5: "6",
-    },
-    {
-      feature: "Speed",
-      gpt_4o_mini: "Super fast",
-      haiku_4_5: "Fast",
-      gpt_5: "Slow",
-      sonnet_4_5: "Fast",
-    },
-    {
-      feature: "Accuracy",
-      gpt_4o_mini: "Basic",
-      haiku_4_5: "Good",
-      gpt_5: "Best",
-      sonnet_4_5: "Best",
-    },
-    {
-      feature: "Hobby plan",
-      gpt_4o_mini: <Check />,
-      haiku_4_5: <Check />,
-      gpt_5: <X />,
-      sonnet_4_5: <X />,
-    },
-    {
-      feature: "Starter plan",
-      gpt_4o_mini: <Check />,
-      haiku_4_5: <Check />,
-      gpt_5: <X />,
-      sonnet_4_5: <X />,
-    },
-    {
-      feature: "Pro plan",
-      gpt_4o_mini: <Check />,
-      haiku_4_5: <Check />,
-      gpt_5: <Check />,
-      sonnet_4_5: <Check />,
-    },
-    {
-      feature: "Image inputs",
-      gpt_4o_mini: <X />,
-      haiku_4_5: <Check />,
-      gpt_5: <Check />,
-      sonnet_4_5: <Check />,
-    },
-  ];
+  const modelRows = Object.entries(models)
+    .map(([key, model]) => ({
+      ...model,
+      key,
+    }))
+    .filter((model) => !model.deprecated);
   return (
     <>
       <Container>
@@ -104,25 +69,56 @@ export default function AIModels() {
           </HeadingDescription>
         </div>
 
-        <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-200">
+        <div className="overflow-x-auto rounded-box border border-base-content/5">
           <table className="table">
             <thead>
               <tr>
-                <th>Feature</th>
-                <th>4o-mini</th>
-                <th>Haiku 4.5</th>
-                <th>GPT 5</th>
-                <th>Sonnet 4.5</th>
+                <th>Model</th>
+                <th>Provider</th>
+                <th>Usage</th>
+                <th>Speed</th>
+                <th>Accuracy</th>
+                <th>Image inputs</th>
               </tr>
             </thead>
             <tbody>
-              {features.map((feature) => (
-                <tr key={feature.feature}>
-                  <td>{feature.feature}</td>
-                  <td>{feature.gpt_4o_mini}</td>
-                  <td>{feature.haiku_4_5}</td>
-                  <td>{feature.gpt_5}</td>
-                  <td>{feature.sonnet_4_5}</td>
+              {modelRows.map((row) => (
+                <tr key={row.model}>
+                  <td>
+                    <div className="flex items-center gap-2">
+                      <div className="tooltip" data-tip={"Use it"}>
+                        <Link
+                          to={`/settings?model=${row.key}#ai-model`}
+                          className="whitespace-nowrap link link-primary link-hover"
+                        >
+                          {row.displayName ?? row.model}
+                        </Link>
+                      </div>
+                      {row.addedAt && isNew(row.addedAt) && (
+                        <span className="badge badge-accent badge-soft badge-sm">
+                          New
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <span className="whitespace-nowrap">
+                      {row.provider ?? "-"}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="badge badge-primary badge-soft">
+                      <TbCoins />
+                      {row.creditsPerMessage}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="whitespace-nowrap">{row.speed}</span>
+                  </td>
+                  <td>
+                    <span className="whitespace-nowrap">{row.accuracy}</span>
+                  </td>
+                  <td>{row.imageInputs ? <Check /> : <X />}</td>
                 </tr>
               ))}
             </tbody>
