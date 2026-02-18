@@ -114,3 +114,28 @@ browser act --profile openclaw --request '{"kind": "resize", "width": 1920, "hei
 - **Login page crashes with "RESEND_KEY must be set"**: Ensure `SELF_HOSTED=true` is in `.env` (copied from `.env.example`)
 - **Port 3000 already in use**: Kill the existing process first
 - **Redis connection error**: Ensure Redis is running on `redis://localhost:6379`
+
+---
+
+## Best Practices
+
+### Browser Resolution
+- Always use browser in desktop 16:9 resolution (1920x1080) for consistent UI testing:
+
+```bash
+browser act --profile openclaw --request '{"kind": "resize", "width": 1920, "height": 1080}'
+```
+
+### UI Changes & Screenshots
+- When making UI-related changes, always include browser screenshots in:
+  - Pull requests
+  - Chat discussions for review
+
+### Git Branching
+- Always create new branches from `main` unless a specific feature branch is required:
+
+```bash
+git checkout main
+git pull main
+git checkout -b feature/your-feature-name
+```
