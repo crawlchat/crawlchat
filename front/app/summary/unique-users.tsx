@@ -24,6 +24,14 @@ const SORT_FIELDS = [
   "channel",
 ];
 
+const FIELD_LABELS: Record<string, string> = {
+  questionsCount: "Questions",
+  ageDays: "Age",
+  firstAsked: "First asked",
+  lastAsked: "Last asked",
+  channel: "Channel",
+};
+
 function SortHeader({
   field,
   label,
@@ -32,18 +40,19 @@ function SortHeader({
   onSort,
 }: {
   field: string;
-  label: string;
-  currentSortBy: string;
-  currentSortOrder: string;
-  onSort: (field: string) => void;
+  label?: string;
+  currentSortBy?: string;
+  currentSortOrder?: string;
+  onSort?: (field: string) => void;
 }) {
+  const displayLabel = label ?? FIELD_LABELS[field] ?? field;
   const isActive = currentSortBy === field;
   return (
     <button
       className={`flex items-center gap-1 font-medium hover:text-primary ${isActive ? "text-primary" : ""}`}
-      onClick={() => onSort(field)}
+      onClick={() => onSort?.(field)}
     >
-      {label}
+      {displayLabel}
       {isActive ? (
         currentSortOrder === "asc" ? (
           <TbArrowUp className="text-xs" />
@@ -66,10 +75,6 @@ export function UniqueUsers({
   sortOrder?: string;
   onSort?: (field: string) => void;
 }) {
-  const handleSort = (field: string) => {
-    onSort?.(field);
-  };
-
   return (
     <div className="overflow-x-auto rounded-box border border-base-300 bg-base-100">
       <table className="table">
@@ -81,33 +86,12 @@ export function UniqueUsers({
                 {onSort ? (
                   <SortHeader
                     field={field}
-                    label={
-                      field === "questionsCount"
-                        ? "Questions"
-                        : field === "ageDays"
-                          ? "Age"
-                          : field === "firstAsked"
-                            ? "First asked"
-                            : field === "lastAsked"
-                              ? "Last asked"
-                              : "Channel"
-                    }
                     currentSortBy={sortBy}
                     currentSortOrder={sortOrder}
-                    onSort={handleSort}
+                    onSort={onSort}
                   />
                 ) : (
-                  <span className="font-medium">
-                    {field === "questionsCount"
-                      ? "Questions"
-                      : field === "ageDays"
-                        ? "Age"
-                        : field === "firstAsked"
-                          ? "First asked"
-                          : field === "lastAsked"
-                            ? "Last asked"
-                            : "Channel"}
-                  </span>
+                  <span className="font-medium">{FIELD_LABELS[field]}</span>
                 )}
               </th>
             ))}

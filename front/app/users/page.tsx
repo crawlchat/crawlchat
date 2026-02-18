@@ -8,8 +8,7 @@ import { UniqueUsers } from "~/summary/unique-users";
 import { calcUniqueUsers } from "~/summary/calc-unique-users";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { useSearchParams } from "react-router";
-import { useState } from "react";
-import { TbArrowUp, TbArrowDown } from "react-icons/tb";
+import { useMemo } from "react";
 
 const DATE_RANGE_OPTIONS = [
   { value: 7, label: "Last week" },
@@ -28,6 +27,52 @@ const SORT_OPTIONS = [
   { value: "lastAsked", label: "Last asked" },
   { value: "channel", label: "Channel" },
 ];
+
+const VALID_SORT_FIELDS = SORT_OPTIONS.map((o) => o.value);
+const FIELD_LABELS: Record<string, string> = Object.fromEntries(
+  SORT_OPTIONS.map((o) => [o.value, o.label])
+);
+
+function sortUsers(
+  users: typeof loaderData extends { uniqueUsers: infer T } ? T : never,
+  sortBy: string,
+  sortOrder: string
+) {
+  const sortField = VALID_SORT_FIELDS.includes(sortBy) ? sortBy : "lastAsked";
+  const sortDir = sortOrder === "asc" ? 1 : -1;
+
+  return [...users].sort((a, b) => {
+    let aVal: any, bVal: any;
+    switch (sortField) {
+      case "questionsCount":
+        aVal = a.questionsCount;
+        bVal = b.questionsCount;
+        break;
+      case "ageDays":
+        aVal = a.ageDays;
+        bVal = b.ageDays;
+        break;
+      case "firstAsked":
+        aVal = a.firstAsked.getTime();
+        bVal = b.firstAsked.getTime();
+        break;
+      case "lastAsked":
+        aVal = a.lastAsked.getTime();
+        bVal = b.lastAsked.getTime();
+        break;
+      case "channel":
+        aVal = a.channel ?? "";
+        bVal = b.channel ?? "";
+        break;
+      default:
+        aVal = a.lastAsked.getTime();
+        bVal = b.lastAsked.getTime();
+    }
+    if (aVal < bVal) return -1 * sortDir;
+    if (aVal > bVal) return 1 * sortDir;
+    return 0;
+  });
+}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -73,44 +118,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
-  let uniqueUsers = calcUniqueUsers(messages);
-
-  // Sort users
-  const validSortOptions = SORT_OPTIONS.map((o) => o.value);
-  const sortField = validSortOptions.includes(sortBy) ? sortBy : "lastAsked";
-  const sortDir = sortOrder === "asc" ? 1 : -1;
-
-  uniqueUsers = uniqueUsers.sort((a, b) => {
-    let aVal: any, bVal: any;
-    switch (sortField) {
-      case "questionsCount":
-        aVal = a.questionsCount;
-        bVal = b.questionsCount;
-        break;
-      case "ageDays":
-        aVal = a.ageDays;
-        bVal = b.ageDays;
-        break;
-      case "firstAsked":
-        aVal = a.firstAsked.getTime();
-        bVal = b.firstAsked.getTime();
-        break;
-      case "lastAsked":
-        aVal = a.lastAsked.getTime();
-        bVal = b.lastAsked.getTime();
-        break;
-      case "channel":
-        aVal = a.channel ?? "";
-        bVal = b.channel ?? "";
-        break;
-      default:
-        aVal = a.lastAsked.getTime();
-        bVal = b.lastAsked.getTime();
-    }
-    if (aVal < bVal) return -1 * sortDir;
-    if (aVal > bVal) return 1 * sortDir;
-    return 0;
-  });
+  const uniqueUsers = calcUniqueUsers(messages);
 
   return { uniqueUsers, days, sortBy, sortOrder };
 }
@@ -123,6 +131,16 @@ export function meta() {
 
 export default function UsersPage({ loaderData }: Route.ComponentProps) {
   const [, setSearchParams] = useSearchParams();
+
+  const sortedUsers = useMemo(
+    () =>
+      sortUsers(
+        loaderData.uniqueUsers,
+        loaderData.sortBy,
+        loaderData.sortOrder
+      ),
+    [loaderData.uniqueUsers, loaderData.sortBy, loaderData.sortOrder]
+  );
 
   const handleSort = (field: string) => {
     const currentSortBy = loaderData.sortBy;
@@ -164,7 +182,7 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
       }
     >
       <UniqueUsers
-        users={loaderData.uniqueUsers}
+        users={sortedUsers}
         sortBy={loaderData.sortBy}
         sortOrder={loaderData.sortOrder}
         onSort={handleSort}
