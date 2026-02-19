@@ -1,12 +1,12 @@
 ---
-sidebar_position: 4
+sidebar_position: 1
 ---
 
-# Front Service
+# front
 
 ## Overview
 
-The Front service is the main React-based web interface for CrawlChat. It provides users with a modern, responsive web application to interact with the chatbot system, manage conversations, and configure knowledge sources.
+The `front` service is the main React-based web interface for CrawlChat. It provides users with a modern, responsive web application to interact with the chatbot system, manage conversations, and configure knowledge sources.
 
 ### Architecture & Features
 

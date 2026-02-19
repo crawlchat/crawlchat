@@ -7,8 +7,7 @@
 
 ## Required external services envs
 
-1. `PINECONE_API_KEY` in `server`, `source-sync` from [Pinecone](https://www.pinecone.io) [Free plan]
-2. `OPENROUTER_API_KEY` in `server` from [OpenRouter](https://openrouter.ai) [Free plan]
+1. `OPENROUTER_API_KEY` in `server` from [OpenRouter](https://openrouter.ai) [Free plan]
 
 ## Steps
 

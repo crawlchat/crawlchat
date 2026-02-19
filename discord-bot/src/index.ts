@@ -40,7 +40,8 @@ const allBotUserIds = process.env.ALL_BOT_USER_IDS!.split(",");
 
 const defaultPrompt = `Keep the response very short and very concised.
 It should be under 1000 charecters.
-It is from a Discord server.`;
+It is from a Discord server.
+Only answer the last question asked and consider previous messages only for context.`;
 
 const fetchAllParentMessages = async (
   message: DiscordMessage,
@@ -262,7 +263,9 @@ async function learnMessage(message: DiscordMessage, includeSelf = false) {
   const { scrapeId, userId } = await getDiscordDetails(message.guildId!);
 
   if (!scrapeId || !userId) {
-    message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+    message
+      .reply("‼️ Integrate it on CrawlChat.app to use this bot!")
+      .catch(() => {});
     return;
   }
 
@@ -291,16 +294,12 @@ async function getPreviousMessages(message: DiscordMessage) {
     return messages;
   }
 
-  const messages = (
+  return (
     await message.channel.messages.fetch({
       limit: 20,
       before: message.id,
     })
-  )
-    .filter((m) => m.channel.type !== ChannelType.PublicThread)
-    .map((m) => m);
-
-  return messages;
+  ).map((m) => m);
 }
 
 async function isMessageFromChannels(
@@ -338,7 +337,9 @@ client.on(Events.MessageCreate, async (message) => {
     const { scrape } = await getDiscordDetails(message.guildId!);
 
     if (!scrape) {
-      message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+      message
+        .reply("‼️ Integrate it on CrawlChat.app to use this bot!")
+        .catch(() => {});
       return;
     }
 
@@ -355,17 +356,17 @@ client.on(Events.MessageCreate, async (message) => {
     const { stopTyping } = await sendTyping(message.channel as TextChannel);
 
     const previousMessages = await getPreviousMessages(message);
-    const replyMessages = await fetchAllParentMessages(message, []);
+    const history =
+      previousMessages
+        .sort((a, b) => a.createdTimestamp - b.createdTimestamp)
+        .map(
+          (m) =>
+            `${m.author.displayName} (${m.createdAt.toLocaleString()}): ${cleanReply(m.content)}`
+        )
+        .map(cleanContent)
+        .join("\n\n") || "No context available";
 
-    const contextMessages = [...previousMessages, ...replyMessages].sort(
-      (a, b) => a.createdTimestamp - b.createdTimestamp
-    );
-
-    const messages = await Promise.all(
-      contextMessages.map((m) => makeMessage(m, scrape))
-    );
-
-    messages.push(await makeMessage(message, scrape));
+    const messages = [await makeMessage(message, scrape)];
 
     const publicThreadId =
       message.channel.type === ChannelType.PublicThread
@@ -394,7 +395,7 @@ client.on(Events.MessageCreate, async (message) => {
       error,
       message: answerMessage,
     } = await query(scrape.id, messages, createToken(scrape.userId), {
-      prompt: defaultPrompt,
+      prompt: `${defaultPrompt}\n\n<message-history>\n\n${history}</message-history>`,
       clientThreadId: discordThread?.id ?? publicThreadId,
       fingerprint: message.author.id,
     });
@@ -435,7 +436,9 @@ client.on(Events.MessageCreate, async (message) => {
     });
 
     if (!scrape) {
-      message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+      message
+        .reply("‼️ Integrate it on CrawlChat.app to use this bot!")
+        .catch(() => {});
       return;
     }
 
@@ -486,7 +489,9 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
     await getDiscordDetails(reaction.message.guildId!);
 
   if (!scrapeId || !userId) {
-    reaction.message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+    reaction.message
+      .reply("‼️ Integrate it on CrawlChat.app to use this bot!")
+      .catch(() => {});
     return;
   }
 
@@ -495,7 +500,9 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
   });
 
   if (!scrape) {
-    reaction.message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+    reaction.message
+      .reply("‼️ Integrate it on CrawlChat.app to use this bot!")
+      .catch(() => {});
     return;
   }
 
@@ -576,7 +583,9 @@ client.on(Events.MessageReactionRemove, async (reaction, user) => {
   );
 
   if (!scrapeId || !userId) {
-    reaction.message.reply("‼️ Integrate it on CrawlChat.app to use this bot!");
+    reaction.message
+      .reply("‼️ Integrate it on CrawlChat.app to use this bot!")
+      .catch(() => {});
     return;
   }
 
@@ -592,6 +601,10 @@ client.on(Events.ClientReady, async () => {
       name: process.env.BOT_STATUS,
     });
   }
+});
+
+client.on(Events.Error, (error) => {
+  console.error("Error in Discord bot:", error);
 });
 
 client.login(process.env.DISCORD_TOKEN);

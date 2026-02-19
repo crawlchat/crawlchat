@@ -1,6 +1,24 @@
-import type { Message, QuestionSentiment } from "@packages/common/prisma";
+import type {
+  MessageAnalysis,
+  MessageRating,
+  MessageSourceLink,
+  QuestionSentiment,
+} from "@packages/common/prisma";
 
-export function getMessagesSummary(messages: Message[]) {
+type MessageForSummary = {
+  createdAt: Date;
+  llmMessage: {
+    role: string | null;
+  } | null;
+  rating: MessageRating | null;
+  analysis: MessageAnalysis | null;
+  links: MessageSourceLink[];
+};
+
+export function getMessagesSummary(
+  messages: MessageForSummary[],
+  full: boolean = false
+) {
   const dailyMessages: Record<
     string,
     {
@@ -47,23 +65,9 @@ export function getMessagesSummary(messages: Message[]) {
   const todayKey = today.toISOString().split("T")[0];
   const messagesToday = dailyMessages[todayKey]?.count ?? 0;
 
-  const scoreDestribution: Record<number, { count: number }> = {};
-  const points = 10;
-  for (let i = 0; i < points; i++) {
-    scoreDestribution[i] = { count: 0 };
-  }
-
-  for (const message of messages) {
-    if (!message.links || message.links.length === 0) continue;
-
-    const max = Math.max(...message.links.map((l) => l.score ?? 0));
-    const index = Math.floor(max * points);
-    scoreDestribution[index] = {
-      count: (scoreDestribution[index]?.count ?? 0) + 1,
-    };
-  }
-
-  const ratingUpCount = messages.filter((m) => m.rating === "up").length;
+  const ratingUpCount = full
+    ? messages.filter((m) => m.rating === "up").length
+    : null;
   const ratingDownCount = messages.filter((m) => m.rating === "down").length;
 
   const itemCounts: Record<
@@ -71,9 +75,14 @@ export function getMessagesSummary(messages: Message[]) {
     { title: string; count: number; url: string }
   > = {};
   for (const message of messages) {
-    if (!message.links || message.links.length === 0) continue;
+    if (
+      message.llmMessage?.role !== "assistant" ||
+      !message.links ||
+      message.links.length === 0
+    )
+      continue;
     for (const link of message.links) {
-      if (!link.url) continue;
+      if (!link.url || !link.cited) continue;
       itemCounts[link.url] = {
         url: link.url,
         title: link.title ?? link.url,
@@ -84,17 +93,10 @@ export function getMessagesSummary(messages: Message[]) {
 
   const topItems = Object.values(itemCounts)
     .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-
-  const latestQuestions = messages
-    .filter((m) => (m.llmMessage as any)?.role === "user")
-    .sort(
-      (a, b) => (b.createdAt?.getTime() ?? 0) - (a.createdAt?.getTime() ?? 0)
-    )
-    .slice(0, 5);
+    .slice(0, 10);
 
   let lowRatingQueries = [];
-  let lastUserMessage: Message | null = null;
+  let lastUserMessage: MessageForSummary | null = null;
   for (const message of messages) {
     const role = (message.llmMessage as any)?.role;
     if (role === "user") {
@@ -143,7 +145,6 @@ export function getMessagesSummary(messages: Message[]) {
   }
   const happyPct = questions > 0 ? sentimentCounts.happy / questions : 0;
   const sadPct = questions > 0 ? sentimentCounts.sad / questions : 0;
-  const neutralPct = questions > 0 ? sentimentCounts.neutral / questions : 0;
 
   const categorySuggestions = messages
     .filter((m) => m.analysis?.categorySuggestions)
@@ -151,6 +152,19 @@ export function getMessagesSummary(messages: Message[]) {
       m.analysis!.categorySuggestions!.map((s) => ({ ...s, date: m.createdAt }))
     )
     .reduce((acc, curr) => [...acc, ...curr], []);
+
+  //get all available languages
+  const messagesWithLanguages = messages.filter((m) => m.analysis?.language);
+  const languagesDistribution: Record<string, number> = {};
+
+  messagesWithLanguages.forEach((message) => {
+    const languageName = message.analysis?.language!;
+    if (!languagesDistribution[languageName]) {
+      languagesDistribution[languageName] = 1;
+    } else {
+      languagesDistribution[languageName]++;
+    }
+  });
 
   const categoryCounts: Record<string, { count: number; latestDate: Date }> =
     {};
@@ -174,18 +188,16 @@ export function getMessagesSummary(messages: Message[]) {
     ),
     dailyMessages,
     messagesToday,
-    scoreDestribution,
     ratingUpCount,
     ratingDownCount,
     topItems,
-    latestQuestions,
     lowRatingQueries,
     avgScore,
     questions,
     resolvedCount,
     happyPct,
     sadPct,
-    neutralPct,
+    languagesDistribution,
     tags: categoryCounts,
   };
 }

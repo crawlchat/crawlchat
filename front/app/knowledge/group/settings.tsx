@@ -3,6 +3,7 @@ import type {
   KnowledgeGroupUpdateFrequency,
   Prisma,
   KnowledgeGroup,
+  GithubIssuesType,
 } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
 import { getNextUpdateTime } from "@packages/common/knowledge-group";
@@ -307,6 +308,17 @@ export async function action({ request, params }: Route.ActionArgs) {
       .map((url) => ({ url: url.trim() }));
     update.urls = urls;
   }
+  if (formData.has("from-load-dynamically")) {
+    update.loadDynamically = formData.get("loadDynamically") === "on";
+  }
+  if (formData.has("from-remove-stale-pages")) {
+    update.removeStalePages = formData.get("removeStalePages") === "on";
+  }
+  if (formData.has("githubIssuesType")) {
+    update.githubIssuesType = formData.get(
+      "githubIssuesType"
+    ) as GithubIssuesType;
+  }
 
   const group = await prisma.knowledgeGroup.update({
     where: { id: groupId, scrapeId },
@@ -376,6 +388,30 @@ function AutoUpdateSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
+function RemoveStalePagesSettings({ group }: { group: KnowledgeGroup }) {
+  const fetcher = useFetcher();
+
+  return (
+    <SettingsSection
+      id="remove-stale-pages"
+      fetcher={fetcher}
+      title="Remove stale pages"
+      description="If enabled, pages that are no longer found in the source will be automatically removed after each sync."
+    >
+      <input type="hidden" name="from-remove-stale-pages" value={"true"} />
+      <label className="label">
+        <input
+          type="checkbox"
+          name="removeStalePages"
+          defaultChecked={group.removeStalePages ?? false}
+          className="toggle"
+        />
+        Active
+      </label>
+    </SettingsSection>
+  );
+}
+
 function SkipPagesRegex({
   group,
   pages,
@@ -417,7 +453,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
   const include404Pages = useFetcher();
   const skipRegexFetcher = useFetcher();
   const scrollSelectorFetcher = useFetcher();
-
+  const loadDynamicallyFetcher = useFetcher();
   const itemContextFetcher = useFetcher();
   const details = useMemo(() => {
     return [
@@ -437,7 +473,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
   }, [group]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <DataList data={details} />
 
       <SettingsSection
@@ -493,6 +529,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
       <SkipPagesRegex group={group} />
 
       <AutoUpdateSettings group={group} />
+      <RemoveStalePagesSettings group={group} />
 
       <SettingsSection
         id="item-context"
@@ -524,12 +561,31 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           name="scrollSelector"
         />
       </SettingsSection>
+
+      <SettingsSection
+        id="load-dynamically"
+        fetcher={loadDynamicallyFetcher}
+        title="Load dynamically"
+        description="If enabled, it will load the page dynamically. It is useful to scrape pages that have infinite scroll."
+      >
+        <input type="hidden" name="from-load-dynamically" value={"true"} />
+        <label className="label">
+          <input
+            type="checkbox"
+            name="loadDynamically"
+            defaultChecked={group.loadDynamically ?? false}
+            className="toggle"
+          />
+          Active
+        </label>
+      </SettingsSection>
     </div>
   );
 }
 
 function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
   const allowedStatesFetcher = useFetcher();
+  const githubIssuesTypeFetcher = useFetcher();
   const [allowedStates, setAllowedStates] = useState<string[]>(
     group.allowedGithubIssueStates?.split(",").filter(Boolean) ?? []
   );
@@ -560,7 +616,7 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
   }, [group]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <DataList data={details} />
       <SettingsSection
         id="allowed-github-issue-states"
@@ -580,6 +636,25 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
           selectValues={stateOptions}
         />
       </SettingsSection>
+
+      <SettingsSection
+        id="github-issues-type"
+        fetcher={githubIssuesTypeFetcher}
+        title="Issues type"
+        description="Specify the type of issues to fetch. Either fetch all issues, only issues, or only pull requests."
+      >
+        <select
+          name="githubIssuesType"
+          className="select"
+          defaultValue={group.githubIssuesType ?? "all"}
+        >
+          <option value="all">All</option>
+          <option value="only_issues">Only issues</option>
+          <option value="only_prs">Only pull requests</option>
+        </select>
+      </SettingsSection>
+
+      <RemoveStalePagesSettings group={group} />
     </div>
   );
 }
@@ -608,7 +683,7 @@ function GithubDiscussionsSettings({ group }: { group: KnowledgeGroup }) {
   }, [group]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <DataList data={details} />
       <SettingsSection
         id="only-answered-discussions"
@@ -631,6 +706,8 @@ function GithubDiscussionsSettings({ group }: { group: KnowledgeGroup }) {
           <span className="label-text">Only fetch answered discussions</span>
         </label>
       </SettingsSection>
+
+      <RemoveStalePagesSettings group={group} />
     </div>
   );
 }
@@ -643,7 +720,7 @@ function NotionSettings({
   notionPages: Array<SelectValue>;
 }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <SkipPagesRegex
         group={group}
         pages={notionPages}
@@ -651,6 +728,7 @@ function NotionSettings({
       />
 
       <AutoUpdateSettings group={group} />
+      <RemoveStalePagesSettings group={group} />
     </div>
   );
 }
@@ -663,7 +741,7 @@ function ConfluenceSettings({
   confluencePages: Array<SelectValue>;
 }) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <SkipPagesRegex
         group={group}
         pages={confluencePages}
@@ -671,6 +749,7 @@ function ConfluenceSettings({
       />
 
       <AutoUpdateSettings group={group} />
+      <RemoveStalePagesSettings group={group} />
     </div>
   );
 }
@@ -701,7 +780,7 @@ function LinearSettings({
   }, [skipProjectStatuses]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {group.type === "linear" && (
         <SettingsSection
           id="linear-skip-issue-statuses"
@@ -745,6 +824,7 @@ function LinearSettings({
       )}
 
       <AutoUpdateSettings group={group} />
+      <RemoveStalePagesSettings group={group} />
     </div>
   );
 }
@@ -759,7 +839,7 @@ function YouTubeSettings({ group }: { group: KnowledgeGroup }) {
   }, [youtubeUrls]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <SettingsSection
         id="youtube-urls"
         fetcher={youtubeUrlsFetcher}
@@ -775,6 +855,7 @@ function YouTubeSettings({ group }: { group: KnowledgeGroup }) {
       </SettingsSection>
 
       <AutoUpdateSettings group={group} />
+      <RemoveStalePagesSettings group={group} />
     </div>
   );
 }
@@ -805,6 +886,7 @@ function YouTubeChannelSettings({ group }: { group: KnowledgeGroup }) {
       </SettingsSection>
 
       <AutoUpdateSettings group={group} />
+      <RemoveStalePagesSettings group={group} />
     </>
   );
 }
@@ -824,7 +906,7 @@ function UploadSettings({ group }: { group: KnowledgeGroup }) {
   }, [uploadFetcher.state, uploadFetcher.data]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <SettingsSection
         id="upload-files"
         fetcher={uploadFetcher}

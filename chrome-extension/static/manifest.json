@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
   "name": "CrawlChat",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "description": "A set of client side tools for CrawlChat",
   "icons": {
     "16": "logo.png",
     "48": "logo.png",
     "128": "logo.png"
   },
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "contextMenus"],
   "host_permissions": ["https://wings.crawlchat.app/*"],
   "web_accessible_resources": [
     {

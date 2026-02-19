@@ -139,6 +139,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           type="checkbox"
           id="side-menu-drawer"
           className="drawer-toggle"
+          suppressHydrationWarning
         />
         <div className="drawer-content flex-1">
           <div className="flex flex-col gap-2 h-full self-stretch">

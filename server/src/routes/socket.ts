@@ -1,15 +1,38 @@
 import { prisma } from "@packages/common/prisma";
 import { createToken, verifyToken } from "@packages/common/jwt";
-import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
-import { wsRateLimiter } from "../rate-limiter";
-import { baseAnswerer, type AnswerListener } from "../answer";
+import { hasEnoughCredits } from "@packages/common/user-plan";
+import { socketAskRateLimiter } from "../rate-limiter";
+import { baseAnswerer, saveAnswer, type AnswerListener } from "../answer";
 import { retry } from "../retry";
-import { fillMessageAnalysis } from "../analyse-message";
 import expressWs from "express-ws";
 import { ScrapeItem } from "@packages/common/prisma";
+import type WebSocket from "ws";
 
 function makeMessage(type: string, data: unknown) {
   return JSON.stringify({ type, data });
+}
+
+const threadConnections = new Map<string, Set<WebSocket>>();
+
+function broadcastToThread(threadId: string, message: string) {
+  const connections = threadConnections.get(threadId);
+  if (!connections) return;
+  for (const socket of connections) {
+    if (socket.readyState === 1) socket.send(message);
+  }
+}
+
+function addToThread(threadId: string, socket: WebSocket) {
+  if (!threadConnections.has(threadId)) {
+    threadConnections.set(threadId, new Set());
+  }
+  threadConnections.get(threadId)!.add(socket);
+}
+
+function removeFromAllThreads(socket: WebSocket) {
+  for (const connections of threadConnections.values()) {
+    connections.delete(socket);
+  }
 }
 
 async function updateLastMessageAt(threadId: string) {
@@ -21,6 +44,21 @@ async function updateLastMessageAt(threadId: string) {
 
 export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
   let userId: string | null = null;
+  const socket = ws as WebSocket & { isAlive?: boolean };
+  socket.isAlive = true;
+  socket.on("pong", () => {
+    socket.isAlive = true;
+  });
+
+  const heartbeat = setInterval(() => {
+    if (socket.readyState !== 1) return;
+    if (socket.isAlive === false) {
+      socket.terminate();
+      return;
+    }
+    socket.isAlive = false;
+    socket.ping();
+  }, 10000);
 
   const onError = (error: unknown) => {
     console.error(error);
@@ -33,8 +71,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
   };
 
   const onMessage = async (msg: Buffer | string) => {
-    wsRateLimiter.check();
-
     const message = JSON.parse(msg.toString());
 
     if (message.type === "join-room") {
@@ -48,6 +84,11 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       const token = authHeader.split(" ")[1];
       const user = verifyToken(token);
       userId = user.userId;
+
+      if (message.data.threadId) {
+        addToThread(message.data.threadId, ws);
+      }
+
       ws.send(makeMessage("connected", { message: "Connected" }));
       return;
     }
@@ -62,7 +103,10 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       return;
     }
 
+    socketAskRateLimiter.check();
+
     const threadId = message.data.threadId;
+    addToThread(threadId, ws);
     const deleteIds = message.data.delete;
     const thread = await prisma.thread.findFirstOrThrow({
       where: { id: threadId },
@@ -71,13 +115,31 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       },
     });
 
+    const scrape = await prisma.scrape.findFirstOrThrow({
+      where: { id: thread.scrapeId },
+    });
+
     if (message.data.query.length > 3000) {
-      ws.send(
-        makeMessage("error", {
-          message: "Question too long. Please shorten it.",
-        })
+      // repeated code
+      const user = await prisma.user.findFirst({
+        where: { id: userId },
+        include: {
+          scrapeUsers: true,
+        },
+      });
+
+      const isMember = user?.scrapeUsers.some(
+        (su) => su.scrapeId === scrape.id
       );
-      return;
+
+      if (!isMember || message.data.query.length > 8000) {
+        ws.send(
+          makeMessage("error", {
+            message: "Question too long. Please shorten it.",
+          })
+        );
+        return;
+      }
     }
 
     if (deleteIds) {
@@ -85,10 +147,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
         where: { id: { in: deleteIds }, threadId },
       });
     }
-
-    const scrape = await prisma.scrape.findFirstOrThrow({
-      where: { id: thread.scrapeId },
-    });
 
     if (scrape.private) {
       const user = await prisma.user.findFirst({
@@ -146,34 +204,34 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       });
     }
 
-    let questionMessage: any = null;
+    const questionMessage = await prisma.message.create({
+      data: {
+        threadId,
+        scrapeId: scrape.id,
+        llmMessage: { role: "user", content: message.data.query },
+        ownerUserId: scrape.userId,
+        channel: "widget",
+        fingerprint,
+        url: currentItem?.url,
+      },
+    });
+    await updateLastMessageAt(threadId);
+    broadcastToThread(threadId, makeMessage("query-message", questionMessage));
 
-    const answerListener: AnswerListener = async (event) => {
+    const answerListener: AnswerListener = (event) => {
       switch (event.type) {
-        case "init":
-          questionMessage = await prisma.message.create({
-            data: {
-              threadId,
-              scrapeId: scrape.id,
-              llmMessage: { role: "user", content: event.query },
-              ownerUserId: scrape.userId,
-              channel: "widget",
-              fingerprint,
-              url: currentItem?.url,
-            },
-          });
-          await updateLastMessageAt(threadId);
-          ws?.send(makeMessage("query-message", questionMessage));
-          break;
-
         case "stream-delta":
           if (event.delta) {
-            ws?.send(makeMessage("llm-chunk", { content: event.delta }));
+            broadcastToThread(
+              threadId,
+              makeMessage("llm-chunk", { content: event.delta })
+            );
           }
           break;
 
         case "tool-call":
-          ws?.send(
+          broadcastToThread(
+            threadId,
             makeMessage("stage", {
               stage: "tool-call",
               query: event.query,
@@ -181,62 +239,13 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             })
           );
           break;
-
-        case "answer-complete":
-          await consumeCredits(scrape.userId, "messages", event.creditsUsed);
-          const newAnswerMessage = await prisma.message.create({
-            data: {
-              threadId,
-              scrapeId: scrape.id,
-              llmMessage: { role: "assistant", content: event.content },
-              links: event.sources,
-              apiActionCalls: event.actionCalls as any,
-              ownerUserId: scrape.userId,
-              questionId: questionMessage?.id ?? null,
-              llmModel: scrape.llmModel,
-              creditsUsed: event.creditsUsed,
-              channel: "widget",
-              fingerprint,
-              url: currentItem?.url,
-            },
-          });
-          if (questionMessage) {
-            await prisma.message.update({
-              where: { id: questionMessage.id },
-              data: { answerId: newAnswerMessage.id },
-            });
-          }
-          await updateLastMessageAt(threadId);
-          ws?.send(
-            makeMessage("llm-chunk", {
-              end: true,
-              content: event.content,
-              message: newAnswerMessage,
-            })
-          );
-
-          if (questionMessage && scrape.analyseMessage) {
-            await fillMessageAnalysis(
-              newAnswerMessage.id,
-              questionMessage.id,
-              message.data.query,
-              event.content,
-              event.context,
-              {
-                categories: scrape.messageCategories,
-                onFollowUpQuestion: (questions) => {
-                  ws?.send(makeMessage("follow-up-questions", { questions }));
-                },
-              }
-            );
-          }
       }
     };
 
     const recentMessages = thread.messages.slice(-40);
 
-    await retry(async () => {
-      baseAnswerer(
+    const answer = await retry(async () => {
+      return await baseAnswerer(
         scrape,
         thread,
         message.data.query,
@@ -267,6 +276,31 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
         }
       );
     });
+
+    const newAnswerMessage = await saveAnswer(
+      answer,
+      scrape,
+      threadId,
+      "widget",
+      questionMessage.id,
+      scrape.llmModel,
+      fingerprint,
+      (questions) => {
+        broadcastToThread(
+          threadId,
+          makeMessage("follow-up-questions", { questions })
+        );
+      }
+    );
+
+    broadcastToThread(
+      threadId,
+      makeMessage("llm-chunk", {
+        end: true,
+        content: answer.content,
+        message: newAnswerMessage,
+      })
+    );
   };
 
   ws.on("message", (msg: Buffer | string) => {
@@ -275,5 +309,7 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
 
   ws.on("close", () => {
     userId = null;
+    removeFromAllThreads(ws);
+    clearInterval(heartbeat);
   });
 };

@@ -16,6 +16,7 @@ const Panel = ({
   onFocus,
   submit,
   autoUse,
+  isPrompt,
 }: {
   config: Config;
   currentValue: string;
@@ -25,9 +26,10 @@ const Panel = ({
   onFocus: () => void;
   submit?: boolean;
   autoUse?: boolean;
+  isPrompt?: boolean;
 }) => {
   const input = useMemo(() => {
-    if (currentValue.startsWith("@")) {
+    if (currentValue.startsWith("@") || isPrompt) {
       return {
         content: "",
         messages: [],
@@ -44,7 +46,7 @@ const Panel = ({
       ],
       prompt: "",
     };
-  }, [currentValue]);
+  }, [currentValue, isPrompt]);
   const [compose, setCompose] = useState<{
     content: string;
     messages: any;
@@ -185,7 +187,7 @@ const Panel = ({
       data-theme="brand"
       className={cn(
         "crawlchat-panel w-full h-full bg-white",
-        "border-l border-t border-r border-base-300",
+        "border-l border-t border-r border-base-300 border-solid",
         "shadow-2xl flex flex-col font-sans",
         "rounded-t-box overflow-hidden"
       )}

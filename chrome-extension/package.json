@@ -1,13 +1,13 @@
 {
   "name": "chrome-extension",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "type": "module",
   "description": "CrawlChat Chrome extension built with TypeScript and React",
   "main": "dist/index.js",
   "scripts": {
     "build": "npm run clean && node build.js",
     "dev": "npm run clean && node build.js && echo 'Watching for changes...' && npm run build",
-    "clean": "rm -rf build",
+    "clean": "node -e \"const fs=require('fs'); if(fs.existsSync('build')) fs.rmSync('build', {recursive:true, force:true})\"",
     "package": "npm run build && cd build && zip -r ../crawlchat-extension.zip dist/"
   },
   "keywords": [

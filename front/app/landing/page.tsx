@@ -16,6 +16,7 @@ import {
   TbChartBar,
   TbChartBarOff,
   TbCheck,
+  TbClock,
   TbChevronDown,
   TbChevronRight,
   TbChevronUp,
@@ -256,78 +257,96 @@ function UsedByItem({
 }
 
 export function UsedBy() {
+  const items = (
+    <>
+      <UsedByItem href="https://remotion.dev" target="_blank">
+        <img
+          src="/used-by/remotion.png"
+          alt="Remotion"
+          className="max-h-[34px] shrink-0 grayscale hover:grayscale-0 transition-all"
+        />
+      </UsedByItem>
+
+      <UsedByItem href="https://konvajs.org" target="_blank">
+        <img src="/used-by/konvajs.png" alt="Konva" className="max-h-[38px]" />
+        <div className="font-medium text-xl">Konvajs</div>
+      </UsedByItem>
+
+      <UsedByItem href="https://270degrees.nl" target="_blank">
+        <img
+          src="/used-by/270logo.svg"
+          alt="270Degrees.nl"
+          className="max-h-[38px]"
+        />
+        <div className="font-medium text-xl">270Degrees</div>
+      </UsedByItem>
+
+      <UsedByItem href="https://polotno.com" target="_blank">
+        <img
+          src="/used-by/polotno.png"
+          alt="Polotno"
+          className="max-h-[38px]"
+        />
+        <div className="font-medium text-xl">Polotno</div>
+      </UsedByItem>
+
+      <UsedByItem href="https://localstack.cloud" target="_blank">
+        <img
+          src="/used-by/localstack.png"
+          alt="LocalStack"
+          className="max-h-[38px]"
+        />
+        <div className="font-medium text-xl">LocalStack</div>
+      </UsedByItem>
+
+      <UsedByItem href="https://backpackforlaravel.com" target="_blank">
+        <img
+          src="/used-by/backpack-laravel.png"
+          alt="Backpack for Laravel"
+          className="max-h-[38px]"
+        />
+      </UsedByItem>
+
+      <UsedByItem href="https://postiz.com" target="_blank">
+        <div className="bg-gray-900 rounded-box p-3 px-4 pb-2 rounded-full shrink-0">
+          <img
+            src="/used-by/postiz.svg"
+            alt="Postiz"
+            className="max-h-[24px] grayscale"
+          />
+        </div>
+      </UsedByItem>
+
+      <UsedByItem href="https://nobl9.com" target="_blank">
+        <img
+          src="/used-by/nobl9.png"
+          alt="Nobl9"
+          className="max-h-[34px] grayscale"
+        />
+      </UsedByItem>
+    </>
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <h3 className="text-center text-xl font-medium opacity-50">
         Trusted by leading companies
       </h3>
 
-      <div
-        className={cn(
-          "flex justify-center items-center gap-8 md:gap-16",
-          "flex-wrap"
-        )}
-      >
-        <UsedByItem href="https://remotion.dev" target="_blank">
-          <img
-            src="/used-by/remotion.png"
-            alt="Remotion"
-            className="max-h-[38px] shrink-0 grayscale hover:grayscale-0 transition-all"
-          />
-        </UsedByItem>
+      <div className="relative overflow-hidden used-by-scroll-container">
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-24 z-10 bg-linear-to-r from-base-100 to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-24 z-10 bg-linear-to-l from-base-100 to-transparent" />
 
-        <UsedByItem href="https://konvajs.org" target="_blank">
-          <img
-            src="/used-by/konvajs.png"
-            alt="Konva"
-            className="max-h-[38px]"
-          />
-          <div className="font-medium text-xl">Konvajs</div>
-        </UsedByItem>
-
-        <UsedByItem href="https://270degrees.nl" target="_blank">
-          <img
-            src="/used-by/270logo.svg"
-            alt="270Degrees.nl"
-            className="max-h-[38px]"
-          />
-          <div className="font-medium text-xl">270Degrees</div>
-        </UsedByItem>
-
-        <UsedByItem href="https://polotno.com" target="_blank">
-          <img
-            src="/used-by/polotno.png"
-            alt="Polotno"
-            className="max-h-[38px]"
-          />
-          <div className="font-medium text-xl">Polotno</div>
-        </UsedByItem>
-
-        <UsedByItem href="https://backpackforlaravel.com" target="_blank">
-          <img
-            src="/used-by/backpack-laravel.png"
-            alt="Backpack for Laravel"
-            className="max-h-[38px]"
-          />
-        </UsedByItem>
-
-        <UsedByItem href="https://postiz.com" target="_blank">
-          <div className="bg-gray-900 rounded-box p-3 px-4 pb-2 rounded-full shrink-0">
-            <img
-              src="/used-by/postiz.svg"
-              alt="Postiz"
-              className="max-h-[24px] grayscale"
-            />
-          </div>
-        </UsedByItem>
-
-        <UsedByItem href="https://nobl9.com" target="_blank">
-          <img
-            src="/used-by/nobl9.png"
-            alt="Nobl9"
-            className="max-h-[38px] grayscale"
-          />
-        </UsedByItem>
+        <div className="inline-flex flex-nowrap items-center">
+          {Array.from(Array(4)).map((_, i) => (
+            <div
+              key={i}
+              className="flex gap-12 pr-12 shrink-0 items-center animate-used-by-scroll"
+            >
+              {items}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -997,7 +1016,7 @@ export function CTA({ text }: { text?: string }) {
       <div className="w-full py-16 px-10 relative border-t-4 border-dashed border-primary/20">
         <h2
           className={cn(
-            "font-brand text-[42px] leading-[1.2]",
+            "font-brand text-[36px] md:text-[42px] leading-[1.2]",
             "font-medium text-center max-w-[900px] mx-auto"
           )}
         >
@@ -1038,10 +1057,10 @@ export function Footer() {
         <div className="py-8 flex flex-col md:flex-row gap-8">
           <div className="flex-[2] flex flex-col gap-4">
             <Logo />
-            <p className="font-medium opacity-60 font-brand italic">
+            <p className="font-medium text-base-content/50 font-brand italic">
               Power up your tech documentation with AI
             </p>
-            <p className="opacity-50 text-xs font-medium">© 2025 CrawlChat</p>
+            <p className="opacity-50 text-xs font-medium">© 2026 CrawlChat</p>
             <p className="flex items-center gap-2">
               <span>Built with ❤️ by</span>{" "}
               <a
@@ -1480,7 +1499,7 @@ function Hero() {
       icon: <TbCode />,
     },
     {
-      text: "Shows you questions being asked and ways to improve your docs",
+      text: "Strong citations for your users and analytics to improve your docs",
       icon: <TbChartBar />,
     },
     {
@@ -1541,25 +1560,23 @@ function Hero() {
           </a>
         )}
 
-        <h1 className="font-brand text-[42px] md:text-[42px] leading-[1.2]">
-          Turn your documentation into an{" "}
-          <span className="text-accent whitespace-nowrap">AI assistant</span>{" "}
-          that answers questions instantly
+        <h1 className="font-brand text-[36px] md:text-[62px] leading-[1.2]">
+          Power up your documentation with{" "}
+          <span className="text-accent whitespace-nowrap">AI</span>
         </h1>
 
-        <p className="text-xl mt-6 font-brand italic text-base-content/50">
+        <p className="md:text-xl mt-6 font-brand italic text-base-content/50">
           Add an AI chatbot to your documentation website. Users can ask
-          questions and get instant answers from your docs, without searching
-          through pages.
+          questions and get instant answers from your docs with citations.
         </p>
 
         <ul className="mt-6 flex flex-col gap-2">
           {features.map((feature, index) => (
-            <li key={index} className="flex gap-3 items-start">
+            <li key={index} className="flex gap-2 items-start">
               <div className="text-primary rounded-box p-1 mt-0.5">
                 <TbCheck size={20} />
               </div>
-              <span className="text-lg">{feature.text}</span>
+              <span className="md:text-lg">{feature.text}</span>
             </li>
           ))}
         </ul>
@@ -1590,46 +1607,13 @@ function Hero() {
         </div>
       </div>
 
-      <div className="flex-1 flex-col">
+      <div className="flex-1 flex-col mt-2">
         <div className="relative animate-breath-y">
           <div className="border-2 border-accent rounded-box overflow-hidden shadow">
             <iframe
               src="/w/crawlchat?theme=light"
               className="w-full h-[560px]"
             />
-          </div>
-
-          <img
-            src="/arrow.png"
-            className={cn(
-              "absolute bottom-[40px] left-0 -translate-x-full",
-              "w-16 h-16",
-              "rotate-70 opacity-70",
-              "hidden md:block"
-            )}
-          />
-
-          <div
-            className={cn(
-              "absolute bottom-[100px]",
-              "-left-6 -translate-x-full",
-              "-rotate-20",
-              "flex-col items-center gap-1",
-              "hidden md:flex"
-            )}
-          >
-            <span
-              style={{
-                fontFamily: "'Mynerve', cursive",
-              }}
-            >
-              Add <span className="text-primary">Ask AI</span> on
-            </span>
-            <div className="flex items-center gap-1 text-lg group">
-              {channels.map((channel, index) => (
-                <span key={index}>{channel.icon}</span>
-              ))}
-            </div>
           </div>
         </div>
       </div>
@@ -1673,10 +1657,16 @@ export function CustomTestimonial({
       className={cn(
         "border-r-0 md:border-r border-b",
         "md:border-b-0 border-base-300 p-6 last:border-r-0",
-        "last:border-b-0"
+        "last:border-b-0 group"
       )}
     >
-      <p className={cn("font-brand text-center", !small && "text-xl")}>
+      <p
+        className={cn(
+          "font-brand text-center text-base-content/60",
+          "group-hover:text-base-content",
+          !small && "text-xl"
+        )}
+      >
         {text}
       </p>
 
@@ -2723,6 +2713,21 @@ export function PricingFeatures() {
     {
       icon: <TbHelpCircleFilled />,
       title: "Follow up questions",
+    },
+    {
+      icon: <TbClock />,
+      title: "1 year data retention",
+      tooltip: "Your data is retained for 1 year",
+    },
+    {
+      icon: <TbSearch />,
+      title: "Hybrid search",
+      tooltip: "Vector + text search for better results",
+    },
+    {
+      icon: <TbUsers />,
+      title: "Chat users across channels",
+      tooltip: "View chat users across channels",
     },
   ];
 

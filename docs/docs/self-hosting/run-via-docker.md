@@ -20,7 +20,6 @@ cp docker/docker-compose.yml docker/docker-compose.override.yml
 
 ### 2. Set `env`
 
-- Replace `<PINECONE_API_KEY>` with your Pinecone API key
 - Replace `<OPENROUTER_API_KEY>` with your OpenRouter API key
 - Update `JWT_SECRET` with a strong, random secret (use the same value for all services)
 - Add GitHub app credentials if using GitHub integration (optional)

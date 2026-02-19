@@ -1,12 +1,12 @@
 ---
-sidebar_position: 10
+sidebar_position: 3
 ---
 
-# Source Sync Service
+# source-sync
 
 ## Overview
 
-The Source Sync service is a background service that handles syncing documentation sources and maintaining the knowledge base using BullMQ queues. It processes various content sources like web pages, GitHub issues, Notion pages, and converts them into vector embeddings for semantic search.
+The `source-sync` service is a background service that handles syncing documentation sources and maintaining the knowledge base using BullMQ queues. It processes various content sources like web pages, GitHub issues, Notion pages, and converts them into vector embeddings for semantic search.
 
 ### Architecture & Features
 
@@ -15,20 +15,20 @@ The Source Sync service is a background service that handles syncing documentati
 - **Content Processing**: Handles multiple source types (web, GitHub, Notion, Confluence, etc.)
 - **Document Conversion**: Converts various formats to markdown and text
 - **Web Scraping**: Playwright integration for dynamic content scraping
-- **Vector Processing**: Pinecone integration for embedding storage
+- **Vector Processing**: PGVector or Pinecone
 - **Port**: 3003 (container port 3000)
 
 ### Dependencies
 
 - Redis service for queue management
 - Database service (MongoDB) for metadata storage
-- External APIs: Pinecone, GitHub (optional), ScrapeCreators (optional)
+- External APIs: GitHub (optional), ScrapeCreators (optional)
 
 ## Environment Variables
 
 | Variable                 | Required | Description                                                             | Example                                  |
 | ------------------------ | -------- | ----------------------------------------------------------------------- | ---------------------------------------- |
-| `PINECONE_API_KEY`       | Yes      | Pinecone API key for vector database operations                         | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` |
+| `PGVECTOR_URL`           | Yes      | PGVector connection URL                                                 | `"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"` |
 | `REDIS_URL`              | Yes      | Redis connection URL                                                    | `"redis://redis:6379"`                   |
 | `GROUP_QUEUE_NAME`       | Yes      | Queue name for processing source groups                                 | `"crawlchat_source_sync_groups"`         |
 | `ITEM_QUEUE_NAME`        | Yes      | Queue name for processing source items                                  | `"crawlchat_source_sync_items"`          |
@@ -42,7 +42,6 @@ The Source Sync service is a background service that handles syncing documentati
 - Node.js 22
 - Redis running locally or accessible
 - MongoDB running locally or accessible
-- Pinecone API key
 
 ### Development Setup
 
@@ -61,7 +60,7 @@ The Source Sync service is a background service that handles syncing documentati
 3. **Install Playwright browsers** (for web scraping):
 
    ```bash
-   npx playwright install
+   npx playwright install chromium
    ```
 
 4. **Set up environment variables**:

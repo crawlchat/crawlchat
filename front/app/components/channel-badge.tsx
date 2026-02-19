@@ -8,8 +8,8 @@ import {
   TbBrandSlack,
   TbCode,
   TbMessage,
-  TbRobotFace,
 } from "react-icons/tb";
+import { MCPIcon } from "./mcp-icon";
 
 export function ChannelBadge({
   channel,
@@ -47,7 +47,7 @@ export function ChannelBadge({
         {!channel && <TbMessage />}
         {channel === "discord" && <TbBrandDiscord />}
         {channel === "slack" && <TbBrandSlack />}
-        {channel === "mcp" && <TbRobotFace />}
+        {channel === "mcp" && <MCPIcon />}
         {channel === "api" && <TbCode />}
         {channel === "widget" && <TbMessage />}
         {channel === "google_chat" && <TbBrandGoogleFilled />}

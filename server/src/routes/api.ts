@@ -4,7 +4,6 @@ import {
   authenticate,
   authoriseScrapeUser,
 } from "@packages/common/express-auth";
-import { LlmModel } from "@packages/common/prisma";
 
 const router = Router();
 
@@ -164,7 +163,7 @@ router.post("/collection/ai-model", authenticate, async (req, res) => {
 
   await prisma.scrape.update({
     where: { id: scrapeId },
-    data: { llmModel: aiModel as LlmModel },
+    data: { llmModel: aiModel },
   });
 
   res.json({ success: true });

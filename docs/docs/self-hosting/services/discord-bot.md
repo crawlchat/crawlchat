@@ -1,12 +1,12 @@
 ---
-sidebar_position: 3
+sidebar_position: 4
 ---
 
-# Discord Bot Service
+# discord-bot
 
 ## Overview
 
-The Discord Bot service provides integration with Discord, allowing users to interact with CrawlChat directly within Discord servers. The bot can answer questions and provide information based on the configured knowledge base.
+The `discord-bot` service provides integration with Discord, allowing users to interact with CrawlChat directly within Discord servers. The bot can answer questions and provide information based on the configured knowledge base.
 
 ### Architecture & Features
 

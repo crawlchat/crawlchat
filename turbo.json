@@ -19,6 +19,14 @@
       "dependsOn": ["generate"],
       "persistent": true,
       "cache": false
+    },
+    "clean" : {
+      
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": []
     }
-  }
+  },
+  "concurrency": "12"
 }

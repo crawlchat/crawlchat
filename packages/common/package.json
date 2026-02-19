@@ -117,7 +117,7 @@
     "generate": "prisma generate",
     "dev": "tsc --watch",
     "build": "tsc",
-    "prettier": "prettier --no-error-on-unmatched-pattern --check ./**/*.{ts,tsx,js,jsx,json,css,md}"
+    "prettier": "prettier src --check"
   },
   "author": "",
   "license": "ISC",

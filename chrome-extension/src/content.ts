@@ -48,6 +48,10 @@ async function createGlobalButton(): Promise<void> {
     return;
   }
 
+  if (!config || !config.scrapeId) {
+    return;
+  }
+
   injectStickyButtonCSS();
 
   globalButton = document.createElement("button");
@@ -168,6 +172,7 @@ async function openPanel(
   options?: {
     submit?: boolean;
     autoUse?: boolean;
+    isPrompt?: boolean;
   }
 ) {
   const existingPanel = document.getElementById("crawlchat-panel");
@@ -253,6 +258,7 @@ async function openPanel(
       onFocus: handleFocusElement,
       submit: options?.submit,
       autoUse: options?.autoUse,
+      isPrompt: options?.isPrompt,
     })
   );
 }
@@ -309,11 +315,11 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   }
 
   if (message.type === "OPEN_MODAL_FROM_SHORTCUT") {
-    handleShortcutOpenPanel();
+    handleShortcutOpenPanel(message.isPrompt);
   }
 
   if (message.type === "OPEN_MODAL_AUTO_USE_FROM_SHORTCUT") {
-    handleShortcutOpenPanelAutoUse();
+    handleShortcutOpenPanelAutoUse(message.isPrompt);
   }
 
   if (message.type === "CONFIG_UPDATED") {
@@ -321,13 +327,15 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     const config = await getConfig();
     if (config && config.stickyButton === false) {
       removeGlobalButton();
-    } else {
+    } else if (config && config.scrapeId) {
       createGlobalButton();
+    } else {
+      removeGlobalButton();
     }
   }
 });
 
-async function handleShortcutOpenPanel() {
+async function handleShortcutOpenPanel(isPrompt?: boolean) {
   const config = await getConfig();
 
   if (config && config.apiKey && config.scrapeId) {
@@ -338,11 +346,14 @@ async function handleShortcutOpenPanel() {
         | HTMLTextAreaElement
         | HTMLElement);
 
-    openPanel(config, targetElement, { submit: true });
+    openPanel(config, targetElement, {
+      submit: true,
+      isPrompt,
+    });
   }
 }
 
-async function handleShortcutOpenPanelAutoUse() {
+async function handleShortcutOpenPanelAutoUse(isPrompt?: boolean) {
   const config = await getConfig();
 
   if (config && config.apiKey && config.scrapeId) {
@@ -353,6 +364,10 @@ async function handleShortcutOpenPanelAutoUse() {
         | HTMLTextAreaElement
         | HTMLElement);
 
-    openPanel(config, targetElement, { submit: true, autoUse: true });
+    openPanel(config, targetElement, {
+      submit: true,
+      autoUse: true,
+      isPrompt,
+    });
   }
 }

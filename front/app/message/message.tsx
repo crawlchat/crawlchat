@@ -12,6 +12,7 @@ import {
   TbPhoto,
   TbPlus,
   TbSettingsBolt,
+  TbStarFilled,
 } from "react-icons/tb";
 import { MarkdownProse } from "~/widget/markdown-prose";
 import { useMemo, useState } from "react";
@@ -32,6 +33,7 @@ import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
 import { getImagesCount, getQueryString } from "@packages/common/llm-message";
 import { SentimentBadge } from "./sentiment-badge";
+import { SearchTypeBadge } from "./search-type-badge";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -77,13 +79,21 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     actions.map((action) => [action.id, action])
   );
 
-  return { messagePairs, messagePair, actionsMap, scrape };
+  return {
+    messagePairs,
+    messagePair,
+    actionsMap,
+    scrape,
+    isAdmin: process.env.ADMIN_EMAILS?.split(",").includes(user!.email),
+  };
 }
 
 export function meta({ data }: Route.MetaArgs) {
   return makeMeta({
     title: `${
-      (data.messagePair?.queryMessage?.llmMessage as any)?.content ?? "Message"
+      getQueryString(
+        (data.messagePair?.queryMessage?.llmMessage as any)?.content
+      ) ?? "Message"
     } - CrawlChat`,
   });
 }
@@ -149,20 +159,34 @@ function AssistantMessage({
   message,
   actionsMap,
   showResources = true,
+  isAdmin = false,
 }: {
   message: Message;
   actionsMap: Map<string, ApiAction>;
   showResources?: boolean;
+  isAdmin?: boolean;
 }) {
   const [hoveredUniqueId, setHoveredUniqueId] = useState<string | null>(null);
   const citation = useMemo(
     () => extractCitations(getMessageContent(message), message.links),
     [message]
   );
+  const toolCalls = useMemo(() => {
+    return message.toolCalls.map((toolCall) => ({
+      toolName: toolCall.toolName,
+      params: JSON.stringify(toolCall.params),
+      responseLength: toolCall.responseLength,
+    }));
+  }, [message.toolCalls]);
 
   return (
-    <div className="flex flex-col gap-4 max-w-prose">
-      <div className="bg-base-100 rounded-box p-4 shadow border border-base-300">
+    <div className="flex flex-col gap-4">
+      <div
+        className={cn(
+          "bg-base-100 rounded-box p-4 shadow border border-base-300",
+          "max-w-prose"
+        )}
+      >
         <MarkdownProse
           sources={Object.values(citation.citedLinks).map((link) => ({
             title: link?.title ?? link?.url ?? "Source",
@@ -192,6 +216,36 @@ function AssistantMessage({
         </MarkdownProse>
       </div>
 
+      {toolCalls.length > 0 && isAdmin && (
+        <div className="flex flex-col gap-2">
+          <div className="text-lg">Tool calls</div>
+          <div className="flex flex-col bg-base-100 rounded-box shadow border border-base-300">
+            {toolCalls.map((toolCall, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "p-2 border-b border-base-300 last:border-b-0",
+                  "flex gap-2 items-center justify-between"
+                )}
+              >
+                <div className="flex gap-2 items-center">
+                  <div>{toolCall.toolName}</div>
+                  <div className="text-xs text-base-content/50">
+                    {JSON.parse(toolCall.params)}
+                  </div>
+                </div>
+                <div
+                  className="tooltip tooltip-left"
+                  data-tip="Response length"
+                >
+                  <div className="badge">{toolCall.responseLength}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {showResources && message.links.length > 0 && (
         <div className="flex flex-col gap-2">
           <div className="text-lg">Resources</div>
@@ -205,6 +259,7 @@ function AssistantMessage({
               <thead>
                 <tr>
                   <th>Title</th>
+                  <th>Type</th>
                   <th>Query</th>
                   <th>Score</th>
                 </tr>
@@ -228,26 +283,44 @@ function AssistantMessage({
                         {link.title || link.url}
                       </RouterLink>
                     </td>
-                    <td className="w-18 md:w-56">
+                    <td className="w-28">
+                      <SearchTypeBadge searchType={link.searchType ?? "-"} />
+                    </td>
+                    <td className="font-mono">
                       {link.searchQuery ? (
-                        <div
-                          className="tooltip"
-                          data-tip="Search in the knowledge base"
-                        >
-                          <Link
-                            className="link link-hover link-primary"
-                            to={`/knowledge?query=${link.searchQuery}`}
-                            target="_blank"
+                        link.searchType === "search_data" ? (
+                          <div
+                            className="tooltip"
+                            data-tip="Search in the knowledge base"
                           >
-                            {link.searchQuery}
-                          </Link>
-                        </div>
+                            <Link
+                              className={cn("link link-hover link-primary")}
+                              to={`/knowledge?query=${link.searchQuery}`}
+                              target="_blank"
+                            >
+                              {link.searchQuery}
+                            </Link>
+                          </div>
+                        ) : (
+                          link.searchQuery
+                        )
                       ) : (
                         "-"
                       )}
                     </td>
                     <td className="w-24">
-                      {link.score && <ScoreBadge score={link.score} />}
+                      {link.score ? (
+                        <div className="flex items-center gap-1">
+                          {link.cited && (
+                            <div className="badge badge-secondary badge-soft gap-1 px-2">
+                              <TbStarFilled />
+                            </div>
+                          )}
+                          <ScoreBadge score={link.score} />
+                        </div>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -342,10 +415,12 @@ export function QuestionAnswer({
   messagePair,
   actionsMap,
   showResources = true,
+  isAdmin = false,
 }: {
   messagePair: MessagePair;
   actionsMap: Map<string, ApiAction>;
   showResources?: boolean;
+  isAdmin?: boolean;
 }) {
   const imagesCount = useMemo(
     () =>
@@ -361,6 +436,12 @@ export function QuestionAnswer({
             (messagePair?.queryMessage?.llmMessage as any)?.content
           )}
         </div>
+
+        {messagePair?.responseMessage?.analysis?.shortQuestion && (
+          <div className="text-sm italic text-base-content/50">
+            {messagePair?.responseMessage?.analysis?.shortQuestion}
+          </div>
+        )}
 
         <div className="flex gap-2 items-center">
           {messagePair?.queryMessage?.analysis?.category && (
@@ -428,6 +509,7 @@ export function QuestionAnswer({
           message={messagePair.responseMessage}
           actionsMap={actionsMap}
           showResources={showResources}
+          isAdmin={isAdmin}
         />
       )}
     </>
@@ -478,7 +560,11 @@ export default function Message({ loaderData }: Route.ComponentProps) {
     >
       <div className="flex flex-col gap-6">
         {messagePair && (
-          <QuestionAnswer messagePair={messagePair} actionsMap={actionsMap} />
+          <QuestionAnswer
+            messagePair={messagePair}
+            actionsMap={actionsMap}
+            isAdmin={loaderData.isAdmin}
+          />
         )}
 
         {filteredCategorySuggestions &&
@@ -488,7 +574,7 @@ export default function Message({ loaderData }: Route.ComponentProps) {
               <div
                 className={cn(
                   "flex flex-col bg-base-100 rounded-box",
-                  "shadow border border-base-300 max-w-prose"
+                  "shadow border border-base-300"
                 )}
               >
                 {filteredCategorySuggestions

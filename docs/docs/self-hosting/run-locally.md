@@ -14,27 +14,27 @@ Make sure you meet the [prerequisites](./prerequisites.md) before starting it.
 npm i
 ```
 
-### 2. Database and Redis
+### 2. Local databases
 
 ```bash
-docker-compose -f docker-compose-local.yml up -d
+docker-compose -f docker/docker-compose-local.yml up -d
 ```
 
 This will start:
 
 - **MongoDB** on `localhost:27017` with replica set `rs0` initialized
 - **Redis** on `localhost:6379` with AOF persistence enabled
-- **mongo-init** service that automatically initializes the replica set
+- **Postgres** on `localhost:5432` for embeddings (`earth` indexer)
 
 ### 2. Setup `.env`
 
 Copy the `.env.example` from the root to `.env`, and fill them out to your needs:
 
 ```bash
-`cp .env.example .env`
+cp .env.example .env
 ```
 
-### 3. Start Services
+### 3. Start services
 
 You can start all the services in `dev` mode using following command from the root:
 
@@ -59,15 +59,15 @@ If ports are in use, modify the ports in service configurations or use different
 
 - Ensure MongoDB replica set is initialized (mongo-init service should handle this)
 - Check DATABASE_URL format: `mongodb://localhost:27017/crawlchat?replicaSet=rs0`
-- Check Docker containers: `docker-compose -f docker-compose-local.yml ps`
-- View logs: `docker-compose -f docker-compose-local.yml logs database`
+- Check Docker containers: `docker-compose -f docker/docker-compose-local.yml ps`
+- View logs: `docker-compose -f docker/docker-compose-local.yml logs database`
 
 #### Redis Connection Issues
 
 - Ensure Redis is running and healthy
 - Check REDIS_URL configuration: `redis://localhost:6379`
-- Check Docker containers: `docker-compose -f docker-compose-local.yml ps`
-- View logs: `docker-compose -f docker-compose-local.yml logs redis`
+- Check Docker containers: `docker-compose -f docker/docker-compose-local.yml ps`
+- View logs: `docker-compose -f docker/docker-compose-local.yml logs redis`
 
 #### API Key Issues
 
@@ -80,11 +80,11 @@ If ports are in use, modify the ports in service configurations or use different
 To stop the database and Redis services:
 
 ```bash
-docker-compose -f docker-compose-local.yml down
+docker-compose -f docker/docker-compose-local.yml down
 ```
 
 To stop and remove volumes (reset all data):
 
 ```bash
-docker-compose -f docker-compose-local.yml down -v
+docker-compose -f docker/docker-compose-local.yml down -v
 ```

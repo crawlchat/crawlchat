@@ -4,11 +4,13 @@
   "description": "Source Sync",
   "main": "dist/index.js",
   "scripts": {
-    "generate": "npx playwright install-deps && npx playwright install",
+    "generate": "npx playwright install-deps chromium && npx playwright install chromium",
     "build": "npx tsc",
     "start": "node -r tsconfig-paths/register dist/index.js",
     "dev": "dotenv -e ../.env -- npx tsx watch -r tsconfig-paths/register src/index.ts",
-    "prettier": "prettier --no-error-on-unmatched-pattern --check ./**/*.{ts,tsx,js,jsx,json,css,md}"
+    "prettier": "prettier src --check",
+    "cron": "npx tsc && node dist/cron.js \"$@\"",
+    "test": "npx tsc && node --test dist/tests"
   },
   "author": "",
   "license": "ISC",
@@ -22,15 +24,15 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "node-gyp": "^12.1.0"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
     "@notionhq/client": "^4.0.1",
     "@openrouter/sdk": "^0.4.0",
     "@packages/common": "*",
-    "@packages/graph": "*",
-    "@pinecone-database/pinecone": "^4.1.0",
+    "@packages/indexer": "*",
     "bullmq": "^5.66.4",
     "cheerio": "^1.1.2",
     "cors": "^2.8.5",

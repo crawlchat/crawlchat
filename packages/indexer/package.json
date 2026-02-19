@@ -1,0 +1,30 @@
+{
+  "name": "@packages/indexer",
+  "version": "1.0.0",
+  "description": "Indexer abstraction for vector search and upsert",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "@types/pg": "^8.11.6",
+    "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@pinecone-database/pinecone": "^4.1.0",
+    "pg": "^8.13.0",
+    "pgvector": "^0.2.1"
+  }
+}

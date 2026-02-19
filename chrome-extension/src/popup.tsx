@@ -55,7 +55,7 @@ function Welcome() {
 function Home() {
   const { setConfig, scrapes, config } = useContext(PopupContext);
 
-  function handleChangeScrape(scrapeId: string) {
+  function handleChangeScrape(scrapeId: string | null) {
     setConfig((c) => (c ? { ...c, scrapeId } : c));
   }
 
@@ -76,17 +76,16 @@ function Home() {
         <fieldset className="fieldset">
           <legend className="fieldset-legend pt-0">Collection</legend>
           <select
-            value={
-              scrapes === undefined
-                ? "loading"
-                : (config?.scrapeId ?? undefined)
-            }
+            value={scrapes === undefined ? "loading" : (config?.scrapeId ?? "")}
             className="select"
-            onChange={(e) => handleChangeScrape(e.target.value)}
+            onChange={(e) => handleChangeScrape(e.target.value || null)}
           >
             {scrapes === undefined && (
-              <option value={"loading"}>Loading</option>
+              <option value={"loading"} disabled>
+                Loading
+              </option>
             )}
+            <option value={""}>None</option>
             {scrapes?.map((scrape) => (
               <option key={scrape.collectionId} value={scrape.collectionId}>
                 {scrape.collectionName}

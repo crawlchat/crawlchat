@@ -1,0 +1,20 @@
+name: Discord notifications
+
+on:
+  push:
+    branches:
+      - main
+  pull_request_target:
+    branches:
+      - main
+
+jobs:
+  notify_discord:
+    if: github.repository == 'crawlchat/crawlchat'
+    runs-on: ubuntu-24.04
+    
+    steps:
+      - name: Discord action notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        uses: IdanHo/action-discord@754598254f288e6d8e9fca637832e3c163515ba8

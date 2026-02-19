@@ -29,6 +29,10 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { Page } from "~/components/page";
 
+function cleanColor(color: string | null | undefined) {
+  return color && ["null", "#abcdef"].includes(color) ? null : color;
+}
+
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
   const scrapeId = await getSessionScrapeId(request);
@@ -91,6 +95,9 @@ export async function action({ request }: Route.ActionArgs) {
     title: null,
     hideBranding: null,
     currentPageContext: null,
+    buttonLogoUrl: null,
+    chatboxBgColor: null,
+    chatboxTextColor: null,
   };
 
   if (size) {
@@ -111,33 +118,21 @@ export async function action({ request }: Route.ActionArgs) {
     ) as string;
   }
   if (formData.has("primaryColor")) {
-    update.primaryColor = formData.get("primaryColor") as string;
-    update.primaryColor = ["null", "#abcdef"].includes(update.primaryColor)
-      ? null
-      : update.primaryColor;
+    update.primaryColor =
+      cleanColor(formData.get("primaryColor") as string) ?? null;
   }
   if (formData.has("buttonText")) {
     update.buttonText = formData.get("buttonText") as string;
   }
   if (formData.has("buttonTextColor")) {
-    update.buttonTextColor = formData.get("buttonTextColor") as string;
-    update.buttonTextColor = ["null", "#abcdef"].includes(
-      update.buttonTextColor
-    )
-      ? null
-      : update.buttonTextColor;
-  }
-  if (formData.has("from-widget")) {
-    update.showLogo = formData.get("showLogo") === "on";
+    update.buttonTextColor =
+      cleanColor(formData.get("buttonTextColor") as string) ?? null;
   }
   if (formData.has("logoUrl")) {
     update.logoUrl = formData.get("logoUrl") as string;
   }
   if (formData.has("tooltip")) {
     update.tooltip = formData.get("tooltip") as string;
-  }
-  if (formData.has("from-widget")) {
-    update.applyColorsToChatbox = formData.get("applyColorsToChatbox") === "on";
   }
   if (formData.has("title")) {
     update.title = formData.get("title") as string;
@@ -150,6 +145,17 @@ export async function action({ request }: Route.ActionArgs) {
   }
   if (formData.has("from-current-page-context")) {
     update.currentPageContext = formData.get("currentPageContext") === "on";
+  }
+  if (formData.has("chatboxBgColor")) {
+    update.chatboxBgColor =
+      cleanColor(formData.get("chatboxBgColor") as string) ?? null;
+  }
+  if (formData.has("chatboxTextColor")) {
+    update.chatboxTextColor =
+      cleanColor(formData.get("chatboxTextColor") as string) ?? null;
+  }
+  if (formData.has("buttonLogoUrl")) {
+    update.buttonLogoUrl = formData.get("buttonLogoUrl") as string;
   }
 
   await prisma.scrape.update({
@@ -192,25 +198,50 @@ const DEFAULT_MESSAGE: Message = {
   fingerprint: "test",
   url: null,
   answerId: "test",
+  promptTokens: 0,
+  completionTokens: 0,
+  totalTokens: 0,
+  toolCalls: [],
+  githubCommentId: null,
+  llmCost: 0,
+  dataGap: null,
 };
 
 function AskAIButton({
   bg,
   color,
   text,
+  logoUrl,
 }: {
   bg?: string | null;
   color?: string | null;
   text?: string | null;
+  logoUrl?: string | null;
 }) {
+  const square = !!logoUrl;
   return (
     <div
-      className="bg-[#7b2cbf] text-white px-5 py-2 rounded-full transition-all cursor-pointer hover:scale-105"
+      className={cn("transition-all cursor-pointer hover:scale-105")}
       style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        gap: "2px",
         backgroundColor: bg ?? "#7b2cbf",
         color: color ?? "white",
+        borderRadius: square ? "8px" : "20px",
+        padding: square ? "8px 12px" : "8px 20px",
+        boxShadow: "rgba(0, 0, 0, 0.1) 0px 2px 4px",
       }}
     >
+      {logoUrl && (
+        <img
+          src={logoUrl}
+          alt="Logo"
+          style={{ width: "32px", height: "32px" }}
+        />
+      )}
       {text || "Ask AI"}
     </div>
   );
@@ -250,7 +281,8 @@ function ColorPicker({
 }
 
 export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
-  const widgetConfigFetcher = useFetcher();
+  const askAIButtonFetcher = useFetcher();
+  const chatboxFetcher = useFetcher();
   const sizeFetcher = useFetcher();
   const questionsFetcher = useFetcher();
   const welcomeMessageFetcher = useFetcher();
@@ -282,6 +314,15 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
   );
   const [logoUrl, setLogoUrl] = useState(
     loaderData.scrape?.widgetConfig?.logoUrl
+  );
+  const [buttonLogoUrl, setButtonLogoUrl] = useState(
+    loaderData.scrape?.widgetConfig?.buttonLogoUrl
+  );
+  const [chatboxBgColor, setChatboxBgColor] = useState(
+    loaderData.scrape?.widgetConfig?.chatboxBgColor
+  );
+  const [chatboxTextColor, setChatboxTextColor] = useState(
+    loaderData.scrape?.widgetConfig?.chatboxTextColor
   );
   const [welcomeMessage, setWelcomeMessage] = useState(
     loaderData.scrape?.widgetConfig?.welcomeMessage
@@ -336,6 +377,9 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
         title,
         hideBranding,
         currentPageContext,
+        chatboxBgColor,
+        chatboxTextColor,
+        buttonLogoUrl,
       },
     };
   }, [
@@ -355,6 +399,9 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     title,
     hideBranding,
     currentPageContext,
+    chatboxBgColor,
+    chatboxTextColor,
+    buttonLogoUrl,
   ]);
 
   function addQuestion() {
@@ -373,17 +420,25 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
     setButtonTextColor(null);
   }
 
+  function clearChatboxBgColor() {
+    setChatboxBgColor(null);
+  }
+
+  function clearChatboxTextColor() {
+    setChatboxTextColor(null);
+  }
+
   return (
     <Page title={"Customise"} icon={<TbColorSwatch />}>
       <div className="flex items-start gap-4">
         <div className="flex flex-col gap-4 flex-1">
           <SettingsSection
-            id="button-chatbox"
-            title="Button & Chatbox"
-            description="Customise the Ask AI button and the chatbox appearance"
-            fetcher={widgetConfigFetcher}
+            id="ask-ai-button"
+            title="Ask AI button"
+            description="Customise the Ask AI button appearance"
+            fetcher={askAIButtonFetcher}
           >
-            <input type="hidden" name="from-widget" value={"true"} />
+            <input type="hidden" name="from-ask-ai-button" value={"true"} />
 
             <div className="flex flex-col gap-2">
               <div className="flex gap-2 items-center">
@@ -406,7 +461,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
 
               <div className="flex gap-2">
                 <fieldset className="fieldset flex-1">
-                  <legend className="fieldset-legend">Button text</legend>
+                  <legend className="fieldset-legend">Text</legend>
                   <input
                     className="input w-full"
                     type="text"
@@ -423,35 +478,67 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                     className="input w-full"
                     type="text"
                     placeholder="Logo URL"
+                    name="buttonLogoUrl"
+                    value={buttonLogoUrl ?? ""}
+                    onChange={(e) => setButtonLogoUrl(e.target.value)}
+                  />
+                </fieldset>
+              </div>
+            </div>
+          </SettingsSection>
+
+          <SettingsSection
+            id="chatbox"
+            title="Chatbox"
+            description="Customise the chatbox appearance"
+            fetcher={chatboxFetcher}
+          >
+            <input type="hidden" name="from-chatbox" value={"true"} />
+
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center">
+                <ColorPicker
+                  name="chatboxBgColor"
+                  label="Background"
+                  color={chatboxBgColor}
+                  setColor={setChatboxBgColor}
+                  onClear={clearChatboxBgColor}
+                />
+
+                <ColorPicker
+                  name="chatboxTextColor"
+                  label="Text color"
+                  color={chatboxTextColor}
+                  setColor={setChatboxTextColor}
+                  onClear={clearChatboxTextColor}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <fieldset className="fieldset flex-1">
+                  <legend className="fieldset-legend">Title</legend>
+                  <input
+                    className="input w-full"
+                    type="text"
+                    placeholder="Ex: Assistant"
+                    name="title"
+                    value={title ?? ""}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </fieldset>
+
+                <fieldset className="fieldset flex-1">
+                  <legend className="fieldset-legend">Logo URL</legend>
+                  <input
+                    className="input w-full"
+                    type="text"
+                    placeholder="Logo URL"
                     name="logoUrl"
                     value={logoUrl ?? ""}
                     onChange={(e) => setLogoUrl(e.target.value)}
                   />
                 </fieldset>
               </div>
-
-              <fieldset className="fieldset flex-1">
-                <legend className="fieldset-legend">Title</legend>
-                <input
-                  className="input w-full"
-                  type="text"
-                  placeholder="Ex: Assistant"
-                  name="title"
-                  value={title ?? ""}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </fieldset>
-
-              <label className="label">
-                <input
-                  type="checkbox"
-                  className="toggle"
-                  name="applyColorsToChatbox"
-                  checked={applyColorsToChatbox}
-                  onChange={(e) => setApplyColorsToChatbox(e.target.checked)}
-                />
-                Apply colors to chatbox
-              </label>
             </div>
           </SettingsSection>
 
@@ -644,6 +731,7 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
 
           <div className="flex justify-center">
             <AskAIButton
+              logoUrl={buttonLogoUrl}
               bg={primaryColor}
               color={buttonTextColor}
               text={buttonText}
@@ -688,6 +776,8 @@ export default function ScrapeCustomise({ loaderData }: Route.ComponentProps) {
                             knowledgeGroupId: "test",
                             fetchUniqueId: "54660",
                             searchQuery: "test",
+                            searchType: "test",
+                            cited: true,
                           },
                         ],
                       },

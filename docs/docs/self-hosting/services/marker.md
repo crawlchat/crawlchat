@@ -1,12 +1,12 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 ---
 
-# Marker Service
+# marker
 
 ## Overview
 
-The Marker service is a Python-based service that converts files into markdown format. It uses Microsoft's MarkItDown library to process various document types and convert them to clean markdown for ingestion into the knowledge base.
+The `marker` service is a Python-based service that converts files into markdown format. It uses Microsoft's MarkItDown library to process various document types and convert them to clean markdown for ingestion into the knowledge base.
 
 ### Architecture & Features
 

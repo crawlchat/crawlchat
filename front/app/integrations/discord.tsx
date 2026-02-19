@@ -165,13 +165,9 @@ function ImageAttachments() {
             name="sendImages"
             className="toggle"
             defaultChecked={scrape.discordConfig?.sendImages ?? false}
-            disabled={!isAllowed(["pro"])}
           />
           Active
         </label>
-        <div className="badge badge-soft badge-primary">
-          <TbCrown /> Pro
-        </div>
       </div>
     </SettingsSection>
   );

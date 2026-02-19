@@ -3,7 +3,6 @@ import type { Express, NextFunction, Request, Response } from "express";
 import ws from "express-ws";
 import cors from "cors";
 import { prisma } from "@packages/common/prisma";
-import { deleteByIds, deleteScrape } from "./pinecone";
 import {
   authenticate,
   AuthMode,
@@ -11,35 +10,32 @@ import {
 } from "@packages/common/express-auth";
 import { v4 as uuidv4 } from "uuid";
 import {
-  LlmModel,
   Message,
   MessageAttachment,
   MessageChannel,
   Prisma,
   Thread,
 } from "@packages/common/prisma";
-import { makeIndexer } from "./indexer/factory";
+import { makeIndexer } from "@packages/indexer";
 import { name } from "@packages/common";
 import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
-import { RAGAgentCustomMessage } from "./llm/flow-jasmine";
-import { makeRagTool, QueryContext } from "./llm/rag-tool";
+import { CustomMessage } from "./llm/custom-message";
+import { makeSearchTool, SearchToolContext } from "./llm/search-tool";
 import { extractCitations } from "@packages/common/citation";
-import { FlowMessage, multiLinePrompt, SimpleAgent } from "./llm/agentic";
+import { multiLinePrompt, Agent } from "@packages/agentic";
+import { FlowMessage } from "./llm/flow";
 import { chunk } from "@packages/common/chunk";
-import { Flow } from "./llm/flow";
+import { Flow } from "@packages/agentic";
 import { z } from "zod";
-import { baseAnswerer, collectSourceLinks } from "./answer";
-import { fillMessageAnalysis } from "./analyse-message";
+import {
+  baseAnswerer,
+  collectSourceLinks,
+  saveAnswer,
+  updateLastMessageAt,
+} from "./answer";
 import { createToken } from "@packages/common/jwt";
-import {
-  MultimodalContent,
-  getQueryString,
-} from "@packages/common/llm-message";
-import {
-  draftRateLimiter,
-  mcpRateLimiter,
-  wsRateLimiter,
-} from "./rate-limiter";
+import { MultimodalContent } from "@packages/common/llm-message";
+import { draftRateLimiter, mcpRateLimiter } from "./rate-limiter";
 import { getConfig } from "./llm/config";
 import { getNextNumber } from "@packages/common/mongo-counter";
 import { randomUUID } from "crypto";
@@ -47,7 +43,10 @@ import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
 import githubBotRouter from "./github-bot";
-import { removeByChunk } from "@packages/graph/graph";
+import {
+  makeTextSearchRegexTool,
+  TextSearchToolContext,
+} from "./llm/text-search-tool";
 
 declare global {
   namespace Express {
@@ -91,27 +90,12 @@ app.use("/admin", adminRouter);
 app.use("/github", githubBotRouter);
 expressWs.app.ws("/", handleWs);
 
-async function updateLastMessageAt(threadId: string) {
-  await prisma.thread.update({
-    where: { id: threadId },
-    data: { lastMessageAt: new Date() },
-  });
-}
-
 app.get("/", function (req: Request, res: Response) {
   res.json({ message: "ok" });
 });
 
 app.get("/test", async function (req: Request, res: Response) {
   res.json({ ok: true, name: name() });
-});
-
-app.post("/scrape", authenticate, async function (req: Request, res: Response) {
-  const scrapeId = req.body.scrapeId!;
-
-  authoriseScrapeUser(req.user!.scrapeUsers, scrapeId, res);
-
-  throw new Error("Not implemented");
 });
 
 app.delete(
@@ -125,7 +109,7 @@ app.delete(
       where: { id: scrapeId },
     });
     const indexer = makeIndexer({ key: scrape.indexer });
-    await deleteScrape(indexer.getKey(), scrapeId);
+    await indexer.deleteScrape(scrapeId);
 
     res.json({ message: "ok" });
   }
@@ -147,10 +131,7 @@ app.delete(
     authoriseScrapeUser(req.user!.scrapeUsers, scrapeItem.scrapeId, res);
 
     const indexer = makeIndexer({ key: scrapeItem.scrape.indexer });
-    await deleteByIds(
-      indexer.getKey(),
-      scrapeItem.embeddings.map((e) => e.id)
-    );
+    await indexer.deleteByIds(scrapeItem.embeddings.map((e) => e.id));
 
     for (const embedding of scrapeItem.embeddings) {
       await removeByChunk(scrapeItem.scrapeId, embedding.id);
@@ -187,7 +168,7 @@ app.delete(
 
     const chunks = chunk(ids, 800);
     for (const chunk of chunks) {
-      await deleteByIds(indexer.getKey(), chunk);
+      await indexer.deleteByIds(chunk);
     }
 
     for (const item of items) {
@@ -267,7 +248,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
 
   await consumeCredits(scrape.userId, "messages", creditsUsed);
 
-  const message: FlowMessage<RAGAgentCustomMessage> = {
+  const message: FlowMessage<CustomMessage> = {
     llmMessage: {
       role: "assistant",
       content: "Results are hidden as it is from MCP",
@@ -396,8 +377,6 @@ app.post(
 app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   console.log("Answer request for", req.params.scrapeId);
 
-  wsRateLimiter.check();
-
   const scrape = await prisma.scrape.findFirst({
     where: { id: req.params.scrapeId },
   });
@@ -462,11 +441,12 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     attachments?: MessageAttachment[];
   };
 
-  const messages = (req.body.messages ?? []) as InputMessage[];
+  let messages = (req.body.messages ?? []) as InputMessage[];
   if (messages && messages.length > 0) {
     const lastMessage = messages[messages.length - 1];
     query = lastMessage.content;
     attachments = lastMessage.attachments;
+    messages = messages.slice(0, -1);
 
     if (
       attachments?.some(
@@ -507,23 +487,56 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     },
   });
 
-  function messageToContent(message: InputMessage): string {
-    const parts = [message.content];
-    if (message.attachments) {
-      for (const attachment of message.attachments) {
-        if (!attachment.content) {
-          continue;
-        }
+  function embedAttachments(
+    text: string,
+    attachments: MessageAttachment[]
+  ): string {
+    const parts = [text];
+    for (const attachment of attachments) {
+      if (!attachment.content) {
+        continue;
+      }
 
-        parts.push(
-          `<attachment name="${attachment.name}" type="${attachment.type}">
+      parts.push(
+        `<attachment name="${attachment.name}" type="${attachment.type}">
             ${attachment.content ?? ""}
           </attachment>`
-        );
-      }
+      );
     }
 
     return parts.join("\n\n");
+  }
+
+  function withAttachments(
+    content: string | MultimodalContent[],
+    attachments?: MessageAttachment[]
+  ): string | MultimodalContent[] {
+    if (typeof content === "string") {
+      return embedAttachments(content, attachments ?? []);
+    }
+
+    const textParts = content.filter(
+      (c) => c.type === "text"
+    ) as MultimodalContent[];
+    const nonTextParts = content.filter(
+      (c) => c.type !== "text"
+    ) as MultimodalContent[];
+    const attachmentPart =
+      attachments && attachments.length > 0
+        ? ({
+            type: "text",
+            text: embedAttachments(
+              attachments.map((a) => a.content ?? "").join("\n\n"),
+              attachments
+            ),
+          } as MultimodalContent)
+        : undefined;
+
+    return [
+      ...textParts,
+      ...(attachmentPart ? [attachmentPart] : []),
+      ...nonTextParts,
+    ];
   }
 
   const recentMessages = messages.slice(-40);
@@ -531,11 +544,11 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
   const answer = await baseAnswerer(
     scrape,
     thread,
-    query,
+    withAttachments(query, attachments),
     recentMessages.map((m) => ({
       llmMessage: {
         role: m.role as any,
-        content: messageToContent(m),
+        content: withAttachments(m.content, m.attachments),
       },
     })),
     {
@@ -544,42 +557,15 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     }
   );
 
-  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
-  const newAnswerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content: answer.content },
-      links: answer!.sources,
-      ownerUserId: scrape.userId,
-      channel,
-      apiActionCalls: answer.actionCalls as any,
-      llmModel: scrape.llmModel as any,
-      creditsUsed: answer.creditsUsed,
-      fingerprint,
-      questionId: questionMessage.id,
-    },
-  });
-  await prisma.message.update({
-    where: { id: questionMessage.id },
-    data: { answerId: newAnswerMessage.id },
-  });
-  await updateLastMessageAt(thread.id);
-
-  if (scrape.analyseMessage) {
-    fillMessageAnalysis(
-      newAnswerMessage.id,
-      questionMessage.id,
-      getQueryString(query),
-      answer.content,
-      answer.context,
-      {
-        categories: scrape.messageCategories,
-      }
-    );
-  }
-
-  console.log("Sending answer to client");
+  const newAnswerMessage = await saveAnswer(
+    answer,
+    scrape,
+    thread.id,
+    channel,
+    questionMessage.id,
+    scrape.llmModel,
+    fingerprint
+  );
 
   const citation = extractCitations(answer.content, answer.sources, {
     cleanCitations: true,
@@ -591,8 +577,6 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
 
 app.post("/google-chat/answer/:scrapeId", async (req, res) => {
   console.log("Google Chat request for", req.params.scrapeId);
-
-  wsRateLimiter.check();
 
   const apiKey = req.query.apiKey as string;
   if (!apiKey) {
@@ -762,40 +746,15 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
     }
   );
 
-  await consumeCredits(scrape.userId, "messages", answer!.creditsUsed);
-  const newAnswerMessage = await prisma.message.create({
-    data: {
-      threadId: thread.id,
-      scrapeId: scrape.id,
-      llmMessage: { role: "assistant", content: answer!.content },
-      links: answer!.sources,
-      ownerUserId: scrape.userId,
-      channel: "google_chat",
-      apiActionCalls: answer!.actionCalls as any,
-      llmModel: scrape.llmModel,
-      creditsUsed: answer!.creditsUsed,
-      questionId: questionMessage.id,
-      fingerprint: googleChatEvent.chat.user.email,
-    },
-  });
-  await prisma.message.update({
-    where: { id: questionMessage.id },
-    data: { answerId: newAnswerMessage.id },
-  });
-  await updateLastMessageAt(thread.id);
-
-  if (scrape.analyseMessage) {
-    fillMessageAnalysis(
-      newAnswerMessage.id,
-      questionMessage.id,
-      messageText,
-      answer!.content,
-      answer!.context,
-      {
-        categories: scrape.messageCategories,
-      }
-    );
-  }
+  await saveAnswer(
+    answer,
+    scrape,
+    thread.id,
+    "google_chat",
+    questionMessage.id,
+    scrape.llmModel,
+    googleChatEvent.chat.user.email
+  );
 
   if (!answer) {
     res.status(400).json({
@@ -1007,9 +966,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   }
 
   const prompt = req.body.prompt as string;
-  const oldMessages = JSON.parse((req.body.messages as string) || "[]");
   const formatText = req.body.formatText as string;
-  const llmModel = req.body.llmModel as LlmModel | undefined;
   const slate = req.body.slate as string;
   const content = req.body.content as string;
   const title = req.body.title as string;
@@ -1021,12 +978,13 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
 
   const messages = [message];
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext & TextSearchToolContext = {
+    queries: [],
+    textSearchToolCalls: 0,
   };
 
-  const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const llmConfig = getConfig("openrouter/openai/gpt-5.1");
+  const agent = new Agent({
     id: "compose-agent",
     prompt: `
     Update the <slate> given below following the prompt and the question.
@@ -1064,9 +1022,20 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     You should only apply changes and not do anything else.
     Don't inspire from previous slates. Continue from the current slate.
 
+    Use the provided tools to get the information.
+    Don't compose without using the tools.
+    Query for search_data should be at least 4 words.
+    Use text_search_regex tool to find out about keywords and phrases.
+    Recommended to use text_search_regex tool for the technical keywords.
+
+    Once you see that a set of tools are returning the same result, don't use the tools again.
+
     ${prompt}
     `,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [
+      makeSearchTool(scrape.id, scrape.indexer, { queryContext }),
+      makeTextSearchRegexTool(scrape.id, queryContext),
+    ],
     schema: z.object({
       slate: z.string({
         description: "The answer in slate format",
@@ -1205,7 +1174,7 @@ app.post("/fix-message", authenticate, async (req, res) => {
     .slice(0, messageIndex + 1)
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
-  const agent = new SimpleAgent<RAGAgentCustomMessage>({
+  const agent = new Agent<CustomMessage>({
     id: "fix-agent",
     prompt: multiLinePrompt([
       "You are a helpful assistant who fixes the wrongly answer with provided context.",
@@ -1306,12 +1275,12 @@ app.post("/extract-facts/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext = {
+    queries: [],
   };
 
-  const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const llmConfig = getConfig("openrouter/google/gemini-3-flash-preview");
+  const agent = new Agent({
     id: "extract-facts-agent",
     prompt: `Extract all facts mentioned in the given text. Each fact should be a complete, standalone statement that exactly matches the wording from the source text. Do not paraphrase, summarize, or combine facts. Each fact should be extracted verbatim from the source.
 
@@ -1327,7 +1296,7 @@ Important requirements:
 
 Text to analyze:
 ${text}`,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [makeSearchTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       facts: z
         .array(z.string())
@@ -1386,12 +1355,12 @@ app.post("/fact-check/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
-  const queryContext: QueryContext = {
-    ragQueries: [],
+  const queryContext: SearchToolContext = {
+    queries: [],
   };
 
-  const llmConfig = getConfig("gemini_2_5_flash");
-  const agent = new SimpleAgent({
+  const llmConfig = getConfig("openrouter/google/gemini-3-flash-preview");
+  const agent = new Agent({
     id: "fact-check-agent",
     prompt: `You are a fact-checking assistant. Your task is to evaluate how accurate a given fact is based on the knowledge base context.
 
@@ -1405,7 +1374,7 @@ After searching the knowledge base, analyze the fact against the context and pro
 - 0.0-0.1: The fact is completely inaccurate or contradicted by the knowledge base
 
 Fact to check: ${fact}`,
-    tools: [makeRagTool(scrape.id, scrape.indexer, { queryContext }).make()],
+    tools: [makeSearchTool(scrape.id, scrape.indexer, { queryContext })],
     schema: z.object({
       score: z.number().min(0).max(1).describe("Accuracy score from 0 to 1"),
       reason: z

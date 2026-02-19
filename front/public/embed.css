@@ -45,13 +45,18 @@
   z-index: 99;
 }
 
+#crawlchat-ask-ai-button.square {
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
 #crawlchat-ask-ai-button:hover {
   scale: 1.05;
 }
 
 #crawlchat-ask-ai-button img.logo {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
 }
 
 #crawlchat-ask-ai-button.with-logo {

@@ -96,7 +96,7 @@ export default function SlackIntegrations({
             </a>
             <a
               className="btn btn-outline"
-              href="https://guides.crawlchat.app/guide/get-the-team-id-for-slack-app-integration-28"
+              href="https://docs.crawlchat.app/connect/slack-app#how-to-get-the-team-id"
               target="_blank"
             >
               How to find team id?

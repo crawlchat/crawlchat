@@ -254,7 +254,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                     </td>
                   </tr>
                   <tr>
-                    <td>Messages</td>
+                    <td>Message credits</td>
                     <td className="text-right">{plan.credits.messages}</td>
                     <td className="text-right">{credits.messages}</td>
                   </tr>

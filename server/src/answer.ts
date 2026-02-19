@@ -9,32 +9,46 @@ import {
   Scrape,
   Thread,
   ScrapeItem,
+  ToolCall,
 } from "@packages/common/prisma";
 import { getConfig } from "./llm/config";
-import { makeFlow, RAGAgentCustomMessage } from "./llm/flow-jasmine";
+import { makeRagAgent, makeRagFlow } from "./llm/flow";
 import {
   getQueryString,
   MultimodalContent,
   removeImages,
 } from "@packages/common/llm-message";
-import { FlowMessage, LlmRole } from "./llm/agentic";
+import { Role, Usage } from "@packages/agentic";
+import { FlowMessage } from "./llm/flow";
+import { CustomMessage, DataGap } from "./llm/custom-message";
+import { consumeCredits } from "@packages/common/user-plan";
+import { fillMessageAnalysis } from "./analyse-message";
+import { ensureRepoCloned } from "@packages/flash";
+import { extractCitations } from "@packages/common/citation";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
   delta: string;
-  role: LlmRole;
+  role: Role;
   content: string;
 };
 
 export type AnswerCompleteEvent = {
   type: "answer-complete";
+  question: string | MultimodalContent[];
   content: string;
   sources: MessageSourceLink[];
   actionCalls: ApiActionCall[];
   llmCalls: number;
   creditsUsed: number;
-  messages: FlowMessage<RAGAgentCustomMessage>[];
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+  llmCost: number;
+  messages: FlowMessage<CustomMessage>[];
   context: string[];
+  dataGap?: DataGap;
+  toolCalls: ToolCall[];
 };
 
 export type ToolCallEvent = {
@@ -62,7 +76,7 @@ export type Answerer = (
   scrape: Scrape,
   thread: Thread,
   query: string | MultimodalContent[],
-  messages: FlowMessage<RAGAgentCustomMessage>[],
+  messages: FlowMessage<CustomMessage>[],
   options?: {
     listen?: AnswerListener;
     prompt?: string;
@@ -88,7 +102,7 @@ Don't tell user to reach out to support team, instead use this block.`,
 
 export async function collectSourceLinks(
   scrapeId: string,
-  messages: FlowMessage<RAGAgentCustomMessage>[]
+  messages: FlowMessage<CustomMessage>[]
 ) {
   const matches = messages
     .map((m) => m.custom?.result)
@@ -120,11 +134,13 @@ export async function collectSourceLinks(
       links.push({
         url: match.url ?? null,
         title: item.title,
-        score: match.score,
+        score: match.score ?? null,
         scrapeItemId: item.id,
         fetchUniqueId: match.fetchUniqueId ?? null,
         knowledgeGroupId: item.knowledgeGroupId,
         searchQuery: match.query ?? null,
+        searchType: match.searchType ?? null,
+        cited: null,
       });
     }
   }
@@ -153,7 +169,7 @@ export async function collectSourceLinks(
 
 export async function collectActionCalls(
   scrapeId: string,
-  messages: FlowMessage<RAGAgentCustomMessage>[]
+  messages: FlowMessage<CustomMessage>[]
 ) {
   return messages
     .map((m) => m.custom?.actionCall)
@@ -161,12 +177,38 @@ export async function collectActionCalls(
     .flat();
 }
 
-export function collectContext(messages: FlowMessage<RAGAgentCustomMessage>[]) {
+export function collectDataGap(
+  messages: FlowMessage<CustomMessage>[]
+): DataGap | undefined {
+  const gaps = messages
+    .map((m) => m.custom?.dataGap)
+    .filter((r) => r !== undefined);
+  return gaps.length > 0 ? gaps[gaps.length - 1] : undefined;
+}
+
+export function collectContext(messages: FlowMessage<CustomMessage>[]) {
   return messages
     .map((m) => m.custom?.result)
     .filter((r) => r !== undefined)
     .flat()
     .map((m) => m.content);
+}
+
+export function updateLastMessageAt(threadId: string) {
+  return prisma.thread.update({
+    where: { id: threadId },
+    data: { lastMessageAt: new Date() },
+  });
+}
+
+function getUsageCredits(usage: Usage, defaultCredits: number) {
+  if (usage.totalTokens === 0) {
+    return defaultCredits;
+  }
+
+  const creditsPerDollar = 120;
+  const credits = Math.ceil(usage.cost * creditsPerDollar);
+  return Math.min(10, Math.max(1, credits));
 }
 
 export const baseAnswerer: Answerer = async (
@@ -177,6 +219,22 @@ export const baseAnswerer: Answerer = async (
   options
 ) => {
   const llmConfig = getConfig(scrape.llmModel);
+
+  const githubRepoGroup = await prisma.knowledgeGroup.findFirst({
+    where: {
+      scrapeId: scrape.id,
+      type: "scrape_github",
+    },
+  });
+  let githubRepoPath: string | undefined;
+  if (githubRepoGroup?.githubUrl) {
+    githubRepoPath = `/tmp/flash-${githubRepoGroup.id}`;
+    await ensureRepoCloned(
+      githubRepoGroup.githubUrl,
+      githubRepoPath,
+      githubRepoGroup.githubBranch ?? "main"
+    );
+  }
 
   const richBlocks = scrape.richBlocksConfig?.blocks ?? [];
   if (scrape.ticketingEnabled && options?.channel === "widget") {
@@ -209,12 +267,10 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     }
   }
 
-  const flow = makeFlow(
+  const ragAgent = makeRagAgent(
     thread,
     scrape.id,
     options?.prompt ?? scrape.chatPrompt ?? "",
-    query,
-    messages,
     scrape.indexer,
     {
       onPreSearch: async (query) => {
@@ -229,10 +285,13 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
           action: title,
         });
       },
-      model: llmConfig.model,
-      baseURL: llmConfig.baseURL,
-      apiKey: llmConfig.apiKey,
-      topN: llmConfig.ragTopN,
+      onPreCodebaseTool: (toolId, input) => {
+        options?.listen?.({
+          type: "tool-call",
+          action: `${toolId}: ${JSON.stringify(input)}`,
+        });
+      },
+      llmConfig,
       richBlocks,
       minScore: scrape.minScore ?? undefined,
       showSources: scrape.showSources ?? false,
@@ -240,25 +299,36 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
       clientData: options?.clientData,
       secret: options?.secret,
       scrapeItem: options?.scrapeItem,
+      githubRepoPath,
     }
   );
 
+  const flow = makeRagFlow(ragAgent, messages, query);
+
   while (
-    await flow.stream({
-      onDelta: ({ delta, content, role }) => {
-        if (delta !== undefined && delta !== null) {
-          options?.listen?.({
-            type: "stream-delta",
-            delta,
-            role,
-            content,
-          });
-        }
-      },
+    await flow.stream(({ delta, content, role }) => {
+      if (delta !== undefined && delta !== null) {
+        options?.listen?.({
+          type: "stream-delta",
+          delta,
+          role,
+          content,
+        });
+      }
     })
   ) {}
 
   const lastMessage = flow.getLastMessage();
+  const usage = flow.getUsage();
+  const toolCalls: ToolCall[] = flow.flowState.toolCalls.map((toolCall) => ({
+    toolName: toolCall.toolName,
+    params: JSON.stringify(toolCall.params),
+    responseLength: toolCall.result.length,
+  }));
+
+  const usageCredits = getUsageCredits(usage, llmConfig.creditsPerMessage);
+  console.log({ usageCredits, creditsPerMessage: llmConfig.creditsPerMessage });
+
   const answer: AnswerCompleteEvent = {
     type: "answer-complete",
     content: (lastMessage.llmMessage.content ?? "") as string,
@@ -269,10 +339,82 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     ),
     llmCalls: 1,
     creditsUsed: llmConfig.creditsPerMessage,
+    promptTokens: usage.promptTokens,
+    completionTokens: usage.completionTokens,
+    totalTokens: usage.totalTokens,
+    llmCost: usage.cost,
     messages: flow.flowState.state.messages,
     context: collectContext(flow.flowState.state.messages),
+    dataGap: collectDataGap(flow.flowState.state.messages),
+    question: query,
+    toolCalls,
   };
   options?.listen?.(answer);
 
   return answer;
 };
+
+export async function saveAnswer(
+  answer: AnswerCompleteEvent,
+  scrape: Scrape,
+  threadId: string,
+  channel: MessageChannel,
+  questionMessageId: string,
+  llmModel?: string | null,
+  fingerprint?: string,
+  onFollowUpQuestion?: (questions: string[]) => void
+) {
+  const { citedLinks } = extractCitations(answer.content, answer.sources);
+  const links = answer.sources.map((link) => ({
+    ...link,
+    cited: Object.values(citedLinks).some(
+      (l) => l.scrapeItemId === link.scrapeItemId
+    ),
+  }));
+
+  const newAnswerMessage = await prisma.message.create({
+    data: {
+      threadId,
+      scrapeId: scrape.id,
+      llmMessage: { role: "assistant", content: answer.content },
+      links,
+      ownerUserId: scrape.userId,
+      channel,
+      apiActionCalls: answer.actionCalls as any,
+      llmModel,
+      creditsUsed: answer.creditsUsed,
+      promptTokens: answer.promptTokens,
+      completionTokens: answer.completionTokens,
+      totalTokens: answer.totalTokens,
+      llmCost: answer.llmCost,
+      fingerprint,
+      questionId: questionMessageId,
+      dataGap: answer.dataGap,
+      toolCalls: answer.toolCalls,
+    },
+  });
+
+  await prisma.message.update({
+    where: { id: questionMessageId },
+    data: { answerId: newAnswerMessage.id },
+  });
+
+  await updateLastMessageAt(threadId);
+
+  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
+
+  if (scrape.analyseMessage) {
+    fillMessageAnalysis(
+      newAnswerMessage.id,
+      questionMessageId,
+      getQueryString(answer.question),
+      answer.content,
+      {
+        categories: scrape.messageCategories,
+        onFollowUpQuestion,
+      }
+    );
+  }
+
+  return newAnswerMessage;
+}

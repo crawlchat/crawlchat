@@ -24,7 +24,8 @@ export default [
 
   route("/logout", "auth/logout.tsx"),
   layout("layout.tsx", [
-    route("app", "summary.tsx"),
+    route("app", "summary/page.tsx"),
+    route("app/users", "users/page.tsx"),
     route("profile", "profile.tsx"),
 
     route("settings", "settings/scrape.tsx"),
@@ -79,6 +80,7 @@ export default [
 
     ...prefix("tool", [
       route("compose", "compose.tsx"),
+      route("skill-maker", "skill-maker.tsx"),
       route("fact-check", "fact-check/page.tsx"),
       route("fact-check/api", "fact-check/api.ts"),
     ]),
@@ -116,8 +118,10 @@ export default [
 
   ...prefix("admin-fowl", [
     index("admin/page.tsx"),
+    route("customers", "admin/customers.tsx"),
     route("user/:userId", "admin/user.tsx"),
     route("collection/:collectionId", "admin/collection.tsx"),
+    route("unanswered-messages", "admin/unanswered-messages.tsx"),
     route("update-customer-dodo", "admin/update-customer.ts"),
     route("change-plan-dodo", "admin/change-plan-dodo.ts"),
     route("subscription-details", "admin/subscription-details.ts"),
@@ -138,6 +142,7 @@ export default [
   route("w/:id", "widget/page.tsx"),
   route("s/:id", "widget/share.tsx"),
   route("w/:id/config", "widget/config.tsx"),
+  route("w/:id/group/:threadId", "widget/group.tsx"),
   route("ticket/:number", "widget/ticket.tsx"),
   route("w/not-found", "widget/not-found.tsx"),
   route("embed.js", "embed-script.ts"),

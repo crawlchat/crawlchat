@@ -67,16 +67,23 @@ type WidgetConfig {
   welcomeMessage        String?
   showMcpSetup          Boolean?
   textInputPlaceholder  String?
+  
+  showLogo              Boolean?
+  tooltip               String?
+  
+  applyColorsToChatbox  Boolean?
+  hideBranding          Boolean?
+  currentPageContext    Boolean?
+
   primaryColor          String?
   buttonText            String?
   buttonTextColor       String?
-  showLogo              Boolean?
-  tooltip               String?
+  buttonLogoUrl         String?
+
   logoUrl               String?
-  applyColorsToChatbox  Boolean?
   title                 String?
-  hideBranding          Boolean?
-  currentPageContext    Boolean?
+  chatboxBgColor        String?
+  chatboxTextColor      String?
 }
 
 type ScrapeAnalyticsCategoryMessageId {
@@ -105,23 +112,6 @@ type DiscordConfig {
   replyAsThread Boolean?
   onlyChannelNames String?
   sendImages Boolean?
-}
-
-enum LlmModel {
-  gpt_4o_mini
-  o3_mini
-  sonnet_3_7
-  sonnet_3_5
-  gemini_2_5_flash
-  gemini_2_5_flash_lite
-  o4_mini
-
-  gpt_5_nano
-  gpt_5_mini
-  gpt_5
-
-  sonnet_4_5
-  haiku_4_5
 }
 
 type RichBlockConfig {
@@ -202,7 +192,7 @@ model Scrape {
   private               Boolean?
 
   analytics             ScrapeAnalytics?
-  llmModel              LlmModel?
+  llmModel              String?
   richBlocksConfig      RichBlocksConfig?
   minScore              Float?
   slug                  String?
@@ -233,6 +223,8 @@ type MessageSourceLink {
   knowledgeGroupId        String?     @db.ObjectId
   fetchUniqueId           String?
   searchQuery             String?
+  searchType              String?
+  cited                   Boolean?
 }
 
 enum MessageChannel {
@@ -280,6 +272,7 @@ type MessageAnalysis {
   category  String?
   questionRelevanceScore Float?
   questionSentiment QuestionSentiment?
+  language String?
   
   dataGapTitle String?
   dataGapDescription String?
@@ -308,6 +301,23 @@ type MessageAttachment {
   content     String?
 }
 
+enum DataGapStatus {
+  accepted
+  rejected
+}
+
+type DataGap {
+  title       String
+  description String?
+  status      DataGapStatus?
+}
+
+type ToolCall {
+  toolName        String
+  params          String
+  responseLength  Int?
+}
+
 model Message {
   id                        String   @id @default(auto()) @map("_id") @db.ObjectId
   threadId                  String   @db.ObjectId
@@ -330,10 +340,16 @@ model Message {
   discordMessageId          String?
   githubCommentId           String?
   analysis                  MessageAnalysis?
-  llmModel                  LlmModel?
+  dataGap                   DataGap?
+  llmModel                  String?
   creditsUsed               Int?
+  promptTokens              Int?
+  completionTokens          Int?
+  totalTokens               Int?
+  llmCost                   Float?
   fingerprint               String?
   url                       String?
+  toolCalls                 ToolCall[]
 
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
@@ -390,6 +406,7 @@ model Thread {
 
   clientThreadId  String?
   fingerprint     String?
+  grouping        Boolean?
 
   scrape          Scrape   @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   
@@ -420,6 +437,7 @@ model ScrapeItem {
   status                  ScrapeItemStatus?
   error                   String?
   sourcePageId            String?
+  lastProcessId           String?
 
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
@@ -531,6 +549,12 @@ type KnowledgeGroupUrlItem {
   url String
 }
 
+enum GithubIssuesType {
+  all
+  only_issues
+  only_prs
+}
+
 model KnowledgeGroup {
   id                                        String   @id @default(auto()) @map("_id") @db.ObjectId
   scrapeId                                  String   @db.ObjectId
@@ -571,9 +595,12 @@ model KnowledgeGroup {
 
   allowedGithubIssueStates                  String?
   onlyAnsweredDiscussions                   Boolean?
+  githubIssuesType                          GithubIssuesType?
 
   fetchError                                String?
   urls                                      KnowledgeGroupUrlItem[]
+  loadDynamically                           Boolean?
+  removeStalePages                          Boolean?
 
   createdAt                                 DateTime @default(now())
   updatedAt                                 DateTime @updatedAt
@@ -693,6 +720,8 @@ model ApiKey {
   userId          String  @db.ObjectId
   key             String
   title           String
+
+  createdAt       DateTime @default(now())
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -1,12 +1,11 @@
 import type { Route } from "./+types/scrape";
 import type {
-  LlmModel,
   Prisma,
   Scrape,
   ScrapeMessageCategory,
   User,
 } from "@packages/common/prisma";
-import { redirect, useFetcher } from "react-router";
+import { Link, redirect, useFetcher, useSearchParams } from "react-router";
 import {
   SettingsContainer,
   SettingsSection,
@@ -15,8 +14,6 @@ import {
 import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import {
-  TbBolt,
-  TbBrain,
   TbCheck,
   TbCrown,
   TbFolder,
@@ -25,7 +22,6 @@ import {
   TbPlus,
   TbSearch,
   TbSettings,
-  TbStar,
   TbTrash,
   TbWorld,
 } from "react-icons/tb";
@@ -40,6 +36,7 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { Timestamp } from "~/components/timestamp";
 import { hideModal, showModal } from "~/components/daisy-utils";
+import { models, oldModels } from "@packages/common";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -101,7 +98,7 @@ export async function action({ request }: Route.ActionArgs) {
     update.title = title;
   }
   if (formData.has("llmModel")) {
-    update.llmModel = formData.get("llmModel") as LlmModel;
+    update.llmModel = formData.get("llmModel") as string;
   }
   if (formData.has("logoUrl")) {
     update.logoUrl = formData.get("logoUrl") as string;
@@ -252,11 +249,33 @@ function TicketingSettings({ scrape }: { scrape: Scrape }) {
   );
 }
 
-function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
+function oldModelToModel(oldModel: string) {
+  if (!Object.keys(oldModels).includes(oldModel)) {
+    return oldModel;
+  }
+  const model = oldModels[oldModel].model;
+  for (const [key, value] of Object.entries(models)) {
+    if (value.model === model) {
+      return key;
+    }
+  }
+  throw new Error(`Unknown old model: ${oldModel}`);
+}
+
+function AiModelSettings({ scrape }: { scrape: Scrape }) {
   const modelFetcher = useFetcher();
-  const [selectedModel, setSelectedModel] = useState<LlmModel>(
-    scrape.llmModel ?? "gpt_4o_mini"
+  const [searchParams] = useSearchParams();
+  const [selectedModel, setSelectedModel] = useState<string>(
+    scrape.llmModel
+      ? oldModelToModel(scrape.llmModel)
+      : "openrouter/openai/gpt-4o-mini"
   );
+
+  useEffect(() => {
+    if (searchParams.get("model")) {
+      setSelectedModel(searchParams.get("model") as string);
+    }
+  }, [searchParams]);
 
   return (
     <SettingsSection
@@ -264,72 +283,25 @@ function AiModelSettings({ scrape, user }: { scrape: Scrape; user: User }) {
       title="AI Model"
       description="Select the AI model to use for the messages across channels."
       fetcher={modelFetcher}
+      dirty={selectedModel !== scrape.llmModel}
+      actionRight={
+        <Link to={`/ai-models`} className="btn btn-ghost btn-primary">
+          Compare
+        </Link>
+      }
     >
-      <RadioCard
-        cols={2}
-        options={[
-          {
-            label: "OpenAI 4o-mini",
-            value: "gpt_4o_mini",
-
-            description: "Base model, not for production.",
-            summary: "1 credit / message",
-            content: (
-              <div className="badge badge-accent badge-soft">
-                <TbBolt /> Fast
-              </div>
-            ),
-          },
-          {
-            label: "Claude Haiku 4.5",
-            value: "haiku_4_5",
-
-            description:
-              "Best for complex use cases, programming docs, better searches.",
-            summary: "2 credits / message",
-            content: (
-              <div className="flex gap-2 flex-wrap">
-                <div className="badge badge-accent badge-soft">
-                  <TbBrain /> Good + Fast
-                </div>
-              </div>
-            ),
-          },
-          {
-            label: "OpenAI GPT 5",
-            value: "gpt_5",
-
-            description:
-              "Best for complex use cases, programming docs, better searches.",
-            summary: "4 credits / message",
-            content: (
-              <div className="flex gap-2">
-                <div className="badge badge-accent badge-soft">
-                  <TbStar /> Takes time & Best
-                </div>
-              </div>
-            ),
-          },
-          {
-            label: "Claude Sonnet 4.5",
-            value: "sonnet_4_5",
-
-            description:
-              "Best for technical use cases, programming docs. Can take more context.",
-            summary: "6 credits / message",
-            content: (
-              <div className="flex gap-2 flex-wrap">
-                <div className="badge badge-accent badge-soft">
-                  <TbStar /> Fast & Best
-                </div>
-              </div>
-            ),
-          },
-        ]}
-        name="llmModel"
+      <select
         value={selectedModel}
-        onChange={(value) => setSelectedModel(value as LlmModel)}
-      />
+        onChange={(e) => setSelectedModel(e.target.value)}
+        className="select"
+        name="llmModel"
+      >
+        {Object.entries(models).map(([key, value]) => (
+          <option key={key} value={key}>
+            {value.model} [{value.creditsPerMessage}]
+          </option>
+        ))}
+      </select>
     </SettingsSection>
   );
 }
@@ -783,10 +755,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
             </div>
           </SettingsSection>
 
-          <AiModelSettings
-            scrape={loaderData.scrape}
-            user={loaderData.scrape.user}
-          />
+          <AiModelSettings scrape={loaderData.scrape} />
 
           <AnalyseMessageSettings
             scrape={loaderData.scrape}
