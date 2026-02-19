@@ -67,8 +67,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const daysParam = parseInt(url.searchParams.get("days") ?? "30", 10);
   const days = VALID_DAYS.includes(daysParam) ? daysParam : 30;
-  const sortBy = url.searchParams.get("sortBy") ?? "lastAsked";
-  const sortOrder = url.searchParams.get("sortOrder") ?? "desc";
+  const sortBy = url.searchParams.get("sort-by") ?? "lastAsked";
+  const sortOrderParam = url.searchParams.get("sort-order") ?? "desc";
+  const sortOrder = sortOrderParam === "asc" ? "asc" : "desc";
   const DAY_MS = 1000 * 60 * 60 * 24;
 
   const messages = await prisma.message.findMany({
@@ -135,8 +136,8 @@ export default function UsersPage({ loaderData }: Route.ComponentProps) {
       newSortOrder = "asc";
     }
     setSearchParams((prev) => {
-      prev.set("sortBy", field);
-      prev.set("sortOrder", newSortOrder);
+      prev.set("sort-by", field);
+      prev.set("sort-order", newSortOrder);
       return prev;
     });
   };
