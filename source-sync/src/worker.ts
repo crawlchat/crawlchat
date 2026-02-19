@@ -194,7 +194,10 @@ const itemWorker = new Worker<ItemData>(
       },
     });
 
-    if (knowledgeGroup.updateProcessId !== data.processId) {
+    if (
+      !job.data.standAlone &&
+      knowledgeGroup.updateProcessId !== data.processId
+    ) {
       return;
     }
 
