@@ -25,6 +25,7 @@ export default [
   route("/logout", "auth/logout.tsx"),
   layout("layout.tsx", [
     route("app", "summary/page.tsx"),
+    route("app/users", "users/page.tsx"),
     route("profile", "profile.tsx"),
 
     route("settings", "settings/scrape.tsx"),
@@ -64,7 +65,6 @@ export default [
     route("knowledge", "knowledge/groups.tsx"),
     route("knowledge/item/:itemId", "knowledge/link-item.tsx"),
 
-    route("users", "users/page.tsx"),
     route("team", "team/page.tsx"),
 
     route("setup-progress", "setup-progress/api.ts"),
