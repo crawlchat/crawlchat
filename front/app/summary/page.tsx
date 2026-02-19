@@ -1,6 +1,7 @@
 import type { Route } from "./+types/page";
 import {
   TbChartLine,
+  TbConfetti,
   TbCrown,
   TbDatabase,
   TbMessage,
@@ -674,6 +675,15 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                 </span>
               }
               suffix="%"
+            />
+            <StatCard
+              label="Resolved"
+              value={loaderData.messagesSummary.resolvedCount}
+              icon={
+                <span className="text-primary">
+                  <TbConfetti />
+                </span>
+              }
             />
           </div>
 
