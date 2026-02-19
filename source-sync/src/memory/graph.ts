@@ -6,7 +6,10 @@ const driver = neo4j.driver(
 );
 
 function sanitize(relationship: string): string {
-  return relationship.replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase().trim();
+  return relationship
+    .replace(/[^a-zA-Z0-9_]/g, "_")
+    .toLowerCase()
+    .trim();
 }
 
 export async function upsert(
@@ -142,13 +145,29 @@ export async function removeByChunk(collectionId: string, chunkId: string) {
     DETACH DELETE n
   `;
   await session.run(deleteQuery, { collectionId, chunkId });
-  
+
   const removeQuery = `
     MATCH (n:Node {collectionId: $collectionId})
     WHERE $chunkId IN n.chunkIds AND size(n.chunkIds) > 1
     SET n.chunkIds = [x IN n.chunkIds WHERE x <> $chunkId]
   `;
   await session.run(removeQuery, { collectionId, chunkId });
-  
+
+  await session.close();
+}
+
+export async function removeByRelationship(
+  collectionId: string,
+  from: string,
+  to: string,
+  relationship: string
+) {
+  const session = driver.session();
+  const deleteQuery = `
+    MATCH (n:Node {collectionId: $collectionId})-[r:\`${relationship}\`]->(m:Node {collectionId: $collectionId})
+    WHERE n.name = $from AND m.name = $to
+    DETACH DELETE r
+  `;
+  await session.run(deleteQuery, { collectionId, from, to, relationship });
   await session.close();
 }
