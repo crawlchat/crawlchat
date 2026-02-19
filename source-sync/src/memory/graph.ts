@@ -43,8 +43,13 @@ export async function upsert(
         ELSE COALESCE(to.chunkIds, []) + [$chunkId] 
       END
     MERGE (from)-[r:\`${relationshipType}\`]->(to)
-    ON CREATE SET r.updatedAt = $timestamp, r.collectionId = $collectionId
-    ON MATCH SET r.updatedAt = $timestamp, r.collectionId = $collectionId
+    ON CREATE SET r.updatedAt = $timestamp, r.collectionId = $collectionId, r.chunkIds = [$chunkId]
+    ON MATCH SET r.updatedAt = $timestamp, r.collectionId = $collectionId, r.chunkIds =
+      CASE
+        WHEN $chunkId IN COALESCE(r.chunkIds, [])
+        THEN r.chunkIds
+        ELSE COALESCE(r.chunkIds, []) + [$chunkId]
+      END
     RETURN r
   `;
 
@@ -139,19 +144,48 @@ export async function getNodes(collectionId: string, names: string[]) {
 
 export async function removeByChunk(collectionId: string, chunkId: string) {
   const session = driver.session();
-  const deleteQuery = `
+  const deleteRelationshipQuery = `
+    MATCH ()-[r]->()
+    WHERE r.collectionId = $collectionId
+      AND $chunkId IN COALESCE(r.chunkIds, [])
+      AND size(COALESCE(r.chunkIds, [])) = 1
+    DELETE r
+  `;
+  await session.run(deleteRelationshipQuery, { collectionId, chunkId });
+
+  const removeRelationshipChunkQuery = `
+    MATCH ()-[r]->()
+    WHERE r.collectionId = $collectionId
+      AND $chunkId IN COALESCE(r.chunkIds, [])
+      AND size(COALESCE(r.chunkIds, [])) > 1
+    SET r.chunkIds = [x IN COALESCE(r.chunkIds, []) WHERE x <> $chunkId], r.updatedAt = $timestamp
+  `;
+  await session.run(removeRelationshipChunkQuery, {
+    collectionId,
+    chunkId,
+    timestamp: Date.now(),
+  });
+
+  const deleteNodeQuery = `
     MATCH (n:Node {collectionId: $collectionId})
-    WHERE $chunkId IN n.chunkIds AND size(n.chunkIds) = 1
+    WHERE $chunkId IN COALESCE(n.chunkIds, []) AND size(COALESCE(n.chunkIds, [])) = 1
     DETACH DELETE n
   `;
-  await session.run(deleteQuery, { collectionId, chunkId });
+  await session.run(deleteNodeQuery, { collectionId, chunkId });
 
-  const removeQuery = `
+  const removeNodeChunkQuery = `
     MATCH (n:Node {collectionId: $collectionId})
-    WHERE $chunkId IN n.chunkIds AND size(n.chunkIds) > 1
-    SET n.chunkIds = [x IN n.chunkIds WHERE x <> $chunkId]
+    WHERE $chunkId IN COALESCE(n.chunkIds, []) AND size(COALESCE(n.chunkIds, [])) > 1
+    SET n.chunkIds = [x IN COALESCE(n.chunkIds, []) WHERE x <> $chunkId]
   `;
-  await session.run(removeQuery, { collectionId, chunkId });
+  await session.run(removeNodeChunkQuery, { collectionId, chunkId });
+
+  const pruneEmptyNodesQuery = `
+    MATCH (n:Node {collectionId: $collectionId})
+    WHERE size(COALESCE(n.chunkIds, [])) = 0
+    DETACH DELETE n
+  `;
+  await session.run(pruneEmptyNodesQuery, { collectionId });
 
   await session.close();
 }
