@@ -748,7 +748,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Heading className="mb-0">Users</Heading>
-                <a href="/users" className="btn btn-sm btn-soft">
+                <a href="/app/users" className="btn btn-sm btn-soft">
                   Show all
                 </a>
               </div>
