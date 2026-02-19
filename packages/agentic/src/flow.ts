@@ -80,13 +80,14 @@ export class Flow<CustomState, CustomMessage> {
   }
 
   async runTool(id: string, toolId: string, args: Record<string, any>) {
+    const normalizedToolId = toolId.trim();
     for (const [agentId, agent] of Object.entries(this.agents)) {
       const tools = agent.tools;
       if (!tools) {
         continue;
       }
       for (const tool of tools) {
-        if (tool.id === toolId) {
+        if (tool.id === normalizedToolId) {
           let content: string;
           let customMessage: CustomMessage | undefined;
 
@@ -98,7 +99,7 @@ export class Flow<CustomState, CustomMessage> {
             const errorMessage =
               error instanceof Error ? error.message : String(error);
             console.error(
-              `Tool ${toolId} failed:`,
+              `Tool ${normalizedToolId} failed:`,
               errorMessage
             );
             content = `Tool encountered an error: ${errorMessage}. Please proceed without this tool's result.`;
@@ -115,7 +116,7 @@ export class Flow<CustomState, CustomMessage> {
           };
           this.flowState.state.messages.push(message);
           this.flowState.toolCalls.push({
-            toolName: toolId,
+            toolName: normalizedToolId,
             params: args,
             result: content,
           });
@@ -123,7 +124,7 @@ export class Flow<CustomState, CustomMessage> {
         }
       }
     }
-    throw new Error(`Tool ${toolId} not found`);
+    throw new Error(`Tool ${normalizedToolId} not found`);
   }
 
   isToolPending() {
