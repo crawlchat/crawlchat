@@ -4,11 +4,8 @@ import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "@packages/common/prisma";
 import { Page } from "~/components/page";
 import { makeMeta } from "~/meta";
-import {
-  UniqueUsers,
-  FIELD_LABELS,
-  type UniqueUser,
-} from "~/summary/unique-users";
+import { UniqueUsers, FIELD_LABELS } from "~/summary/unique-users";
+import type { UniqueUser } from "~/summary/unique-users";
 import { calcUniqueUsers } from "~/summary/calc-unique-users";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { useSearchParams } from "react-router";
