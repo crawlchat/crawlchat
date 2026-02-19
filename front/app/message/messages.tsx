@@ -343,10 +343,34 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
     showOnlyLowRatings?: boolean;
   }) {
     const params = new URLSearchParams(location.search);
-    if (page) params.set("page", page.toString());
-    if (category) params.set("category", category);
-    if (showMcp) params.set("mcp", "true");
-    if (showOnlyLowRatings) params.set("low-rating", "true");
+    if (page !== undefined) {
+      params.set("page", page.toString());
+    }
+
+    if (category !== undefined) {
+      if (category) {
+        params.set("category", category);
+      } else {
+        params.delete("category");
+      }
+    }
+
+    if (showMcp !== undefined) {
+      if (showMcp) {
+        params.set("mcp", "true");
+      } else {
+        params.delete("mcp");
+      }
+    }
+
+    if (showOnlyLowRatings !== undefined) {
+      if (showOnlyLowRatings) {
+        params.set("low-rating", "true");
+      } else {
+        params.delete("low-rating");
+      }
+    }
+
     navigate(`/questions?${params.toString()}`);
   }
 
@@ -362,12 +386,6 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
       icon={<TbMessage />}
       right={
         <div className="flex gap-2 items-center">
-          <Pagination
-            page={loaderData.page}
-            totalPages={loaderData.totalPages}
-            setPage={(page) => goto({ page })}
-          />
-
           <Filters
             category={category ?? undefined}
             setCategory={(category) => goto({ category })}
@@ -421,7 +439,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                   {loaderData.messagePairs.map((pair, index) => (
                     <tr key={index}>
                       <td>
-                        <div className="w-[400px] flex items-center gap-2">
+                        <div className="w-[400px] min-w-0 flex items-center gap-2">
                           {pair.queryMessage?.fingerprint && (
                             <Avatar
                               name={pair.queryMessage.fingerprint}
@@ -431,13 +449,13 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                             />
                           )}
                           <div
-                            className="tooltip tooltip-right"
+                            className="tooltip tooltip-right min-w-0 flex-1"
                             data-tip={
                               pair.responseMessage?.analysis?.shortQuestion
                             }
                           >
                             <RouterLink
-                              className="link link-hover line-clamp-1"
+                              className="link link-hover block truncate"
                               to={`/questions/${pair.queryMessage?.id}`}
                             >
                               {getMessageContent(pair.queryMessage)}
