@@ -209,17 +209,26 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
 
       {loaderData.threads.length > 0 && (
         <div className="flex flex-col gap-2">
-          <div className={cn("bg-base-100 rounded-box border border-base-300")}>
+          <div
+            className={cn(
+              "bg-base-100 rounded-box border border-base-300",
+              "shadow"
+            )}
+          >
             {loaderData.threads.map((thread) => (
               <div
                 key={thread.id}
                 className={cn(
                   "flex flex-col px-4 py-2",
                   "border-b border-base-300",
-                  "last:border-0"
+                  "last:border-0 gap-1"
                 )}
               >
-                <div className="flex flex-col md:flex-row gap-2 md:items-center justify-between">
+                <div
+                  className={cn(
+                    "flex flex-col md:flex-row gap-2 md:items-center justify-between"
+                  )}
+                >
                   <div className="flex min-w-0 flex-1 gap-2 items-center">
                     {thread.fingerprint && (
                       <Avatar
@@ -241,7 +250,7 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
                         : thread.id.substring(thread.id.length - 4)}
                     </Link>
                   </div>
-                  <div className="flex gap-2 items-center">
+                  <div className="flex flex-wrap gap-2 items-center">
                     {thread.grouping && (
                       <div
                         className="tooltip tooltip-left"

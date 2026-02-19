@@ -10,25 +10,19 @@ import {
   TbChevronLeft,
   TbChevronRight,
   TbConfetti,
-  TbFilter,
   TbFolder,
   TbMessage,
   TbMessages,
   TbPaperclip,
   TbPointer,
+  TbX,
 } from "react-icons/tb";
 import { Page } from "~/components/page";
 import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "@packages/common/prisma";
 import { makeMessagePairs } from "./analyse";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
-import {
-  Link as RouterLink,
-  useLoaderData,
-  useLocation,
-  useNavigate,
-} from "react-router";
-import { ViewSwitch } from "./view-switch";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router";
 import { CountryFlag } from "./country-flag";
 import { Rating } from "./rating-badge";
 import { EmptyState } from "~/components/empty-state";
@@ -38,11 +32,12 @@ import { getQueryString } from "@packages/common/llm-message";
 import cn from "@meltdownjs/cn";
 import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
-import { useMemo } from "react";
+import type { PropsWithChildren } from "react";
 import { CreditsUsedBadge } from "./credits-used-badge";
 import { SentimentBadge } from "./sentiment-badge";
 import Avatar from "boring-avatars";
 import { LanguageBadge } from "./language-badge";
+import { ViewSwitch } from "./view-switch";
 
 function isLowRating(message: Message) {
   if (message.analysis?.questionSentiment === "sad") return true;
@@ -214,86 +209,6 @@ function CategorySuggestionCount({
   );
 }
 
-function Filters({
-  category,
-  showMcp,
-  setCategory,
-  setShowMcp,
-  showOnlyLowRatings,
-  setShowOnlyLowRatings,
-}: {
-  category?: string;
-  showMcp: boolean;
-  showOnlyLowRatings: boolean;
-  setShowMcp: (showMcp: boolean) => void;
-  setCategory: (category: string) => void;
-  setShowOnlyLowRatings: (showOnlyLowRatings: boolean) => void;
-}) {
-  const { scrape } = useLoaderData<typeof loader>();
-  const filtersCount = useMemo(() => {
-    return [category, showMcp, showOnlyLowRatings].filter(Boolean).length;
-  }, [category, showMcp, showOnlyLowRatings]);
-
-  return (
-    <div className="dropdown dropdown-end">
-      <div
-        tabIndex={0}
-        role="button"
-        className={cn(
-          "btn",
-          filtersCount > 0 && "btn-primary btn-soft",
-          filtersCount === 0 && "btn-square"
-        )}
-      >
-        <TbFilter />
-        {filtersCount > 0 && (
-          <span className="badge badge-secondary badge-sm">{filtersCount}</span>
-        )}
-      </div>
-      <div
-        tabIndex={-1}
-        className={cn(
-          "dropdown-content menu bg-base-100 rounded-box z-1 w-52",
-          "p-3 px-4 shadow-sm mt-1 flex flex-col gap-2"
-        )}
-      >
-        <label className="label justify-between">
-          <span>Show MCP</span>
-          <input
-            type="checkbox"
-            className="checkbox"
-            checked={showMcp}
-            onChange={(e) => setShowMcp(e.target.checked)}
-          />
-        </label>
-
-        <label className="label justify-between">
-          <span>Only low ratings</span>
-          <input
-            type="checkbox"
-            className="checkbox"
-            checked={showOnlyLowRatings}
-            onChange={(e) => setShowOnlyLowRatings(e.target.checked)}
-          />
-        </label>
-
-        <select
-          value={category ?? ""}
-          className="select w-full"
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option value="">All categories</option>
-          {scrape.messageCategories.map((category, index) => (
-            <option key={index} value={category.title}>
-              {category.title}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  );
-}
-
 function Pagination({
   page,
   totalPages,
@@ -322,6 +237,25 @@ function Pagination({
         disabled={!next}
       >
         <TbChevronRight />
+      </button>
+    </div>
+  );
+}
+
+function FilterItem({
+  children,
+  onRemove,
+}: PropsWithChildren<{ onRemove: () => void }>) {
+  return (
+    <div
+      className={cn(
+        "flex gap-2 items-center border-2 border-base-300 pb-2",
+        "rounded-box bg-base-100 p-2 h-10 pl-3 text-sm whitespace-nowrap"
+      )}
+    >
+      {children}
+      <button className="btn btn-square btn-xs" onClick={onRemove}>
+        <TbX />
       </button>
     </div>
   );
@@ -378,29 +312,9 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
   const category = params.get("category");
   const showMcp = params.get("mcp") === "true";
   const showOnlyLowRatings = params.get("low-rating") === "true";
-  const pageId = params.get("pageId");
 
   return (
-    <Page
-      title="Questions"
-      icon={<TbMessage />}
-      right={
-        <div className="flex gap-2 items-center">
-          <Filters
-            category={category ?? undefined}
-            setCategory={(category) => goto({ category })}
-            showMcp={showMcp}
-            setShowMcp={(showMcp) => goto({ showMcp })}
-            showOnlyLowRatings={showOnlyLowRatings}
-            setShowOnlyLowRatings={(showOnlyLowRatings) =>
-              goto({ showOnlyLowRatings })
-            }
-          />
-
-          <ViewSwitch />
-        </div>
-      }
-    >
+    <Page title="Questions" icon={<TbMessage />} right={<ViewSwitch />}>
       <div className="flex flex-col gap-2 flex-1">
         {loaderData.messagePairs.length === 0 && (
           <div className="flex flex-1 justify-center items-center">
@@ -418,6 +332,52 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                 Page: {loaderData.filterItem.title}
               </div>
             )}
+
+            <div className="flex gap-2 items-center overflow-x-auto">
+              {showMcp && (
+                <FilterItem onRemove={() => goto({ showMcp: false })}>
+                  MCP
+                </FilterItem>
+              )}
+              {showOnlyLowRatings && (
+                <FilterItem
+                  onRemove={() => goto({ showOnlyLowRatings: false })}
+                >
+                  Low ratings
+                </FilterItem>
+              )}
+
+              <select
+                value={category ?? ""}
+                className="select w-fit outline-0"
+                onChange={(e) => goto({ category: e.target.value })}
+              >
+                <option value="">All categories</option>
+                {loaderData.scrape.messageCategories.map((category, index) => (
+                  <option key={index} value={category.title}>
+                    {category.title}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={category ?? ""}
+                className="select w-fit outline-0"
+                onChange={(e) => {
+                  if (e.target.value === "mcp") {
+                    goto({ showMcp: true });
+                  } else if (e.target.value === "low-rating") {
+                    goto({ showOnlyLowRatings: true });
+                  }
+                }}
+              >
+                <option>Filter</option>
+                {!showMcp && <option value="mcp">MCP</option>}
+                {!showOnlyLowRatings && (
+                  <option value="low-rating">Low ratings</option>
+                )}
+              </select>
+            </div>
 
             <div
               className={cn(
