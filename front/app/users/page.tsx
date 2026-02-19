@@ -4,7 +4,11 @@ import { getAuthUser } from "~/auth/middleware";
 import { prisma } from "@packages/common/prisma";
 import { Page } from "~/components/page";
 import { makeMeta } from "~/meta";
-import { UniqueUsers, FIELD_LABELS } from "~/summary/unique-users";
+import {
+  UniqueUsers,
+  FIELD_LABELS,
+  type UniqueUser,
+} from "~/summary/unique-users";
 import { calcUniqueUsers } from "~/summary/calc-unique-users";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { useSearchParams } from "react-router";
@@ -20,11 +24,7 @@ const DATE_RANGE_OPTIONS = [
 
 const VALID_DAYS = DATE_RANGE_OPTIONS.map((o) => o.value);
 
-function sortUsers(
-  users: typeof loaderData extends { uniqueUsers: infer T } ? T : never,
-  sortBy: string,
-  sortOrder: string
-) {
+function sortUsers(users: UniqueUser[], sortBy: string, sortOrder: string) {
   const validFields = Object.keys(FIELD_LABELS);
   const sortField = validFields.includes(sortBy) ? sortBy : "lastAsked";
   const sortDir = sortOrder === "asc" ? 1 : -1;
