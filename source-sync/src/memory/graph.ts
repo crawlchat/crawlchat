@@ -5,8 +5,8 @@ const driver = neo4j.driver(
   neo4j.auth.basic(process.env.NEO4J_USER!, process.env.NEO4J_PASSWORD!)
 );
 
-function sanitize(relationship: string): string {
-  return relationship
+function normalizeIdentifier(value: string): string {
+  return value
     .replace(/[^a-zA-Z0-9_]/g, "_")
     .toLowerCase()
     .trim();
@@ -21,9 +21,9 @@ export async function upsert(
 ) {
   const session = driver.session();
 
-  const sanitizedFrom = sanitize(from);
-  const sanitizedTo = sanitize(to);
-  const relationshipType = sanitize(relationship);
+  const normalizedFrom = normalizeIdentifier(from);
+  const normalizedTo = normalizeIdentifier(to);
+  const relationshipType = normalizeIdentifier(relationship);
 
   const query = `
     MERGE (from:Node {name: $from, collectionId: $collectionId})
@@ -50,8 +50,8 @@ export async function upsert(
 
   await session.run(query, {
     collectionId,
-    from: sanitizedFrom,
-    to: sanitizedTo,
+    from: normalizedFrom,
+    to: normalizedTo,
     chunkId,
     timestamp: Date.now(),
   });
@@ -90,7 +90,7 @@ export async function getAllRelationships(
 
 export async function getNodes(collectionId: string, names: string[]) {
   const session = driver.session();
-  const sanitizedNames = names.map((name) => sanitize(name));
+  const normalizedNames = names.map((name) => normalizeIdentifier(name));
   const query = `
     MATCH (n:Node)
     WHERE n.collectionId = $collectionId AND n.name IN $names
@@ -104,7 +104,7 @@ export async function getNodes(collectionId: string, names: string[]) {
   `;
   const result = await session.run(query, {
     collectionId,
-    names: sanitizedNames,
+    names: normalizedNames,
   });
   await session.close();
   return result.records.map((record) => {
@@ -163,11 +163,18 @@ export async function removeByRelationship(
   relationship: string
 ) {
   const session = driver.session();
+  const normalizedFrom = normalizeIdentifier(from);
+  const normalizedTo = normalizeIdentifier(to);
+  const relationshipType = normalizeIdentifier(relationship);
   const deleteQuery = `
-    MATCH (n:Node {collectionId: $collectionId})-[r:\`${relationship}\`]->(m:Node {collectionId: $collectionId})
+    MATCH (n:Node {collectionId: $collectionId})-[r:\`${relationshipType}\`]->(m:Node {collectionId: $collectionId})
     WHERE n.name = $from AND m.name = $to
     DETACH DELETE r
   `;
-  await session.run(deleteQuery, { collectionId, from, to, relationship });
+  await session.run(deleteQuery, {
+    collectionId,
+    from: normalizedFrom,
+    to: normalizedTo,
+  });
   await session.close();
 }
