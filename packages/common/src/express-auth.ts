@@ -57,7 +57,6 @@ export async function authenticate(
     req.authMode = authMode;
     next();
   } catch (error) {
-    console.error(error);
     res.status(401).json({ error: "Authorization failed" });
     return;
   }
