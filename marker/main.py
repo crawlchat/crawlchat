@@ -17,6 +17,11 @@ settings = Settings()
 app = FastAPI()
 
 
+@app.get("/")
+async def root():
+  return {"status": "success ok"}
+
+
 class MarkRequest(BaseModel):
   base64: str
 
