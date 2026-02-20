@@ -5,6 +5,7 @@ import { makeSource } from "./source/factory";
 import {
   ITEM_QUEUE_NAME,
   GROUP_QUEUE_NAME,
+  BULLMQ_PREFIX,
   GroupData,
   itemQueue,
   ItemData,
@@ -20,10 +21,12 @@ import {
 
 const itemEvents = new QueueEvents(ITEM_QUEUE_NAME, {
   connection: redis,
+  prefix: BULLMQ_PREFIX,
 });
 
 const groupEvents = new QueueEvents(GROUP_QUEUE_NAME, {
   connection: redis,
+  prefix: BULLMQ_PREFIX,
 });
 
 groupEvents.on("added", async ({ jobId }) => {
@@ -174,6 +177,7 @@ const groupWorker = new Worker<GroupData>(
   },
   {
     connection: redis,
+    prefix: BULLMQ_PREFIX,
     concurrency: 1,
   }
 );
@@ -222,6 +226,7 @@ const itemWorker = new Worker<ItemData>(
   },
   {
     connection: redis,
+    prefix: BULLMQ_PREFIX,
     concurrency: 4,
   }
 );

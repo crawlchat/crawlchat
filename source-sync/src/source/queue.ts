@@ -3,6 +3,7 @@ import Redis from "ioredis";
 
 const redisUrl = process.env.REDIS_URL!;
 const isTls = redisUrl.startsWith("rediss://");
+export const BULLMQ_PREFIX = "{bull}";
 
 export const redis = new Redis(redisUrl, {
   maxRetriesPerRequest: null,
@@ -41,6 +42,7 @@ export type ItemData = {
 
 export const groupQueue = new Queue<GroupData>(GROUP_QUEUE_NAME, {
   connection: redis,
+  prefix: BULLMQ_PREFIX,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -54,6 +56,7 @@ export const groupQueue = new Queue<GroupData>(GROUP_QUEUE_NAME, {
 
 export const itemQueue = new Queue<ItemData>(ITEM_QUEUE_NAME, {
   connection: redis,
+  prefix: BULLMQ_PREFIX,
   defaultJobOptions: {
     attempts: 3,
     backoff: {
