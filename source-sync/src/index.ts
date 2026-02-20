@@ -15,7 +15,6 @@ import {
   scheduleUrl,
   scheduleUrls,
 } from "./source/schedule";
-import { router as cronRouter } from "./cron/router";
 
 declare global {
   namespace Express {
@@ -35,7 +34,6 @@ const PORT = process.env.PORT || 3007;
 
 app.use(express.json());
 app.use(cors());
-app.use("/cron", cronRouter);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
