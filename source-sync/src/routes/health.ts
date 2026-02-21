@@ -4,7 +4,7 @@ import { Pinecone } from "@pinecone-database/pinecone";
 import { RateLimiter } from "@packages/common/rate-limiter";
 import { redis } from "../source/queue";
 
-const rateLimiter = new RateLimiter(2, "health");
+const rateLimiter = new RateLimiter(20, "health");
 const router = Router();
 
 router.get("/", async (req, res) => {
