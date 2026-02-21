@@ -5,8 +5,8 @@ import { Agent, handleStream } from "@packages/agentic";
 import { getConfig } from "../llm/config";
 import { RateLimiter } from "@packages/common/rate-limiter";
 
-const aiRateLimiter = new RateLimiter(1, "health-ai");
-const rateLimiter = new RateLimiter(2, "health");
+const aiRateLimiter = new RateLimiter(2, "health-ai");
+const rateLimiter = new RateLimiter(20, "health");
 const router = Router();
 
 router.get("/", async (req, res) => {
