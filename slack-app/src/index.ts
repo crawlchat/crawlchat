@@ -195,13 +195,15 @@ async function getLearnMessages(
       channel: message.channel,
       ts: message.thread_ts,
     });
-    messages = ((replies.messages ?? []) as unknown as MessageContext[]).filter(
-      (m) => {
+    if (replies.messages) {
+      messages = (
+        (replies.messages ?? []) as unknown as MessageContext[]
+      ).filter((m) => {
         const thisTs = new Date(Number(m.ts.split(".")[0]));
         const messageTs = new Date(Number(message.ts.split(".")[0]));
         return thisTs <= messageTs;
-      }
-    );
+      });
+    }
   }
 
   return messages.map((m) => {
