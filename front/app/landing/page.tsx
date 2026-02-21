@@ -1210,7 +1210,6 @@ export function Footer() {
                 <FooterLink href="/data-privacy">Data privacy</FooterLink>
               </li>
             </ul>
-
             <ul className="flex gap-4 mt-4">
               <li>
                 <a href="https://github.com/crawlchat/crawlchat">
@@ -1233,6 +1232,18 @@ export function Footer() {
                 </a>
               </li>
             </ul>
+
+            <a
+              href="https://status.crawlchat.app"
+              target="_blank"
+              rel="noreferrer"
+              className="block mt-4"
+            >
+              <img
+                src="https://status.crawlchat.app/api/badge/6/uptime?style=for-the-badge"
+                alt="CrawlChat uptime status"
+              />
+            </a>
           </div>
         </div>
       </Container>
