@@ -144,10 +144,7 @@ type MessageContext = {
   text?: string;
 };
 
-async function getContextMessages(
-  message: SlackMessage,
-  botUserId: string
-) {
+async function getContextMessages(message: SlackMessage, botUserId: string) {
   return [message].map((m) => ({
     role: m.user === botUserId ? "assistant" : "user",
     content: cleanText(m.text ?? ""),
@@ -232,10 +229,7 @@ async function answerMessage(
     });
   } catch {}
 
-  const llmMessages = await getContextMessages(
-    message,
-    context.botUserId!
-  );
+  const llmMessages = await getContextMessages(message, context.botUserId!);
   const history = await getContextHistory(message, client);
   const {
     answer,
