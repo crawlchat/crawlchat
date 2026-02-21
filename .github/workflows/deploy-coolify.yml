@@ -1,0 +1,77 @@
+name: Deploy to Coolify
+
+on:
+  workflow_call:
+    inputs:
+      slack_app:
+        required: true
+        type: string
+      discord_bot:
+        required: true
+        type: string
+      docs:
+        required: true
+        type: string
+      front:
+        required: true
+        type: string
+      marker:
+        required: true
+        type: string
+      server:
+        required: true
+        type: string
+      source_sync:
+        required: true
+        type: string
+    secrets:
+      COOLIFY_WEBHOOKS:
+        required: true
+      COOLIFY_TOKEN:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify deployment
+        run: |
+          apps_to_deploy=""
+          [ "${{ inputs.slack_app }}" = "true" ] && apps_to_deploy="$apps_to_deploy slack-app"
+          [ "${{ inputs.discord_bot }}" = "true" ] && apps_to_deploy="$apps_to_deploy discord-bot"
+          [ "${{ inputs.docs }}" = "true" ] && apps_to_deploy="$apps_to_deploy docs"
+          [ "${{ inputs.front }}" = "true" ] && apps_to_deploy="$apps_to_deploy front"
+          [ "${{ inputs.marker }}" = "true" ] && apps_to_deploy="$apps_to_deploy marker"
+          [ "${{ inputs.server }}" = "true" ] && apps_to_deploy="$apps_to_deploy server"
+          [ "${{ inputs.source_sync }}" = "true" ] && apps_to_deploy="$apps_to_deploy source-sync"
+
+          if [ -z "$apps_to_deploy" ]; then
+            echo "No app changes detected, skipping deploy trigger."
+            exit 0
+          fi
+
+          for app in $apps_to_deploy; do
+            webhooks=""
+            while IFS= read -r line; do
+              [ -z "$line" ] && continue
+              key="${line%%=*}"
+              value="${line#*=}"
+              if [ "$key" = "$app" ]; then
+                webhooks="$value"
+                break
+              fi
+            done <<< "${{ secrets.COOLIFY_WEBHOOKS }}"
+
+            if [ -n "$webhooks" ]; then
+              IFS=',' read -r -a webhook_list <<< "$webhooks"
+              for raw_webhook in "${webhook_list[@]}"; do
+                webhook="$(echo "$raw_webhook" | xargs)"
+                [ -z "$webhook" ] && continue
+                curl --fail --show-error --silent \
+                  --request GET "$webhook" \
+                  --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+              done
+            else
+              echo "No webhook configured for $app, skipping."
+            fi
+          done

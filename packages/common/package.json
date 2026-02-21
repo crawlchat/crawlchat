@@ -1,7 +1,7 @@
 {
   "name": "@packages/common",
   "version": "1.0.0",
-  "description": "",
+  "description": "Common packages",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

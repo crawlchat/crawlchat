@@ -1,4 +1,4 @@
-name: Build and Push Docker Images to GHCR
+name: Build and Deploy Docker Images to GHCR
 
 on:
   push:
@@ -9,6 +9,50 @@ env:
   IMAGE_REPOSITORY_PREFIX: crawlchat
 
 jobs:
+  detect-changes:
+    if: github.repository == 'pskd73/crawlchat'
+    runs-on: ubuntu-latest
+    outputs:
+      slack_app: ${{ steps.filter.outputs.slack_app }}
+      discord_bot: ${{ steps.filter.outputs.discord_bot }}
+      docs: ${{ steps.filter.outputs.docs }}
+      front: ${{ steps.filter.outputs.front }}
+      marker: ${{ steps.filter.outputs.marker }}
+      server: ${{ steps.filter.outputs.server }}
+      source_sync: ${{ steps.filter.outputs.source_sync }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect app changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            slack_app:
+              - 'slack-app/**'
+              - 'packages/**'
+            discord_bot:
+              - 'discord-bot/**'
+              - 'packages/**'
+            docs:
+              - 'docs/**'
+              - 'packages/**'
+            front:
+              - 'front/**'
+              - 'packages/**'
+            marker:
+              - 'marker/**'
+              - 'packages/**'
+            server:
+              - 'server/**'
+              - 'packages/**'
+            source_sync:
+              - 'source-sync/**'
+              - 'packages/**'
+
   build-and-push:
     if: github.repository == 'pskd73/crawlchat'
     runs-on: ubuntu-latest
@@ -79,3 +123,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
+
+  deploy-to-coolify:
+    if: github.repository == 'pskd73/crawlchat'
+    needs:
+      - detect-changes
+      - build-and-push
+    uses: ./.github/workflows/deploy-coolify.yml
+    with:
+      slack_app: ${{ needs.detect-changes.outputs.slack_app }}
+      discord_bot: ${{ needs.detect-changes.outputs.discord_bot }}
+      docs: ${{ needs.detect-changes.outputs.docs }}
+      front: ${{ needs.detect-changes.outputs.front }}
+      marker: ${{ needs.detect-changes.outputs.marker }}
+      server: ${{ needs.detect-changes.outputs.server }}
+      source_sync: ${{ needs.detect-changes.outputs.source_sync }}
+    secrets:
+      COOLIFY_WEBHOOKS: ${{ secrets.COOLIFY_WEBHOOKS }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
