@@ -133,7 +133,6 @@ function ChatInput() {
     currentPage,
   } = useChatBoxContext();
 
-  const [focused, setFocused] = useState(false);
   const [query, setQuery] = useState(defaultQuery ?? "");
   const cleanedQuery = useMemo(() => {
     return query.trim();
@@ -262,8 +261,6 @@ function ChatInput() {
             rows={1}
             onKeyDown={handleKeyDown}
             disabled={isDisabled}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
           />
         </div>
 
