@@ -10,6 +10,16 @@ import { Flow } from "@packages/agentic";
 import { getConfig } from "./llm/config";
 import { consumeCredits } from "@packages/common/user-plan";
 
+export type MessageAnalysisResponse = {
+  questionSentiment: QuestionSentiment;
+  shortQuestion: string;
+  language: string;
+  followUpQuestions: string[];
+  category: { title: string; score: number } | null;
+  categorySuggestions: { title: string; description: string }[];
+  resolved: boolean;
+};
+
 export async function analyseMessage(
   question: string,
   answer: string,
@@ -150,17 +160,12 @@ export async function analyseMessage(
   const content = flow.getLastMessage().llmMessage.content;
 
   if (!content) {
-    return null;
+    return { response: null, cost: 0 };
   }
 
-  return JSON.parse(content as string) as {
-    questionSentiment: QuestionSentiment;
-    shortQuestion: string;
-    language: string;
-    followUpQuestions: string[];
-    category: { title: string; score: number } | null;
-    categorySuggestions: { title: string; description: string }[];
-    resolved: boolean;
+  return {
+    response: JSON.parse(content as string) as MessageAnalysisResponse,
+    cost: flow.getUsage().cost,
   };
 }
 
@@ -251,7 +256,7 @@ export async function fillMessageAnalysis(
       (c, index, self) => index === self.findIndex((t) => t.title === c.title)
     );
 
-    const partialAnalysis = await analyseMessage(
+    const { response: partialAnalysis, cost } = await analyseMessage(
       question,
       answer,
       recentQuestions,
@@ -314,6 +319,7 @@ export async function fillMessageAnalysis(
       dataGapCancelled: null,
       avgScore,
       maxScore,
+      cost,
     };
 
     await prisma.message.update({

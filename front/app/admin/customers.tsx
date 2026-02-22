@@ -59,6 +59,61 @@ export async function loader({ request }: Route.LoaderArgs) {
           })
         : null;
 
+      const analysisCost = billingCycleStart
+        ? ((await prisma.message.aggregateRaw({
+            pipeline: [
+              {
+                $match: {
+                  ownerUserId: { $oid: user.id },
+                  createdAt: {
+                    $gte: { $date: billingCycleStart.toISOString() },
+                  },
+                  analysis: { $ne: null },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  total: { $sum: "$analysis.cost" },
+                },
+              },
+            ],
+          })) as unknown as Array<{ total?: number }>)
+        : null;
+
+      const monthStart = new Date(
+        new Date().setMonth(new Date().getMonth(), 1)
+      );
+
+      const mtdCost = await prisma.message.aggregate({
+        where: {
+          ownerUserId: user.id,
+          createdAt: { gte: monthStart },
+          llmCost: { not: null },
+        },
+        _sum: {
+          llmCost: true,
+        },
+      });
+
+      const mtdAnalysisCost = (await prisma.message.aggregateRaw({
+        pipeline: [
+          {
+            $match: {
+              ownerUserId: { $oid: user.id },
+              createdAt: { $gte: { $date: monthStart.toISOString() } },
+              analysis: { $ne: null },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: "$analysis.cost" },
+            },
+          },
+        ],
+      })) as unknown as Array<{ total?: number }>;
+
       return {
         id: user.id,
         email: user.email,
@@ -70,6 +125,9 @@ export async function loader({ request }: Route.LoaderArgs) {
         usedMessages,
         billingCycleStart: billingCycleStart?.toISOString() ?? null,
         messageCost: messageCost?._sum?.llmCost ?? 0,
+        analysisCost: analysisCost?.[0]?.total ?? 0,
+        mtdCost: mtdCost?._sum?.llmCost ?? 0,
+        mtdAnalysisCost: mtdAnalysisCost?.[0]?.total ?? 0,
       };
     })
   );
@@ -86,6 +144,11 @@ export function meta() {
 export default function Customers({ loaderData }: Route.ComponentProps) {
   const { customers } = loaderData;
 
+  const totalCost = customers.reduce(
+    (acc, customer) => acc + customer.mtdCost + customer.mtdAnalysisCost,
+    0
+  );
+
   return (
     <div className="p-4 flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -94,6 +157,11 @@ export default function Customers({ loaderData }: Route.ComponentProps) {
           Back to Admin
         </Link>
       </div>
+
+      <div className="text-2xl font-bold">
+        MTD Cost: ${totalCost.toFixed(4)}
+      </div>
+
       <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100 shadow">
         <table className="table">
           <thead>
@@ -103,7 +171,10 @@ export default function Customers({ loaderData }: Route.ComponentProps) {
               <th>Collections</th>
               <th>Messages</th>
               <th>Billing Cycle Start</th>
-              <th>Message Cost</th>
+              <th>Cost [B]</th>
+              <th>Cost [MTD]</th>
+              <th>Analysis Cost</th>
+              <th>Analysis Cost [MTD]</th>
             </tr>
           </thead>
           <tbody>
@@ -134,6 +205,9 @@ export default function Customers({ loaderData }: Route.ComponentProps) {
                     : "-"}
                 </td>
                 <td>${customer.messageCost.toFixed(4)}</td>
+                <td>${customer.mtdCost.toFixed(4)}</td>
+                <td>${customer.analysisCost.toFixed(4)}</td>
+                <td>${customer.mtdAnalysisCost.toFixed(4)}</td>
               </tr>
             ))}
           </tbody>

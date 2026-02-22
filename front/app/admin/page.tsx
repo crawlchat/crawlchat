@@ -290,7 +290,12 @@ function MessagesTable({
                   />
                   {messageDetail.message.llmCost && (
                     <span className="badge badge-soft badge-neutral">
-                      ${messageDetail.message.llmCost?.toFixed(2)}
+                      C: ${messageDetail.message.llmCost?.toFixed(2)}
+                    </span>
+                  )}
+                  {messageDetail.message.analysis?.cost && (
+                    <span className="badge badge-soft badge-neutral">
+                      A: ${messageDetail.message.analysis?.cost?.toFixed(2)}
                     </span>
                   )}
                   {messageDetail.message.llmModel && (
