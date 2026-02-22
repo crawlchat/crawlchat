@@ -281,6 +281,11 @@ export async function action({ request }: Route.ActionArgs) {
         userId: user!.id,
         status: "done",
         indexer: process.env.DEFAULT_INDEXER ?? "mars",
+        showSources: true,
+        widgetConfig: {
+          size: "large",
+          currentPageContext: true,
+        },
       },
     });
 
