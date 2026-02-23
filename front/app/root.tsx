@@ -54,7 +54,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const matches = useMatches();
   const vemetricToken = useMemo(() => {
-    if (/\/w\/[0-9a-fA-F]{24}/.test(location.pathname)) return null;
+    if (/\/w\/.+/.test(location.pathname)) return null;
     return loaderData?.ENV.VITE_VEMETRIC_TOKEN;
   }, [location, loaderData?.ENV.VITE_VEMETRIC_TOKEN]);
   const isLandingPage = matches.some((match) => match.id === "landing/page");
