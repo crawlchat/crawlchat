@@ -280,12 +280,7 @@ export default function Customers({ loaderData }: Route.ComponentProps) {
         MTD Cost: ${totalCost.toFixed(4)}
       </div>
 
-      <div className="border border-base-300 rounded-box bg-base-100 shadow p-4">
-        <h2 className="text-lg font-semibold mb-3">
-          Daily Cost (Last 30 Days)
-        </h2>
-        <DailyCostChart dailyCosts={dailyCosts} />
-      </div>
+      <DailyCostChart dailyCosts={dailyCosts} />
 
       <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100 shadow">
         <table className="table">
