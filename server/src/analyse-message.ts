@@ -78,12 +78,12 @@ export async function analyseMessage(
     ),
     followUpQuestions: z.array(z.string()).describe(
       `
-        Use the recent questions to generate follow up questions.
-        Don't use the recent questions as it is.
-        Use the thread questions to generate follow up questions related to the thread.
-        It should be as if the user is asking the question to the assistant.
-        Max it should be 3 questions.
-        It should not be part of thread questions.
+        Generate follow up questions that the user might want to ask next.
+        Phrase each question from the user's point of view, as if the user is asking it (e.g. "How do I...", "What happens when...", "Can you explain...").
+        Do not phrase as suggestions or prompts from the assistant (e.g. avoid "Would you like to know..." or "You could ask...").
+        Use recent questions and thread questions as inspiration but rephrase them; do not copy them verbatim.
+        Max 3 questions.
+        Must not duplicate any thread questions.
       `
     ),
     categorySuggestions: z
