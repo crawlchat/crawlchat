@@ -7,6 +7,7 @@ import { createToken } from "@packages/common/jwt";
 import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
 import { Scrape, Thread, prisma } from "@packages/common/prisma";
 import jwt from "jsonwebtoken";
+import { analyzeAndCommentOnPR } from "./github-pr-analyzer";
 
 type GitHubPostResponse = {
   id: number;
@@ -60,7 +61,7 @@ function verifySignature(req: Request) {
   }
 }
 
-async function getToken(installationId: number): Promise<string> {
+export async function getToken(installationId: number): Promise<string> {
   const githubAppId = process.env.GITHUB_APP_ID;
   const githubPrivateKey = process.env.GITHUB_APP_PRIVATE_KEY?.replace(
     /\\n/g,
@@ -323,7 +324,7 @@ async function getGitHubConversationMessages(
       body: c.body || "",
       createdAt: c.created_at,
       isBot:
-        c.user?.type?.toLowerCase() === "bot" ||
+        c.user?.type?.toLowerCase?.() === "bot" ||
         c.user?.login?.endsWith?.("[bot]"),
     })),
   ].sort(
@@ -354,8 +355,8 @@ async function answer(data: {
   repo: string;
   question: string;
   threadKey: string;
-  installationId: number;
   title?: string;
+  installationId: number;
   userId?: string;
 }) {
   const { scrape } = data;
@@ -631,6 +632,33 @@ async function processWebhook(event: string, payload: any) {
           title: issue.title,
           installationId,
         });
+      }
+    }
+  }
+
+  // PR diff analysis - delegates to github-pr-analyzer
+  if (event === "pull_request" && (payload.action === "opened" || payload.action === "synchronize")) {
+    const pullRequest = payload.pull_request;
+    const repository = payload.repository;
+    const installationId = payload.installation?.id;
+
+    if (
+      pullRequest &&
+      repository &&
+      installationId &&
+      pullRequest.number &&
+      repository.full_name
+    ) {
+      const owner = repository.owner?.login;
+      const repoName = repository.name;
+      const pullNumber = pullRequest.number;
+
+      if (owner && repoName) {
+        try {
+          await analyzeAndCommentOnPR(installationId, owner, repoName, pullNumber);
+        } catch (error) {
+          console.error(`Failed to analyze PR #${pullNumber}:`, error);
+        }
       }
     }
   }
