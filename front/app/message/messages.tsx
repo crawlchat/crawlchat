@@ -418,7 +418,7 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                               className="link link-hover block truncate max-w-fit"
                               to={`/questions/${pair.queryMessage?.id}`}
                             >
-                              {getMessageContent(pair.queryMessage)}
+                              {getMessageContent(pair.queryMessage) || "Empty"}
                             </RouterLink>
                           </div>
                         </div>
