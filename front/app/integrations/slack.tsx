@@ -138,7 +138,9 @@ export default function SlackIntegrations({
                   type="checkbox"
                   className="toggle"
                   name="replyBroadcast"
-                  checked={(form.getValue("replyBroadcast") as boolean) ?? false}
+                  checked={
+                    (form.getValue("replyBroadcast") as boolean) ?? false
+                  }
                   onChange={form.handleChange("replyBroadcast")}
                 />
                 Broadcast the reply
