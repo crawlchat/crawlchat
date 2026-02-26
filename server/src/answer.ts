@@ -326,6 +326,12 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     }
 
     console.log("Retrying...", i + 1);
+    flow.addMessage({
+      llmMessage: {
+        role: "user",
+        content: "Please answer the question again.",
+      },
+    });
     flow.addNextAgents(["rag-agent"]);
   }
 
