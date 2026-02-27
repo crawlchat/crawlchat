@@ -42,7 +42,7 @@ import { randomUUID } from "crypto";
 import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
-import githubBotRouter from "./github-bot";
+import githubBotRouter from "./github/bot";
 import {
   makeTextSearchRegexTool,
   TextSearchToolContext,

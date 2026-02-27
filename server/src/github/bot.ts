@@ -1,13 +1,13 @@
 import crypto from "crypto";
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { baseAnswerer, saveAnswer } from "./answer";
+import { baseAnswerer, saveAnswer } from "../answer";
 import { extractCitations } from "@packages/common/citation";
 import { createToken } from "@packages/common/jwt";
 import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
 import { Scrape, Thread, prisma } from "@packages/common/prisma";
-import jwt from "jsonwebtoken";
-import { analyzeAndCommentOnPR } from "./github-pr-analyzer";
+import { getToken } from "./token";
+import { analyze } from "./pr-analyzer";
 
 type GitHubPostResponse = {
   id: number;
@@ -16,6 +16,10 @@ type GitHubPostResponse = {
 
 function containsMention(text: string) {
   return Boolean(text && text.trim().startsWith("@crawlchat"));
+}
+
+function containsAnalyseTrigger(text: string) {
+  return Boolean(text && /@crawlchat\s+analyse/i.test(text.trim()));
 }
 
 function cleanupMention(text: string) {
@@ -59,50 +63,6 @@ function verifySignature(req: Request) {
   ) {
     throw new Error("Invalid GitHub signature");
   }
-}
-
-export async function getToken(installationId: number): Promise<string> {
-  const githubAppId = process.env.GITHUB_APP_ID;
-  const githubPrivateKey = process.env.GITHUB_APP_PRIVATE_KEY?.replace(
-    /\\n/g,
-    "\n"
-  );
-
-  if (!githubAppId || !githubPrivateKey) {
-    throw new Error("GitHub app authentication not configured");
-  }
-
-  const now = Math.floor(Date.now() / 1000);
-  const iat = now - 30;
-  const jwtToken = jwt.sign(
-    {
-      iat,
-      exp: iat + 60 * 9,
-      iss: githubAppId,
-    },
-    githubPrivateKey,
-    { algorithm: "RS256" }
-  );
-
-  const response = await fetch(
-    `https://api.github.com/app/installations/${installationId}/access_tokens`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${jwtToken}`,
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Failed to get installation token: ${error}`);
-  }
-
-  const data = await response.json();
-  return data.token;
 }
 
 async function getThread(
@@ -494,6 +454,8 @@ router.post("/webhook", async (req: Request, res: Response) => {
 async function processWebhook(event: string, payload: any) {
   const repoFullName = payload.repository.full_name;
 
+  console.log("Processing webhook:", event, repoFullName);
+
   const scrape = await prisma.scrape.findFirst({
     where: { githubRepoName: repoFullName },
   });
@@ -554,29 +516,39 @@ async function processWebhook(event: string, payload: any) {
     const repository = payload.repository;
     const installationId = payload.installation?.id;
 
-    if (!containsMention(comment.body)) {
-      return;
-    }
-
     if (
       comment &&
       issue &&
       repository &&
       installationId &&
       issue.number &&
-      comment.user
+      comment.user &&
+      comment.user.type?.toLowerCase?.() !== "bot" &&
+      !comment.user.login?.endsWith?.("[bot]")
     ) {
-      const repoFullName = repository.full_name;
       const owner = repository.owner?.login;
       const repoName = repository.name;
 
-      if (
-        repoFullName &&
-        owner &&
-        repoName &&
-        comment.user.type?.toLowerCase?.() !== "bot" &&
-        !comment.user.login?.endsWith?.("[bot]")
-      ) {
+      if (owner && repoName && containsAnalyseTrigger(comment.body)) {
+        if (issue.pull_request) {
+          await analyze(
+            scrape.id,
+            scrape.userId,
+            installationId,
+            owner,
+            repoName,
+            issue.number
+          );
+          return;
+        }
+      }
+
+      if (!containsMention(comment.body)) {
+        return;
+      }
+
+      const repoFullName = repository.full_name;
+      if (repoFullName) {
         const threadKey = `${repoFullName}#issue-${issue.number}`;
         await answer({
           scrape,
@@ -632,33 +604,6 @@ async function processWebhook(event: string, payload: any) {
           title: issue.title,
           installationId,
         });
-      }
-    }
-  }
-
-  // PR diff analysis - delegates to github-pr-analyzer
-  if (event === "pull_request" && (payload.action === "opened" || payload.action === "synchronize")) {
-    const pullRequest = payload.pull_request;
-    const repository = payload.repository;
-    const installationId = payload.installation?.id;
-
-    if (
-      pullRequest &&
-      repository &&
-      installationId &&
-      pullRequest.number &&
-      repository.full_name
-    ) {
-      const owner = repository.owner?.login;
-      const repoName = repository.name;
-      const pullNumber = pullRequest.number;
-
-      if (owner && repoName) {
-        try {
-          await analyzeAndCommentOnPR(installationId, owner, repoName, pullNumber);
-        } catch (error) {
-          console.error(`Failed to analyze PR #${pullNumber}:`, error);
-        }
       }
     }
   }
