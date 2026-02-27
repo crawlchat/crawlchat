@@ -3,28 +3,15 @@ import { prisma } from "@packages/common/prisma";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { Page } from "~/components/page";
-import {
-  TbBook2,
-  TbBrandDiscord,
-  TbBrandGithub,
-  TbBrandNotion,
-  TbBrandSlack,
-  TbCircleX,
-  TbFile,
-  TbPageBreak,
-  TbSettings,
-  TbVideo,
-  TbWorld,
-} from "react-icons/tb";
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import { TbBook2, TbCircleX, TbPageBreak, TbSettings } from "react-icons/tb";
+import { Link, Outlet, useLocation } from "react-router";
 import { useMemo } from "react";
 import { createToken } from "@packages/common/jwt";
 import { ActionButton } from "./action-button";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
-import { FaConfluence } from "react-icons/fa";
-import { SiLinear } from "react-icons/si";
 import { getTotalPageChunks } from "./page-chunks";
+import { getSourceSpec } from "@packages/common/source-spec";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -122,7 +109,6 @@ export default function KnowledgeGroupPage({
   loaderData,
 }: Route.ComponentProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const activeTab = useMemo(() => {
     return location.pathname;
   }, [location.pathname]);
@@ -142,58 +128,19 @@ export default function KnowledgeGroupPage({
     ];
   }, [loaderData.knowledgeGroup.id, loaderData.items]);
 
-  function handleTabChange(value: string) {
-    navigate(value);
-  }
-
-  function getIcon() {
-    if (loaderData.knowledgeGroup.type === "scrape_github") {
-      return <TbBrandGithub />;
-    }
-    if (loaderData.knowledgeGroup.type === "scrape_web") {
-      return <TbWorld />;
-    }
-    if (loaderData.knowledgeGroup.type === "learn_discord") {
-      return <TbBrandDiscord />;
-    }
-    if (loaderData.knowledgeGroup.type === "confluence") {
-      return <FaConfluence />;
-    }
-    if (loaderData.knowledgeGroup.type === "learn_slack") {
-      return <TbBrandSlack />;
-    }
-    if (loaderData.knowledgeGroup.type === "upload") {
-      return <TbFile />;
-    }
-    if (loaderData.knowledgeGroup.type === "notion") {
-      return <TbBrandNotion />;
-    }
-    if (loaderData.knowledgeGroup.type === "github_issues") {
-      return <TbBrandGithub />;
-    }
-    if (loaderData.knowledgeGroup.type === "github_discussions") {
-      return <TbBrandGithub />;
-    }
-    if (
-      loaderData.knowledgeGroup.type === "linear" ||
-      loaderData.knowledgeGroup.type === "linear_projects"
-    ) {
-      return <SiLinear />;
-    }
-    if (loaderData.knowledgeGroup.type === "youtube") {
-      return <TbVideo />;
-    }
-    if (loaderData.knowledgeGroup.type === "youtube_channel") {
-      return <TbVideo />;
-    }
-
-    return <TbBook2 />;
-  }
+  const sourceSpec = useMemo(
+    () =>
+      getSourceSpec(
+        loaderData.knowledgeGroup.type,
+        loaderData.knowledgeGroup.subType
+      ),
+    [loaderData.knowledgeGroup.type, loaderData.knowledgeGroup.subType]
+  );
 
   return (
     <Page
       title={loaderData.knowledgeGroup.title ?? "Untitled"}
-      icon={getIcon()}
+      icon={sourceSpec?.icon ?? <TbBook2 />}
       right={
         <>
           {loaderData.totalPageChunks > 0 && (

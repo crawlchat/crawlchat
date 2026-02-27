@@ -227,10 +227,11 @@ export const baseAnswerer: Answerer = async (
     },
   });
   let githubRepoPath: string | undefined;
-  if (githubRepoGroup?.githubUrl) {
+  const githubRepoUrl = githubRepoGroup?.url ?? githubRepoGroup?.githubUrl;
+  if (githubRepoGroup && githubRepoUrl) {
     githubRepoPath = `/tmp/flash-${githubRepoGroup.id}`;
     await ensureRepoCloned(
-      githubRepoGroup.githubUrl,
+      githubRepoUrl,
       githubRepoPath,
       githubRepoGroup.githubBranch ?? "main"
     );

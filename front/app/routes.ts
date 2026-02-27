@@ -59,7 +59,7 @@ export default [
 
     route("knowledge/group", "knowledge/new-group.tsx"),
     route("knowledge/group/:groupId", "knowledge/group/page.tsx", [
-      index("knowledge/group/settings.tsx"),
+      index("knowledge/group/settings/page.tsx"),
       route("items", "knowledge/group/items.tsx"),
     ]),
     route("knowledge", "knowledge/groups.tsx"),
@@ -84,8 +84,6 @@ export default [
       route("fact-check", "fact-check/page.tsx"),
       route("fact-check/api", "fact-check/api.ts"),
     ]),
-
-    route("welcome", "welcome/page.tsx"),
 
     route("api-key", "api-key/page.tsx"),
   ]),
