@@ -377,6 +377,10 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     return;
   }
 
+  if (!req.body.version) {
+    throw new Error("Version required");
+  }
+
   authoriseScrapeUser(req.user!.scrapeUsers, scrape.id, res);
 
   if (
