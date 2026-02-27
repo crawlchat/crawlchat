@@ -1,34 +1,23 @@
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma } from "@packages/common/prisma";
+import { prisma, type KnowledgeGroup } from "@packages/common/prisma";
 import moment from "moment";
-import {
-  TbAutomation,
-  TbBook,
-  TbBrandDiscord,
-  TbBrandGithub,
-  TbBrandNotion,
-  TbBrandSlack,
-  TbFile,
-  TbPlus,
-  TbVideo,
-  TbWorld,
-} from "react-icons/tb";
+import { TbAutomation, TbBook, TbPlus } from "react-icons/tb";
 import { Link } from "react-router";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { Page } from "~/components/page";
 import { useMemo } from "react";
 import { GroupStatus } from "./group/status";
 import { ActionButton } from "./group/action-button";
-import { SiDocusaurus, SiLinear } from "react-icons/si";
 import { EmptyState } from "~/components/empty-state";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
-import { FaConfluence } from "react-icons/fa";
 import { Timestamp } from "~/components/timestamp";
 import { createToken } from "@packages/common/jwt";
 import KnowledgeSearch, { type ItemSearchResult } from "./search";
 import { getTotalPageChunks } from "./group/page-chunks";
+import { KnowledgeGroupBadge } from "./group-badge";
+import { getSourceSpec, sourceSpecs } from "@packages/common/source-spec";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -173,69 +162,35 @@ export async function action({ request }: Route.ActionArgs) {
   }
 }
 
+function GroupActions({
+  group,
+  token,
+}: {
+  group: KnowledgeGroup;
+  token: string;
+}) {
+  const sourceSpec = useMemo(
+    () => getSourceSpec(group.type, group.subType),
+    [group]
+  );
+  return (
+    <div className="flex gap-2">
+      {sourceSpec?.canSync && (
+        <ActionButton group={group} token={token} small />
+      )}
+    </div>
+  );
+}
+
 export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
   const groups = useMemo(() => {
     return loaderData.knowledgeGroups.map((group) => {
-      let icon = <TbBook />;
-      let typeText = "Unknown";
-
-      if (group.type === "scrape_web") {
-        icon = <TbWorld />;
-        typeText = "Web";
-
-        if (group.subType === "docusaurus") {
-          typeText = "Docusaurus";
-          icon = <SiDocusaurus />;
-        }
-      } else if (group.type === "scrape_github") {
-        icon = <TbBrandGithub />;
-        typeText = "GitHub";
-      } else if (group.type === "learn_discord") {
-        icon = <TbBrandDiscord />;
-        typeText = "Discord";
-      } else if (group.type === "learn_slack") {
-        icon = <TbBrandSlack />;
-        typeText = "Slack";
-      } else if (group.type === "github_issues") {
-        icon = <TbBrandGithub />;
-        typeText = "GH Issues";
-      } else if (group.type === "github_discussions") {
-        icon = <TbBrandGithub />;
-        typeText = "GH Discussions";
-      } else if (group.type === "upload") {
-        icon = <TbFile />;
-        typeText = "File";
-      } else if (group.type === "notion") {
-        icon = <TbBrandNotion />;
-        typeText = "Notion";
-      } else if (group.type === "confluence") {
-        icon = <FaConfluence />;
-        typeText = "Confluence";
-      } else if (group.type === "linear") {
-        icon = <SiLinear />;
-        typeText = "Linear Issues";
-      } else if (group.type === "linear_projects") {
-        icon = <SiLinear />;
-        typeText = "Linear Projects";
-      } else if (group.type === "youtube") {
-        icon = <TbVideo />;
-        typeText = "YouTube";
-      } else if (group.type === "youtube_channel") {
-        icon = <TbVideo />;
-        typeText = "YouTube Channel";
-      } else if (group.type === "custom") {
-        icon = <TbBook />;
-        typeText = "Custom";
-      }
-
       const totalCited = Object.values(loaderData.citationCounts).reduce(
         (acc, count) => acc + count,
         0
       );
 
       return {
-        icon,
-        typeText,
         group,
         citationPct:
           totalCited > 0
@@ -297,10 +252,10 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                 {groups.map((item) => (
                   <tr key={item.group.id}>
                     <td>
-                      <div className="badge badge-soft badge-primary">
-                        {item.icon}
-                        {item.typeText}
-                      </div>
+                      <KnowledgeGroupBadge
+                        type={item.group.type}
+                        subType={item.group.subType ?? undefined}
+                      />
                     </td>
                     <td>
                       <Link
@@ -348,25 +303,10 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                       </div>
                     </td>
                     <td>
-                      <div className="flex gap-2">
-                        {[
-                          "scrape_web",
-                          "scrape_github",
-                          "github_issues",
-                          "github_discussions",
-                          "notion",
-                          "confluence",
-                          "linear",
-                          "youtube",
-                          "youtube_channel",
-                        ].includes(item.group.type) && (
-                          <ActionButton
-                            group={item.group}
-                            token={loaderData.token}
-                            small
-                          />
-                        )}
-                      </div>
+                      <GroupActions
+                        group={item.group}
+                        token={loaderData.token}
+                      />
                     </td>
                   </tr>
                 ))}

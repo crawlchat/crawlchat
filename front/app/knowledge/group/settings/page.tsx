@@ -31,7 +31,7 @@ import { Timestamp } from "~/components/timestamp";
 import type { FileUpload } from "@mjackson/form-data-parser";
 import { parseFormData } from "@mjackson/form-data-parser";
 import { v4 as uuidv4 } from "uuid";
-import { sourceSpecs } from "@packages/common/source-spec";
+import { getSourceSpec, sourceSpecs } from "@packages/common/source-spec";
 import { WebSettings } from "./web";
 import { GithubIssuesSettings } from "./github-issues";
 import { GithubDiscussionsSettings } from "./github-discussions";
@@ -343,11 +343,14 @@ export default function KnowledgeGroupSettings({
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [clearPagesConfirm, setClearPagesConfirm] = useState(false);
 
-  const sourceSpec = useMemo(() => {
-    return sourceSpecs.find(
-      (spec) => spec.id === loaderData.knowledgeGroup.type
-    );
-  }, [loaderData.knowledgeGroup.type]);
+  const sourceSpec = useMemo(
+    () =>
+      getSourceSpec(
+        loaderData.knowledgeGroup.type,
+        loaderData.knowledgeGroup.subType
+      ),
+    [loaderData.knowledgeGroup.type, loaderData.knowledgeGroup.subType]
+  );
 
   const details = useMemo(() => {
     const details: Array<{ label: string; value: React.ReactNode }> = [

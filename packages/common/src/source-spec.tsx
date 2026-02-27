@@ -332,3 +332,12 @@ export const sourceSpecs: SourceSpec[] = [
     canSkipPages: true,
   },
 ];
+
+export function getSourceSpec(
+  type: KnowledgeGroupType,
+  subType?: string | null
+) {
+  return sourceSpecs.find(
+    (spec) => spec.id === type && spec.subType === (subType ?? "default")
+  );
+}

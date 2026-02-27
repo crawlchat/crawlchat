@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import cn from "@meltdownjs/cn";
 import { v4 as uuidv4 } from "uuid";
-import { sourceSpecs } from "@packages/common/source-spec";
+import { getSourceSpec, sourceSpecs } from "@packages/common/source-spec";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -77,9 +77,7 @@ export async function action({ request }: { request: Request }) {
   if (request.method === "POST") {
     const rawType = formData.get("type") as string;
     const [type, subType] = rawType.split(":");
-    const sourceSpec = sourceSpecs.find(
-      (t) => [t.id, t.subType].join(":") === rawType
-    );
+    const sourceSpec = getSourceSpec(type as KnowledgeGroupType, subType);
     if (!sourceSpec) {
       return { error: "Invalid source type" };
     }
@@ -175,7 +173,8 @@ export async function action({ request }: { request: Request }) {
 export function NewKnowledgeGroupForm() {
   const [type, setType] = useState<string>("scrape_web:default");
   const sourceSpec = useMemo(() => {
-    return sourceSpecs.find((t) => [t.id, t.subType].join(":") === type);
+    const [newType, subType] = type.split(":");
+    return getSourceSpec(newType as KnowledgeGroupType, subType);
   }, [type]);
 
   return (
