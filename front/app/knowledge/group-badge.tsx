@@ -1,4 +1,4 @@
-import { getSourceSpec } from "@packages/common/source-spec";
+import { getSourceSpec } from "~/source-spec";
 import type { KnowledgeGroupType } from "@prisma/client";
 import { useMemo } from "react";
 import {

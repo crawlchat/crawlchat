@@ -19,7 +19,7 @@ import KnowledgeSearch from "./search";
 import type { ItemSearchResult } from "./search";
 import { getTotalPageChunks } from "./group/page-chunks";
 import { KnowledgeGroupBadge } from "./group-badge";
-import { getSourceSpec } from "@packages/common/source-spec";
+import { getSourceSpec } from "~/source-spec";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
