@@ -1,6 +1,7 @@
 import type { Route } from "./+types/groups";
 import { getAuthUser } from "~/auth/middleware";
-import { prisma, type KnowledgeGroup } from "@packages/common/prisma";
+import { prisma } from "@packages/common/prisma";
+import type { KnowledgeGroup } from "@prisma/client";
 import moment from "moment";
 import { TbAutomation, TbBook, TbPlus } from "react-icons/tb";
 import { Link } from "react-router";
@@ -14,10 +15,11 @@ import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { Timestamp } from "~/components/timestamp";
 import { createToken } from "@packages/common/jwt";
-import KnowledgeSearch, { type ItemSearchResult } from "./search";
+import KnowledgeSearch from "./search";
+import type { ItemSearchResult } from "./search";
 import { getTotalPageChunks } from "./group/page-chunks";
 import { KnowledgeGroupBadge } from "./group-badge";
-import { getSourceSpec, sourceSpecs } from "@packages/common/source-spec";
+import { getSourceSpec } from "@packages/common/source-spec";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
