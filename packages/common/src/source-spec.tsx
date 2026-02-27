@@ -8,7 +8,7 @@ import {
 } from "react-icons/tb";
 import { FaConfluence } from "react-icons/fa";
 import { SiDocusaurus, SiLinear } from "react-icons/si";
-import { KnowledgeGroupType } from "./prisma";
+import { KnowledgeGroupType, KnowledgeGroupUpdateFrequency } from "./prisma";
 
 export type SourceFields = {
   url?: {
@@ -29,6 +29,8 @@ export type SourceSpec = {
   icon: React.ReactNode;
   subType: string;
   showUrl: boolean;
+  autoSyncIntervals: KnowledgeGroupUpdateFrequency[];
+  canClearStalePages: boolean;
 };
 
 export const sourceSpecs: SourceSpec[] = [
@@ -50,6 +52,8 @@ export const sourceSpecs: SourceSpec[] = [
       },
     },
     showUrl: true,
+    autoSyncIntervals: ["daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "Docusaurus",
@@ -69,6 +73,8 @@ export const sourceSpecs: SourceSpec[] = [
       },
     },
     showUrl: true,
+    autoSyncIntervals: ["daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "Notion",
@@ -92,6 +98,8 @@ export const sourceSpecs: SourceSpec[] = [
     canSync: true,
     fields: {},
     showUrl: false,
+    autoSyncIntervals: ["daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "GH Repo",
@@ -110,6 +118,8 @@ export const sourceSpecs: SourceSpec[] = [
       },
     },
     showUrl: true,
+    autoSyncIntervals: [],
+    canClearStalePages: false,
   },
   {
     name: "GH Issues",
@@ -129,6 +139,8 @@ export const sourceSpecs: SourceSpec[] = [
       },
     },
     showUrl: true,
+    autoSyncIntervals: ["daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "GH Discussions",
@@ -148,6 +160,8 @@ export const sourceSpecs: SourceSpec[] = [
       },
     },
     showUrl: true,
+    autoSyncIntervals: ["daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "Upload",
@@ -159,6 +173,8 @@ export const sourceSpecs: SourceSpec[] = [
     canSync: false,
     fields: {},
     showUrl: false,
+    autoSyncIntervals: [],
+    canClearStalePages: false,
   },
   {
     name: "Confluence",
@@ -182,6 +198,8 @@ export const sourceSpecs: SourceSpec[] = [
     canSync: true,
     fields: {},
     showUrl: false,
+    autoSyncIntervals: ["hourly", "daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "Linear Issues",
@@ -205,6 +223,8 @@ export const sourceSpecs: SourceSpec[] = [
     canSync: true,
     fields: {},
     showUrl: false,
+    autoSyncIntervals: ["hourly", "daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "Linear Projects",
@@ -228,6 +248,8 @@ export const sourceSpecs: SourceSpec[] = [
     canSync: true,
     fields: {},
     showUrl: false,
+    autoSyncIntervals: ["hourly", "daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "Custom",
@@ -250,6 +272,8 @@ export const sourceSpecs: SourceSpec[] = [
     canSync: false,
     fields: {},
     showUrl: false,
+    autoSyncIntervals: [],
+    canClearStalePages: false,
   },
   {
     name: "Video",
@@ -269,6 +293,8 @@ export const sourceSpecs: SourceSpec[] = [
       },
     },
     showUrl: false,
+    autoSyncIntervals: ["weekly", "monthly"],
+    canClearStalePages: true,
   },
   {
     name: "Channel",
@@ -288,5 +314,7 @@ export const sourceSpecs: SourceSpec[] = [
       },
     },
     showUrl: true,
+    autoSyncIntervals: ["daily", "weekly", "monthly"],
+    canClearStalePages: true,
   },
 ];

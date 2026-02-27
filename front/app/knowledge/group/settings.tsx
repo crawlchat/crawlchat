@@ -329,24 +329,31 @@ export async function action({ request, params }: Route.ActionArgs) {
   return group;
 }
 
-function AutoUpdateSettings({ group }: { group: KnowledgeGroup }) {
+function AutoUpdateSettings({
+  group,
+  intervals,
+}: {
+  group: KnowledgeGroup;
+  intervals: KnowledgeGroupUpdateFrequency[];
+}) {
   const fetcher = useFetcher();
   const dirtyForm = useDirtyForm({
     updateFrequency: group.updateFrequency ?? undefined,
   });
   const autoUpdateCollection = useMemo(() => {
-    const allOptions = [
-      { label: "Never", value: "never" },
-      { label: "Every hour", value: "hourly" },
-      { label: "Every day", value: "daily" },
-      { label: "Every week", value: "weekly" },
-      { label: "Every month", value: "monthly" },
-    ];
+    const allOptions = [{ label: "Never", value: "never" }];
 
-    if (group.type === "youtube_channel") {
-      return allOptions.filter(
-        (option) => option.value !== "hourly" && option.value !== "daily"
-      );
+    if (intervals.includes("hourly")) {
+      allOptions.push({ label: "Every hour", value: "hourly" });
+    }
+    if (intervals.includes("daily")) {
+      allOptions.push({ label: "Every day", value: "daily" });
+    }
+    if (intervals.includes("weekly")) {
+      allOptions.push({ label: "Every week", value: "weekly" });
+    }
+    if (intervals.includes("monthly")) {
+      allOptions.push({ label: "Every month", value: "monthly" });
     }
 
     return allOptions;
@@ -468,7 +475,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <SettingsSection
         id="match-prefix"
         fetcher={matchPrefixFetcher}
@@ -527,9 +534,6 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
 
       <SkipPagesRegex group={group} />
 
-      <AutoUpdateSettings group={group} />
-      <RemoveStalePagesSettings group={group} />
-
       <SettingsSection
         id="item-context"
         fetcher={itemContextFetcher}
@@ -584,7 +588,7 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
           Active
         </label>
       </SettingsSection>
-    </div>
+    </>
   );
 }
 
@@ -608,7 +612,7 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <SettingsSection
         id="allowed-github-issue-states"
         fetcher={allowedStatesFetcher}
@@ -647,9 +651,7 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
           <option value="only_prs">Only pull requests</option>
         </select>
       </SettingsSection>
-
-      <RemoveStalePagesSettings group={group} />
-    </div>
+    </>
   );
 }
 
@@ -660,7 +662,7 @@ function GithubDiscussionsSettings({ group }: { group: KnowledgeGroup }) {
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       <SettingsSection
         id="only-answered-discussions"
         fetcher={onlyAnsweredFetcher}
@@ -683,9 +685,7 @@ function GithubDiscussionsSettings({ group }: { group: KnowledgeGroup }) {
           <span className="label-text">Only fetch answered discussions</span>
         </label>
       </SettingsSection>
-
-      <RemoveStalePagesSettings group={group} />
-    </div>
+    </>
   );
 }
 
@@ -697,16 +697,11 @@ function NotionSettings({
   notionPages: Array<SelectValue>;
 }) {
   return (
-    <div className="flex flex-col gap-4">
-      <SkipPagesRegex
-        group={group}
-        pages={notionPages}
-        placeholder="Select pages to skip"
-      />
-
-      <AutoUpdateSettings group={group} />
-      <RemoveStalePagesSettings group={group} />
-    </div>
+    <SkipPagesRegex
+      group={group}
+      pages={notionPages}
+      placeholder="Select pages to skip"
+    />
   );
 }
 
@@ -718,16 +713,11 @@ function ConfluenceSettings({
   confluencePages: Array<SelectValue>;
 }) {
   return (
-    <div className="flex flex-col gap-4">
-      <SkipPagesRegex
-        group={group}
-        pages={confluencePages}
-        placeholder="Select pages to skip"
-      />
-
-      <AutoUpdateSettings group={group} />
-      <RemoveStalePagesSettings group={group} />
-    </div>
+    <SkipPagesRegex
+      group={group}
+      pages={confluencePages}
+      placeholder="Select pages to skip"
+    />
   );
 }
 
@@ -758,7 +748,7 @@ function LinearSettings({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <>
       {group.type === "linear" && (
         <SettingsSection
           id="linear-skip-issue-statuses"
@@ -802,10 +792,7 @@ function LinearSettings({
           />
         </SettingsSection>
       )}
-
-      <AutoUpdateSettings group={group} />
-      <RemoveStalePagesSettings group={group} />
-    </div>
+    </>
   );
 }
 
@@ -820,25 +807,20 @@ function YouTubeSettings({ group }: { group: KnowledgeGroup }) {
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <SettingsSection
-        id="youtube-urls"
-        fetcher={youtubeUrlsFetcher}
-        title="YouTube Video URLs"
-        description="Add multiple YouTube video URLs to extract transcripts from. Each URL will be processed and added to your knowledge base."
-        dirty={dirtyForm.isDirty("youtubeUrls")}
-      >
-        <input value={youtubeUrlsString} name="youtubeUrls" type="hidden" />
-        <MultiSelect
-          value={dirtyForm.getValue("youtubeUrls") ?? []}
-          onChange={(v) => dirtyForm.setValue("youtubeUrls", v)}
-          placeholder="https://www.youtube.com/watch?v=..."
-        />
-      </SettingsSection>
-
-      <AutoUpdateSettings group={group} />
-      <RemoveStalePagesSettings group={group} />
-    </div>
+    <SettingsSection
+      id="youtube-urls"
+      fetcher={youtubeUrlsFetcher}
+      title="YouTube Video URLs"
+      description="Add multiple YouTube video URLs to extract transcripts from. Each URL will be processed and added to your knowledge base."
+      dirty={dirtyForm.isDirty("youtubeUrls")}
+    >
+      <input value={youtubeUrlsString} name="youtubeUrls" type="hidden" />
+      <MultiSelect
+        value={dirtyForm.getValue("youtubeUrls") ?? []}
+        onChange={(v) => dirtyForm.setValue("youtubeUrls", v)}
+        placeholder="https://www.youtube.com/watch?v=..."
+      />
+    </SettingsSection>
   );
 }
 
@@ -853,25 +835,20 @@ function YouTubeChannelSettings({ group }: { group: KnowledgeGroup }) {
   );
 
   return (
-    <>
-      <SettingsSection
-        id="skip-urls"
-        fetcher={skipUrlsFetcher}
-        title="Skip URLs"
-        description="Specify regex patterns to skip certain videos. Videos matching any of these patterns will be excluded. You can match against video URLs, IDs, or titles."
-        dirty={dirtyForm.isDirty("skipPageRegex")}
-      >
-        <input value={skipUrlsString} name="skipPageRegex" type="hidden" />
-        <MultiSelect
-          value={dirtyForm.getValue("skipPageRegex") ?? []}
-          onChange={(v) => dirtyForm.setValue("skipPageRegex", v)}
-          placeholder="Ex: /watch\\?v=.*, /shorts/.*"
-        />
-      </SettingsSection>
-
-      <AutoUpdateSettings group={group} />
-      <RemoveStalePagesSettings group={group} />
-    </>
+    <SettingsSection
+      id="skip-urls"
+      fetcher={skipUrlsFetcher}
+      title="Skip URLs"
+      description="Specify regex patterns to skip certain videos. Videos matching any of these patterns will be excluded. You can match against video URLs, IDs, or titles."
+      dirty={dirtyForm.isDirty("skipPageRegex")}
+    >
+      <input value={skipUrlsString} name="skipPageRegex" type="hidden" />
+      <MultiSelect
+        value={dirtyForm.getValue("skipPageRegex") ?? []}
+        onChange={(v) => dirtyForm.setValue("skipPageRegex", v)}
+        placeholder="Ex: /watch\\?v=.*, /shorts/.*"
+      />
+    </SettingsSection>
   );
 }
 
@@ -890,27 +867,25 @@ function UploadSettings({ group }: { group: KnowledgeGroup }) {
   }, [uploadFetcher.state, uploadFetcher.data]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <SettingsSection
-        id="upload-files"
-        fetcher={uploadFetcher}
-        title="Upload files"
-        description="Upload additional files to add to this knowledge group. Supported formats: PDF, DOCX, PPTX, TXT, MD, and code files."
-        multipart
-      >
-        <input type="hidden" name="intent" value="upload-files" />
-        <input
-          ref={fileInputRef}
-          type="file"
-          name="file"
-          className="file-input w-full"
-          accept={
-            "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown,text/javascript,application/javascript,.tsx,.ts,.js,.jsx,.mdx"
-          }
-          multiple
-        />
-      </SettingsSection>
-    </div>
+    <SettingsSection
+      id="upload-files"
+      fetcher={uploadFetcher}
+      title="Upload files"
+      description="Upload additional files to add to this knowledge group. Supported formats: PDF, DOCX, PPTX, TXT, MD, and code files."
+      multipart
+    >
+      <input type="hidden" name="intent" value="upload-files" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        name="file"
+        className="file-input w-full"
+        accept={
+          "application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,text/plain,text/markdown,text/javascript,application/javascript,.tsx,.ts,.js,.jsx,.mdx"
+        }
+        multiple
+      />
+    </SettingsSection>
   );
 }
 
@@ -1023,6 +998,17 @@ export default function KnowledgeGroupSettings({
         )}
         {loaderData.knowledgeGroup.type === "upload" && (
           <UploadSettings group={loaderData.knowledgeGroup} />
+        )}
+
+        {sourceSpec?.canClearStalePages && (
+          <RemoveStalePagesSettings group={loaderData.knowledgeGroup} />
+        )}
+
+        {sourceSpec && sourceSpec.autoSyncIntervals.length > 0 && (
+          <AutoUpdateSettings
+            group={loaderData.knowledgeGroup}
+            intervals={sourceSpec?.autoSyncIntervals ?? []}
+          />
         )}
 
         <SettingsSection
