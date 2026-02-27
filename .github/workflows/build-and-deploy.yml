@@ -1,0 +1,143 @@
+name: Build and Deploy Docker Images to GHCR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  IMAGE_REPOSITORY_PREFIX: crawlchat
+
+jobs:
+  detect-changes:
+    if: github.repository == 'pskd73/crawlchat'
+    runs-on: ubuntu-latest
+    outputs:
+      slack_app: ${{ steps.filter.outputs.slack_app }}
+      discord_bot: ${{ steps.filter.outputs.discord_bot }}
+      docs: ${{ steps.filter.outputs.docs }}
+      front: ${{ steps.filter.outputs.front }}
+      marker: ${{ steps.filter.outputs.marker }}
+      server: ${{ steps.filter.outputs.server }}
+      source_sync: ${{ steps.filter.outputs.source_sync }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect app changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            slack_app:
+              - 'slack-app/**'
+              - 'packages/**'
+            discord_bot:
+              - 'discord-bot/**'
+              - 'packages/**'
+            docs:
+              - 'docs/**'
+              - 'packages/**'
+            front:
+              - 'front/**'
+              - 'packages/**'
+            marker:
+              - 'marker/**'
+              - 'packages/**'
+            server:
+              - 'server/**'
+              - 'packages/**'
+            source_sync:
+              - 'source-sync/**'
+              - 'packages/**'
+
+  build-and-push:
+    if: github.repository == 'pskd73/crawlchat'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        include:
+          - build_app: slack-app
+            image_name: slack-app
+            dockerfile: docker/Dockerfile
+          - build_app: discord-bot
+            image_name: discord-bot
+            dockerfile: docker/Dockerfile
+          - build_app: docs
+            image_name: docs
+            dockerfile: docker/Dockerfile
+          - build_app: front
+            image_name: front
+            dockerfile: docker/Dockerfile
+          - build_app: marker
+            image_name: marker
+            dockerfile: docker/Dockerfile.marker
+          - build_app: server
+            image_name: server
+            dockerfile: docker/Dockerfile
+          - build_app: source-sync
+            image_name: source-sync
+            dockerfile: docker/Dockerfile
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract GHCR owner
+        id: ghcr
+        run: |
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          echo "commit_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          build-args: |
+            BUILD_APP=${{ matrix.build_app }}
+          push: true
+          tags: |
+            ghcr.io/${{ steps.ghcr.outputs.owner }}/${{ env.IMAGE_REPOSITORY_PREFIX }}-${{ matrix.image_name }}:${{ steps.meta.outputs.commit_sha }}
+            ghcr.io/${{ steps.ghcr.outputs.owner }}/${{ env.IMAGE_REPOSITORY_PREFIX }}-${{ matrix.image_name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+  deploy-to-coolify:
+    if: github.repository == 'pskd73/crawlchat'
+    needs:
+      - detect-changes
+      - build-and-push
+    uses: ./.github/workflows/deploy-coolify.yml
+    with:
+      slack_app: ${{ needs.detect-changes.outputs.slack_app }}
+      discord_bot: ${{ needs.detect-changes.outputs.discord_bot }}
+      docs: ${{ needs.detect-changes.outputs.docs }}
+      front: ${{ needs.detect-changes.outputs.front }}
+      marker: ${{ needs.detect-changes.outputs.marker }}
+      server: ${{ needs.detect-changes.outputs.server }}
+      source_sync: ${{ needs.detect-changes.outputs.source_sync }}
+    secrets:
+      COOLIFY_WEBHOOKS: ${{ secrets.COOLIFY_WEBHOOKS }}
+      COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}

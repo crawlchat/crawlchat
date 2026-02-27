@@ -133,7 +133,6 @@ function ChatInput() {
     currentPage,
   } = useChatBoxContext();
 
-  const [focused, setFocused] = useState(false);
   const [query, setQuery] = useState(defaultQuery ?? "");
   const cleanedQuery = useMemo(() => {
     return query.trim();
@@ -210,7 +209,7 @@ function ChatInput() {
     if (chat.askStage !== "idle") {
       return "Planning...";
     }
-    return scrape.widgetConfig?.textInputPlaceholder ?? "Ask your question";
+    return scrape.widgetConfig?.textInputPlaceholder || "Ask your question";
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -262,8 +261,6 @@ function ChatInput() {
             rows={1}
             onKeyDown={handleKeyDown}
             disabled={isDisabled}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
           />
         </div>
 
@@ -322,15 +319,15 @@ function isValidUrl(url: string) {
 
 export function SourceLink({
   link,
-  index,
   color,
+  internalLinkHosts = [],
+  handleInternalLinkClick,
 }: {
   link: MessageSourceLink;
-  index: number;
   color?: string;
+  internalLinkHosts?: string[];
+  handleInternalLinkClick?: (url: string) => void;
 }) {
-  const { internalLinkHosts, handleInternalLinkClick } = useChatBoxContext();
-
   const internal =
     link.url && isValidUrl(link.url)
       ? internalLinkHosts.includes(new URL(link.url).hostname)
@@ -363,7 +360,9 @@ export function SourceLink({
         color: color ?? undefined,
       }}
       onClick={
-        internal ? () => handleInternalLinkClick(link.url ?? "") : undefined
+        internal && handleInternalLinkClick
+          ? () => handleInternalLinkClick(link.url ?? "")
+          : undefined
       }
     >
       <TbFileDescription size={14} className="shrink-0" />
@@ -383,11 +382,14 @@ export function UserMessage({ content }: { content: string }) {
 export function Sources({
   citation,
   color,
+  internalLinkHosts,
+  handleInternalLinkClick,
 }: {
   citation: ReturnType<typeof extractCitations>;
   color?: string;
+  internalLinkHosts?: string[];
+  handleInternalLinkClick?: (url: string) => void;
 }) {
-  const { internalLinkHosts } = useChatBoxContext();
   const [showSources, setShowSources] = useState(false);
   const citedLinks = Object.entries(citation.citedLinks)
     .filter(([_, link]) => link)
@@ -397,7 +399,7 @@ export function Sources({
     }));
 
   useEffect(() => {
-    if (internalLinkHosts.length > 0) {
+    if (internalLinkHosts && internalLinkHosts.length > 0) {
       setShowSources(true);
     }
   }, [internalLinkHosts]);
@@ -425,7 +427,13 @@ export function Sources({
 
       {showSources &&
         citedLinks.map(({ index, link }) => (
-          <SourceLink key={index} link={link} index={index} color={color} />
+          <SourceLink
+            key={index}
+            link={link}
+            color={color}
+            internalLinkHosts={internalLinkHosts}
+            handleInternalLinkClick={handleInternalLinkClick}
+          />
         ))}
     </div>
   );
@@ -478,34 +486,32 @@ export function MessageCopyButton({ content }: { content: string }) {
 
 export function AssistantMessage({
   id,
-  questionId,
   content,
   links,
   rating,
-  last,
   pullUp,
+  last,
 }: {
   id: string;
-  questionId: string;
   content: string;
   links: MessageSourceLink[];
   rating: MessageRating | null;
-  last: boolean;
   pullUp: boolean;
+  last: boolean;
 }) {
   const {
-    refresh,
     rate,
     readOnly,
     admin,
     createTicket,
     ticketCreateFetcher,
     customerEmail,
-    scrape,
     chat,
     thread,
     requestEmailVerificationFetcher,
     verifyEmailFetcher,
+    internalLinkHosts,
+    handleInternalLinkClick,
   } = useChatBoxContext();
   const citation = useMemo(
     () => extractCitations(content, links),
@@ -529,7 +535,11 @@ export function AssistantMessage({
 
   return (
     <div className={cn("flex flex-col gap-2", pullUp && "-mt-6")}>
-      <Sources citation={citation} />
+      <Sources
+        citation={citation}
+        internalLinkHosts={internalLinkHosts}
+        handleInternalLinkClick={handleInternalLinkClick}
+      />
 
       <div className="flex flex-col gap-4">
         <MarkdownProse
@@ -550,17 +560,15 @@ export function AssistantMessage({
           {citation.content}
         </MarkdownProse>
 
+        {chat.askStage !== "idle" && last && (
+          <div className="font-mono">
+            <span className="chat-status-text">Making the answer...</span>
+          </div>
+        )}
+
         {chat.askStage === "idle" && (
           <div className="flex items-center gap-2">
             <MessageCopyButton content={content} />
-
-            {/* <MessageButton
-              tip="Refresh"
-              onClick={() => refresh(questionId, id)}
-              disabled={readOnly}
-            >
-              <TbRefresh />
-            </MessageButton> */}
 
             <MessageButton
               tip="Helpful"
@@ -1002,12 +1010,11 @@ export default function ScrapeWidget() {
                 ) : (
                   <AssistantMessage
                     id={message.id}
-                    questionId={chat.allMessages[index - 1]?.id}
                     content={message.content}
                     links={message.links}
                     rating={message.rating}
-                    last={index === chat.allMessages.length - 1}
                     pullUp={chat.allMessages[index - 1]?.role === "user"}
+                    last={index === chat.allMessages.length - 1}
                   />
                 )}
                 {(chat.askStage === "asked" ||

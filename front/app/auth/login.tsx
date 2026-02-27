@@ -10,6 +10,7 @@ import { makeMeta } from "~/meta";
 import {
   AntonTestimonial,
   EgelhausTestimonial,
+  HarshTestimonial,
   JonnyTestimonial,
   MauritsTestimonial,
 } from "~/landing/page";
@@ -126,7 +127,7 @@ export default function LoginPage() {
   const fetcher = useFetcher();
   const { mailSent, error, selfHosted, turnstileSiteKey } = useLoaderData();
   const emailRef = useRef<HTMLInputElement>(null);
-  const testiIndex = useMemo(() => Math.floor(Math.random() * 4), []);
+  const testiIndex = useMemo(() => Math.floor(Math.random() * 5), []);
   const turnstileLoaded = useRef(false);
   const [clientValidated, setClientValidated] = useState(!turnstileSiteKey);
 
@@ -172,6 +173,7 @@ export default function LoginPage() {
             {testiIndex === 1 && <AntonTestimonial />}
             {testiIndex === 2 && <MauritsTestimonial />}
             {testiIndex === 3 && <EgelhausTestimonial />}
+            {testiIndex === 4 && <HarshTestimonial />}
           </div>
         </div>
       )}

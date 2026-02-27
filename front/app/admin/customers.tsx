@@ -5,6 +5,8 @@ import { getAuthUser } from "~/auth/middleware";
 import { makeMeta } from "~/meta";
 import { PLAN_FREE, planMap } from "@packages/common/user-plan";
 import { adminEmails } from "./emails";
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import { useEffect, useRef, useState } from "react";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const loggedInUser = await getAuthUser(request);
@@ -59,6 +61,61 @@ export async function loader({ request }: Route.LoaderArgs) {
           })
         : null;
 
+      const analysisCost = billingCycleStart
+        ? ((await prisma.message.aggregateRaw({
+            pipeline: [
+              {
+                $match: {
+                  ownerUserId: { $oid: user.id },
+                  createdAt: {
+                    $gte: { $date: billingCycleStart.toISOString() },
+                  },
+                  analysis: { $ne: null },
+                },
+              },
+              {
+                $group: {
+                  _id: null,
+                  total: { $sum: "$analysis.cost" },
+                },
+              },
+            ],
+          })) as unknown as Array<{ total?: number }>)
+        : null;
+
+      const monthStart = new Date(
+        new Date().setMonth(new Date().getMonth(), 1)
+      );
+
+      const mtdCost = await prisma.message.aggregate({
+        where: {
+          ownerUserId: user.id,
+          createdAt: { gte: monthStart },
+          llmCost: { not: null },
+        },
+        _sum: {
+          llmCost: true,
+        },
+      });
+
+      const mtdAnalysisCost = (await prisma.message.aggregateRaw({
+        pipeline: [
+          {
+            $match: {
+              ownerUserId: { $oid: user.id },
+              createdAt: { $gte: { $date: monthStart.toISOString() } },
+              analysis: { $ne: null },
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: "$analysis.cost" },
+            },
+          },
+        ],
+      })) as unknown as Array<{ total?: number }>;
+
       return {
         id: user.id,
         email: user.email,
@@ -70,11 +127,77 @@ export async function loader({ request }: Route.LoaderArgs) {
         usedMessages,
         billingCycleStart: billingCycleStart?.toISOString() ?? null,
         messageCost: messageCost?._sum?.llmCost ?? 0,
+        analysisCost: analysisCost?.[0]?.total ?? 0,
+        mtdCost: mtdCost?._sum?.llmCost ?? 0,
+        mtdAnalysisCost: mtdAnalysisCost?.[0]?.total ?? 0,
       };
     })
   );
 
-  return { customers: customerData };
+  const now = new Date();
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - 29);
+  startDate.setHours(0, 0, 0, 0);
+
+  const rawDailyCosts = (await prisma.message.aggregateRaw({
+    pipeline: [
+      {
+        $match: {
+          createdAt: { $gte: { $date: startDate.toISOString() } },
+        },
+      },
+      {
+        $project: {
+          day: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+            },
+          },
+          llmCost: { $ifNull: ["$llmCost", 0] },
+          analysisCost: { $ifNull: ["$analysis.cost", 0] },
+        },
+      },
+      {
+        $group: {
+          _id: "$day",
+          llmCost: { $sum: "$llmCost" },
+          analysisCost: { $sum: "$analysisCost" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ],
+  })) as unknown as Array<{
+    _id: string;
+    llmCost?: number;
+    analysisCost?: number;
+  }>;
+
+  const rawDailyCostMap = new Map(
+    rawDailyCosts.map((item) => [
+      item._id,
+      {
+        llmCost: Number(item.llmCost ?? 0),
+        analysisCost: Number(item.analysisCost ?? 0),
+      },
+    ])
+  );
+
+  const dailyCosts = Array.from({ length: 30 }, (_, index) => {
+    const dayDate = new Date(startDate);
+    dayDate.setDate(startDate.getDate() + index);
+    const day = dayDate.toISOString().slice(0, 10);
+    const cost = rawDailyCostMap.get(day);
+    return {
+      day,
+      llmCost: cost?.llmCost ?? 0,
+      analysisCost: cost?.analysisCost ?? 0,
+    };
+  });
+
+  return { customers: customerData, dailyCosts };
 }
 
 export function meta() {
@@ -83,8 +206,66 @@ export function meta() {
   });
 }
 
+function DailyCostChart({
+  dailyCosts,
+}: {
+  dailyCosts: Array<{ day: string; llmCost: number; analysisCost: number }>;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      setWidth(containerRef.current.clientWidth - 50);
+    }
+  }, []);
+
+  return (
+    <div ref={containerRef} className="w-full h-[280px]">
+      {width !== null && (
+        <BarChart
+          width={width}
+          height={280}
+          data={dailyCosts}
+          margin={{ top: 20, right: 0, left: 0, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="6 6" vertical={false} />
+          <XAxis
+            dataKey="day"
+            tickFormatter={(value) =>
+              new Date(value).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+              })
+            }
+            interval={2}
+          />
+          <YAxis />
+          <Tooltip
+            formatter={(value) => `$${Number(value).toFixed(4)}`}
+            labelFormatter={(value) =>
+              new Date(value).toLocaleDateString(undefined, {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })
+            }
+          />
+          <Bar dataKey="llmCost" name="Cost" fill="#3b82f6" />
+          <Bar dataKey="analysisCost" name="Analysis Cost" fill="#22c55e" />
+        </BarChart>
+      )}
+    </div>
+  );
+}
+
 export default function Customers({ loaderData }: Route.ComponentProps) {
-  const { customers } = loaderData;
+  const { customers, dailyCosts } = loaderData;
+
+  const totalCost = customers.reduce(
+    (acc, customer) => acc + customer.mtdCost + customer.mtdAnalysisCost,
+    0
+  );
 
   return (
     <div className="p-4 flex flex-col gap-4">
@@ -94,6 +275,13 @@ export default function Customers({ loaderData }: Route.ComponentProps) {
           Back to Admin
         </Link>
       </div>
+
+      <div className="text-2xl font-bold">
+        MTD Cost: ${totalCost.toFixed(4)}
+      </div>
+
+      <DailyCostChart dailyCosts={dailyCosts} />
+
       <div className="overflow-x-auto border border-base-300 rounded-box bg-base-100 shadow">
         <table className="table">
           <thead>
@@ -103,7 +291,10 @@ export default function Customers({ loaderData }: Route.ComponentProps) {
               <th>Collections</th>
               <th>Messages</th>
               <th>Billing Cycle Start</th>
-              <th>Message Cost</th>
+              <th>Cost [B]</th>
+              <th>Cost [MTD]</th>
+              <th>Analysis Cost</th>
+              <th>Analysis Cost [MTD]</th>
             </tr>
           </thead>
           <tbody>
@@ -134,6 +325,9 @@ export default function Customers({ loaderData }: Route.ComponentProps) {
                     : "-"}
                 </td>
                 <td>${customer.messageCost.toFixed(4)}</td>
+                <td>${customer.mtdCost.toFixed(4)}</td>
+                <td>${customer.analysisCost.toFixed(4)}</td>
+                <td>${customer.mtdAnalysisCost.toFixed(4)}</td>
               </tr>
             ))}
           </tbody>

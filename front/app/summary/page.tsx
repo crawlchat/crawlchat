@@ -39,7 +39,6 @@ import moment from "moment";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { dodoGateway } from "~/payment/gateway-dodo";
-import { track } from "~/components/track";
 import { getMessagesSummary } from "~/messages-summary";
 import { UniqueUsers } from "./unique-users";
 import { calcUniqueUsers } from "./calc-unique-users";
@@ -281,6 +280,11 @@ export async function action({ request }: Route.ActionArgs) {
         userId: user!.id,
         status: "done",
         indexer: process.env.DEFAULT_INDEXER ?? "mars",
+        showSources: true,
+        widgetConfig: {
+          size: "large",
+          currentPageContext: true,
+        },
       },
     });
 
@@ -308,18 +312,12 @@ export async function action({ request }: Route.ActionArgs) {
     const referralId = formData.get("referralId") as string;
     const planId = formData.get("planId") as string;
 
-    const cookies = parseCookies(request.headers.get("cookie") ?? "");
-    const datafastVisitorId = cookies["datafast_visitor_id"];
-
     const gateway = dodoGateway;
 
     return await gateway.getPaymentLink(planId, {
       referralId,
       email: user!.email,
       name: user!.name,
-      meta: {
-        datafastVisitorId,
-      },
     });
   }
 }
@@ -457,10 +455,6 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
       .slice(0, 20)
       .map(([title, d]) => ({ title, count: d.count }));
   }, [loaderData.messagesSummary.tags, tagsOrder]);
-
-  useEffect(() => {
-    track("dashboard", {});
-  }, []);
 
   useEffect(() => {
     if (containerRef.current) {

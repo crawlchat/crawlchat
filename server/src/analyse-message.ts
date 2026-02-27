@@ -10,6 +10,16 @@ import { Flow } from "@packages/agentic";
 import { getConfig } from "./llm/config";
 import { consumeCredits } from "@packages/common/user-plan";
 
+export type MessageAnalysisResponse = {
+  questionSentiment: QuestionSentiment;
+  shortQuestion: string;
+  language: string;
+  followUpQuestions: string[];
+  category: { title: string; score: number } | null;
+  categorySuggestions: { title: string; description: string }[];
+  resolved: boolean;
+};
+
 export async function analyseMessage(
   question: string,
   answer: string,
@@ -68,12 +78,12 @@ export async function analyseMessage(
     ),
     followUpQuestions: z.array(z.string()).describe(
       `
-        Use the recent questions to generate follow up questions.
-        Don't use the recent questions as it is.
-        Use the thread questions to generate follow up questions related to the thread.
-        It should be as if the user is asking the question to the assistant.
-        Max it should be 3 questions.
-        It should not be part of thread questions.
+        Generate follow up questions that the user might want to ask next.
+        Phrase each question from the user's point of view, as if the user is asking it (e.g. "How do I...", "What happens when...", "Can you explain...").
+        Do not phrase as suggestions or prompts from the assistant (e.g. avoid "Would you like to know..." or "You could ask...").
+        Use recent questions and thread questions as inspiration but rephrase them; do not copy them verbatim.
+        Max 3 questions.
+        Must not duplicate any thread questions.
       `
     ),
     categorySuggestions: z
@@ -128,7 +138,9 @@ export async function analyseMessage(
       );
   }
 
-  const llmConfig = getConfig("openrouter/openai/gpt-5.1");
+  const llmConfig = getConfig(
+    process.env.MESSAGE_ANALYSER_MODEL ?? "openrouter/openai/gpt-5.1"
+  );
 
   const agent = new Agent({
     id: "analyser",
@@ -150,17 +162,12 @@ export async function analyseMessage(
   const content = flow.getLastMessage().llmMessage.content;
 
   if (!content) {
-    return null;
+    return { response: null, cost: 0 };
   }
 
-  return JSON.parse(content as string) as {
-    questionSentiment: QuestionSentiment;
-    shortQuestion: string;
-    language: string;
-    followUpQuestions: string[];
-    category: { title: string; score: number } | null;
-    categorySuggestions: { title: string; description: string }[];
-    resolved: boolean;
+  return {
+    response: JSON.parse(content as string) as MessageAnalysisResponse,
+    cost: flow.getUsage().cost,
   };
 }
 
@@ -251,7 +258,7 @@ export async function fillMessageAnalysis(
       (c, index, self) => index === self.findIndex((t) => t.title === c.title)
     );
 
-    const partialAnalysis = await analyseMessage(
+    const { response, cost } = await analyseMessage(
       question,
       answer,
       recentQuestions,
@@ -262,8 +269,8 @@ export async function fillMessageAnalysis(
 
     if (
       options?.onFollowUpQuestion &&
-      partialAnalysis &&
-      partialAnalysis.followUpQuestions.length > 0 &&
+      response &&
+      response.followUpQuestions.length > 0 &&
       message.scrape.user.plan?.planId !== "free"
     ) {
       const hardcodedFollowUpQuestions = message.scrape.ticketingEnabled
@@ -271,19 +278,19 @@ export async function fillMessageAnalysis(
         : [];
       options.onFollowUpQuestion([
         ...hardcodedFollowUpQuestions,
-        ...partialAnalysis.followUpQuestions,
+        ...response.followUpQuestions,
       ]);
     }
 
     const cleanedCategory =
-      partialAnalysis?.category &&
+      response?.category &&
       options?.categories &&
       options?.categories.some(
         (c) =>
           c.title.trim().toLowerCase() ===
-          partialAnalysis.category?.title.trim().toLowerCase()
+          response.category?.title.trim().toLowerCase()
       )
-        ? partialAnalysis.category
+        ? response.category
         : null;
     const category =
       cleanedCategory && cleanedCategory.score > 0.9
@@ -301,19 +308,20 @@ export async function fillMessageAnalysis(
 
     const analysis: MessageAnalysis = {
       questionRelevanceScore: null,
-      questionSentiment: partialAnalysis?.questionSentiment ?? null,
-      shortQuestion: partialAnalysis?.shortQuestion ?? null,
-      followUpQuestions: partialAnalysis?.followUpQuestions ?? [],
-      language: partialAnalysis?.language ?? null,
+      questionSentiment: response?.questionSentiment ?? null,
+      shortQuestion: response?.shortQuestion ?? null,
+      followUpQuestions: response?.followUpQuestions ?? [],
+      language: response?.language ?? null,
       category,
       categorySuggestions: [],
-      resolved: partialAnalysis?.resolved ?? false,
+      resolved: response?.resolved ?? false,
       dataGapTitle: null,
       dataGapDescription: null,
       dataGapDone: null,
       dataGapCancelled: null,
       avgScore,
       maxScore,
+      cost,
     };
 
     await prisma.message.update({
@@ -323,29 +331,23 @@ export async function fillMessageAnalysis(
       },
     });
 
+    const questionAnalysis: Partial<MessageAnalysis> = {
+      category,
+      categorySuggestions: response?.categorySuggestions ?? [],
+      shortQuestion: response?.shortQuestion ?? null,
+      avgScore,
+      maxScore,
+      questionSentiment: response?.questionSentiment ?? null,
+      language: response?.language ?? null,
+    };
+
     await prisma.message.update({
       where: { id: questionMessageId },
       data: {
         analysis: {
           upsert: {
-            set: {
-              category,
-              categorySuggestions: partialAnalysis?.categorySuggestions ?? [],
-              shortQuestion: partialAnalysis?.shortQuestion ?? null,
-              avgScore,
-              maxScore,
-              questionSentiment: partialAnalysis?.questionSentiment ?? null,
-              language: partialAnalysis?.language ?? null,
-            },
-            update: {
-              category,
-              categorySuggestions: partialAnalysis?.categorySuggestions ?? [],
-              shortQuestion: partialAnalysis?.shortQuestion ?? null,
-              avgScore,
-              maxScore,
-              questionSentiment: partialAnalysis?.questionSentiment ?? null,
-              language: partialAnalysis?.language ?? null,
-            },
+            set: questionAnalysis,
+            update: questionAnalysis,
           },
         },
       },

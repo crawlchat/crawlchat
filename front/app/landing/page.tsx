@@ -1210,7 +1210,6 @@ export function Footer() {
                 <FooterLink href="/data-privacy">Data privacy</FooterLink>
               </li>
             </ul>
-
             <ul className="flex gap-4 mt-4">
               <li>
                 <a href="https://github.com/crawlchat/crawlchat">
@@ -1233,6 +1232,18 @@ export function Footer() {
                 </a>
               </li>
             </ul>
+
+            <a
+              href="https://status.crawlchat.app"
+              target="_blank"
+              rel="noreferrer"
+              className="block mt-4"
+            >
+              <img
+                src="https://status.crawlchat.app/api/badge/6/uptime?style=for-the-badge"
+                alt="CrawlChat uptime status"
+              />
+            </a>
           </div>
         </div>
       </Container>
@@ -1622,11 +1633,6 @@ function Hero() {
 }
 
 export function LandingPage({ children }: PropsWithChildren) {
-  const handleCopyCoupon = () => {
-    navigator.clipboard.writeText("BLACKFRIDAY2025");
-    toast.success("Coupon code copied to clipboard");
-  };
-
   return (
     <div data-theme="brand" className="font-aeonik">
       <div className="relative">{children}</div>
@@ -1642,7 +1648,6 @@ export function CustomTestimonial({
   authorLink,
   icon,
   authorCompany,
-  small,
 }: {
   text: string | ReactNode;
   author: string;
@@ -1650,7 +1655,6 @@ export function CustomTestimonial({
   authorLink: string;
   icon: ReactNode;
   authorCompany: string;
-  small?: boolean;
 }) {
   return (
     <div
@@ -1663,8 +1667,7 @@ export function CustomTestimonial({
       <p
         className={cn(
           "font-brand text-center text-base-content/60",
-          "group-hover:text-base-content",
-          !small && "text-xl"
+          "group-hover:text-base-content"
         )}
       >
         {text}
@@ -1700,7 +1703,7 @@ function CTHS({ children }: PropsWithChildren) {
   return <span className="text-primary font-bold">{children}</span>;
 }
 
-export function JonnyTestimonial({ small }: { small?: boolean }) {
+export function JonnyTestimonial() {
   return (
     <CustomTestimonial
       text={
@@ -1715,12 +1718,11 @@ export function JonnyTestimonial({ small }: { small?: boolean }) {
       authorLink="https://x.com/JNYBGR/status/1899786274635927674"
       icon={<TbBrandX />}
       authorCompany="Remotion"
-      small={small}
     />
   );
 }
 
-export function EgelhausTestimonial({ small }: { small?: boolean }) {
+export function EgelhausTestimonial() {
   return (
     <CustomTestimonial
       text={
@@ -1735,12 +1737,11 @@ export function EgelhausTestimonial({ small }: { small?: boolean }) {
       authorLink="https://github.com/egelhaus"
       icon={<TbBrandDiscord />}
       authorCompany="Postiz"
-      small={small}
     />
   );
 }
 
-export function AntonTestimonial({ small }: { small?: boolean }) {
+export function AntonTestimonial() {
   return (
     <CustomTestimonial
       text={
@@ -1756,12 +1757,11 @@ export function AntonTestimonial({ small }: { small?: boolean }) {
       authorLink="https://x.com/lavrton/status/1915467775734350149"
       icon={<TbBrandX />}
       authorCompany="Konvajs & Polotno"
-      small={small}
     />
   );
 }
 
-export function MauritsTestimonial({ small }: { small?: boolean }) {
+export function MauritsTestimonial() {
   return (
     <CustomTestimonial
       text={
@@ -1776,7 +1776,26 @@ export function MauritsTestimonial({ small }: { small?: boolean }) {
       authorLink="https://www.linkedin.com/feed/update/urn:li:activity:7353688013584977920?commentUrn=urn%3Ali%3Acomment%3A%28activity%3A7353688013584977920%2C7353699420036571137%29&dashCommentUrn=urn%3Ali%3Afsd_comment%3A%287353699420036571137%2Curn%3Ali%3Aactivity%3A7353688013584977920%29"
       icon={<TbBrandLinkedin />}
       authorCompany="270 Degrees"
-      small={small}
+    />
+  );
+}
+
+export function HarshTestimonial() {
+  return (
+    <CustomTestimonial
+      text={
+        <span>
+          <CTH>CrawlChat</CTH> genuinely surprised us. The answers feel natural,
+          contextual, and helpful, and the UX is a clear step up from other
+          tools we evaluated. It’s quickly become valuable for our{" "}
+          <CTHS>docs, support, and DevEx</CTHS> teams.
+        </span>
+      }
+      author="Harsh Mishra"
+      authorImage="/testi-profile/harsh.jpeg"
+      authorLink="https://github.com/HarshCasper"
+      icon={<TbBrandSlack />}
+      authorCompany="LocalStack"
     />
   );
 }
@@ -1784,9 +1803,10 @@ export function MauritsTestimonial({ small }: { small?: boolean }) {
 export function CustomTestimonials() {
   return (
     <div className="mt-32 flex flex-col gap-10">
-      <div className="grid grid-cols-1 md:grid-cols-4 border border-base-300 bg-base-100/50">
+      <div className="grid grid-cols-1 md:grid-cols-5 border border-base-300 bg-base-100/50">
         <JonnyTestimonial />
         <AntonTestimonial />
+        <HarshTestimonial />
         <MauritsTestimonial />
         <EgelhausTestimonial />
       </div>
