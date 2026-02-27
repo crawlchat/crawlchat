@@ -31,7 +31,7 @@ import { Timestamp } from "~/components/timestamp";
 import type { FileUpload } from "@mjackson/form-data-parser";
 import { parseFormData } from "@mjackson/form-data-parser";
 import { v4 as uuidv4 } from "uuid";
-import { getSourceSpec, sourceSpecs } from "@packages/common/source-spec";
+import { getSourceSpec } from "~/source-spec";
 import { WebSettings } from "./web";
 import { GithubIssuesSettings } from "./github-issues";
 import { GithubDiscussionsSettings } from "./github-discussions";

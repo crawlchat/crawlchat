@@ -8,7 +8,10 @@ import {
 } from "react-icons/tb";
 import { FaConfluence } from "react-icons/fa";
 import { SiDocusaurus, SiLinear } from "react-icons/si";
-import { KnowledgeGroupType, KnowledgeGroupUpdateFrequency } from "./prisma";
+import {
+  KnowledgeGroupType,
+  KnowledgeGroupUpdateFrequency,
+} from "@packages/common/prisma";
 
 export type SourceFields = {
   url?: {

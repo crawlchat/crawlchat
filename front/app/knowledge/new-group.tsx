@@ -18,7 +18,7 @@ import toast from "react-hot-toast";
 import { makeMeta } from "~/meta";
 import cn from "@meltdownjs/cn";
 import { v4 as uuidv4 } from "uuid";
-import { getSourceSpec, sourceSpecs } from "@packages/common/source-spec";
+import { getSourceSpec, sourceSpecs } from "~/source-spec";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);

@@ -11,7 +11,7 @@ import { ActionButton } from "./action-button";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { getTotalPageChunks } from "./page-chunks";
-import { getSourceSpec } from "@packages/common/source-spec";
+import { getSourceSpec } from "~/source-spec";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
