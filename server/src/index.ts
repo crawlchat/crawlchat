@@ -43,7 +43,7 @@ import { handleWs } from "./routes/socket";
 import apiRouter from "./routes/api";
 import adminRouter from "./routes/admin";
 import healthRouter from "./routes/health";
-import githubBotRouter from "./github-bot";
+import githubBotRouter from "./github/bot";
 import {
   makeTextSearchRegexTool,
   TextSearchToolContext,
