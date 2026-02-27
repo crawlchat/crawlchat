@@ -142,6 +142,9 @@ export async function analyzeDiff(
   for (const conflict of response.conflicts) {
     lines.push(`- [${conflict.url}](${conflict.url}): ${conflict.reason}`);
   }
+  if (response.conflicts.length === 0) {
+    lines.push("_No conflicts found. All good!_");
+  }
   lines.push("");
 
   await consumeCredits(userId, "messages", 6);
