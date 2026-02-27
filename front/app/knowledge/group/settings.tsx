@@ -34,6 +34,7 @@ import { parseFormData } from "@mjackson/form-data-parser";
 import { v4 as uuidv4 } from "uuid";
 import { useFetcherToast } from "~/components/use-fetcher-toast";
 import { useDirtyForm } from "~/components/use-dirty-form";
+import { sourceSpecs } from "@packages/common/source-spec";
 
 function getNotionPageTitle(page: any): string | undefined {
   if (!page.properties) {
@@ -466,27 +467,8 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
     loadDynamically: group.loadDynamically ?? false,
   });
 
-  const details = useMemo(() => {
-    return [
-      {
-        label: "URL",
-        value: group.url,
-      },
-      {
-        label: "Updated at",
-        value: <Timestamp date={group.updatedAt} />,
-      },
-      {
-        label: "Status",
-        value: <GroupStatus status={group.status} />,
-      },
-    ];
-  }, [group]);
-
   return (
     <div className="flex flex-col gap-4">
-      <DataList data={details} />
-
       <SettingsSection
         id="match-prefix"
         fetcher={matchPrefixFetcher}
@@ -625,17 +607,8 @@ function GithubIssuesSettings({ group }: { group: KnowledgeGroup }) {
     { title: "Closed", value: "closed" },
   ];
 
-  const details = useMemo(() => {
-    return [
-      { label: "Repo", value: group.githubUrl },
-      { label: "Updated at", value: <Timestamp date={group.updatedAt} /> },
-      { label: "Status", value: <GroupStatus status={group.status} /> },
-    ];
-  }, [group]);
-
   return (
     <div className="flex flex-col gap-4">
-      <DataList data={details} />
       <SettingsSection
         id="allowed-github-issue-states"
         fetcher={allowedStatesFetcher}
@@ -686,17 +659,8 @@ function GithubDiscussionsSettings({ group }: { group: KnowledgeGroup }) {
     onlyAnsweredDiscussions: (group as any).onlyAnsweredDiscussions ?? false,
   });
 
-  const details = useMemo(() => {
-    return [
-      { label: "Repo", value: group.url },
-      { label: "Updated at", value: <Timestamp date={group.updatedAt} /> },
-      { label: "Status", value: <GroupStatus status={group.status} /> },
-    ];
-  }, [group]);
-
   return (
     <div className="flex flex-col gap-4">
-      <DataList data={details} />
       <SettingsSection
         id="only-answered-discussions"
         fetcher={onlyAnsweredFetcher}
@@ -958,6 +922,32 @@ export default function KnowledgeGroupSettings({
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [clearPagesConfirm, setClearPagesConfirm] = useState(false);
 
+  const sourceSpec = useMemo(() => {
+    return sourceSpecs.find(
+      (spec) => spec.id === loaderData.knowledgeGroup.type
+    );
+  }, [loaderData.knowledgeGroup.type]);
+
+  const details = useMemo(() => {
+    const details: Array<{ label: string; value: React.ReactNode }> = [
+      {
+        label: "Status",
+        value: <GroupStatus status={loaderData.knowledgeGroup.status} />,
+      },
+      {
+        label: "Updated at",
+        value: <Timestamp date={loaderData.knowledgeGroup.updatedAt} />,
+      },
+    ];
+    if (sourceSpec?.showUrl && sourceSpec.fields.url) {
+      details.push({
+        label: sourceSpec.fields.url.name,
+        value: loaderData.knowledgeGroup.url ?? "-",
+      });
+    }
+    return details;
+  }, [loaderData.knowledgeGroup]);
+
   useEffect(() => {
     if (deleteConfirm) {
       setTimeout(() => {
@@ -994,6 +984,8 @@ export default function KnowledgeGroupSettings({
   return (
     <SettingsSectionProvider>
       <SettingsContainer>
+        <DataList data={details} />
+
         {loaderData.knowledgeGroup.type === "scrape_web" && (
           <WebSettings group={loaderData.knowledgeGroup} />
         )}

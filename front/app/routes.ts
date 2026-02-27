@@ -85,8 +85,6 @@ export default [
       route("fact-check/api", "fact-check/api.ts"),
     ]),
 
-    route("welcome", "welcome/page.tsx"),
-
     route("api-key", "api-key/page.tsx"),
   ]),
 
