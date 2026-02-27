@@ -532,8 +532,6 @@ function WebSettings({ group }: { group: KnowledgeGroup }) {
         />
       </SettingsSection>
 
-      <SkipPagesRegex group={group} />
-
       <SettingsSection
         id="item-context"
         fetcher={itemContextFetcher}
@@ -689,38 +687,6 @@ function GithubDiscussionsSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
-function NotionSettings({
-  group,
-  notionPages,
-}: {
-  group: KnowledgeGroup;
-  notionPages: Array<SelectValue>;
-}) {
-  return (
-    <SkipPagesRegex
-      group={group}
-      pages={notionPages}
-      placeholder="Select pages to skip"
-    />
-  );
-}
-
-function ConfluenceSettings({
-  group,
-  confluencePages,
-}: {
-  group: KnowledgeGroup;
-  confluencePages: Array<SelectValue>;
-}) {
-  return (
-    <SkipPagesRegex
-      group={group}
-      pages={confluencePages}
-      placeholder="Select pages to skip"
-    />
-  );
-}
-
 function LinearSettings({
   group,
   linearIssueStatuses,
@@ -824,35 +790,7 @@ function YouTubeSettings({ group }: { group: KnowledgeGroup }) {
   );
 }
 
-function YouTubeChannelSettings({ group }: { group: KnowledgeGroup }) {
-  const skipUrlsFetcher = useFetcher();
-  const dirtyForm = useDirtyForm({
-    skipPageRegex: group.skipPageRegex?.split(",").filter(Boolean) ?? [],
-  });
-  const skipUrlsString = useMemo(
-    () => dirtyForm.getValue("skipPageRegex")?.join(",") ?? "",
-    [dirtyForm.values]
-  );
-
-  return (
-    <SettingsSection
-      id="skip-urls"
-      fetcher={skipUrlsFetcher}
-      title="Skip URLs"
-      description="Specify regex patterns to skip certain videos. Videos matching any of these patterns will be excluded. You can match against video URLs, IDs, or titles."
-      dirty={dirtyForm.isDirty("skipPageRegex")}
-    >
-      <input value={skipUrlsString} name="skipPageRegex" type="hidden" />
-      <MultiSelect
-        value={dirtyForm.getValue("skipPageRegex") ?? []}
-        onChange={(v) => dirtyForm.setValue("skipPageRegex", v)}
-        placeholder="Ex: /watch\\?v=.*, /shorts/.*"
-      />
-    </SettingsSection>
-  );
-}
-
-function UploadSettings({ group }: { group: KnowledgeGroup }) {
+function UploadSettings() {
   const uploadFetcher = useFetcher();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -970,18 +908,6 @@ export default function KnowledgeGroupSettings({
         {loaderData.knowledgeGroup.type === "github_discussions" && (
           <GithubDiscussionsSettings group={loaderData.knowledgeGroup} />
         )}
-        {loaderData.knowledgeGroup.type === "notion" && (
-          <NotionSettings
-            group={loaderData.knowledgeGroup}
-            notionPages={loaderData.notionPages}
-          />
-        )}
-        {loaderData.knowledgeGroup.type === "confluence" && (
-          <ConfluenceSettings
-            group={loaderData.knowledgeGroup}
-            confluencePages={loaderData.confluencePages}
-          />
-        )}
         {(loaderData.knowledgeGroup.type === "linear" ||
           loaderData.knowledgeGroup.type === "linear_projects") && (
           <LinearSettings
@@ -993,11 +919,10 @@ export default function KnowledgeGroupSettings({
         {loaderData.knowledgeGroup.type === "youtube" && (
           <YouTubeSettings group={loaderData.knowledgeGroup} />
         )}
-        {loaderData.knowledgeGroup.type === "youtube_channel" && (
-          <YouTubeChannelSettings group={loaderData.knowledgeGroup} />
-        )}
-        {loaderData.knowledgeGroup.type === "upload" && (
-          <UploadSettings group={loaderData.knowledgeGroup} />
+        {loaderData.knowledgeGroup.type === "upload" && <UploadSettings />}
+
+        {sourceSpec?.canSkipPages && (
+          <SkipPagesRegex group={loaderData.knowledgeGroup} />
         )}
 
         {sourceSpec?.canClearStalePages && (
