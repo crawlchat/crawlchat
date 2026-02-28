@@ -131,6 +131,13 @@ export const oldModels: Record<string, AiModel> = {
     creditsPerMessage: 2,
     baseURL: "https://openrouter.ai/api/v1",
   },
+  "openai/gpt-4o-mini": {
+    model: "gpt-4o-mini",
+    ragTopN: 4,
+    creditsPerMessage: 1,
+    supportsImages: true,
+    baseURL: "https://api.openai.com/v1",
+  },
 };
 
 export const models: Record<string, AiModel> = {
@@ -308,7 +315,6 @@ export const models: Record<string, AiModel> = {
     accuracy: "Good",
     imageInputs: true,
   },
-
   "openrouter/openai/gpt-4o-mini": {
     model: "openai/gpt-4o-mini",
     ragTopN: 4,

@@ -555,7 +555,6 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
     thread.id,
     channel,
     questionMessage.id,
-    scrape.llmModel,
     fingerprint
   );
 
@@ -744,7 +743,6 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
     thread.id,
     "google_chat",
     questionMessage.id,
-    scrape.llmModel,
     googleChatEvent.chat.user.email
   );
 
