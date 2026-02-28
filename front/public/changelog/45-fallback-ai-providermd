@@ -5,8 +5,4 @@ type: changelog
 tags: focus
 ---
 
-When your configured AI provider (OpenRouter) fails or times out, CrawlChat now automatically falls back to OpenAI's gpt-4o-mini.
-
-- If the primary model fails after retries, CrawlChat switches to OpenAI on the final attempt
-- Ensures you still get an answer during provider outages, rate limits, or transient errors
-- OpenAI's gpt-4o-mini is fast, cost-effective, and widely reliable
+When your configured AI provider (OpenRouter) fails or times out, CrawlChat now automatically falls back to OpenAI's gpt-4o-mini. It ensures you still get an answer during provider outages, rate limits, or transient errors.
