@@ -11,7 +11,7 @@ import {
   ScrapeItem,
   ToolCall,
 } from "@packages/common/prisma";
-import { getConfig } from "./llm/config";
+import { getConfig, LlmConfig } from "./llm/config";
 import { makeRagAgent, makeRagFlow } from "./llm/flow";
 import {
   getQueryString,
@@ -25,6 +25,7 @@ import { consumeCredits } from "@packages/common/user-plan";
 import { fillMessageAnalysis } from "./analyse-message";
 import { ensureRepoCloned } from "@packages/flash";
 import { extractCitations } from "@packages/common/citation";
+import { retry } from "./retry";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
@@ -49,6 +50,7 @@ export type AnswerCompleteEvent = {
   context: string[];
   dataGap?: DataGap;
   toolCalls: ToolCall[];
+  llmConfig: LlmConfig;
 };
 
 export type ToolCallEvent = {
@@ -86,6 +88,7 @@ export type Answerer = (
     clientData?: any;
     secret?: string;
     scrapeItem?: ScrapeItem;
+    llmConfig?: LlmConfig;
   }
 ) => Promise<AnswerCompleteEvent>;
 
@@ -211,14 +214,14 @@ function getUsageCredits(usage: Usage, defaultCredits: number) {
   return Math.min(10, Math.max(1, credits));
 }
 
-export const baseAnswerer: Answerer = async (
+export const baseAnswererInternal: Answerer = async (
   scrape,
   thread,
   query,
   messages,
   options
 ) => {
-  const llmConfig = getConfig(scrape.llmModel);
+  const llmConfig = options?.llmConfig ?? getConfig(scrape.llmModel);
 
   const githubRepoGroup = await prisma.knowledgeGroup.findFirst({
     where: {
@@ -369,10 +372,35 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     dataGap: collectDataGap(flow.flowState.state.messages),
     question: query,
     toolCalls,
+    llmConfig,
   };
   options?.listen?.(answer);
 
   return answer;
+};
+
+export const baseAnswerer: Answerer = async (
+  scrape,
+  thread,
+  query,
+  messages,
+  options
+) => {
+  const times = 3;
+  return retry(
+    async (nTime) => {
+      const fallbackLlmConfig = getConfig("openai/gpt-4o-mini");
+      const llmConfig = nTime === times - 1 ? fallbackLlmConfig : undefined;
+      return baseAnswererInternal(scrape, thread, query, messages, {
+        ...options,
+        llmConfig,
+      });
+    },
+    {
+      times,
+      delay: 1000,
+    }
+  );
 };
 
 export async function saveAnswer(
@@ -381,7 +409,6 @@ export async function saveAnswer(
   threadId: string,
   channel: MessageChannel,
   questionMessageId: string,
-  llmModel?: string | null,
   fingerprint?: string,
   onFollowUpQuestion?: (questions: string[]) => void
 ) {
@@ -402,7 +429,7 @@ export async function saveAnswer(
       ownerUserId: scrape.userId,
       channel,
       apiActionCalls: answer.actionCalls as any,
-      llmModel,
+      llmModel: answer.llmConfig.fullName,
       creditsUsed: answer.creditsUsed,
       promptTokens: answer.promptTokens,
       completionTokens: answer.completionTokens,

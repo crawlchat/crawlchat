@@ -389,7 +389,6 @@ async function answer(data: {
     thread.id,
     "github_discussion",
     questionMessage.id,
-    scrape.llmModel,
     data.userId?.toString()
   );
 

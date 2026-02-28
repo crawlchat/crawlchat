@@ -244,15 +244,14 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
 
     const recentMessages = thread.messages.slice(-40);
 
-    const answer = await retry(async () => {
-      return await baseAnswerer(
-        scrape,
-        thread,
-        message.data.query,
-        recentMessages.map((message) => {
-          const llmMessage = message.llmMessage as any;
-          if (message.apiActionCalls.length > 0) {
-            llmMessage.content = `
+    const answer = await baseAnswerer(
+      scrape,
+      thread,
+      message.data.query,
+      recentMessages.map((message) => {
+        const llmMessage = message.llmMessage as any;
+        if (message.apiActionCalls.length > 0) {
+          llmMessage.content = `
                 ${llmMessage.content}
                 ${message.apiActionCalls
                   .map((call) => {
@@ -263,19 +262,18 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
                   })
                   .join("\n\n")}
                 `;
-          }
-          return { llmMessage };
-        }),
-        {
-          listen: answerListener,
-          actions,
-          channel: "widget",
-          clientData: message.data.clientData,
-          secret: message.data.secret,
-          scrapeItem: currentItem ?? undefined,
         }
-      );
-    });
+        return { llmMessage };
+      }),
+      {
+        listen: answerListener,
+        actions,
+        channel: "widget",
+        clientData: message.data.clientData,
+        secret: message.data.secret,
+        scrapeItem: currentItem ?? undefined,
+      }
+    );
 
     const newAnswerMessage = await saveAnswer(
       answer,
@@ -283,7 +281,6 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       threadId,
       "widget",
       questionMessage.id,
-      scrape.llmModel,
       fingerprint,
       (questions) => {
         broadcastToThread(

@@ -2,6 +2,7 @@ import { AiModel, models, oldModels } from "@packages/common";
 
 export type LlmConfig = AiModel & {
   apiKey: string;
+  fullName: string;
 };
 
 type ParsedModelString = {
@@ -53,6 +54,7 @@ export const getConfig = (model?: string | null): LlmConfig => {
     return {
       ...models["openrouter/openai/gpt-4o-mini"],
       apiKey: getApiKey(models["openrouter/openai/gpt-4o-mini"]),
+      fullName: "openrouter/openai/gpt-4o-mini",
     };
   }
 
@@ -60,6 +62,7 @@ export const getConfig = (model?: string | null): LlmConfig => {
     return {
       ...oldModels[model],
       apiKey: getApiKey(oldModels[model]),
+      fullName: model,
     };
   }
 
@@ -67,6 +70,7 @@ export const getConfig = (model?: string | null): LlmConfig => {
     return {
       ...models[model],
       apiKey: getApiKey(models[model]),
+      fullName: model,
     };
   }
 
