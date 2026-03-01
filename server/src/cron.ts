@@ -5,7 +5,7 @@ import { prisma } from "@packages/common/prisma";
 import { exit } from "process";
 import { cleanupMessages } from "./cleanup";
 import { createToken } from "@packages/common/jwt";
-import { updateAllCreditSnapshots } from "@packages/common";
+import { updateAllCreditSnapshots } from "@packages/common/credit-transaction";
 
 async function weeklyUpdate() {
   const scrapes = await prisma.scrape.findMany({
