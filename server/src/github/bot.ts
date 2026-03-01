@@ -424,7 +424,7 @@ async function answer(data: {
     },
   });
 
-  await consumeCredits(scrape.userId, "messages", answer.creditsUsed);
+  await consumeCredits(scrape.userId, "messages", answer.creditsUsed, newAnswerMessage.id);
 }
 
 const router = Router();
