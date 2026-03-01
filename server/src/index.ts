@@ -1077,7 +1077,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     "messages",
     llmConfig.creditsPerMessage,
     undefined,
-    -flow.getUsage().cost,
+    flow.getUsage().cost,
     "Compose"
   );
 
@@ -1242,7 +1242,7 @@ app.post("/fix-message", authenticate, async (req, res) => {
     "messages",
     1,
     undefined,
-    -flow.getUsage().cost,
+    flow.getUsage().cost,
     "Fix Message"
   );
 
@@ -1352,7 +1352,7 @@ ${text}`,
     "messages",
     llmConfig.creditsPerMessage,
     undefined,
-    -flow.getUsage().cost,
+    flow.getUsage().cost,
     "Extract Facts"
   );
 
@@ -1440,7 +1440,7 @@ Fact to check: ${fact}`,
     "messages",
     llmConfig.creditsPerMessage,
     undefined,
-    -flow.getUsage().cost,
+    flow.getUsage().cost,
     "Fact Check"
   );
 

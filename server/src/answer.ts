@@ -454,7 +454,7 @@ export async function saveAnswer(
     "messages",
     answer.creditsUsed,
     questionMessageId,
-    -answer.llmCost
+    answer.llmCost
   );
 
   if (scrape.analyseMessage) {

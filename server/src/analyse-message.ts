@@ -358,7 +358,7 @@ export async function fillMessageAnalysis(
       "messages",
       1,
       questionMessageId,
-      -cost,
+      cost,
       "Analysis"
     );
   } catch (e) {

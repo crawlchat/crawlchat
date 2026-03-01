@@ -152,7 +152,7 @@ export async function analyzeDiff(
     "messages",
     6,
     undefined,
-    -flow.getUsage().cost,
+    flow.getUsage().cost,
     "PR Analyzer"
   );
 

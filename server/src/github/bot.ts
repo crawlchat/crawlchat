@@ -429,7 +429,7 @@ async function answer(data: {
     "messages",
     answer.creditsUsed,
     questionMessage.id,
-    -answer.llmCost
+    answer.llmCost
   );
 }
 

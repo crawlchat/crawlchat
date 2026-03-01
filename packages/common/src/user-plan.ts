@@ -389,7 +389,7 @@ export const consumeCredits = async (
     "message",
     description || "Message consumed",
     -credits,
-    amount,
+    amount ? -amount : undefined,
     messageId
   );
 };
