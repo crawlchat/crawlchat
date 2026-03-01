@@ -2,11 +2,11 @@ import { allActivePlans } from "@packages/common/user-plan";
 import {
   Container,
   CustomTestimonials,
-  FAQ,
   Pricing,
   PricingFeatures,
 } from "./page";
 import { makeMeta } from "~/meta";
+import { topupPlans } from "~/topup";
 
 export function meta() {
   return makeMeta({
@@ -19,6 +19,7 @@ export function meta() {
 export async function loader() {
   return {
     plans: allActivePlans,
+    topupPlans,
   };
 }
 

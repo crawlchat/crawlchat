@@ -68,8 +68,10 @@ import { SiDocusaurus, SiLinear, SiN8N, SiOpenai } from "react-icons/si";
 import { FaConfluence, FaMicrophone } from "react-icons/fa";
 import { Logo } from "~/components/logo";
 import { MCPIcon } from "~/components/mcp-icon";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 import { RiChatVoiceAiFill } from "react-icons/ri";
+import { topupPlans } from "~/topup";
+import { numberToKMB } from "~/components/number-util";
 
 export function meta() {
   return makeMeta({
@@ -149,6 +151,7 @@ export async function loader() {
     messagesMonth: cache.messagesMonth,
     plans: allActivePlans,
     focusChangelog,
+    topupPlans,
   };
 }
 
@@ -836,7 +839,10 @@ function PricingBox({
         </ul>
         <div className="w-full">
           <a
-            className={cn("w-full text-xl p-2 btn btn-primary btn-lg")}
+            className={cn(
+              "w-full text-xl p-2 btn btn-primary btn-lg",
+              !popular && "btn-soft"
+            )}
             href={!onClick ? href : undefined}
             onClick={() => onClick?.()}
           >
@@ -901,6 +907,7 @@ function PlanBox({ plan }: { plan: Plan }) {
       ]}
       href={plan.checkoutLink}
       payLabel="Start free trial"
+      popular={plan.popular}
     />
   );
 }
@@ -971,7 +978,7 @@ export function PricingSwitch({
 }
 
 export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
-  const { plans } = useLoaderData<typeof loader>();
+  const { plans, topupPlans } = useLoaderData<typeof loader>();
   const [isYearly, setIsYearly] = useState(false);
 
   return (
@@ -989,6 +996,34 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
 
       <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
         <PricingBoxes plans={plans} yearly={isYearly} />
+      </div>
+
+      <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-10 w-full">
+        {topupPlans.map((plan) => (
+          <div
+            key={plan.id}
+            className={cn(
+              "flex flex-col gap-4 flex-1",
+              "border border-base-300 rounded-box p-4"
+            )}
+          >
+            <div className="text-2xl font-brand">
+              <span className="font-semibold">{numberToKMB(plan.credits)}</span>{" "}
+              Credits
+            </div>
+            <p className="opacity-50">{plan.description}</p>
+            <div>
+              <a href={plan.purchaseUrl} className="btn btn-soft">
+                Topup for ${plan.price}
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="opacity-50 text-center my-10">
+        You need to be on a paid plan first to topup credits. Credits don't roll
+        over to next month.
       </div>
 
       <div className="my-20 flex flex-col items-center">

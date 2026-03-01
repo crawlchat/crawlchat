@@ -13,13 +13,14 @@ import {
 import { useEffect, useRef, useState } from "react";
 import cn from "@meltdownjs/cn";
 
-const topupPlans = [
+export const topupPlans = [
   {
     id: "1000",
     credits: 1000,
     price: 18,
     purchaseUrl:
       "https://checkout.dodopayments.com/buy/pdt_Bd3tewxGoSpthFEmhNq64?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing",
+    description: "Best when billing cycle is just a week away.",
   },
   {
     id: "3000",
@@ -27,6 +28,7 @@ const topupPlans = [
     price: 52,
     purchaseUrl:
       "https://checkout.dodopayments.com/buy/pdt_0NZB5fBcjnMwFyjqWxLXG?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing",
+    description: "Best when billing cycle is a couple of weeks away.",
   },
   {
     id: "5000",
@@ -34,6 +36,7 @@ const topupPlans = [
     price: 84,
     purchaseUrl:
       "https://checkout.dodopayments.com/buy/pdt_0NWpIy5atI7vpkeWe1AVP?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing",
+    description: "Best when you exhausted the credits in first week.",
   },
 ];
 
