@@ -266,7 +266,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     scrape.userId,
     "messages",
     creditsUsed,
-    answerMessage.id
+    questionMessage.id
   );
 
   await prisma.message.update({

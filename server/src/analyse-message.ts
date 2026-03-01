@@ -357,7 +357,7 @@ export async function fillMessageAnalysis(
       message.scrape.userId,
       "messages",
       1,
-      messageId,
+      questionMessageId,
       undefined,
       "Analysis"
     );

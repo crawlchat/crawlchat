@@ -428,7 +428,7 @@ async function answer(data: {
     scrape.userId,
     "messages",
     answer.creditsUsed,
-    newAnswerMessage.id
+    questionMessage.id
   );
 }
 
