@@ -449,7 +449,12 @@ export async function saveAnswer(
 
   await updateLastMessageAt(threadId);
 
-  await consumeCredits(scrape.userId, "messages", answer.creditsUsed, newAnswerMessage.id);
+  await consumeCredits(
+    scrape.userId,
+    "messages",
+    answer.creditsUsed,
+    newAnswerMessage.id
+  );
 
   if (scrape.analyseMessage) {
     fillMessageAnalysis(

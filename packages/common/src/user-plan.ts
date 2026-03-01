@@ -345,7 +345,8 @@ export const consumeCredits = async (
   type: "messages" | "scrapes",
   credits: number,
   messageId?: string,
-  amount?: number
+  amount?: number,
+  description?: string
 ) => {
   if (type !== "messages") {
     throw new Error("Only message credits are supported for transactions");
@@ -386,7 +387,7 @@ export const consumeCredits = async (
     userId,
     "usage",
     "message",
-    "Message consumed",
+    description || "Message consumed",
     -credits,
     amount,
     messageId

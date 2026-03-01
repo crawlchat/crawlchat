@@ -262,7 +262,12 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     },
   });
 
-  await consumeCredits(scrape.userId, "messages", creditsUsed, answerMessage.id);
+  await consumeCredits(
+    scrape.userId,
+    "messages",
+    creditsUsed,
+    answerMessage.id
+  );
 
   await prisma.message.update({
     where: { id: questionMessage.id },

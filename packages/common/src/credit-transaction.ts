@@ -1,7 +1,14 @@
 import { prisma } from "./prisma";
-import type { CreditTransactionType, CreditTransactionPurpose, CreditTransaction } from "@prisma/client";
+import type {
+  CreditTransactionType,
+  CreditTransactionPurpose,
+  CreditTransaction,
+} from "@prisma/client";
 
-export async function getBalance(userId: string, purpose: CreditTransactionPurpose): Promise<number> {
+export async function getBalance(
+  userId: string,
+  purpose: CreditTransactionPurpose
+): Promise<number> {
   const snapshot = await prisma.creditSnapshot.findUnique({
     where: {
       userId_purpose: {
@@ -18,7 +25,7 @@ export async function getBalance(userId: string, purpose: CreditTransactionPurpo
     userId: { $oid: userId },
     purpose: purpose,
   };
-  
+
   if (snapshotUpdatedAt) {
     matchStage.createdAt = { $gt: snapshotUpdatedAt };
   }
@@ -66,7 +73,10 @@ export async function addCreditTransaction(
   });
 }
 
-export async function updateCreditSnapshot(userId: string, purpose: CreditTransactionPurpose): Promise<void> {
+export async function updateCreditSnapshot(
+  userId: string,
+  purpose: CreditTransactionPurpose
+): Promise<void> {
   const balance = await getBalance(userId, purpose);
 
   await prisma.creditSnapshot.upsert({
@@ -89,7 +99,9 @@ export async function updateCreditSnapshot(userId: string, purpose: CreditTransa
   });
 }
 
-export async function updateAllCreditSnapshots(purpose: CreditTransactionPurpose): Promise<void> {
+export async function updateAllCreditSnapshots(
+  purpose: CreditTransactionPurpose
+): Promise<void> {
   const users = await prisma.user.findMany({
     select: { id: true },
   });

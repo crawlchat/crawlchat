@@ -353,7 +353,14 @@ export async function fillMessageAnalysis(
       },
     });
 
-    await consumeCredits(message.scrape.userId, "messages", 1, messageId);
+    await consumeCredits(
+      message.scrape.userId,
+      "messages",
+      1,
+      messageId,
+      undefined,
+      "Analysis"
+    );
   } catch (e) {
     console.error("Failed to analyse message", e);
   }
