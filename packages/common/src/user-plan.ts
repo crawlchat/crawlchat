@@ -22,6 +22,7 @@ export type Plan = {
   limits: PlanLimits;
   description?: string;
   checkoutLink?: string;
+  popular?: boolean;
 };
 
 export const PLAN_FREE: Plan = {
@@ -211,6 +212,7 @@ export const PLAN_GROW: Plan = {
   description: "For growing teams and projects",
   checkoutLink:
     "https://checkout.dodopayments.com/buy/pdt_0NVYGpvQOVQSs6XD7nWFg?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing",
+  popular: true,
 };
 
 export const PLAN_GROW_YEARLY: Plan = {
@@ -232,6 +234,7 @@ export const PLAN_GROW_YEARLY: Plan = {
   description: "For growing teams and projects",
   checkoutLink:
     "https://checkout.dodopayments.com/buy/pdt_0NVYGypdaV3R7ZKvSkJvd?quantity=1&redirect_url=https://crawlchat.app%2Fprofile%23billing",
+  popular: true,
 };
 
 export const PLAN_ACCELERATE: Plan = {
