@@ -1,11 +1,10 @@
 import { prisma } from "@packages/common/prisma";
 import type { PaymentGateway } from "./gateway";
+import { activatePlan, PLAN_FREE, planMap } from "@packages/common/user-plan";
 import {
-  activatePlan,
-  PLAN_FREE,
-  planMap,
-  resetCredits,
-} from "@packages/common/user-plan";
+  addCreditTransaction,
+  getBalance,
+} from "@packages/common/credit-transaction";
 
 export async function handleWebhook(request: Request, gateway: PaymentGateway) {
   const body = await request.text();
@@ -23,16 +22,13 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
     }
 
     if (webhook.webhookType === "topup") {
-      await prisma.$runCommandRaw({
-        update: "User",
-        updates: [
-          {
-            q: { email: webhook.email },
-            u: { $inc: { "plan.credits.messages": webhook.credits } },
-            multi: false,
-          },
-        ],
-      });
+      await addCreditTransaction(
+        user.id,
+        "topup",
+        "message",
+        "Topup",
+        webhook.credits
+      );
       return Response.json({ message: "Added topup" });
     }
 
@@ -53,24 +49,26 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
         where: { id: user.id },
         data: {
           plan: {
-            upsert: {
-              set: {
-                planId: webhook.plan.id,
-                type: webhook.plan.type,
-                provider: gateway.provider,
-                status: "EXPIRED",
-                activatedAt: new Date(),
-              },
-              update: {
-                planId: PLAN_FREE.id,
-                status: "EXPIRED",
-                limits: PLAN_FREE.limits,
-                credits: PLAN_FREE.credits,
-              },
+            update: {
+              planId: PLAN_FREE.id,
+              status: "EXPIRED",
+              limits: PLAN_FREE.limits,
             },
           },
         },
       });
+
+      const balance = await getBalance(user.id, "message");
+      if (balance > PLAN_FREE.credits.messages) {
+        const creditsExpired = balance - PLAN_FREE.credits.messages;
+        await addCreditTransaction(
+          user.id,
+          "expired",
+          "message",
+          "Expired credits",
+          creditsExpired
+        );
+      }
 
       return Response.json({ message: "Updated plan to expired" });
     }
@@ -79,8 +77,6 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
       if (!user.plan?.planId || !planMap[user.plan.planId]) {
         return Response.json({ message: "Plan not found" }, { status: 400 });
       }
-
-      await resetCredits(user.id, user.plan.planId);
 
       return Response.json({ message: "Updated plan to active" });
     }

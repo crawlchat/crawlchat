@@ -1,10 +1,8 @@
 import { prisma } from "./prisma";
 import { addCreditTransaction, getBalance } from "./credit-transaction";
 import type {
-  PlanCredits,
   PlanLimits,
   PlanType,
-  User,
   UserPlan,
   UserPlanProvider,
 } from "@prisma/client";
@@ -18,7 +16,9 @@ export type Plan = {
   price: number;
   type: PlanType;
   category: PlanCategory;
-  credits: PlanCredits;
+  credits: {
+    messages: number;
+  };
   resetType: PlanResetType;
   limits: PlanLimits;
   description?: string;
@@ -32,7 +32,6 @@ export const PLAN_FREE: Plan = {
   price: 0,
   type: "ONE_TIME",
   credits: {
-    scrapes: 40,
     messages: 20,
   },
   limits: {
@@ -50,7 +49,6 @@ export const PLAN_HOBBY: Plan = {
   price: 21,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 2000,
     messages: 800,
   },
   limits: {
@@ -68,7 +66,6 @@ export const PLAN_STARTER: Plan = {
   price: 45,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 5000,
     messages: 2000,
   },
   limits: {
@@ -86,7 +83,6 @@ export const PLAN_PRO: Plan = {
   price: 99,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 14000,
     messages: 7000,
   },
   limits: {
@@ -104,7 +100,6 @@ export const PLAN_STARTER_YEARLY: Plan = {
   price: 450,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 5000 * 12,
     messages: 2000 * 12,
   },
   limits: {
@@ -122,7 +117,6 @@ export const PLAN_PRO_YEARLY: Plan = {
   price: 990,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 14000 * 12,
     messages: 7000 * 12,
   },
   limits: {
@@ -140,7 +134,6 @@ export const PLAN_HOBBY_YEARLY: Plan = {
   price: 210,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 2000 * 12,
     messages: 800 * 12,
   },
   limits: {
@@ -158,7 +151,6 @@ export const PLAN_LAUNCH: Plan = {
   price: 29,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 0,
     messages: 800,
   },
   limits: {
@@ -179,7 +171,6 @@ export const PLAN_LAUNCH_YEARLY: Plan = {
   price: 290,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 0,
     messages: 800 * 12,
   },
   limits: {
@@ -200,7 +191,6 @@ export const PLAN_GROW: Plan = {
   price: 69,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 0,
     messages: 2000,
   },
   limits: {
@@ -222,7 +212,6 @@ export const PLAN_GROW_YEARLY: Plan = {
   price: 690,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 0,
     messages: 2000 * 12,
   },
   limits: {
@@ -244,7 +233,6 @@ export const PLAN_ACCELERATE: Plan = {
   price: 229,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 0,
     messages: 7000,
   },
   limits: {
@@ -265,7 +253,6 @@ export const PLAN_ACCELERATE_YEARLY: Plan = {
   price: 2290,
   type: "SUBSCRIPTION",
   credits: {
-    scrapes: 0,
     messages: 7000 * 12,
   },
   limits: {
@@ -331,7 +318,6 @@ export const activatePlan = async (
         subscriptionId,
         orderId,
         status: "ACTIVE",
-        credits: plan.credits,
         limits: plan.limits,
         expiresAt,
         activatedAt: new Date(),
@@ -340,115 +326,13 @@ export const activatePlan = async (
     },
   });
 
-  if (plan.credits.messages > 0) {
-    await addCreditTransaction(
-      userId,
-      "subscription",
-      "message",
-      `Subscription credits for ${plan.name} plan`,
-      plan.credits.messages,
-      undefined,
-      undefined,
-      undefined
-    );
-  }
-};
-
-function safeNegative(number: number) {
-  return number !== 0 ? -number : number;
-}
-
-export const consumeCredits = async (
-  userId: string,
-  type: "messages" | "scrapes",
-  credits: number,
-  messageId?: string,
-  amount?: number,
-  description?: string
-) => {
-  if (type !== "messages") {
-    throw new Error("Only message credits are supported for transactions");
-  }
-
-  const user = await prisma.user.findFirstOrThrow({
-    where: { id: userId },
-    select: { plan: true },
-  });
-
-  if (user.plan?.credits?.messages && user.plan.credits.messages > 0) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        plan: {
-          upsert: {
-            set: {
-              credits: PLAN_FREE.credits,
-              planId: PLAN_FREE.id,
-              type: PLAN_FREE.type,
-              provider: "CUSTOM",
-              status: "ACTIVE",
-              activatedAt: new Date(),
-            },
-            update: {
-              credits: {
-                upsert: {
-                  set: {
-                    messages: PLAN_FREE.credits.messages,
-                    scrapes: PLAN_FREE.credits.scrapes,
-                  },
-                  update: {
-                    [type]: { decrement: credits },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
-  await addCreditTransaction(
-    userId,
-    "usage",
-    "message",
-    description || "Message consumed",
-    safeNegative(credits),
-    amount ? safeNegative(amount) : undefined,
-    messageId
-  );
-};
-
-export const resetCredits = async (userId: string, planId?: string) => {
-  const plan = planMap[planId ?? PLAN_FREE.id];
-
-  const creditsResetAt = new Date();
-
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      plan: {
-        upsert: {
-          set: {
-            credits: plan.credits,
-            planId: plan.id,
-            type: plan.type,
-            provider: "CUSTOM",
-            status: "ACTIVE",
-            activatedAt: new Date(),
-          },
-          update: { credits: plan.credits, creditsResetAt },
-        },
-      },
-    },
-  });
-
   await addCreditTransaction(
     userId,
     "subscription",
     "message",
-    `Reset credits for ${plan.name} plan`,
+    `Subscription credits for ${plan.name} plan`,
     plan.credits.messages,
+    undefined,
     undefined,
     undefined
   );
@@ -456,22 +340,12 @@ export const resetCredits = async (userId: string, planId?: string) => {
 
 export async function hasEnoughCredits(
   userId: string,
-  type: "messages" | "scrapes",
+  type: "messages",
   options?: { amount?: number; alert?: { scrapeId: string; token: string } }
 ) {
   const amount = options?.amount ?? 1;
 
-  if (type !== "messages") {
-    throw new Error("Only message credits are supported for hasEnoughCredits");
-  }
-
-  const user = await prisma.user.findFirstOrThrow({
-    where: { id: userId },
-    select: { plan: true },
-  });
-
-  const available =
-    user?.plan?.credits?.messages || (await getBalance(userId, "message"));
+  const available = await getBalance(userId, "message");
   const has = available >= amount;
 
   if (!has && options?.alert) {
@@ -497,14 +371,6 @@ export async function hasEnoughCredits(
   }
 
   return has;
-}
-
-export async function getLimits(user: User) {
-  if (user.plan?.limits) return user.plan.limits;
-
-  const planId = user.plan?.planId ?? PLAN_FREE.id;
-  const plan = planMap[planId];
-  return plan.limits;
 }
 
 export async function isPaidPlan(userPlan: UserPlan) {

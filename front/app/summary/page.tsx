@@ -32,7 +32,6 @@ import {
 import { commitSession } from "~/session";
 import { getSession } from "~/session";
 import { redirect, useSearchParams } from "react-router";
-import { getLimits } from "@packages/common/user-plan";
 import { showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
 import moment from "moment";
@@ -257,7 +256,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (intent === "create-collection") {
-    const limits = await getLimits(user!);
+    const limits = user!.plan.limits;
     const existingScrapes = await prisma.scrape.count({
       where: {
         userId: user!.id,

@@ -4,10 +4,11 @@ import type { Request, Response } from "express";
 import { baseAnswerer, saveAnswer } from "../answer";
 import { extractCitations } from "@packages/common/citation";
 import { createToken } from "@packages/common/jwt";
-import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
+import { hasEnoughCredits } from "@packages/common/user-plan";
 import { Scrape, Thread, prisma } from "@packages/common/prisma";
 import { getToken } from "./token";
 import { analyze } from "./pr-analyzer";
+import { addCreditTransaction } from "@packages/common/credit-transaction";
 
 type GitHubPostResponse = {
   id: number;
@@ -424,12 +425,14 @@ async function answer(data: {
     },
   });
 
-  await consumeCredits(
+  await addCreditTransaction(
     scrape.userId,
-    "messages",
-    answer.creditsUsed,
-    questionMessage.id,
-    answer.llmCost
+    "usage",
+    "message",
+    "Answer",
+    -answer.creditsUsed,
+    -answer.llmCost,
+    questionMessage.id
   );
 }
 

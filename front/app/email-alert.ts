@@ -12,6 +12,7 @@ import {
 } from "./email";
 import { getMessagesSummary, type MessagesSummary } from "./messages-summary";
 import moment from "moment";
+import { getBalance } from "@packages/common/credit-transaction";
 
 export async function action({ request }: Route.LoaderArgs) {
   const user = await getJwtAuthUser(request);
@@ -33,7 +34,6 @@ export async function action({ request }: Route.LoaderArgs) {
     });
     authoriseScrapeUser(user!.scrapeUsers, scrape.id);
 
-    if (!scrape.user.plan?.credits) return;
     const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
     const twoDaysAgo = new Date(Date.now() - TWO_DAYS);
     if (
@@ -43,10 +43,7 @@ export async function action({ request }: Route.LoaderArgs) {
       return;
     }
 
-    const credits =
-      scrape.user.plan?.credits[
-        body.creditType as keyof typeof scrape.user.plan.credits
-      ] ?? 0;
+    const credits = await getBalance(scrape.userId, "message");
     for (const scrapeUser of scrape.scrapeUsers) {
       if (scrapeUser.user) {
         await sendLowCreditsEmail(
