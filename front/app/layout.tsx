@@ -21,6 +21,7 @@ import { showModal } from "~/components/daisy-utils";
 import { createToken } from "@packages/common/jwt";
 import { getLatestChangelog } from "~/changelog/fetch";
 import { getBalance, getTotal } from "@packages/common/credit-transaction";
+import { getUserMessageCredits } from "./user-message-credits";
 
 export function meta() {
   return makeMeta({
@@ -87,13 +88,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const latestChangelog = getLatestChangelog();
 
   const owner = scrape?.user ?? user!;
-  const messageBalance = await getBalance(owner.id, "message");
-  const messageTotal = await getTotal(
-    owner.id,
-    "message",
-    1,
-    owner.plan!.creditsResetAt!
-  );
+  const messageCredits = await getUserMessageCredits(owner.id);
 
   return {
     user: user!,
@@ -110,8 +105,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     token,
     pathname,
     latestChangelog,
-    messageBalance,
-    messageTotal,
+    messageCredits,
   };
 }
 
@@ -184,8 +178,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               scrape={loaderData.scrape}
               usedPages={loaderData.usedPages}
               pathname={loaderData.pathname}
-              messageBalance={loaderData.messageBalance}
-              messageTotal={loaderData.messageTotal}
+              messageBalance={loaderData.messageCredits.balance}
+              messageTotal={loaderData.messageCredits.total}
             />
           </div>
         </div>
