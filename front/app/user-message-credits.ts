@@ -5,7 +5,7 @@ import { PLAN_FREE, planMap } from "@packages/common/user-plan";
 export async function getUserMessageCredits(userId: string) {
   const user = await prisma.user.findFirstOrThrow({
     where: { id: userId },
-    select: { plan: true },
+    select: { plan: true, createdAt: true },
   });
 
   const messageBalance = await getBalance(userId, "message");
@@ -13,7 +13,7 @@ export async function getUserMessageCredits(userId: string) {
     userId,
     "message",
     1,
-    user.plan?.creditsResetAt ?? user.plan?.activatedAt!
+    user.plan?.creditsResetAt ?? user.plan?.activatedAt ?? user.createdAt
   );
 
   if (user.plan?.credits?.messages === 0) {
