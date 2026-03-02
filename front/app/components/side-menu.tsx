@@ -273,6 +273,8 @@ export function SideMenu({
   dataGapMessages,
   usedPages,
   pathname,
+  messageBalance,
+  messageTotal,
 }: {
   scrapeOwner?: User;
   loggedInUser: User;
@@ -287,6 +289,8 @@ export function SideMenu({
   dataGapMessages: number;
   usedPages: number;
   pathname: string;
+  messageBalance: number;
+  messageTotal: number;
 }) {
   const links: MenuItemType[] = useMemo(() => {
     const links = [
@@ -432,12 +436,7 @@ export function SideMenu({
       .filter((link) => !link.ticketingEnabled || scrape?.ticketingEnabled);
   }, []);
 
-  const totalMessages = plan.credits.messages;
   const totalScrapes = scrapeOwner?.plan?.limits?.pages ?? plan.limits.pages;
-
-  const availableMessages =
-    scrapeOwner?.plan?.credits?.messages ?? plan.credits.messages;
-  const usedMessages = totalMessages - availableMessages;
 
   const availableScrapes = totalScrapes - usedPages;
   const usedScrapes = totalScrapes - availableScrapes;
@@ -548,8 +547,8 @@ export function SideMenu({
         >
           <CreditProgress
             title="Message credits"
-            used={usedMessages}
-            total={totalMessages}
+            used={messageTotal - messageBalance}
+            total={messageTotal}
           />
           <CreditProgress
             title="Pages"

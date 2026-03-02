@@ -73,6 +73,41 @@ export async function addCreditTransaction(
   });
 }
 
+export async function getTotal(
+  userId: string,
+  purpose: CreditTransactionPurpose,
+  type: 1 | -1,
+  fromDate: Date
+): Promise<number> {
+  const result = (await prisma.$runCommandRaw({
+    aggregate: "CreditTransaction",
+    pipeline: [
+      {
+        $match: {
+          userId: { $oid: userId },
+          purpose,
+          credits: type === 1 ? { $gte: 0 } : { $lt: 0 },
+          $expr: {
+            $gte: [
+              "$createdAt",
+              { $dateFromString: { dateString: fromDate.toISOString() } },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$credits" },
+        },
+      },
+    ],
+    cursor: {},
+  })) as any;
+
+  return result.cursor?.firstBatch?.[0]?.total ?? 0;
+}
+
 export async function updateCreditSnapshot(
   userId: string,
   purpose: CreditTransactionPurpose

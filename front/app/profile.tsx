@@ -20,6 +20,7 @@ import { makeMeta } from "~/meta";
 import { getPaymentGateway } from "~/payment/factory";
 import { showModal } from "~/components/daisy-utils";
 import { useDirtyForm } from "./components/use-dirty-form";
+import { getBalance, getTotal } from "@packages/common/credit-transaction";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -52,6 +53,13 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
 
   const usedPages = await getPagesCount(user!.id);
+  const messageBalance = await getBalance(user!.id, "message");
+  const messageTotal = await getTotal(
+    user!.id,
+    "message",
+    1,
+    user!.plan!.creditsResetAt!
+  );
 
   return {
     user: user!,
@@ -60,6 +68,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     scrapes: scrapes.length,
     teamMembers,
     usedPages,
+    messageBalance,
+    messageTotal,
   };
 }
 
@@ -282,8 +292,8 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                   </tr>
                   <tr>
                     <td>Message credits</td>
-                    <td className="text-right">{plan.credits.messages}</td>
-                    <td className="text-right">{credits.messages}</td>
+                    <td className="text-right">{loaderData.messageTotal}</td>
+                    <td className="text-right">{loaderData.messageBalance}</td>
                   </tr>
                   {limits && (
                     <tr>

@@ -335,6 +335,7 @@ export const activatePlan = async (
         limits: plan.limits,
         expiresAt,
         activatedAt: new Date(),
+        creditsResetAt: new Date(),
       },
     },
   });
@@ -414,6 +415,8 @@ export const consumeCredits = async (
 export const resetCredits = async (userId: string, planId?: string) => {
   const plan = planMap[planId ?? PLAN_FREE.id];
 
+  const creditsResetAt = new Date();
+
   await prisma.user.update({
     where: { id: userId },
     data: {
@@ -427,38 +430,21 @@ export const resetCredits = async (userId: string, planId?: string) => {
             status: "ACTIVE",
             activatedAt: new Date(),
           },
-          update: { credits: plan.credits, creditsResetAt: new Date() },
+          update: { credits: plan.credits, creditsResetAt },
         },
       },
     },
   });
-};
 
-export const addTopup = async (
-  userId: string,
-  plan: Plan,
-  {
-    provider,
-    orderId,
-  }: {
-    provider?: UserPlanProvider;
-    orderId?: string;
-  }
-) => {
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      topups: {
-        push: {
-          planId: plan.id,
-          credits: plan.credits,
-          orderId,
-          createdAt: new Date(),
-          provider,
-        },
-      },
-    },
-  });
+  await addCreditTransaction(
+    userId,
+    "subscription",
+    "message",
+    `Reset credits for ${plan.name} plan`,
+    plan.credits.messages,
+    undefined,
+    undefined
+  );
 };
 
 export async function hasEnoughCredits(
