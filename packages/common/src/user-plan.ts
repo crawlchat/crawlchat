@@ -370,36 +370,43 @@ export const consumeCredits = async (
     throw new Error("Only message credits are supported for transactions");
   }
 
-  await prisma.user.update({
+  const user = await prisma.user.findFirstOrThrow({
     where: { id: userId },
-    data: {
-      plan: {
-        upsert: {
-          set: {
-            credits: PLAN_FREE.credits,
-            planId: PLAN_FREE.id,
-            type: PLAN_FREE.type,
-            provider: "CUSTOM",
-            status: "ACTIVE",
-            activatedAt: new Date(),
-          },
-          update: {
-            credits: {
-              upsert: {
-                set: {
-                  messages: PLAN_FREE.credits.messages,
-                  scrapes: PLAN_FREE.credits.scrapes,
-                },
-                update: {
-                  [type]: { decrement: credits },
+    select: { plan: true },
+  });
+
+  if (user.plan?.credits?.messages && user.plan.credits.messages > 0) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        plan: {
+          upsert: {
+            set: {
+              credits: PLAN_FREE.credits,
+              planId: PLAN_FREE.id,
+              type: PLAN_FREE.type,
+              provider: "CUSTOM",
+              status: "ACTIVE",
+              activatedAt: new Date(),
+            },
+            update: {
+              credits: {
+                upsert: {
+                  set: {
+                    messages: PLAN_FREE.credits.messages,
+                    scrapes: PLAN_FREE.credits.scrapes,
+                  },
+                  update: {
+                    [type]: { decrement: credits },
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-  });
+    });
+  }
 
   await addCreditTransaction(
     userId,
