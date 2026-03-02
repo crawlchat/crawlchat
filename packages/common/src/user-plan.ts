@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { addCreditTransaction } from "./credit-transaction";
+import { addCreditTransaction, getBalance } from "./credit-transaction";
 import type {
   PlanCredits,
   PlanLimits,
@@ -335,9 +335,23 @@ export const activatePlan = async (
         limits: plan.limits,
         expiresAt,
         activatedAt: new Date(),
+        creditsResetAt: new Date(),
       },
     },
   });
+
+  if (plan.credits.messages > 0) {
+    await addCreditTransaction(
+      userId,
+      "subscription",
+      "message",
+      `Subscription credits for ${plan.name} plan`,
+      plan.credits.messages,
+      undefined,
+      undefined,
+      undefined
+    );
+  }
 };
 
 function safeNegative(number: number) {
@@ -356,36 +370,43 @@ export const consumeCredits = async (
     throw new Error("Only message credits are supported for transactions");
   }
 
-  await prisma.user.update({
+  const user = await prisma.user.findFirstOrThrow({
     where: { id: userId },
-    data: {
-      plan: {
-        upsert: {
-          set: {
-            credits: PLAN_FREE.credits,
-            planId: PLAN_FREE.id,
-            type: PLAN_FREE.type,
-            provider: "CUSTOM",
-            status: "ACTIVE",
-            activatedAt: new Date(),
-          },
-          update: {
-            credits: {
-              upsert: {
-                set: {
-                  messages: PLAN_FREE.credits.messages,
-                  scrapes: PLAN_FREE.credits.scrapes,
-                },
-                update: {
-                  [type]: { decrement: credits },
+    select: { plan: true },
+  });
+
+  if (user.plan?.credits?.messages && user.plan.credits.messages > 0) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        plan: {
+          upsert: {
+            set: {
+              credits: PLAN_FREE.credits,
+              planId: PLAN_FREE.id,
+              type: PLAN_FREE.type,
+              provider: "CUSTOM",
+              status: "ACTIVE",
+              activatedAt: new Date(),
+            },
+            update: {
+              credits: {
+                upsert: {
+                  set: {
+                    messages: PLAN_FREE.credits.messages,
+                    scrapes: PLAN_FREE.credits.scrapes,
+                  },
+                  update: {
+                    [type]: { decrement: credits },
+                  },
                 },
               },
             },
           },
         },
       },
-    },
-  });
+    });
+  }
 
   await addCreditTransaction(
     userId,
@@ -401,6 +422,8 @@ export const consumeCredits = async (
 export const resetCredits = async (userId: string, planId?: string) => {
   const plan = planMap[planId ?? PLAN_FREE.id];
 
+  const creditsResetAt = new Date();
+
   await prisma.user.update({
     where: { id: userId },
     data: {
@@ -414,38 +437,21 @@ export const resetCredits = async (userId: string, planId?: string) => {
             status: "ACTIVE",
             activatedAt: new Date(),
           },
-          update: { credits: plan.credits, creditsResetAt: new Date() },
+          update: { credits: plan.credits, creditsResetAt },
         },
       },
     },
   });
-};
 
-export const addTopup = async (
-  userId: string,
-  plan: Plan,
-  {
-    provider,
-    orderId,
-  }: {
-    provider?: UserPlanProvider;
-    orderId?: string;
-  }
-) => {
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      topups: {
-        push: {
-          planId: plan.id,
-          credits: plan.credits,
-          orderId,
-          createdAt: new Date(),
-          provider,
-        },
-      },
-    },
-  });
+  await addCreditTransaction(
+    userId,
+    "subscription",
+    "message",
+    `Reset credits for ${plan.name} plan`,
+    plan.credits.messages,
+    undefined,
+    undefined
+  );
 };
 
 export async function hasEnoughCredits(
@@ -454,11 +460,18 @@ export async function hasEnoughCredits(
   options?: { amount?: number; alert?: { scrapeId: string; token: string } }
 ) {
   const amount = options?.amount ?? 1;
-  const user = await prisma.user.findUnique({
+
+  if (type !== "messages") {
+    throw new Error("Only message credits are supported for hasEnoughCredits");
+  }
+
+  const user = await prisma.user.findFirstOrThrow({
     where: { id: userId },
     select: { plan: true },
   });
-  const available = user?.plan?.credits?.[type] ?? 0;
+
+  const available =
+    user?.plan?.credits?.messages || (await getBalance(userId, "message"));
   const has = available >= amount;
 
   if (!has && options?.alert) {

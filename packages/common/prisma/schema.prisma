@@ -752,8 +752,9 @@ enum ArticlePurpose {
 
 enum CreditTransactionType {
   topup
-  refund
   usage
+  subscription
+  migration
 }
 
 enum CreditTransactionPurpose {
