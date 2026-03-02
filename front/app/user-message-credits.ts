@@ -13,7 +13,7 @@ export async function getUserMessageCredits(userId: string) {
     userId,
     "message",
     1,
-    user!.plan!.creditsResetAt!
+    user.plan?.creditsResetAt ?? user.plan?.activatedAt!
   );
 
   if (user.plan?.credits?.messages === 0) {
