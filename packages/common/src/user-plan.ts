@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import { addCreditTransaction } from "./credit-transaction";
+import { addCreditTransaction, getBalance } from "./credit-transaction";
 import type {
   PlanCredits,
   PlanLimits,
@@ -338,6 +338,19 @@ export const activatePlan = async (
       },
     },
   });
+
+  if (plan.credits.messages > 0) {
+    await addCreditTransaction(
+      userId,
+      "subscription",
+      "message",
+      `Subscription credits for ${plan.name} plan`,
+      plan.credits.messages,
+      undefined,
+      undefined,
+      undefined
+    );
+  }
 };
 
 function safeNegative(number: number) {
@@ -454,11 +467,18 @@ export async function hasEnoughCredits(
   options?: { amount?: number; alert?: { scrapeId: string; token: string } }
 ) {
   const amount = options?.amount ?? 1;
-  const user = await prisma.user.findUnique({
+
+  if (type !== "messages") {
+    throw new Error("Only message credits are supported for hasEnoughCredits");
+  }
+
+  const user = await prisma.user.findFirstOrThrow({
     where: { id: userId },
     select: { plan: true },
   });
-  const available = user?.plan?.credits?.[type] ?? 0;
+
+  const available =
+    user?.plan?.credits?.messages || (await getBalance(userId, "message"));
   const has = available >= amount;
 
   if (!has && options?.alert) {

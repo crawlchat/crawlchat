@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "@packages/common/prisma";
 import { adminAuthenticate } from "@packages/common/express-auth";
 import { PLAN_FREE, planMap } from "@packages/common/user-plan";
+import { addCreditTransaction } from "@packages/common/credit-transaction";
 
 const router = Router();
 
@@ -120,6 +121,78 @@ router.get("/metrics", async (req, res) => {
       },
       customers: customers.length,
     },
+  });
+});
+
+router.post("/migrate-plan-credits", async (req, res) => {
+  const email = req.body.email as string;
+  if (!email) {
+    res.status(400).json({ message: "Email is required" });
+    return;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    res.status(404).json({ message: "User not found" });
+    return;
+  }
+
+  const messageCredits = user.plan?.credits?.messages ?? 0;
+
+  if (messageCredits <= 0) {
+    res.json({
+      success: true,
+      migrated: false,
+      message: "No message credits to migrate",
+    });
+    return;
+  }
+
+  await addCreditTransaction(
+    user.id,
+    "migration",
+    "message",
+    `Migrated plan credits for ${user.plan?.planId ?? "unknown"} plan`,
+    messageCredits,
+    undefined,
+    undefined,
+    undefined
+  );
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      plan: {
+        set: {
+          planId: user.plan!.planId,
+          type: user.plan!.type,
+          provider: user.plan!.provider,
+          status: user.plan!.status,
+          subscriptionId: user.plan!.subscriptionId,
+          orderId: user.plan!.orderId,
+          credits: {
+            messages: 0,
+            scrapes: user.plan?.credits?.scrapes ?? 0,
+          },
+          limits: user.plan!.limits,
+          brandRemoval: user.plan!.brandRemoval,
+          expiresAt: user.plan!.expiresAt,
+          activatedAt: user.plan!.activatedAt,
+          creditsResetAt: user.plan!.creditsResetAt,
+        },
+      },
+    },
+  });
+
+  res.json({
+    success: true,
+    migrated: true,
+    userId: user.id,
+    email: user.email,
+    creditsMigrated: messageCredits,
   });
 });
 
