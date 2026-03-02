@@ -377,6 +377,8 @@ model Message {
   ownerUser                 User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
   scrape                    Scrape @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   correctionItem            ScrapeItem? @relation(fields: [correctionItemId], references: [id])
+  
+  creditTransactions        CreditTransaction[]
 
   @@index([ownerUserId, scrapeId, createdAt])
 }
@@ -778,6 +780,7 @@ model CreditTransaction {
 
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   scrape        Scrape?  @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+  message       Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
 }

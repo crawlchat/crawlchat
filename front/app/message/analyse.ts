@@ -1,5 +1,6 @@
 import type {
   ApiActionCall,
+  CreditTransaction,
   MessageSourceLink,
   Prisma,
 } from "@packages/common/prisma";
@@ -12,7 +13,9 @@ export type MessageWithThread = Prisma.MessageGetPayload<{
 
 export type MessagePair = {
   scrapeId: string;
-  queryMessage?: MessageWithThread;
+  queryMessage?: MessageWithThread & {
+    creditTransactions: CreditTransaction[];
+  };
   responseMessage: MessageWithThread;
   maxScore: number | undefined;
   minScore: number | undefined;
@@ -56,7 +59,11 @@ export function analysePairMessages(pairs: MessagePair[]) {
   return { performance, defaultPairs };
 }
 
-export function makeMessagePairs(messages: MessageWithThread[]) {
+export function makeMessagePairs(
+  messages: Array<
+    MessageWithThread & { creditTransactions: CreditTransaction[] }
+  >
+) {
   function findQuestion(questionId: string) {
     for (let i = 0; i < messages.length; i++) {
       if (messages[i].id === questionId) {
