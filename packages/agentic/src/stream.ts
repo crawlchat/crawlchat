@@ -86,7 +86,7 @@ export async function handleStream(
       onDelta?.({
         content,
         role,
-        delta: chunk.choices?.[0].delta.content ?? undefined,
+        delta: chunk.choices?.[0]?.delta?.content ?? undefined,
       });
     }
   }
