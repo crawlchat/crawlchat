@@ -12,6 +12,7 @@ import {
   TbChevronDown,
   TbChevronUp,
   TbCode,
+  TbCoins,
   TbColorSwatch,
   TbCreditCard,
   TbKey,
@@ -423,6 +424,11 @@ export function SideMenu({
         to: "/api-key",
         icon: <TbKey />,
         forScrape: true,
+      },
+      {
+        label: "Usage",
+        to: "/usage",
+        icon: <TbCoins />,
       },
       {
         label: "Profile",
