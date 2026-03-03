@@ -1,6 +1,13 @@
 import cn from "@meltdownjs/cn";
-import { getCreditTransactions } from "@packages/common/credit-transaction";
-import type { CreditTransaction } from "@packages/common/prisma";
+import {
+  getBalance,
+  getCreditTransactions,
+} from "@packages/common/credit-transaction";
+import {
+  prisma,
+  type CreditTransaction,
+  type Scrape,
+} from "@packages/common/prisma";
 import { TbChevronLeft, TbChevronRight, TbCoins } from "react-icons/tb";
 import { Link as RouterLink, useSearchParams } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
@@ -21,6 +28,10 @@ export async function loader({ request }: Route.LoaderArgs) {
     authoriseScrapeUser(user!.scrapeUsers, scrapeId);
   }
 
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: scrapeId },
+  });
+
   const url = new URL(request.url);
   const page = parseInt(url.searchParams.get("page") ?? "1");
   const view = url.searchParams.get("view") ?? "collection";
@@ -37,6 +48,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   const hasNext = page < totalPages;
   const hasPrevious = page > 1;
 
+  const balance = await getBalance(
+    view === "collection" ? scrape.userId : user!.id,
+    "message"
+  );
+
   return {
     transactions,
     total,
@@ -44,6 +60,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     totalPages,
     hasNext,
     hasPrevious,
+    balance,
   };
 }
 
@@ -53,7 +70,11 @@ export function meta() {
   });
 }
 
-function TransactionRow({ transaction }: { transaction: CreditTransaction }) {
+function TransactionRow({
+  transaction,
+}: {
+  transaction: CreditTransaction & { scrape: Scrape | null };
+}) {
   const isPositive = transaction.credits > 0;
 
   return (
@@ -77,6 +98,7 @@ function TransactionRow({ transaction }: { transaction: CreditTransaction }) {
           {transaction.credits.toFixed(2)}
         </span>
       </td>
+      <td>{transaction.scrape?.title ?? "-"}</td>
       <td>{transaction.description}</td>
       <td className="text-right">
         <Timestamp date={transaction.createdAt} />
@@ -110,6 +132,20 @@ export default function UsagePage({ loaderData }: Route.ComponentProps) {
       icon={<TbCoins />}
       right={
         <>
+          <div
+            className="tooltip tooltip-left h-full"
+            data-tip="Available credits"
+          >
+            <div
+              className={cn(
+                "bg-accent/10 text-accent rounded-box px-4 h-full",
+                "flex items-center gap-2"
+              )}
+            >
+              <TbCoins />
+              {loaderData.balance}
+            </div>
+          </div>
           <select
             className="select"
             value={searchParams.get("view") ?? "collection"}
@@ -134,6 +170,7 @@ export default function UsagePage({ loaderData }: Route.ComponentProps) {
                   <tr className="border-b border-base-300">
                     <th className="text-left w-28">Type</th>
                     <th className="text-left w-28">Credits</th>
+                    <th className="text-left w-28">Collection</th>
                     <th className="text-left">Note</th>
                     <th className="text-right w-48">Date</th>
                   </tr>

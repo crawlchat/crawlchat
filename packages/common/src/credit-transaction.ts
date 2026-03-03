@@ -151,7 +151,7 @@ export async function getCreditTransactions(
   scrapeId?: string,
   page: number = 1,
   limit: number = 50
-): Promise<{ transactions: CreditTransaction[]; total: number }> {
+) {
   if (!userId && !scrapeId) {
     throw new Error("Either userId or scrapeId must be provided");
   }
@@ -164,6 +164,9 @@ export async function getCreditTransactions(
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
+      include: {
+        scrape: true,
+      },
     }),
     prisma.creditTransaction.count({
       where: { userId, scrapeId },
