@@ -7,21 +7,35 @@ import {
   getCreditTransactions,
   getBalance,
 } from "@packages/common/credit-transaction";
-import { Link as RouterLink } from "react-router";
+import { Link as RouterLink, useSearchParams } from "react-router";
 import { EmptyState } from "~/components/empty-state";
 import cn from "@meltdownjs/cn";
 import { makeMeta } from "~/meta";
 import { Timestamp } from "~/components/timestamp";
+import { getSession } from "~/session";
+import { authoriseScrapeUser } from "~/auth/scrape-session";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
+  const session = await getSession(request.headers.get("cookie"));
+  const scrapeId = session.get("scrapeId");
+
+  if (scrapeId) {
+    authoriseScrapeUser(user!.scrapeUsers, scrapeId);
+  }
 
   const url = new URL(request.url);
   const page = parseInt(url.searchParams.get("page") ?? "1");
+  const view = url.searchParams.get("view");
   const limit = 50;
 
   const [{ transactions, total }, balance] = await Promise.all([
-    getCreditTransactions(user!.id, page, limit),
+    getCreditTransactions(
+      user!.id,
+      view === "collection" ? scrapeId : undefined,
+      page,
+      limit
+    ),
     getBalance(user!.id, "message"),
   ]);
 
@@ -80,7 +94,7 @@ function TransactionRow({ transaction }: { transaction: CreditTransaction }) {
 
 function NoTransactions() {
   return (
-    <div className="flex justify-center items-center h-64">
+    <div className="flex justify-center items-center h-full">
       <EmptyState
         icon={<TbCoins />}
         title="No transactions found"
@@ -91,6 +105,8 @@ function NoTransactions() {
 }
 
 export default function UsagePage({ loaderData }: Route.ComponentProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   function getUrl(nextPage: number) {
     return `/usage?page=${nextPage}`;
   }
@@ -99,7 +115,23 @@ export default function UsagePage({ loaderData }: Route.ComponentProps) {
     <Page
       title="Usage"
       icon={<TbCoins />}
-      right={<span>Balance: {loaderData.balance.toFixed(0)}</span>}
+      right={
+        <>
+          <span className="flex items-center gap-2">
+            <TbCoins /> {loaderData.balance.toFixed(0)}
+          </span>
+          <select
+            className="select"
+            value={searchParams.get("view") ?? "mine"}
+            onChange={(e) => {
+              setSearchParams({ view: e.target.value });
+            }}
+          >
+            <option value="mine">Mine</option>
+            <option value="collection">Collection</option>
+          </select>
+        </>
+      }
     >
       <div className="flex flex-col gap-4 h-full">
         {loaderData.transactions.length === 0 ? (

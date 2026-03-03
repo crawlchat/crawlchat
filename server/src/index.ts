@@ -270,7 +270,8 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     "MCP",
     -creditsUsed,
     0,
-    questionMessage.id
+    questionMessage.id,
+    scrape.id
   );
 
   await prisma.message.update({
@@ -930,7 +931,8 @@ app.post("/ticket/:scrapeId", authenticate, async (req, res) => {
     "Ticket",
     -creditsUsed,
     0,
-    newMessage.id
+    newMessage.id,
+    scrape.id
   );
 
   await fetch(`${process.env.FRONT_URL}/email-alert`, {
@@ -1081,7 +1083,9 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
     "message",
     "Compose",
     -llmConfig.creditsPerMessage,
-    -flow.getUsage().cost
+    -flow.getUsage().cost,
+    undefined,
+    scrape.id
   );
 
   res.json({
@@ -1246,7 +1250,9 @@ app.post("/fix-message", authenticate, async (req, res) => {
     "message",
     "Fix Message",
     -1,
-    -flow.getUsage().cost
+    -flow.getUsage().cost,
+    undefined,
+    message.scrapeId
   );
 
   res.json({ content: correctAnswer, title });
@@ -1356,7 +1362,9 @@ ${text}`,
     "message",
     "Extract Facts",
     -llmConfig.creditsPerMessage,
-    -flow.getUsage().cost
+    -flow.getUsage().cost,
+    undefined,
+    scrape.id
   );
 
   res.json({ facts });
@@ -1444,7 +1452,9 @@ Fact to check: ${fact}`,
     "message",
     "Fact Check",
     -llmConfig.creditsPerMessage,
-    -flow.getUsage().cost
+    -flow.getUsage().cost,
+    undefined,
+    scrape.id
   );
 
   res.json({ fact, score, reason });

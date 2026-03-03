@@ -148,6 +148,7 @@ export async function updateAllCreditSnapshots(
 
 export async function getCreditTransactions(
   userId: string,
+  scrapeId?: string,
   page: number = 1,
   limit: number = 50
 ): Promise<{ transactions: CreditTransaction[]; total: number }> {
@@ -155,13 +156,13 @@ export async function getCreditTransactions(
 
   const [transactions, total] = await Promise.all([
     prisma.creditTransaction.findMany({
-      where: { userId },
+      where: { userId, scrapeId },
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
     }),
     prisma.creditTransaction.count({
-      where: { userId },
+      where: { userId, scrapeId },
     }),
   ]);
 

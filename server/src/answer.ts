@@ -456,7 +456,8 @@ export async function saveAnswer(
     "Answer",
     -answer.creditsUsed,
     -answer.llmCost,
-    questionMessageId
+    questionMessageId,
+    scrape.id
   );
 
   if (scrape.analyseMessage) {

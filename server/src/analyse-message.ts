@@ -360,7 +360,8 @@ export async function fillMessageAnalysis(
       "Analysis",
       -1,
       -cost,
-      questionMessageId
+      questionMessageId,
+      message.scrapeId
     );
   } catch (e) {
     console.error("Failed to analyse message", e);

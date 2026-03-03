@@ -153,7 +153,9 @@ export async function analyzeDiff(
     "message",
     "PR Analyzer",
     -6,
-    -flow.getUsage().cost
+    -flow.getUsage().cost,
+    undefined,
+    scrapeId
   );
 
   return lines.join("\n");

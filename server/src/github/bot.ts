@@ -432,7 +432,8 @@ async function answer(data: {
     "Answer",
     -answer.creditsUsed,
     -answer.llmCost,
-    questionMessage.id
+    questionMessage.id,
+    scrape.id
   );
 }
 
