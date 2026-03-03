@@ -40,7 +40,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const thread = await prisma.thread.findFirstOrThrow({
     where: { id: params.conversationId },
     include: {
-      messages: true,
+      messages: {
+        include: {
+          creditTransactions: true,
+        },
+      },
     },
   });
 
@@ -121,19 +125,19 @@ export default function Conversation({ loaderData }: Route.ComponentProps) {
     toast.success("Share link copied to clipboard");
   }
 
+  function getBeforeUserMessage(idx: number) {
+    return loaderData.thread.messages
+      .slice(0, idx)
+      .reverse()
+      .find((m) => m.llmMessage?.role === "user");
+  }
+
   return (
     <Page
       title="Conversation"
       icon={<TbMessages />}
       right={
         <div className="flex items-center gap-2">
-          {/* <Link
-            to={`/questions/conversations/${loaderData.thread.id}/make-guide`}
-            className="btn btn-primary btn-soft"
-          >
-            Make a guide
-          </Link> */}
-
           <div
             className="tooltip tooltip-left"
             data-tip="Share the conversation"
@@ -173,7 +177,7 @@ export default function Conversation({ loaderData }: Route.ComponentProps) {
           "sticky top-[76px] max-w-prose w-full"
         )}
       >
-        {loaderData.thread.messages.map((message) => (
+        {loaderData.thread.messages.map((message, index) => (
           <div key={message.id}>
             {message.llmMessage?.role === "user" ? (
               <div id={`message-${message.id}`} className={cn("p-4 pb-2")}>
@@ -191,6 +195,9 @@ export default function Conversation({ loaderData }: Route.ComponentProps) {
                   <CreditsUsedBadge
                     creditsUsed={message.creditsUsed ?? 0}
                     llmModel={message.llmModel}
+                    creditTransactions={
+                      getBeforeUserMessage(index)?.creditTransactions ?? []
+                    }
                   />
                   {message.apiActionCalls.length > 0 && (
                     <div className="badge badge-secondary badge-soft gap-1 px-2">
