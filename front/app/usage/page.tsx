@@ -26,7 +26,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const url = new URL(request.url);
   const page = parseInt(url.searchParams.get("page") ?? "1");
-  const view = url.searchParams.get("view");
+  const view = url.searchParams.get("view") ?? "collection";
   const limit = 50;
 
   const [{ transactions, total }, balance] = await Promise.all([
@@ -69,9 +69,9 @@ function TransactionRow({ transaction }: { transaction: CreditTransaction }) {
         <span
           className={cn(
             "badge badge-soft capitalize",
-            transaction.type === "usage" && "badge-error",
+            transaction.type === "usage" && "badge-primary",
             transaction.type === "topup" && "badge-success",
-            transaction.type === "subscription" && "badge-primary",
+            transaction.type === "subscription" && "badge-success",
             transaction.type === "migration" && "badge-info",
             transaction.type === "expired" && "badge-warning"
           )}
@@ -117,18 +117,25 @@ export default function UsagePage({ loaderData }: Route.ComponentProps) {
       icon={<TbCoins />}
       right={
         <>
-          <span className="flex items-center gap-2">
-            <TbCoins /> {loaderData.balance.toFixed(0)}
-          </span>
+          <div className="tooltip tooltip-left h-full" data-tip="Balance">
+            <div
+              className={cn(
+                "flex items-center gap-2 bg-accent/20 h-full px-4",
+                "text-accent rounded-box"
+              )}
+            >
+              <TbCoins /> {loaderData.balance.toFixed(0)}
+            </div>
+          </div>
           <select
             className="select"
-            value={searchParams.get("view") ?? "mine"}
+            value={searchParams.get("view") ?? "collection"}
             onChange={(e) => {
               setSearchParams({ view: e.target.value });
             }}
           >
-            <option value="mine">Mine</option>
             <option value="collection">Collection</option>
+            <option value="mine">Mine</option>
           </select>
         </>
       }
