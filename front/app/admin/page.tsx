@@ -199,8 +199,6 @@ function UsersTable({ userDetails }: { userDetails: UserDetail[] }) {
             <th>Name</th>
             <th>Scrapes</th>
             <th>Groups</th>
-            <th>Scrape credits</th>
-            <th>Message credits</th>
             <th>Created At</th>
           </tr>
         </thead>
@@ -219,8 +217,6 @@ function UsersTable({ userDetails }: { userDetails: UserDetail[] }) {
               <td>{userDetail.user.name}</td>
               <td>{userDetail.scrapes.length}</td>
               <td>{userDetail.groups.length}</td>
-              <td>{userDetail.user.plan?.credits?.scrapes}</td>
-              <td>{userDetail.user.plan?.credits?.messages}</td>
               <td>{userDetail.user.createdAt.toLocaleString()}</td>
             </tr>
           ))}

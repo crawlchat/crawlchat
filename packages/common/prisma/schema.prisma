@@ -26,8 +26,7 @@ model User {
 
   showOnboarding      Boolean?
 
-  plan                UserPlan?
-  topups              TopupPlan[]
+  plan                UserPlan
 
   scrapes             Scrape[]
   scrapeItems         ScrapeItem[]
@@ -378,6 +377,8 @@ model Message {
   ownerUser                 User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
   scrape                    Scrape @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
   correctionItem            ScrapeItem? @relation(fields: [correctionItemId], references: [id])
+  
+  creditTransactions        CreditTransaction[]
 
   @@index([ownerUserId, scrapeId, createdAt])
 }
@@ -489,11 +490,6 @@ enum PlanStatus {
   EXPIRED
 }
 
-type PlanCredits {
-  messages    Float
-  scrapes     Float
-}
-
 type PlanLimits {
   scrapes     Float
   teamMembers Float
@@ -512,23 +508,13 @@ type UserPlan {
   orderId           String?
   status            PlanStatus
 
-  credits           PlanCredits?
-  limits            PlanLimits?
+  limits            PlanLimits
 
   brandRemoval      BrandRemovalPlan?
 
   expiresAt         DateTime?
   activatedAt       DateTime
   creditsResetAt    DateTime?
-}
-
-type TopupPlan {
-  planId String
-  credits PlanCredits
-  orderId String?
-
-  createdAt DateTime
-  provider UserPlanProvider?
 }
 
 enum KnowledgeGroupType {
@@ -755,6 +741,7 @@ enum CreditTransactionType {
   usage
   subscription
   migration
+  expired
 }
 
 enum CreditTransactionPurpose {
@@ -793,6 +780,7 @@ model CreditTransaction {
 
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   scrape        Scrape?  @relation(fields: [scrapeId], references: [id], onDelete: Cascade)
+  message       Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
 }

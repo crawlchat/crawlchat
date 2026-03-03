@@ -129,6 +129,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     where,
     include: {
       thread: true,
+      creditTransactions: true,
     },
     orderBy: {
       createdAt: "desc",
@@ -145,6 +146,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
     include: {
       thread: true,
+      creditTransactions: true,
     },
   });
 
@@ -489,6 +491,9 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                             <CreditsUsedBadge
                               creditsUsed={pair.responseMessage.creditsUsed}
                               llmModel={pair.responseMessage.llmModel}
+                              creditTransactions={
+                                pair.queryMessage?.creditTransactions ?? []
+                              }
                             />
                           )}
                           {pair.responseMessage.analysis?.language && (

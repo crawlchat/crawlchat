@@ -8,7 +8,7 @@ import { Agent } from "@packages/agentic";
 import { z } from "zod";
 import { Flow } from "@packages/agentic";
 import { getConfig } from "./llm/config";
-import { consumeCredits } from "@packages/common/user-plan";
+import { addCreditTransaction } from "@packages/common/credit-transaction";
 
 export type MessageAnalysisResponse = {
   questionSentiment: QuestionSentiment;
@@ -353,13 +353,15 @@ export async function fillMessageAnalysis(
       },
     });
 
-    await consumeCredits(
+    await addCreditTransaction(
       message.scrape.userId,
-      "messages",
-      1,
+      "usage",
+      "message",
+      "Analysis",
+      -1,
+      -cost,
       questionMessageId,
-      cost,
-      "Analysis"
+      message.scrapeId
     );
   } catch (e) {
     console.error("Failed to analyse message", e);

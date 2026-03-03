@@ -17,7 +17,6 @@ import { prisma, type ScrapeUser } from "@packages/common/prisma";
 import { redirect, useFetcher } from "react-router";
 import { useEffect, useState } from "react";
 import { sendInvitationEmail, sendTeamJoinEmail } from "~/email";
-import { getLimits } from "@packages/common/user-plan";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import toast from "react-hot-toast";
 import cn from "@meltdownjs/cn";
@@ -97,7 +96,7 @@ export async function action({ request }: Route.ActionArgs) {
       });
     }
 
-    const limits = await getLimits(owner!);
+    const limits = owner!.plan.limits;
     if (existingMembers >= limits.teamMembers) {
       return Response.json(
         { error: "You have reached the maximum number of team members" },

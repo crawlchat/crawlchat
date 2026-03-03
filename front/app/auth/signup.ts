@@ -3,6 +3,7 @@ import { PLAN_FREE, activatePlan, planMap } from "@packages/common/user-plan";
 import { sendTeamJoinEmail, sendWelcomeEmail } from "~/email";
 import { DodoPayments } from "dodopayments";
 import { productIdPlanMap } from "~/payment/gateway-dodo";
+import { addCreditTransaction } from "@packages/common/credit-transaction";
 
 export async function signUpNewUser(
   email: string,
@@ -24,13 +25,21 @@ export async function signUpNewUser(
           type: PLAN_FREE.type,
           provider: "CUSTOM",
           status: "ACTIVE",
-          credits: PLAN_FREE.credits,
           limits: PLAN_FREE.limits,
           activatedAt: new Date(),
+          creditsResetAt: new Date(),
         },
         showOnboarding: true,
       },
     });
+
+    await addCreditTransaction(
+      user.id,
+      "subscription",
+      "message",
+      "Free plan",
+      PLAN_FREE.credits.messages
+    );
 
     const pendingScrapeUsers = await prisma.scrapeUser.findMany({
       where: {

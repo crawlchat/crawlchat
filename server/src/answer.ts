@@ -21,11 +21,11 @@ import {
 import { Role, Usage } from "@packages/agentic";
 import { FlowMessage } from "./llm/flow";
 import { CustomMessage, DataGap } from "./llm/custom-message";
-import { consumeCredits } from "@packages/common/user-plan";
 import { fillMessageAnalysis } from "./analyse-message";
 import { ensureRepoCloned } from "@packages/flash";
 import { extractCitations } from "@packages/common/citation";
 import { retry } from "./retry";
+import { addCreditTransaction } from "@packages/common/credit-transaction";
 
 export type StreamDeltaEvent = {
   type: "stream-delta";
@@ -449,12 +449,15 @@ export async function saveAnswer(
 
   await updateLastMessageAt(threadId);
 
-  await consumeCredits(
+  await addCreditTransaction(
     scrape.userId,
-    "messages",
-    answer.creditsUsed,
+    "usage",
+    "message",
+    "Answer",
+    -answer.creditsUsed,
+    -answer.llmCost,
     questionMessageId,
-    answer.llmCost
+    scrape.id
   );
 
   if (scrape.analyseMessage) {

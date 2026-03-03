@@ -8,7 +8,7 @@ import {
   makeTextSearchRegexTool,
   TextSearchToolContext,
 } from "../llm/text-search-tool";
-import { consumeCredits } from "@packages/common/user-plan";
+import { addCreditTransaction } from "@packages/common/credit-transaction";
 
 type GitHubPostResponse = {
   id: number;
@@ -147,13 +147,15 @@ export async function analyzeDiff(
   }
   lines.push("");
 
-  await consumeCredits(
+  await addCreditTransaction(
     userId,
-    "messages",
-    6,
+    "usage",
+    "message",
+    "PR Analyzer",
+    -6,
+    -flow.getUsage().cost,
     undefined,
-    flow.getUsage().cost,
-    "PR Analyzer"
+    scrapeId
   );
 
   return lines.join("\n");

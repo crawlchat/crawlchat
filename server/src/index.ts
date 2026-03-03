@@ -18,7 +18,7 @@ import {
 } from "@packages/common/prisma";
 import { makeIndexer } from "@packages/indexer";
 import { name } from "@packages/common";
-import { consumeCredits, hasEnoughCredits } from "@packages/common/user-plan";
+import { hasEnoughCredits } from "@packages/common/user-plan";
 import { CustomMessage } from "./llm/custom-message";
 import { makeSearchTool, SearchToolContext } from "./llm/search-tool";
 import { extractCitations } from "@packages/common/citation";
@@ -48,6 +48,7 @@ import {
   makeTextSearchRegexTool,
   TextSearchToolContext,
 } from "./llm/text-search-tool";
+import { addCreditTransaction } from "@packages/common/credit-transaction";
 
 declare global {
   namespace Express {
@@ -262,13 +263,15 @@ app.get("/mcp/:scrapeId", async (req, res) => {
     },
   });
 
-  await consumeCredits(
+  await addCreditTransaction(
     scrape.userId,
-    "messages",
-    creditsUsed,
-    questionMessage.id,
+    "usage",
+    "message",
+    "MCP",
+    -creditsUsed,
     0,
-    "MCP"
+    questionMessage.id,
+    scrape.id
   );
 
   await prisma.message.update({
@@ -921,13 +924,15 @@ app.post("/ticket/:scrapeId", authenticate, async (req, res) => {
     },
   });
 
-  await consumeCredits(
+  await addCreditTransaction(
     scrape.userId,
-    "messages",
-    creditsUsed,
-    newMessage.id,
+    "usage",
+    "message",
+    "Ticket",
+    -creditsUsed,
     0,
-    "Ticket"
+    newMessage.id,
+    scrape.id
   );
 
   await fetch(`${process.env.FRONT_URL}/email-alert`, {
@@ -1072,13 +1077,15 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
   const response = flow.getLastMessage().llmMessage.content as string;
   const { slate: newSlate, details, title: newTitle } = JSON.parse(response);
 
-  await consumeCredits(
+  await addCreditTransaction(
     scrape.userId,
-    "messages",
-    llmConfig.creditsPerMessage,
+    "usage",
+    "message",
+    "Compose",
+    -llmConfig.creditsPerMessage,
+    -flow.getUsage().cost,
     undefined,
-    flow.getUsage().cost,
-    "Compose"
+    scrape.id
   );
 
   res.json({
@@ -1237,13 +1244,15 @@ app.post("/fix-message", authenticate, async (req, res) => {
   const content = (flow.getLastMessage().llmMessage.content as string) ?? "";
   const { correctAnswer, title } = JSON.parse(content);
 
-  await consumeCredits(
+  await addCreditTransaction(
     userId,
-    "messages",
-    1,
+    "usage",
+    "message",
+    "Fix Message",
+    -1,
+    -flow.getUsage().cost,
     undefined,
-    flow.getUsage().cost,
-    "Fix Message"
+    message.scrapeId
   );
 
   res.json({ content: correctAnswer, title });
@@ -1347,13 +1356,15 @@ ${text}`,
   const parsed = JSON.parse(response);
   const facts = parsed.facts || [];
 
-  await consumeCredits(
+  await addCreditTransaction(
     scrape.userId,
-    "messages",
-    llmConfig.creditsPerMessage,
+    "usage",
+    "message",
+    "Extract Facts",
+    -llmConfig.creditsPerMessage,
+    -flow.getUsage().cost,
     undefined,
-    flow.getUsage().cost,
-    "Extract Facts"
+    scrape.id
   );
 
   res.json({ facts });
@@ -1435,13 +1446,15 @@ Fact to check: ${fact}`,
       : 0;
   const reason = parsed.reason || "";
 
-  await consumeCredits(
+  await addCreditTransaction(
     scrape.userId,
-    "messages",
-    llmConfig.creditsPerMessage,
+    "usage",
+    "message",
+    "Fact Check",
+    -llmConfig.creditsPerMessage,
+    -flow.getUsage().cost,
     undefined,
-    flow.getUsage().cost,
-    "Fact Check"
+    scrape.id
   );
 
   res.json({ fact, score, reason });
