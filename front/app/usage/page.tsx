@@ -29,15 +29,12 @@ export async function loader({ request }: Route.LoaderArgs) {
   const view = url.searchParams.get("view") ?? "collection";
   const limit = 50;
 
-  const [{ transactions, total }, balance] = await Promise.all([
-    getCreditTransactions(
-      user!.id,
-      view === "collection" ? scrapeId : undefined,
-      page,
-      limit
-    ),
-    getBalance(user!.id, "message"),
-  ]);
+  const { transactions, total } = await getCreditTransactions(
+    user!.id,
+    view === "collection" ? scrapeId : undefined,
+    page,
+    limit
+  );
 
   const totalPages = Math.ceil(total / limit);
   const hasNext = page < totalPages;
@@ -50,7 +47,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     totalPages,
     hasNext,
     hasPrevious,
-    balance,
   };
 }
 
@@ -117,16 +113,6 @@ export default function UsagePage({ loaderData }: Route.ComponentProps) {
       icon={<TbCoins />}
       right={
         <>
-          <div className="tooltip tooltip-left h-full" data-tip="Balance">
-            <div
-              className={cn(
-                "flex items-center gap-2 bg-accent/20 h-full px-4",
-                "text-accent rounded-box"
-              )}
-            >
-              <TbCoins /> {loaderData.balance.toFixed(0)}
-            </div>
-          </div>
           <select
             className="select"
             value={searchParams.get("view") ?? "collection"}
