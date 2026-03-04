@@ -91,7 +91,8 @@ const cache = {
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   if (url.hostname === "gitcrawl.chat") {
-    throw redirect(`/github-chat${url.pathname}`);
+    const [, org, repo] = url.pathname.split("/");
+    throw redirect(`/github-chat/${org}/${repo}`);
   }
 
   const MINS_5 = 5 * 60 * 1000;
