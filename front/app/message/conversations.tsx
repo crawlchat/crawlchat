@@ -2,6 +2,7 @@ import cn from "@meltdownjs/cn";
 import type { Message, Prisma } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
 import Avatar from "boring-avatars";
+import { useContext } from "react";
 import {
   TbChevronLeft,
   TbChevronRight,
@@ -15,6 +16,7 @@ import {
 import { Link, redirect, useLoaderData } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
+import { AppContext } from "~/components/app-context";
 import { ChannelBadge } from "~/components/channel-badge";
 import { EmptyState } from "~/components/empty-state";
 import { Page } from "~/components/page";
@@ -168,6 +170,9 @@ function CategoriesBadge({
 }
 
 export default function Conversations({ loaderData }: Route.ComponentProps) {
+  const { conversationsDefaultView, setConversationsDefaultView } =
+    useContext(AppContext);
+
   const getThreadCategories = (messages: Message[]) => {
     const categories: Record<string, number> = {};
     for (const message of messages) {
@@ -181,6 +186,10 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
 
   const isResolved = (messages: Message[]) => {
     return messages.some((message) => message.analysis?.resolved);
+  };
+
+  const handleSetAsDefaultView = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConversationsDefaultView(e.target.checked);
   };
 
   return (
@@ -209,6 +218,19 @@ export default function Conversations({ loaderData }: Route.ComponentProps) {
 
       {loaderData.threads.length > 0 && (
         <div className="flex flex-col gap-2">
+          <div className="mb-2">
+            <label className="label">
+              <input
+                type="checkbox"
+                className="toggle"
+                onChange={handleSetAsDefaultView}
+                checked={conversationsDefaultView}
+                disabled={conversationsDefaultView === undefined}
+              />
+              Set as default view
+            </label>
+          </div>
+
           <div
             className={cn(
               "bg-base-100 rounded-box border border-base-300",

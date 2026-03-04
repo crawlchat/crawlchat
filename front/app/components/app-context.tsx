@@ -3,6 +3,8 @@ import { createContext, useEffect, useMemo, useState } from "react";
 import type { BlogPost } from "~/blog/posts";
 import type { SetupProgressAction } from "../setup-progress/config";
 
+const CONVERSATIONS_DEFAULT_VIEW_KEY = "conversations-default-view";
+
 export const useApp = ({
   user,
   scrapeUsers,
@@ -29,12 +31,19 @@ export const useApp = ({
     []
   );
   const [closedReleaseKey, setClosedReleaseKey] = useState<string | null>();
+  const [conversationsDefaultView, _setConversationsDefaultView] =
+    useState<boolean>();
   const shouldUpgrade = useMemo(() => {
     if (user.plan?.subscriptionId) {
       return false;
     }
     return !scrapeUsers.find((su) => su.scrape.user.plan?.subscriptionId);
   }, [scrapeUsers]);
+
+  useEffect(() => {
+    const defaultView = localStorage.getItem(CONVERSATIONS_DEFAULT_VIEW_KEY);
+    _setConversationsDefaultView(defaultView === "true");
+  }, []);
 
   useEffect(() => {
     const key = localStorage.getItem("closedReleaseKey");
@@ -46,6 +55,14 @@ export const useApp = ({
       localStorage.setItem("closedReleaseKey", closedReleaseKey);
     }
   }, [closedReleaseKey]);
+
+  function setConversationsDefaultView(value: boolean) {
+    localStorage.setItem(
+      CONVERSATIONS_DEFAULT_VIEW_KEY,
+      value ? "true" : "false"
+    );
+    _setConversationsDefaultView(value);
+  }
 
   return {
     user,
@@ -59,6 +76,8 @@ export const useApp = ({
     setClosedReleaseKey,
     shouldUpgrade,
     latestChangelog,
+    conversationsDefaultView,
+    setConversationsDefaultView,
   };
 };
 

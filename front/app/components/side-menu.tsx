@@ -2,6 +2,7 @@ import cn from "@meltdownjs/cn";
 import type { Scrape, User } from "@packages/common/prisma";
 import type { Plan } from "@packages/common/user-plan";
 import {
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -42,6 +43,7 @@ import { Link, NavLink } from "react-router";
 import { numberToKMB } from "~/components/number-util";
 import { PlanIconBadge } from "~/components/plan-icon-badge";
 import { ScrapePrivacyBadge } from "~/components/scrape-type-badge";
+import { AppContext } from "./app-context";
 import { Logo } from "./logo";
 
 type MenuItemType = {
@@ -293,6 +295,8 @@ export function SideMenu({
   messageBalance: number;
   messageTotal: number;
 }) {
+  const { conversationsDefaultView } = useContext(AppContext);
+
   const links: MenuItemType[] = useMemo(() => {
     const links = [
       {
@@ -358,7 +362,9 @@ export function SideMenu({
       },
       {
         label: "Questions",
-        to: "/questions",
+        to: conversationsDefaultView
+          ? "/questions/conversations"
+          : "/questions",
         icon: <TbMessage />,
         forScrape: true,
       },
@@ -440,7 +446,7 @@ export function SideMenu({
     return links
       .filter((link) => !link.forScrape || scrapeId)
       .filter((link) => !link.ticketingEnabled || scrape?.ticketingEnabled);
-  }, []);
+  }, [conversationsDefaultView]);
 
   const totalScrapes = scrapeOwner?.plan?.limits?.pages ?? plan.limits.pages;
 
