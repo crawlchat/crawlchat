@@ -63,7 +63,7 @@ import {
   TbVideo,
   TbWorld,
 } from "react-icons/tb";
-import { Link, redirect, useLoaderData } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import { cache as changelogCache } from "~/changelog/fetch";
 import { Logo } from "~/components/logo";
 import { MCPIcon } from "~/components/mcp-icon";
@@ -89,12 +89,6 @@ const cache = {
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  if (url.hostname === "gitcrawl.chat") {
-    const [, org, repo] = url.pathname.split("/");
-    throw redirect(`/github-chat/${org}/${repo}`);
-  }
-
   const MINS_5 = 5 * 60 * 1000;
   const DAY = 24 * 60 * 60 * 1000;
   const WEEK = 7 * DAY;
