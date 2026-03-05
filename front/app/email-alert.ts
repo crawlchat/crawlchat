@@ -33,11 +33,11 @@ export async function action({ request }: Route.LoaderArgs) {
     });
     authoriseScrapeUser(user!.scrapeUsers, scrape.id);
 
-    const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
-    const twoDaysAgo = new Date(Date.now() - TWO_DAYS);
+    const FOUR_HOURS = 4 * 60 * 60 * 1000;
+    const fourHoursAgo = new Date(Date.now() - FOUR_HOURS);
     if (
       scrape.lowCreditsMailSentAt &&
-      scrape.lowCreditsMailSentAt > twoDaysAgo
+      scrape.lowCreditsMailSentAt > fourHoursAgo
     ) {
       return;
     }
