@@ -1,7 +1,7 @@
 import { addCreditTransaction } from "@packages/common/credit-transaction";
 import { prisma } from "@packages/common/prisma";
-import { Link, redirect, useFetcher } from "react-router";
 import { Toaster } from "react-hot-toast";
+import { Link, redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { useFetcherToast } from "~/components/use-fetcher-toast";
 import { makeMeta } from "~/meta";
@@ -121,7 +121,6 @@ export default function AddCredit() {
             name="amount"
             type="number"
             required
-
             step="0.01"
             className="input input-bordered w-full"
             placeholder="100"
