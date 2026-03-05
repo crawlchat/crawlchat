@@ -348,7 +348,7 @@ export async function hasEnoughCredits(
   const available = await getBalance(userId, "message");
   const has = available >= amount;
 
-  if (!has && options?.alert) {
+  if (options?.alert && (!has || available < 100)) {
     try {
       const response = await fetch(`${process.env.FRONT_URL}/email-alert`, {
         method: "POST",

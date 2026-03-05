@@ -439,6 +439,14 @@ export default function Admin({ loaderData }: Route.ComponentProps) {
           Customers
         </Link>
       </div>
+      <div className="mb-2">
+        <Link
+          to="/admin-fowl/add-credit"
+          className="link link-primary link-hover"
+        >
+          Add Credit
+        </Link>
+      </div>
       <div className="text-2xl font-bold">Users</div>
       <UsersTable userDetails={loaderData.userDetails} />
       <div className="text-2xl font-bold mt-4">Messages</div>

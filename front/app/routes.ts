@@ -124,6 +124,7 @@ export default [
     route("user/:userId", "admin/user.tsx"),
     route("collection/:collectionId", "admin/collection.tsx"),
     route("unanswered-messages", "admin/unanswered-messages.tsx"),
+    route("add-credit", "admin/add-credit.tsx"),
     route("update-customer-dodo", "admin/update-customer.ts"),
     route("change-plan-dodo", "admin/change-plan-dodo.ts"),
     route("subscription-details", "admin/subscription-details.ts"),
