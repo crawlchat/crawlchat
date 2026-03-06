@@ -1,4 +1,5 @@
 import cn from "@meltdownjs/cn";
+import type { KnowledgeGroupType } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
 import moment from "moment";
 import {
@@ -46,6 +47,7 @@ import LanguageDistribution from "./language-distribution";
 import { NewCollectionModal } from "./new-collection-modal";
 import StatCard from "./stat-card";
 import Tags from "./tags";
+import { TopCitedGroups } from "./top-cited-groups";
 import { TopPages } from "./top-pages";
 import { UniqueUsers } from "./unique-users";
 
@@ -183,6 +185,56 @@ export async function loader({ request }: Route.LoaderArgs) {
   const allUniqueUsers = calcUniqueUsers(messages);
   const uniqueUsers = allUniqueUsers.slice(0, 10);
 
+  const groupCitations: Record<
+    string,
+    {
+      id: string;
+      name: string;
+      type: KnowledgeGroupType;
+      subType: string | null;
+      count: number;
+    }
+  > = {};
+  let totalGroupCitations = 0;
+
+  for (const message of messages) {
+    for (const link of message.links) {
+      if (link.knowledgeGroupId) {
+        const groupId = link.knowledgeGroupId;
+        if (!groupCitations[groupId]) {
+          const group = await prisma.knowledgeGroup.findUnique({
+            where: { id: groupId },
+            select: { id: true, title: true, type: true, subType: true },
+          });
+          if (group) {
+            groupCitations[groupId] = {
+              id: group.id,
+              name: group.title ?? "Untitled",
+              type: group.type,
+              subType: group.subType,
+              count: 0,
+            };
+          }
+        }
+        if (groupCitations[groupId]) {
+          groupCitations[groupId].count++;
+          totalGroupCitations++;
+        }
+      }
+    }
+  }
+
+  const topGroupsCited = Object.values(groupCitations)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4)
+    .map((group) => ({
+      ...group,
+      citedCount: group.count,
+      totalCited: totalGroupCitations,
+      percent:
+        totalGroupCitations > 0 ? (group.count / totalGroupCitations) * 100 : 0,
+    }));
+
   return {
     user,
     scrapeId,
@@ -195,6 +247,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     uniqueUsers,
     uniqueUsersCount: allUniqueUsers.length,
     days,
+    topGroupsCited,
   };
 }
 
@@ -767,15 +820,24 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             </div>
           )}
 
-          {Object.keys(loaderData.messagesSummary.languagesDistribution)
-            .length > 0 && (
-            <div>
-              <Heading>Languages</Heading>
-              <LanguageDistribution
-                languages={loaderData.messagesSummary.languagesDistribution}
-              />
-            </div>
-          )}
+          <div className="flex flex-col md:flex-row gap-4">
+            {Object.keys(loaderData.messagesSummary.languagesDistribution)
+              .length > 0 && (
+              <div>
+                <Heading>Languages</Heading>
+                <LanguageDistribution
+                  languages={loaderData.messagesSummary.languagesDistribution}
+                />
+              </div>
+            )}
+            {loaderData.topGroupsCited &&
+              loaderData.topGroupsCited.length > 0 && (
+                <div className="flex-1">
+                  <Heading>Top cited groups</Heading>
+                  <TopCitedGroups topGroupsCited={loaderData.topGroupsCited} />
+                </div>
+              )}
+          </div>
         </div>
       )}
 
