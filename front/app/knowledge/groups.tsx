@@ -4,7 +4,7 @@ import { prisma } from "@packages/common/prisma";
 import type { KnowledgeGroup } from "@prisma/client";
 import moment from "moment";
 import { useMemo } from "react";
-import { TbAutomation, TbBook, TbPlus } from "react-icons/tb";
+import { TbAutomation, TbBook, TbMessage, TbPlus } from "react-icons/tb";
 import { Link } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
@@ -254,10 +254,19 @@ export default function KnowledgeGroups({ loaderData }: Route.ComponentProps) {
                 {groups.map((item) => (
                   <tr key={item.group.id}>
                     <td>
-                      <KnowledgeGroupBadge
-                        type={item.group.type}
-                        subType={item.group.subType ?? undefined}
-                      />
+                      <div className="flex items-center gap-2">
+                        <KnowledgeGroupBadge
+                          type={item.group.type}
+                          subType={item.group.subType ?? undefined}
+                        />
+                        <Link
+                          className="btn btn-square btn-xs"
+                          to={`/questions?knowledgeGroupId=${item.group.id}`}
+                          title="View messages"
+                        >
+                          <TbMessage />
+                        </Link>
+                      </div>
                     </td>
                     <td>
                       <Link

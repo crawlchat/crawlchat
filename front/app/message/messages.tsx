@@ -2,6 +2,7 @@ import cn from "@meltdownjs/cn";
 import { getQueryString } from "@packages/common/llm-message";
 import type {
   CategorySuggestion,
+  KnowledgeGroup,
   Message,
   Prisma,
   Scrape,
@@ -93,6 +94,32 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (url.searchParams.get("mcp")) {
     delete where.OR;
   }
+  const knowledgeGroupId = url.searchParams.get("knowledgeGroupId");
+  let filterKnowledgeGroup: KnowledgeGroup | null = null;
+  if (knowledgeGroupId) {
+    filterKnowledgeGroup = await prisma.knowledgeGroup.findFirstOrThrow({
+      where: {
+        scrapeId,
+        id: knowledgeGroupId,
+      },
+    });
+    const answersWithLink = await prisma.message.findMany({
+      where: {
+        scrapeId,
+        questionId: { not: null },
+        links: { some: { knowledgeGroupId } },
+      },
+      select: { questionId: true },
+    });
+    const questionIds = [
+      ...new Set(
+        answersWithLink
+          .map((a) => a.questionId)
+          .filter((id): id is string => id !== null)
+      ),
+    ];
+    where.id = { in: questionIds };
+  }
 
   const pageId = url.searchParams.get("pageId");
   let filterItem: ScrapeItem | null = null;
@@ -169,6 +196,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     total,
     totalPages: Math.ceil(total / pageSize),
     filterItem,
+    filterKnowledgeGroup,
   };
 }
 
@@ -272,11 +300,15 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
     category,
     showMcp,
     showOnlyLowRatings,
+    knowledgeGroupId,
+    pageId,
   }: {
     page?: number;
     category?: string;
     showMcp?: boolean;
     showOnlyLowRatings?: boolean;
+    knowledgeGroupId?: string | null;
+    pageId?: string | null;
   }) {
     const params = new URLSearchParams(location.search);
     if (page !== undefined) {
@@ -307,6 +339,22 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
       }
     }
 
+    if (knowledgeGroupId !== undefined) {
+      if (knowledgeGroupId) {
+        params.set("knowledgeGroupId", knowledgeGroupId);
+      } else {
+        params.delete("knowledgeGroupId");
+      }
+    }
+
+    if (pageId !== undefined) {
+      if (pageId) {
+        params.set("pageId", pageId);
+      } else {
+        params.delete("pageId");
+      }
+    }
+
     navigate(`/questions?${params.toString()}`);
   }
 
@@ -329,13 +377,17 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
         )}
         {loaderData.messagePairs.length > 0 && (
           <div className="flex flex-col gap-4">
-            {loaderData.filterItem && (
-              <div className="flex flex-col gap-2">
-                Page: {loaderData.filterItem.title}
-              </div>
-            )}
-
             <div className="flex gap-2 items-center overflow-x-auto">
+              {loaderData.filterItem && (
+                <FilterItem onRemove={() => goto({ pageId: null })}>
+                  Page: {loaderData.filterItem.title}
+                </FilterItem>
+              )}
+              {loaderData.filterKnowledgeGroup && (
+                <FilterItem onRemove={() => goto({ knowledgeGroupId: null })}>
+                  Group: {loaderData.filterKnowledgeGroup.title}
+                </FilterItem>
+              )}
               {showMcp && (
                 <FilterItem onRemove={() => goto({ showMcp: false })}>
                   MCP
