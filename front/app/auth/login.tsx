@@ -184,7 +184,7 @@ export default function LoginPage() {
         className={cn(
           "flex flex-col flex-1 gap-2 h-full",
           "justify-center items-center",
-          "m-4"
+          "mx-4"
         )}
       >
         <fetcher.Form method="post">
