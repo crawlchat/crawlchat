@@ -33,7 +33,7 @@ export function ChannelBadge({
     <div className="tooltip" data-tip={onlyIcon ? channelName : null}>
       <span
         className={cn(
-          "badge badge-soft",
+          "badge badge-soft whitespace-nowrap",
           !channel && "badge-primary",
           channel === "discord" && "badge-info",
           channel === "slack" && "badge-error",

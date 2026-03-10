@@ -1706,13 +1706,7 @@ export function CustomTestimonial({
   authorCompany: string;
 }) {
   return (
-    <div
-      className={cn(
-        "border-r-0 md:border-r border-b",
-        "md:border-b-0 border-base-300 p-6 last:border-r-0",
-        "last:border-b-0 group"
-      )}
-    >
+    <div className={cn("border border-base-300", "p-6 group")}>
       <p
         className={cn(
           "font-brand text-center text-base-content/60",
@@ -1849,15 +1843,43 @@ export function HarshTestimonial() {
   );
 }
 
+export function CristianTestimonial() {
+  return (
+    <CustomTestimonial
+      text={
+        <span>
+          We moved from <span className="text-secondary italic">KapaAI</span> to{" "}
+          <CTH>@crawlchat</CTH> and we wouldn't go back. Took us pbbly hours to
+          migrate - we get the same functionality for <CTHS>10%</CTHS> of the
+          cost. Plus, every time we needed help, the team at CrawlChat has been
+          incredibly helpful and moved faster than expected. If you're in the
+          market for a <CTH>RAG chatbot</CTH> for your documentation... you
+          should definitely give <CTHS>CrawlChat</CTHS> a try.
+        </span>
+      }
+      author="Cristian Tăbăcitu"
+      authorImage="/testi-profile/cristian.jpg"
+      authorLink="https://x.com/tabacitu/status/2031335648821494205"
+      icon={<TbBrandX />}
+      authorCompany="Backpack for Laravel"
+    />
+  );
+}
+
 export function CustomTestimonials() {
+  const columns = [
+    [<JonnyTestimonial />, <AntonTestimonial />],
+    [<MauritsTestimonial />, <EgelhausTestimonial />],
+    [<HarshTestimonial />, <CristianTestimonial />],
+  ];
   return (
     <div className="mt-32 flex flex-col gap-10">
-      <div className="grid grid-cols-1 md:grid-cols-5 border border-base-300 bg-base-100/50">
-        <JonnyTestimonial />
-        <AntonTestimonial />
-        <HarshTestimonial />
-        <MauritsTestimonial />
-        <EgelhausTestimonial />
+      <div className="flex flex-col md:flex-row gap-4">
+        {columns.map((testimonial, index) => (
+          <div key={index} className="flex-1 flex flex-col gap-4">
+            {testimonial}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -2999,7 +3021,9 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
         <UsedBy />
       </Container>
 
-      <CustomTestimonials />
+      <Container>
+        <CustomTestimonials />
+      </Container>
 
       <Container>
         <Works />
