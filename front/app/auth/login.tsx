@@ -7,6 +7,7 @@ import { getClientIp } from "~/client-ip";
 import { Logo } from "~/components/logo";
 import {
   AntonTestimonial,
+  CristianTestimonial,
   EgelhausTestimonial,
   HarshTestimonial,
   JonnyTestimonial,
@@ -127,7 +128,7 @@ export default function LoginPage() {
   const fetcher = useFetcher();
   const { mailSent, error, selfHosted, turnstileSiteKey } = useLoaderData();
   const emailRef = useRef<HTMLInputElement>(null);
-  const testiIndex = useMemo(() => Math.floor(Math.random() * 5), []);
+  const testiIndex = useMemo(() => Math.floor(Math.random() * 6), []);
   const turnstileLoaded = useRef(false);
   const [clientValidated, setClientValidated] = useState(!turnstileSiteKey);
 
@@ -174,14 +175,22 @@ export default function LoginPage() {
             {testiIndex === 2 && <MauritsTestimonial />}
             {testiIndex === 3 && <EgelhausTestimonial />}
             {testiIndex === 4 && <HarshTestimonial />}
+            {testiIndex === 5 && <CristianTestimonial />}
           </div>
         </div>
       )}
-      <div className="flex flex-col flex-1 gap-2 h-full justify-center items-center">
+
+      <div
+        className={cn(
+          "flex flex-col flex-1 gap-2 h-full",
+          "justify-center items-center",
+          "mx-4"
+        )}
+      >
         <fetcher.Form method="post">
           <div
             className={cn(
-              "flex flex-col w-94 gap-4 items-center border",
+              "flex flex-col md:w-94 gap-4 items-center border",
               "border-base-300 rounded-box p-6 bg-base-200 shadow"
             )}
           >
