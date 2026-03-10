@@ -27,6 +27,7 @@ import { getMessageContent } from "~/message/messages";
 import { SearchTypeBadge } from "~/message/search-type-badge";
 import { makeMeta } from "~/meta";
 import { MarkdownProse } from "~/widget/markdown-prose";
+import { BRIGHT_COLORS } from "../summary/bright-colors";
 import type { Route } from "./+types/page";
 import { adminEmails } from "./emails";
 
@@ -381,18 +382,14 @@ function MessagesChart() {
 
       setGraph({
         width: containerRef.current.clientWidth - 50,
-        scrapes: Object.entries(scrapes).map(([id, name]) => ({
+        scrapes: Object.entries(scrapes).map(([id, name], index) => ({
           id,
           name,
-          color: getRandomColor(),
+          color: BRIGHT_COLORS[index % BRIGHT_COLORS.length],
         })),
       });
     }
   }, [containerRef]);
-
-  function getRandomColor() {
-    return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-  }
 
   return (
     <div ref={containerRef} className="w-full h-[400px]">
