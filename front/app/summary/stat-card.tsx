@@ -7,12 +7,14 @@ export default function StatCard({
   icon,
   suffix,
   tooltip,
+  toFixed,
 }: {
   label: string;
   value?: number;
   icon: React.ReactNode;
   suffix?: string;
   tooltip?: string;
+  toFixed?: number;
 }) {
   return (
     <div className="tooltip tooltip-bottom" data-tip={tooltip}>
@@ -26,7 +28,7 @@ export default function StatCard({
           <div className="stat-figure text-3xl opacity-50">{icon}</div>
           <div className="stat-title">{label}</div>
           <div className="stat-value">
-            {value !== undefined ? numberToKMB(value) : ""}
+            {value !== undefined ? numberToKMB(value, toFixed) : ""}
             {suffix}
           </div>
         </div>
