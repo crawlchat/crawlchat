@@ -1,7 +1,6 @@
 import cn from "@meltdownjs/cn";
 import type { KnowledgeGroupType } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
-import moment from "moment";
 import {
   useEffect,
   useMemo,
@@ -11,10 +10,15 @@ import {
 } from "react";
 import {
   TbChartLine,
+  TbClock,
+  TbClockShield,
   TbConfetti,
   TbCrown,
   TbDatabase,
   TbMessage,
+  TbMessage2Bolt,
+  TbMessage2Heart,
+  TbMessage2Up,
   TbMoodCry,
   TbMoodHappy,
   TbPlus,
@@ -22,15 +26,6 @@ import {
   TbUser,
 } from "react-icons/tb";
 import { redirect, useSearchParams } from "react-router";
-import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  Tooltip,
-  XAxis,
-} from "recharts";
-import type { Payload } from "recharts/types/component/DefaultTooltipContent";
 import { getAuthUser } from "~/auth/middleware";
 import { showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
@@ -40,9 +35,9 @@ import { makeMeta } from "~/meta";
 import { dodoGateway } from "~/payment/gateway-dodo";
 import { commitSession, getSession } from "~/session";
 import type { Route } from "./+types/page";
-import { BRIGHT_COLORS } from "./bright-colors";
 import { calcUniqueUsers } from "./calc-unique-users";
 import CategoryCard from "./category-card";
+import { DailyMessagesChart } from "./daily-messages-chart";
 import LanguageDistribution from "./language-distribution";
 import { NewCollectionModal } from "./new-collection-modal";
 import StatCard from "./stat-card";
@@ -235,6 +230,31 @@ export async function loader({ request }: Route.LoaderArgs) {
         totalGroupCitations > 0 ? (group.count / totalGroupCitations) * 100 : 0,
     }));
 
+  const avgUserLifetime =
+    allUniqueUsers.length > 0
+      ? allUniqueUsers.reduce(
+          (acc, curr) =>
+            acc +
+            Math.max(
+              curr.lastAsked.getTime() - curr.firstAsked.getTime(),
+              1000 * 60 * 60 * 24
+            ),
+          0
+        ) / allUniqueUsers.length
+      : 0;
+
+  const avgQuestionsPerUser =
+    allUniqueUsers.length > 0
+      ? allUniqueUsers.reduce((acc, curr) => acc + curr.questionsCount, 0) /
+        allUniqueUsers.length
+      : 0;
+
+  const totalLinksReferred = messages
+    .filter((m) => m.llmMessage?.role === "assistant")
+    .filter((m) => m.links)
+    .reduce((acc, curr) => acc + curr.links.length, 0);
+  const timeSaved = totalLinksReferred * 2;
+
   return {
     user,
     scrapeId,
@@ -248,6 +268,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     uniqueUsersCount: allUniqueUsers.length,
     days,
     topGroupsCited,
+    avgUserLifetime,
+    avgQuestionsPerUser,
+    timeSaved,
   };
 }
 
@@ -255,16 +278,6 @@ export function meta() {
   return makeMeta({
     title: "Home - CrawlChat",
   });
-}
-
-function parseCookies(cookieHeader: string) {
-  var cookies: Record<string, string> = {};
-  cookieHeader
-    .split(";")
-    .map((str) => str.replace("=", "\u0000").split("\u0000"))
-    .forEach((x) => (cookies[x[0].trim()] = x[1]));
-
-  return cookies;
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -395,197 +408,20 @@ const DATE_RANGE_OPTIONS = [
 
 export default function DashboardPage({ loaderData }: Route.ComponentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const canCreateCollection = useMemo(() => {
     if (loaderData.user?.plan?.subscriptionId) {
       return true;
     }
   }, [loaderData.user]);
-  const [chartData, categories] = useMemo(() => {
-    const data = [];
-    const today = new Date();
-    const DAY_MS = 1000 * 60 * 60 * 24;
-    const groupByMonth = loaderData.days > 60;
-
-    if (groupByMonth) {
-      const monthlyData: Record<string, Record<string, number | string>> = {};
-
-      const startDate = new Date(today.getTime() - loaderData.days * DAY_MS);
-      const startMonth = moment(startDate).startOf("month");
-      const endMonth = moment(today).startOf("month");
-
-      for (
-        let m = startMonth.clone();
-        m.isSameOrBefore(endMonth);
-        m.add(1, "month")
-      ) {
-        const monthKey = m.format("YYYY-MM");
-        monthlyData[monthKey] = {
-          name: m.format("MMM YYYY"),
-          Questions: 0,
-          Unhappy: 0,
-          Other: 0,
-        };
-        for (const category of loaderData.scrape?.messageCategories ?? []) {
-          monthlyData[monthKey][category.title] = 0;
-        }
-      }
-
-      for (const [dayKey, item] of Object.entries(
-        loaderData.messagesSummary.dailyMessages
-      )) {
-        const monthKey = dayKey.substring(0, 7);
-        if (!monthlyData[monthKey]) continue;
-        monthlyData[monthKey].Questions =
-          (monthlyData[monthKey].Questions as number) + item.count;
-        monthlyData[monthKey].Unhappy =
-          (monthlyData[monthKey].Unhappy as number) + item.unhappy;
-        monthlyData[monthKey].Other =
-          (monthlyData[monthKey].Other as number) +
-          (item.categories["Other"] ?? 0);
-        for (const category of loaderData.scrape?.messageCategories ?? []) {
-          monthlyData[monthKey][category.title] =
-            (monthlyData[monthKey][category.title] as number) +
-            (item.categories[category.title] ?? 0);
-        }
-      }
-
-      const sortedKeys = Object.keys(monthlyData).sort();
-      for (const key of sortedKeys) {
-        data.push(monthlyData[key]);
-      }
-    } else {
-      for (let i = 0; i < loaderData.days; i++) {
-        const date = new Date(today.getTime() - i * DAY_MS);
-        const key = date.toISOString().split("T")[0];
-        const name = moment(date).format("MMM D");
-
-        const item = loaderData.messagesSummary.dailyMessages[key];
-
-        const record: Record<string, number | string> = {
-          name,
-          Questions: item?.count ?? 0,
-          Unhappy: item?.unhappy ?? 0,
-          Other: item?.categories["Other"] ?? 0,
-        };
-
-        for (const category of loaderData.scrape?.messageCategories ?? []) {
-          record[category.title] = item?.categories[category.title] ?? 0;
-        }
-
-        data.push(record);
-      }
-
-      data.reverse();
-    }
-
-    const categories = new Set<string>(["Other"]);
-    for (const category of loaderData.scrape?.messageCategories ?? []) {
-      categories.add(category.title);
-    }
-
-    return [data, categories];
-  }, [loaderData.messagesSummary.dailyMessages, loaderData.days]);
 
   const [tagsOrder, setTagsOrder] = useState<"top" | "latest">("top");
-  const tags = useMemo(() => {
-    const sortedTags = Object.entries(loaderData.messagesSummary.tags).sort(
-      (a, b) => {
-        return b[1].count - a[1].count;
-      }
-    );
-
-    if (tagsOrder === "latest") {
-      sortedTags.sort((a, b) => {
-        return b[1].latestDate.getTime() - a[1].latestDate.getTime();
-      });
-    }
-
-    return sortedTags
-      .slice(0, 20)
-      .map(([title, d]) => ({ title, count: d.count }));
-  }, [loaderData.messagesSummary.tags, tagsOrder]);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      setWidth(containerRef.current.clientWidth - 10);
-    }
-  }, [containerRef, loaderData]);
 
   useEffect(() => {
     if (loaderData.noScrapes && canCreateCollection) {
       showModal("new-collection-dialog");
     }
   }, [loaderData.noScrapes, canCreateCollection]);
-
-  function renderTick(props: {
-    x: number;
-    y: number;
-    payload: { value: string };
-  }) {
-    return (
-      <text
-        x={props.x}
-        y={props.y + 4}
-        dy={16}
-        textAnchor="middle"
-        fill="var(--color-primary)"
-        fontSize={12}
-      >
-        {props.payload.value}
-      </text>
-    );
-  }
-
-  function renderTooltip(props: {
-    label?: string;
-    payload?: Payload<number, string>[] | undefined;
-  }) {
-    return (
-      <div className="bg-base-200 border border-base-300 rounded-box">
-        <div className="p-2 px-3 border-b border-base-300 text-xs font-medium opacity-80">
-          {props.label}
-        </div>
-        <ul className="flex flex-col gap-1 p-2">
-          {props.payload?.map((item) => {
-            if (item.value === 0) {
-              return null;
-            }
-
-            const index = Array.from(categories).indexOf(item.name ?? "");
-            const color = BRIGHT_COLORS[index % BRIGHT_COLORS.length];
-            return (
-              <li
-                key={item.name}
-                className="flex items-center gap-6 justify-between"
-              >
-                <div className="flex items-center gap-1">
-                  <div
-                    className="w-3 h-3 rounded"
-                    style={{
-                      backgroundColor: color ?? "red",
-                    }}
-                  />
-                  <span className="text-sm">{item.name}</span>
-                </div>
-                <span
-                  className={cn(
-                    "min-w-5 h-5 px-1 text-sm flex items-center justify-center rounded-full",
-                    item.name === "Unhappy"
-                      ? "bg-error text-error-content"
-                      : "bg-primary text-primary-content"
-                  )}
-                >
-                  {item.value}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    );
-  }
 
   return (
     <Page
@@ -676,94 +512,72 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
       {!loaderData.noScrapes && (
         <div className="h-full gap-4 flex flex-col" ref={containerRef}>
-          <div className="flex flex-col justify-stretch md:flex-row gap-4 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <StatCard
               label="Today"
               value={loaderData.messagesSummary.messagesToday}
-              icon={<TbMessage />}
+              icon={<TbMessage2Bolt />}
+              tooltip="Questions asked today"
             />
             <StatCard
               label="Total"
               value={loaderData.messagesSummary.messagesCount}
-              icon={<TbMessage />}
+              icon={<TbMessage2Up />}
+              tooltip="Total questions asked in the period"
             />
-
             <StatCard
               label="Not helpful"
               value={loaderData.messagesSummary.ratingDownCount}
               icon={<TbThumbDown />}
+              tooltip="Answers with 👎"
             />
-          </div>
-
-          <div className="flex flex-col justify-stretch md:flex-row gap-4 items-center">
             <StatCard
               label="Users"
               value={loaderData.uniqueUsersCount}
               icon={<TbUser />}
+              tooltip="Unique users in the period"
+            />
+            <StatCard
+              label="Questions per user"
+              value={loaderData.avgQuestionsPerUser}
+              icon={<TbMessage2Heart />}
+              tooltip="Averaged number"
+            />
+            <StatCard
+              label="Avg user lifetime"
+              icon={<TbClock />}
+              suffix={`${Math.round(loaderData.avgUserLifetime / (1000 * 60 * 60 * 24))} d`}
+              tooltip="Days from first to last question"
+            />
+            <StatCard
+              label="Time saved"
+              icon={<TbClockShield />}
+              suffix={`${Math.round(loaderData.timeSaved / (1000 * 60 * 60))} h`}
+              tooltip="Human hours saved based on the number of pages referred to answer the questions"
             />
             <StatCard
               label="Happy"
               value={Math.round(loaderData.messagesSummary.happyPct * 100)}
-              icon={
-                <span className="text-success">
-                  <TbMoodHappy />
-                </span>
-              }
+              icon={<TbMoodHappy />}
               suffix="%"
+              tooltip="Questions with happy sentiment"
             />
             <StatCard
               label="Sad"
               value={Math.round(loaderData.messagesSummary.sadPct * 100)}
-              icon={
-                <span className="text-error">
-                  <TbMoodCry />
-                </span>
-              }
+              icon={<TbMoodCry />}
               suffix="%"
+              tooltip="Questions with sad sentiment"
             />
             <StatCard
               label="Resolved"
               value={loaderData.messagesSummary.resolvedCount}
-              icon={
-                <span className="text-primary">
-                  <TbConfetti />
-                </span>
-              }
+              icon={<TbConfetti />}
+              tooltip="Questions resolved"
             />
           </div>
 
-          <div
-            className={cn(
-              "rounded-box overflow-hidden",
-              "p-4 bg-base-100 border border-base-300"
-            )}
-          >
-            <ComposedChart width={width - 24} height={260} data={chartData}>
-              <XAxis
-                dataKey="name"
-                interval={"preserveStartEnd"}
-                tick={renderTick}
-              />
-              <Tooltip content={renderTooltip} />
-              <CartesianGrid strokeDasharray="6 6" vertical={false} />
-              {Array.from(categories).map((category, i) => (
-                <Bar
-                  key={category}
-                  type="monotone"
-                  dataKey={category}
-                  fill={BRIGHT_COLORS[i % BRIGHT_COLORS.length]}
-                  barSize={30}
-                  stackId="a"
-                />
-              ))}
-              <Line
-                type="monotone"
-                dataKey="Unhappy"
-                stroke={"var(--color-error)"}
-                dot={false}
-              />
-            </ComposedChart>
-          </div>
+          <DailyMessagesChart containerRef={containerRef} />
 
           {loaderData.categoriesSummary &&
             loaderData.categoriesSummary.length > 0 && (
@@ -782,14 +596,14 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-          {loaderData.topItems && loaderData.topItems.length > 0 && (
+          {loaderData.topItems && loaderData.topItems.length > 0 ? (
             <div>
               <Heading>Top cited pages</Heading>
               <TopPages topItems={loaderData.topItems} />
             </div>
-          )}
+          ) : null}
 
-          {loaderData.uniqueUsers.length > 0 && (
+          {loaderData.uniqueUsers.length > 0 ? (
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Heading className="mb-0">Users</Heading>
@@ -799,9 +613,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               </div>
               <UniqueUsers users={loaderData.uniqueUsers} />
             </div>
-          )}
+          ) : null}
 
-          {tags.length > 0 && (
+          {Object.keys(loaderData.messagesSummary.tags).length > 0 ? (
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Heading className="mb-0">Tags</Heading>
@@ -816,9 +630,9 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   <option value="latest">Latest</option>
                 </select>
               </div>
-              <Tags tags={tags} />
+              <Tags tagsOrder={tagsOrder} />
             </div>
-          )}
+          ) : null}
 
           <div className="flex flex-col md:flex-row gap-4">
             {Object.keys(loaderData.messagesSummary.languagesDistribution)
@@ -831,12 +645,12 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               </div>
             )}
             {loaderData.topGroupsCited &&
-              loaderData.topGroupsCited.length > 0 && (
-                <div className="flex-1">
-                  <Heading>Top cited groups</Heading>
-                  <TopCitedGroups topGroupsCited={loaderData.topGroupsCited} />
-                </div>
-              )}
+            loaderData.topGroupsCited.length > 0 ? (
+              <div className="flex-1">
+                <Heading>Top cited groups</Heading>
+                <TopCitedGroups topGroupsCited={loaderData.topGroupsCited} />
+              </div>
+            ) : null}
           </div>
         </div>
       )}

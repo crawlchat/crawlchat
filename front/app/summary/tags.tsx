@@ -1,6 +1,8 @@
 import cn from "@meltdownjs/cn";
+import { useMemo } from "react";
 import { TbX } from "react-icons/tb";
-import { useFetcher } from "react-router";
+import { useFetcher, useLoaderData } from "react-router";
+import type { loader } from "./page";
 
 function Tag({ title, count }: { title: string; count: number }) {
   const fetcher = useFetcher();
@@ -39,11 +41,27 @@ function Tag({ title, count }: { title: string; count: number }) {
   );
 }
 
-export default function Tags({
-  tags,
-}: {
-  tags: Array<{ title: string; count: number }>;
-}) {
+export default function Tags({ tagsOrder }: { tagsOrder: "top" | "latest" }) {
+  const loaderData = useLoaderData<typeof loader>();
+
+  const tags = useMemo(() => {
+    const sortedTags = Object.entries(loaderData.messagesSummary.tags).sort(
+      (a, b) => {
+        return b[1].count - a[1].count;
+      }
+    );
+
+    if (tagsOrder === "latest") {
+      sortedTags.sort((a, b) => {
+        return b[1].latestDate.getTime() - a[1].latestDate.getTime();
+      });
+    }
+
+    return sortedTags
+      .slice(0, 20)
+      .map(([title, d]) => ({ title, count: d.count }));
+  }, [loaderData.messagesSummary.tags, tagsOrder]);
+
   return (
     <div className={cn("flex flex-row flex-wrap gap-2")}>
       {tags.map((tag) => (

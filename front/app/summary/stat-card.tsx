@@ -6,25 +6,29 @@ export default function StatCard({
   value,
   icon,
   suffix,
+  tooltip,
 }: {
   label: string;
-  value: number;
+  value?: number;
   icon: React.ReactNode;
   suffix?: string;
+  tooltip?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "stats flex-1 bg-base-100 w-full",
-        "border border-base-300 rounded-box"
-      )}
-    >
-      <div className="stat">
-        <div className="stat-figure text-4xl">{icon}</div>
-        <div className="stat-title">{label}</div>
-        <div className="stat-value">
-          {numberToKMB(value)}
-          {suffix}
+    <div className="tooltip tooltip-bottom" data-tip={tooltip}>
+      <div
+        className={cn(
+          "stats flex-1 bg-base-100 w-full",
+          "border border-base-300 rounded-box"
+        )}
+      >
+        <div className="stat">
+          <div className="stat-figure text-3xl opacity-50">{icon}</div>
+          <div className="stat-title">{label}</div>
+          <div className="stat-value">
+            {value !== undefined ? numberToKMB(value) : ""}
+            {suffix}
+          </div>
         </div>
       </div>
     </div>

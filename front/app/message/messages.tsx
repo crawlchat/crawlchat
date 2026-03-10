@@ -444,7 +444,6 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                   <tr>
                     <th>Question</th>
                     <th>Details</th>
-                    <th>Channel</th>
                     <th>Category</th>
                     <th className="text-end">Time</th>
                   </tr>
@@ -492,6 +491,11 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                               </RouterLink>
                             </div>
                           )}
+
+                          <ChannelBadge
+                            channel={pair.queryMessage?.channel}
+                            onlyIcon
+                          />
 
                           {pair.responseMessage?.analysis?.resolved && (
                             <div className="tooltip" data-tip="Resolved">
@@ -554,12 +558,6 @@ export default function MessagesLayout({ loaderData }: Route.ComponentProps) {
                             />
                           )}
                         </div>
-                      </td>
-                      <td className="w-10">
-                        <ChannelBadge
-                          channel={pair.queryMessage?.channel}
-                          onlyIcon
-                        />
                       </td>
                       <td className="min-w-12">
                         <div className="flex items-center gap-2">
