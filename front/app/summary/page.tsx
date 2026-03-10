@@ -542,18 +542,23 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               value={loaderData.avgQuestionsPerUser}
               icon={<TbMessage2Heart />}
               tooltip="Averaged number"
+              toFixed={1}
             />
             <StatCard
               label="Avg user lifetime"
               icon={<TbClock />}
-              suffix={`${Math.round(loaderData.avgUserLifetime / (1000 * 60 * 60 * 24))} d`}
+              value={loaderData.avgUserLifetime / (1000 * 60 * 60 * 24)}
+              suffix={"d"}
               tooltip="Days from first to last question"
+              toFixed={1}
             />
             <StatCard
               label="Time saved"
               icon={<TbClockShield />}
-              suffix={`${Math.round(loaderData.timeSaved / (1000 * 60 * 60))} h`}
+              value={loaderData.timeSaved / 60}
+              suffix={"h"}
               tooltip="Human hours saved based on the number of pages referred to answer the questions"
+              toFixed={1}
             />
             <StatCard
               label="Happy"
