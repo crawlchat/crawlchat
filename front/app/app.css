@@ -27,9 +27,9 @@
   --color-warning-content: oklch(98% 0.026 102.212);
   --color-error: oklch(64% 0.246 16.439);
   --color-error-content: oklch(96% 0.015 12.422);
-  --radius-selector: 0rem;
-  --radius-field: 0rem;
-  --radius-box: 0rem;
+  --radius-selector: 0.4rem;
+  --radius-field: 0.4rem;
+  --radius-box: 0.4rem;
   --size-selector: 0.25rem;
   --size-field: 0.25rem;
   --border: 2px;
@@ -109,7 +109,9 @@
 }
 
 .font-brand {
-  font-family: "IBM Plex Mono", monospace;
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
 }
 
 .widget-highlighter {
@@ -448,8 +450,4 @@
     url("/fonts/Radio Grotesk/PPRadioGrotesk-BlackItalic.woff") format("woff");
   font-weight: 900;
   font-style: italic;
-}
-
-#crawlchat-ask-ai-button {
-  border-radius: 0px !important;
 }

@@ -1,12 +1,6 @@
 import cn from "@meltdownjs/cn";
 import { useMemo, type PropsWithChildren } from "react";
-import {
-  TbArrowRight,
-  TbCalendar,
-  TbCheck,
-  TbCircleFilled,
-  TbX,
-} from "react-icons/tb";
+import { TbArrowRight, TbCheck, TbCircleFilled, TbX } from "react-icons/tb";
 import { Link, redirect, useLoaderData } from "react-router";
 import { makeMeta } from "~/meta";
 import { ChannelCard, Container, SourceCard } from "../page";
@@ -153,7 +147,7 @@ export default function CaseStudyLayout() {
           <div
             className={cn(
               "open-source-bg border border-primary/20 shadow",
-              "p-4 rounded-box flex flex-col gap-2"
+              "p-6 rounded-box flex flex-col gap-2"
             )}
           >
             <h3 className={cn("text-2xl font-medium font-brand text-primary")}>
@@ -168,14 +162,6 @@ export default function CaseStudyLayout() {
                 Start free trial
                 <TbArrowRight />
               </Link>
-              <a
-                href="https://cal.com/crawlchat/demo"
-                target="_blank"
-                className="btn btn-primary btn-outline btn-lg"
-              >
-                Book a demo
-                <TbCalendar />
-              </a>
             </p>
           </div>
         </div>

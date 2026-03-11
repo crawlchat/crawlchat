@@ -1,6 +1,5 @@
 import cn from "@meltdownjs/cn";
 import type { User } from "@packages/common/prisma";
-import { prisma } from "@packages/common/prisma";
 import {
   type Plan,
   allActivePlans,
@@ -23,13 +22,12 @@ import {
   TbBrandNotion,
   TbBrandSlack,
   TbBrandX,
-  TbCalendar,
   TbChartBar,
   TbChartBarOff,
-  TbCheck,
   TbChevronDown,
   TbChevronRight,
   TbChevronUp,
+  TbCircleCheck,
   TbCircleCheckFilled,
   TbCircleFilled,
   TbCircleXFilled,
@@ -75,7 +73,6 @@ import { numberToKMB } from "~/components/number-util";
 import { track } from "~/components/track";
 import { makeMeta } from "~/meta";
 import { planProductIdMap, productIdTopupMap } from "~/payment/gateway-dodo";
-import type { Route } from "./+types/page";
 
 export function meta() {
   return makeMeta({
@@ -85,65 +82,7 @@ export function meta() {
   });
 }
 
-const cache = {
-  messagesThisWeek: 0,
-  messagesDay: 0,
-  messagesMonth: 0,
-  updatedAt: 0,
-};
-
-export async function loader({ request }: Route.LoaderArgs) {
-  const MINS_5 = 5 * 60 * 1000;
-  const DAY = 24 * 60 * 60 * 1000;
-  const WEEK = 7 * DAY;
-  const MONTH = 30 * DAY;
-
-  const now = new Date();
-  const startOfWeek = new Date(now.getTime() - WEEK);
-  const startOfDay = new Date(now.getTime() - DAY);
-  const startOfMonth = new Date(now.getTime() - MONTH);
-
-  if (cache.updatedAt < now.getTime() - MINS_5) {
-    cache.messagesThisWeek = await prisma.message.count({
-      where: {
-        createdAt: {
-          gte: startOfWeek,
-        },
-        llmMessage: {
-          is: {
-            role: "assistant",
-          },
-        },
-      },
-    });
-
-    cache.messagesDay = await prisma.message.count({
-      where: {
-        createdAt: {
-          gte: startOfDay,
-        },
-        llmMessage: {
-          is: {
-            role: "assistant",
-          },
-        },
-      },
-    });
-
-    cache.messagesMonth = await prisma.message.count({
-      where: {
-        createdAt: {
-          gte: startOfMonth,
-        },
-        llmMessage: {
-          is: {
-            role: "assistant",
-          },
-        },
-      },
-    });
-  }
-
+export async function loader() {
   const focusChangelog = changelogCache
     .get()
     .filter((post) => post.tags?.includes("focus"))
@@ -155,9 +94,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   }));
 
   return {
-    messagesThisWeek: cache.messagesThisWeek,
-    messagesDay: cache.messagesDay,
-    messagesMonth: cache.messagesMonth,
     plans,
     focusChangelog,
     topupPlans: topupPlans.map((plan) => ({
@@ -188,6 +124,7 @@ function NavLink({
       href={href}
       className={cn(
         "hover:underline relative flex items-center gap-2",
+        "text-base-content/80 hover:text-base-content",
         className
       )}
     >
@@ -204,47 +141,6 @@ function NavLink({
         </div>
       )}
     </a>
-  );
-}
-
-function StatsItem({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex gap-4 py-6 px-6 items-center border-b border-base-300 last:border-b-0">
-      <div className="flex-1 flex">{label}</div>
-      <div className="text-5xl md:text-6xl font-bold font-brand">{value}</div>
-    </div>
-  );
-}
-
-function Stats({
-  messagesThisWeek,
-  messagesDay,
-  messagesMonth,
-}: {
-  messagesThisWeek: number;
-  messagesDay: number;
-  messagesMonth: number;
-}) {
-  return (
-    <div className="flex flex-col md:flex-row gap-8 w-full mt-16 md:items-center">
-      <div className="flex-1 flex flex-col gap-10">
-        <div className="text-md md:text-xl font-medium px-6 py-3 shadow-md rounded-box bg-base-100 w-fit flex items-center gap-4 -rotate-[4deg]">
-          <div className="w-3 h-3 bg-green-500 rounded-box outline-2 outline-green-300" />
-          Serving the community
-        </div>
-        <h3 className="text-4xl md:text-5xl font-brand font-bold leading-[1.2]">
-          Answering <br />
-          <span className="text-primary">questions</span> <br />
-          continuously
-        </h3>
-      </div>
-
-      <div className="flex-1 bg-base-100 rounded-box border border-base-300">
-        <StatsItem label="Today" value={messagesDay} />
-        <StatsItem label="In the last week" value={messagesThisWeek} />
-        <StatsItem label="In the last month" value={messagesMonth} />
-      </div>
-    </div>
   );
 }
 
@@ -344,7 +240,7 @@ export function UsedBy() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h3 className="text-center text-xl font-medium opacity-50">
+      <h3 className="text-center text-xl opacity-50">
         Trusted by leading companies
       </h3>
 
@@ -369,7 +265,13 @@ export function UsedBy() {
 
 export function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className="text-center text-4xl md:text-5xl max-w-[300px] md:max-w-[640px] mx-auto font-brand leading-[1.3]">
+    <h3
+      className={cn(
+        "text-center text-4xl md:text-5xl",
+        "max-w-[300px] md:max-w-[640px] mx-auto",
+        "font-brand leading-[1.3]"
+      )}
+    >
       {children}
     </h3>
   );
@@ -385,7 +287,12 @@ export function HeadingHighlight({ children }: PropsWithChildren) {
 
 export function HeadingDescription({ children }: PropsWithChildren) {
   return (
-    <p className="text-center text-xl font-medium max-w-[760px] mx-auto py-8 opacity-60">
+    <p
+      className={cn(
+        "text-center text-xl",
+        "max-w-[760px] mx-auto py-8 opacity-60"
+      )}
+    >
       {children}
     </p>
   );
@@ -411,7 +318,7 @@ function WorksStep({
       </div>
 
       <h4 className="text-2xl font-brand">{title}</h4>
-      <p className="text-center text-lg">{children}</p>
+      <p className="text-center text-lg text-base-content/80">{children}</p>
     </div>
   );
 }
@@ -537,7 +444,8 @@ function ClickableFeature({
   return (
     <div
       className={cn(
-        "rounded-box p-4 border border-transparent hover:border-base-300 gap-2 flex flex-col",
+        "rounded-box p-4 border border-transparent",
+        "hover:border-base-300 gap-2 flex flex-col",
         "cursor-pointer",
         active && "bg-base-300/50 hover:border-transparent"
       )}
@@ -548,7 +456,7 @@ function ClickableFeature({
         {img && <img src={img} alt={title} className="w-6 h-6" />}
         {title}
       </h3>
-      <p className="opacity-50 font-medium leading-tight">{description}</p>
+      <p className="opacity-50">{description}</p>
     </div>
   );
 }
@@ -1037,22 +945,6 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
         You need to be on a paid plan first to topup credits. Credits don't roll
         over to next month.
       </div>
-
-      <div className="my-20 flex flex-col items-center">
-        <Heading>Still not sure?</Heading>
-        <HeadingDescription>
-          Book a demo with the maker - Pramod and understand how CrawlChat can
-          help you steamline your documentation and support processes
-        </HeadingDescription>
-        <Link
-          to="https://cal.com/crawlchat/demo"
-          target="_blank"
-          className="btn btn-primary btn-outline btn-xl w-full md:w-auto"
-        >
-          Book a demo
-          <TbCalendar />
-        </Link>
-      </div>
     </div>
   );
 }
@@ -1102,7 +994,7 @@ export function Footer() {
     <footer className="bg-base-200/50 border-t border-base-300">
       <Container>
         <div className="py-8 flex flex-col md:flex-row gap-8">
-          <div className="flex-[2] flex flex-col gap-4">
+          <div className="flex-2 flex flex-col gap-4">
             <Logo />
             <p className="font-medium text-base-content/50 font-brand italic">
               Power up your tech documentation with AI
@@ -1113,7 +1005,7 @@ export function Footer() {
               <a
                 href="https://x.com/pramodk73"
                 target="_blank"
-                className="rounded-box"
+                className="rounded-box overflow-hidden"
               >
                 <img
                   src="/pramod.jpg"
@@ -1123,50 +1015,7 @@ export function Footer() {
               </a>
             </p>
           </div>
-          <div className="flex-[2]">
-            <div className="mb-8">
-              <h3 className="text-sm opacity-50 mb-2">Trusted by</h3>
-              <div className="flex items-center gap-4 flex-wrap">
-                <img
-                  src="/used-by/remotion.png"
-                  alt="Remotion"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <img
-                  src="/used-by/konvajs.png"
-                  alt="Konva"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <img
-                  src="/used-by/270logo.svg"
-                  alt="270Degrees"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <img
-                  src="/used-by/polotno.png"
-                  alt="Polotno"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <img
-                  src="/used-by/backpack-laravel.png"
-                  alt="Backpack for Laravel"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <div className="bg-black px-2 rounded-full">
-                  <img
-                    src="/used-by/postiz.svg"
-                    alt="Postiz"
-                    className="max-h-4 inline-block grayscale"
-                  />
-                </div>
-                <img
-                  src="/used-by/nobl9.png"
-                  alt="Nobl9"
-                  className="max-h-6 inline-block grayscale"
-                />
-              </div>
-            </div>
-
+          <div className="flex-2">
             <ul className="flex flex-col gap-4">
               <li>
                 <FooterLink href="/compare/crawlchat-vs-kapaai">
@@ -1304,7 +1153,10 @@ function CaseStudyDropdown() {
       <div
         tabIndex={0}
         role="button"
-        className="flex items-center gap-2 cursor-pointer"
+        className={cn(
+          "flex items-center gap-2 cursor-pointer",
+          "text-base-content/80 hover:text-base-content"
+        )}
       >
         Case studies
         <TbChevronDown />
@@ -1435,7 +1287,10 @@ function UseCasesDropdown() {
       <div
         tabIndex={0}
         role="button"
-        className="flex items-center gap-2 cursor-pointer"
+        className={cn(
+          "flex items-center gap-2 cursor-pointer",
+          "text-base-content/80 hover:text-base-content"
+        )}
       >
         Use cases
         <TbChevronDown />
@@ -1489,19 +1344,34 @@ export function Nav({
   user?: User | null;
   githubStars?: number;
 }) {
+  const [isIsland, setIsIsland] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setIsIsland(window.scrollY > 24);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div
       className={cn(
-        "backdrop-blur-2xl",
         "sticky top-0 z-20",
-        "border-b border-accent/20"
+        "transition-all duration-300",
+        isIsland ? "px-3 pt-3 md:px-4" : ""
       )}
     >
       <nav
         className={cn(
           "flex items-center justify-between gap-2",
-          "max-w-[1200px] mx-auto",
-          "px-8 md:px-10 py-4"
+          "mx-auto max-w-[1200px]",
+          "px-8 md:px-10 py-4",
+          "transition-all duration-300",
+          isIsland && "rounded-3xl border border-base-300",
+          isIsland && "bg-base-100/85 shadow-md backdrop-blur-2xl"
         )}
       >
         <Link to="/">
@@ -1547,7 +1417,7 @@ export function Nav({
             </div>
           )}
           {user && (
-            <a href="/app" className="btn btn-primary hidden md:flex">
+            <a href="/app" className="btn btn-primary btn-soft hidden md:flex">
               Dashboard
               <TbArrowRight />
             </a>
@@ -1567,127 +1437,92 @@ function Hero() {
 
   const features = [
     {
-      text: "Works on your website, Discord, and Slack, or MCP",
-      icon: <TbCode />,
+      text: "Build knowledge base",
     },
     {
-      text: "Strong citations for your users and analytics to improve your docs",
-      icon: <TbChartBar />,
+      text: "Integrate chatbot",
     },
     {
-      text: "Automatically creates support tickets when AI can't help",
-      icon: <TbRobotFace />,
-    },
-  ];
-
-  const channels = [
-    {
-      icon: <TbWorld />,
-      tooltip: "Embed on your website",
+      text: "Observe",
     },
     {
-      icon: <TbBrandDiscord />,
-      tooltip: "Add as Discord bot on your server",
-    },
-    {
-      icon: <TbBrandSlack />,
-      tooltip: "Add as Slack bot on your workspace",
-    },
-    {
-      icon: <TbBrandGithub />,
-      tooltip:
-        "Add as GitHub bot to answer questions in discussions and issues",
-    },
-    {
-      icon: <MCPIcon />,
-      tooltip: "Distribute your docs as an MCP server",
-    },
-    {
-      icon: <TbCode />,
-      tooltip: "Integrate with your workflows using API",
+      text: "Customise",
     },
   ];
 
   return (
     <div
       className={cn(
-        "flex gap-10 md:gap-14 mb-10 flex-col md:flex-row py-2 md:mt-8"
+        "flex mb-10 flex-col py-2 md:mt-8",
+        "justify-center items-center",
+        "max-w-[800px] mx-auto"
       )}
     >
-      <div className={cn("flex flex-col flex-[1.4] z-10")}>
-        {focusChangelog && (
-          <a
-            className="mb-4 cursor-pointer hover:scale-[1.02] transition-all w-fit"
-            href={`/changelog/${focusChangelog.slug}`}
-          >
-            <div className="bg-red-50 text-sm px-1.5 py-1 rounded-box flex items-center gap-2 pr-2 border border-red-300 text-red-700">
-              <span className="px-2 bg-red-200 rounded-box font-medium border border-red-300">
-                NEW
-              </span>
-              <span className="leading-none">{focusChangelog.title}</span>
-              <span>
-                <TbChevronRight />
-              </span>
-            </div>
-          </a>
-        )}
-
-        <h1 className="font-brand text-[36px] md:text-[62px] leading-[1.2]">
-          Power up your documentation with{" "}
-          <span className="text-accent whitespace-nowrap">AI</span>
-        </h1>
-
-        <p className="md:text-xl mt-6 font-brand italic text-base-content/50">
-          Add an AI chatbot to your documentation website. Users can ask
-          questions and get instant answers from your docs with citations.
-        </p>
-
-        <ul className="mt-6 flex flex-col gap-2">
-          {features.map((feature, index) => (
-            <li key={index} className="flex gap-2 items-start">
-              <div className="text-primary rounded-box p-1 mt-0.5">
-                <TbCheck size={20} />
-              </div>
-              <span className="md:text-lg">{feature.text}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div
-          className={cn(
-            "flex gap-4 mt-8 mb-4 flex-wrap",
-            "flex-col sm:flex-row"
-          )}
+      {focusChangelog && (
+        <a
+          className="mb-4 cursor-pointer hover:scale-[1.02] transition-all w-fit"
+          href={`/changelog/${focusChangelog.slug}`}
         >
-          <Link to="/pricing" className="btn btn-primary btn-xl">
-            Start free trial
-            <TbArrowRight />
-          </Link>
           <div
-            className="tooltip"
-            data-tip="Connect with the maker - Pramod and understand how CrawlChat can help your business"
+            className={cn(
+              "bg-base-200 text-sm px-1.5 py-1 rounded-full",
+              "flex items-center gap-2 pr-2 border",
+              "border-base-300"
+            )}
           >
-            <Link
-              to="https://cal.com/crawlchat/demo"
-              target="_blank"
-              className="btn btn-primary btn-outline btn-xl w-full md:w-auto"
+            <span
+              className={cn(
+                "px-2 bg-base-300 rounded-box text-xs",
+                "border border-base-content/10"
+              )}
             >
-              Book a demo
-              <TbCalendar />
-            </Link>
+              NEW
+            </span>
+            <span className="leading-none">{focusChangelog.title}</span>
+            <span>
+              <TbChevronRight />
+            </span>
           </div>
-        </div>
-      </div>
+        </a>
+      )}
 
-      <div className="flex-1 flex-col mt-2">
-        <div className="relative animate-breath-y">
-          <div className="border-2 border-accent rounded-box overflow-hidden shadow">
-            <iframe
-              src="/w/crawlchat?theme=light"
-              className="w-full h-[560px]"
-            />
-          </div>
-        </div>
+      <h1
+        className={cn(
+          "font-brand text-[36px] md:text-[62px]",
+          "leading-[1.2] text-center"
+        )}
+      >
+        Power up your documentation with{" "}
+        <span className="text-accent whitespace-nowrap">AI</span>
+      </h1>
+
+      <p
+        className={cn(
+          "md:text-xl mt-6 font-brand",
+          "italic text-base-content/80",
+          "text-center"
+        )}
+      >
+        Add an AI chatbot to your documentation website. Users can ask questions
+        and get instant answers from your docs with citations.
+      </p>
+
+      <ul className="mt-6 flex gap-6 flex-wrap justify-center">
+        {features.map((feature, index) => (
+          <li key={index} className="flex gap-2 items-center opacity-50">
+            <TbCircleCheck size={20} />
+            <span className="md:text-lg">{feature.text}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div
+        className={cn("flex gap-4 mt-8 mb-4 flex-wrap", "flex-col sm:flex-row")}
+      >
+        <Link to="/pricing" className="btn btn-primary btn-xl">
+          Start free trial
+          <TbArrowRight />
+        </Link>
       </div>
     </div>
   );
@@ -1718,10 +1553,10 @@ export function CustomTestimonial({
   authorCompany: string;
 }) {
   return (
-    <div className={cn("border border-base-300", "p-6 group")}>
+    <div className={cn("border border-base-300 rounded-box", "p-6 group")}>
       <p
         className={cn(
-          "font-brand text-center text-base-content/60",
+          "text-center text-base-content/80",
           "group-hover:text-base-content"
         )}
       >
@@ -2229,14 +2064,6 @@ function Gallery() {
       new: true,
       autoPlay: false,
     },
-    // {
-    //   title: "Demo",
-    //   video:
-    //     "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/landing-page-demo.mp4",
-    //   poster:
-    //     "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/landing-page-demo-poster.png",
-    //   icon: <TbVideo />,
-    // },
     {
       title: "Add your docs",
       img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/gallery/add-knowledge-group-v2.png",
@@ -2309,7 +2136,7 @@ function Gallery() {
             className={cn(
               "flex items-center p-1 rounded-box w-fit px-3 text-sm gap-1",
               "transition-all duration-200 cursor-pointer relative",
-              activeStep === index && "bg-primary text-primary-content",
+              activeStep === index && "bg-primary/10 text-primary",
               activeStep !== index && "hover:bg-base-300",
               isLoading && "opacity-50 cursor-not-allowed"
             )}
@@ -2344,8 +2171,8 @@ function Gallery() {
         {steps[activeStep].img && isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-base-100 bg-opacity-50 z-10">
             <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-box h-12 w-12 border-b-2 border-primary"></div>
-              <p className="text-lg font-medium opacity-70">Loading...</p>
+              <span className="loading loading-spinner loading-lg" />
+              <p className="text-lg opacity-70">Loading...</p>
             </div>
           </div>
         )}
@@ -2613,79 +2440,6 @@ function SourcesChannels() {
   );
 }
 
-function SecondaryCTA({
-  title,
-  description,
-  icon,
-  href,
-  ctaLabel,
-}: {
-  title: string;
-  description: string;
-  icon: ReactNode;
-  href: string;
-  ctaLabel: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "border border-primary/20 rounded-box overflow-hidden flex-1"
-      )}
-    >
-      <div
-        className={cn(
-          "p-4 border-b border-primary/20",
-          "bg-gradient-to-br from-primary/5 to-primary/10"
-        )}
-      >
-        <h3 className="text-2xl font-medium font-brand">{title}</h3>
-        <p className="text-base-content/50">{description}</p>
-      </div>
-      <div
-        className={cn(
-          "p-4 flex justify-between items-center w-full",
-          "bg-gradient-to-r from-primary/20 to-primary/5",
-          "overflow-hidden"
-        )}
-      >
-        <div
-          className={cn(
-            "text-4xl text-primary scale-400 -rotate-20",
-            "overflow-hidden opacity-10"
-          )}
-        >
-          {icon}
-        </div>
-        <Link to={href} className="btn btn-primary">
-          {ctaLabel}
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function SecondaryCTAs() {
-  return (
-    <div className="flex flex-col items-center md:flex-row gap-4 justify-center">
-      <SecondaryCTA
-        title="Join on Discord"
-        description="Interested? Join the Discord server to get updates and find out more about the product from the community."
-        icon={<TbBrandDiscord />}
-        href="https://discord.gg/zW3YmCRJkC"
-        ctaLabel="Join now"
-      />
-
-      <SecondaryCTA
-        title="Chrome extension"
-        description="Generate text content from your documentation directly in any text field across the web. Write support emails or product descriptions instantly."
-        icon={<TbBrandChrome />}
-        href="https://chromewebstore.google.com/detail/crawlchat/icimflpdiioobolkjdbldmmomflainie"
-        ctaLabel="Install now"
-      />
-    </div>
-  );
-}
-
 function PricingFeature({
   icon,
   title,
@@ -2877,7 +2631,7 @@ function BentoCard({
       )}
     >
       <div className="text-3xl text-accent">{icon}</div>
-      <h4 className="text-xl font-brand">{title}</h4>
+      <h4 className="text-xl font-brand font-medium">{title}</h4>
       <p className="text-base-content/70 leading-relaxed">{description}</p>
     </div>
   );
@@ -3004,23 +2758,9 @@ export function OpenSource() {
   );
 }
 
-export default function Landing({ loaderData }: Route.ComponentProps) {
+export default function Landing() {
   return (
     <>
-      <div
-        className={cn(
-          "bg-gradient-to-b from-accent/20 to-base-100",
-          "absolute top-0 left-0 w-full h-[600px]"
-        )}
-      />
-      <div
-        className={cn(
-          "absolute top-0 left-0 w-full h-[600px]",
-          "hero-bg-pattern",
-          "[mask-image:linear-gradient(to_bottom,black,transparent)]"
-        )}
-      />
-
       <Container>
         <Hero />
       </Container>
@@ -3053,14 +2793,6 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
         <ChannelDiscord />
       </Container>
 
-      {/* <Container>
-        <Stats
-          messagesThisWeek={loaderData.messagesThisWeek}
-          messagesDay={loaderData.messagesDay}
-          messagesMonth={loaderData.messagesMonth}
-        />
-      </Container> */}
-
       <Container>
         <Why />
       </Container>
@@ -3076,10 +2808,6 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
       <Container>
         <PricingFeatures />
       </Container>
-
-      {/* <Container>
-        <SecondaryCTAs />
-      </Container> */}
 
       <SourcesChannels />
 
