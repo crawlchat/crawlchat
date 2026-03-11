@@ -1,6 +1,5 @@
 import cn from "@meltdownjs/cn";
 import type { User } from "@packages/common/prisma";
-import { prisma } from "@packages/common/prisma";
 import {
   type Plan,
   allActivePlans,
@@ -74,7 +73,6 @@ import { numberToKMB } from "~/components/number-util";
 import { track } from "~/components/track";
 import { makeMeta } from "~/meta";
 import { planProductIdMap, productIdTopupMap } from "~/payment/gateway-dodo";
-import type { Route } from "./+types/page";
 
 export function meta() {
   return makeMeta({
@@ -84,65 +82,7 @@ export function meta() {
   });
 }
 
-const cache = {
-  messagesThisWeek: 0,
-  messagesDay: 0,
-  messagesMonth: 0,
-  updatedAt: 0,
-};
-
-export async function loader({ request }: Route.LoaderArgs) {
-  const MINS_5 = 5 * 60 * 1000;
-  const DAY = 24 * 60 * 60 * 1000;
-  const WEEK = 7 * DAY;
-  const MONTH = 30 * DAY;
-
-  const now = new Date();
-  const startOfWeek = new Date(now.getTime() - WEEK);
-  const startOfDay = new Date(now.getTime() - DAY);
-  const startOfMonth = new Date(now.getTime() - MONTH);
-
-  if (cache.updatedAt < now.getTime() - MINS_5) {
-    cache.messagesThisWeek = await prisma.message.count({
-      where: {
-        createdAt: {
-          gte: startOfWeek,
-        },
-        llmMessage: {
-          is: {
-            role: "assistant",
-          },
-        },
-      },
-    });
-
-    cache.messagesDay = await prisma.message.count({
-      where: {
-        createdAt: {
-          gte: startOfDay,
-        },
-        llmMessage: {
-          is: {
-            role: "assistant",
-          },
-        },
-      },
-    });
-
-    cache.messagesMonth = await prisma.message.count({
-      where: {
-        createdAt: {
-          gte: startOfMonth,
-        },
-        llmMessage: {
-          is: {
-            role: "assistant",
-          },
-        },
-      },
-    });
-  }
-
+export async function loader() {
   const focusChangelog = changelogCache
     .get()
     .filter((post) => post.tags?.includes("focus"))
@@ -154,9 +94,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   }));
 
   return {
-    messagesThisWeek: cache.messagesThisWeek,
-    messagesDay: cache.messagesDay,
-    messagesMonth: cache.messagesMonth,
     plans,
     focusChangelog,
     topupPlans: topupPlans.map((plan) => ({
@@ -187,6 +124,7 @@ function NavLink({
       href={href}
       className={cn(
         "hover:underline relative flex items-center gap-2",
+        "text-base-content/80 hover:text-base-content",
         className
       )}
     >
@@ -203,47 +141,6 @@ function NavLink({
         </div>
       )}
     </a>
-  );
-}
-
-function StatsItem({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex gap-4 py-6 px-6 items-center border-b border-base-300 last:border-b-0">
-      <div className="flex-1 flex">{label}</div>
-      <div className="text-5xl md:text-6xl font-bold font-brand">{value}</div>
-    </div>
-  );
-}
-
-function Stats({
-  messagesThisWeek,
-  messagesDay,
-  messagesMonth,
-}: {
-  messagesThisWeek: number;
-  messagesDay: number;
-  messagesMonth: number;
-}) {
-  return (
-    <div className="flex flex-col md:flex-row gap-8 w-full mt-16 md:items-center">
-      <div className="flex-1 flex flex-col gap-10">
-        <div className="text-md md:text-xl font-medium px-6 py-3 shadow-md rounded-box bg-base-100 w-fit flex items-center gap-4 -rotate-[4deg]">
-          <div className="w-3 h-3 bg-green-500 rounded-box outline-2 outline-green-300" />
-          Serving the community
-        </div>
-        <h3 className="text-4xl md:text-5xl font-brand font-bold leading-[1.2]">
-          Answering <br />
-          <span className="text-primary">questions</span> <br />
-          continuously
-        </h3>
-      </div>
-
-      <div className="flex-1 bg-base-100 rounded-box border border-base-300">
-        <StatsItem label="Today" value={messagesDay} />
-        <StatsItem label="In the last week" value={messagesThisWeek} />
-        <StatsItem label="In the last month" value={messagesMonth} />
-      </div>
-    </div>
   );
 }
 
@@ -1256,7 +1153,10 @@ function CaseStudyDropdown() {
       <div
         tabIndex={0}
         role="button"
-        className="flex items-center gap-2 cursor-pointer"
+        className={cn(
+          "flex items-center gap-2 cursor-pointer",
+          "text-base-content/80 hover:text-base-content"
+        )}
       >
         Case studies
         <TbChevronDown />
@@ -1387,7 +1287,10 @@ function UseCasesDropdown() {
       <div
         tabIndex={0}
         role="button"
-        className="flex items-center gap-2 cursor-pointer"
+        className={cn(
+          "flex items-center gap-2 cursor-pointer",
+          "text-base-content/80 hover:text-base-content"
+        )}
       >
         Use cases
         <TbChevronDown />
@@ -1467,9 +1370,8 @@ export function Nav({
           "mx-auto max-w-[1200px]",
           "px-8 md:px-10 py-4",
           "transition-all duration-300",
-          isIsland
-            ? "rounded-3xl border border-base-300 bg-base-100/85 shadow-md backdrop-blur-2xl"
-            : "border-b border-base-200"
+          isIsland && "rounded-3xl border border-base-300",
+          isIsland && "bg-base-100/85 shadow-md backdrop-blur-2xl"
         )}
       >
         <Link to="/">
@@ -2234,7 +2136,7 @@ function Gallery() {
             className={cn(
               "flex items-center p-1 rounded-box w-fit px-3 text-sm gap-1",
               "transition-all duration-200 cursor-pointer relative",
-              activeStep === index && "bg-primary text-primary-content",
+              activeStep === index && "bg-primary/10 text-primary",
               activeStep !== index && "hover:bg-base-300",
               isLoading && "opacity-50 cursor-not-allowed"
             )}
@@ -2534,57 +2436,6 @@ function SourcesChannels() {
       </div>
 
       <p className="text-base-content/20 text-center">Channels</p>
-    </div>
-  );
-}
-
-function SecondaryCTA({
-  title,
-  description,
-  icon,
-  href,
-  ctaLabel,
-}: {
-  title: string;
-  description: string;
-  icon: ReactNode;
-  href: string;
-  ctaLabel: string;
-}) {
-  return (
-    <div
-      className={cn(
-        "border border-primary/20 rounded-box overflow-hidden flex-1"
-      )}
-    >
-      <div
-        className={cn(
-          "p-4 border-b border-primary/20",
-          "bg-gradient-to-br from-primary/5 to-primary/10"
-        )}
-      >
-        <h3 className="text-2xl font-medium font-brand">{title}</h3>
-        <p className="text-base-content/50">{description}</p>
-      </div>
-      <div
-        className={cn(
-          "p-4 flex justify-between items-center w-full",
-          "bg-gradient-to-r from-primary/20 to-primary/5",
-          "overflow-hidden"
-        )}
-      >
-        <div
-          className={cn(
-            "text-4xl text-primary scale-400 -rotate-20",
-            "overflow-hidden opacity-10"
-          )}
-        >
-          {icon}
-        </div>
-        <Link to={href} className="btn btn-primary">
-          {ctaLabel}
-        </Link>
-      </div>
     </div>
   );
 }
@@ -2907,7 +2758,7 @@ export function OpenSource() {
   );
 }
 
-export default function Landing({ loaderData }: Route.ComponentProps) {
+export default function Landing() {
   return (
     <>
       <Container>
