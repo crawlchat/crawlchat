@@ -1097,7 +1097,7 @@ export function Footer() {
     <footer className="bg-base-200/50 border-t border-base-300">
       <Container>
         <div className="py-8 flex flex-col md:flex-row gap-8">
-          <div className="flex-[2] flex flex-col gap-4">
+          <div className="flex-2 flex flex-col gap-4">
             <Logo />
             <p className="font-medium text-base-content/50 font-brand italic">
               Power up your tech documentation with AI
@@ -1108,7 +1108,7 @@ export function Footer() {
               <a
                 href="https://x.com/pramodk73"
                 target="_blank"
-                className="rounded-box"
+                className="rounded-box overflow-hidden"
               >
                 <img
                   src="/pramod.jpg"
@@ -1118,50 +1118,7 @@ export function Footer() {
               </a>
             </p>
           </div>
-          <div className="flex-[2]">
-            <div className="mb-8">
-              <h3 className="text-sm opacity-50 mb-2">Trusted by</h3>
-              <div className="flex items-center gap-4 flex-wrap">
-                <img
-                  src="/used-by/remotion.png"
-                  alt="Remotion"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <img
-                  src="/used-by/konvajs.png"
-                  alt="Konva"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <img
-                  src="/used-by/270logo.svg"
-                  alt="270Degrees"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <img
-                  src="/used-by/polotno.png"
-                  alt="Polotno"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <img
-                  src="/used-by/backpack-laravel.png"
-                  alt="Backpack for Laravel"
-                  className="max-h-6 inline-block grayscale"
-                />
-                <div className="bg-black px-2 rounded-full">
-                  <img
-                    src="/used-by/postiz.svg"
-                    alt="Postiz"
-                    className="max-h-4 inline-block grayscale"
-                  />
-                </div>
-                <img
-                  src="/used-by/nobl9.png"
-                  alt="Nobl9"
-                  className="max-h-6 inline-block grayscale"
-                />
-              </div>
-            </div>
-
+          <div className="flex-2">
             <ul className="flex flex-col gap-4">
               <li>
                 <FooterLink href="/compare/crawlchat-vs-kapaai">
@@ -1484,19 +1441,35 @@ export function Nav({
   user?: User | null;
   githubStars?: number;
 }) {
+  const [isIsland, setIsIsland] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setIsIsland(window.scrollY > 24);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div
       className={cn(
-        "backdrop-blur-2xl",
         "sticky top-0 z-20",
-        "border-b border-base-200"
+        "transition-all duration-300",
+        isIsland ? "px-3 pt-3 md:px-4" : ""
       )}
     >
       <nav
         className={cn(
           "flex items-center justify-between gap-2",
-          "max-w-[1200px] mx-auto",
-          "px-8 md:px-10 py-4"
+          "mx-auto max-w-[1200px]",
+          "px-8 md:px-10 py-4",
+          "transition-all duration-300",
+          isIsland
+            ? "rounded-3xl border border-base-300 bg-base-100/85 shadow-md backdrop-blur-2xl"
+            : "border-b border-base-200"
         )}
       >
         <Link to="/">
@@ -1588,8 +1561,19 @@ function Hero() {
           className="mb-4 cursor-pointer hover:scale-[1.02] transition-all w-fit"
           href={`/changelog/${focusChangelog.slug}`}
         >
-          <div className="bg-red-50 text-sm px-1.5 py-1 rounded-box flex items-center gap-2 pr-2 border border-red-300 text-red-700">
-            <span className="px-2 bg-red-200 rounded-box font-medium border border-red-300">
+          <div
+            className={cn(
+              "bg-base-200 text-sm px-1.5 py-1 rounded-full",
+              "flex items-center gap-2 pr-2 border",
+              "border-base-300"
+            )}
+          >
+            <span
+              className={cn(
+                "px-2 bg-base-300 rounded-box text-xs",
+                "border border-base-content/10"
+              )}
+            >
               NEW
             </span>
             <span className="leading-none">{focusChangelog.title}</span>
@@ -1621,7 +1605,7 @@ function Hero() {
         and get instant answers from your docs with citations.
       </p>
 
-      <ul className="mt-6 flex gap-6">
+      <ul className="mt-6 flex gap-6 flex-wrap justify-center">
         {features.map((feature, index) => (
           <li key={index} className="flex gap-2 items-center opacity-50">
             <TbCircleCheck size={20} />
@@ -2178,14 +2162,6 @@ function Gallery() {
       new: true,
       autoPlay: false,
     },
-    // {
-    //   title: "Demo",
-    //   video:
-    //     "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/landing-page-demo.mp4",
-    //   poster:
-    //     "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/landing-page-demo-poster.png",
-    //   icon: <TbVideo />,
-    // },
     {
       title: "Add your docs",
       img: "https://slickwid-public.s3.us-east-1.amazonaws.com/crawlchat/gallery/add-knowledge-group-v2.png",
@@ -2293,8 +2269,8 @@ function Gallery() {
         {steps[activeStep].img && isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-base-100 bg-opacity-50 z-10">
             <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-box h-12 w-12 border-b-2 border-primary"></div>
-              <p className="text-lg font-medium opacity-70">Loading...</p>
+              <span className="loading loading-spinner loading-lg" />
+              <p className="text-lg opacity-70">Loading...</p>
             </div>
           </div>
         )}
@@ -2609,28 +2585,6 @@ function SecondaryCTA({
           {ctaLabel}
         </Link>
       </div>
-    </div>
-  );
-}
-
-function SecondaryCTAs() {
-  return (
-    <div className="flex flex-col items-center md:flex-row gap-4 justify-center">
-      <SecondaryCTA
-        title="Join on Discord"
-        description="Interested? Join the Discord server to get updates and find out more about the product from the community."
-        icon={<TbBrandDiscord />}
-        href="https://discord.gg/zW3YmCRJkC"
-        ctaLabel="Join now"
-      />
-
-      <SecondaryCTA
-        title="Chrome extension"
-        description="Generate text content from your documentation directly in any text field across the web. Write support emails or product descriptions instantly."
-        icon={<TbBrandChrome />}
-        href="https://chromewebstore.google.com/detail/crawlchat/icimflpdiioobolkjdbldmmomflainie"
-        ctaLabel="Install now"
-      />
     </div>
   );
 }
