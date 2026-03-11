@@ -23,13 +23,12 @@ import {
   TbBrandNotion,
   TbBrandSlack,
   TbBrandX,
-  TbCalendar,
   TbChartBar,
   TbChartBarOff,
-  TbCheck,
   TbChevronDown,
   TbChevronRight,
   TbChevronUp,
+  TbCircleCheck,
   TbCircleCheckFilled,
   TbCircleFilled,
   TbCircleXFilled,
@@ -344,7 +343,7 @@ export function UsedBy() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h3 className="text-center text-xl font-medium opacity-50">
+      <h3 className="text-center text-xl opacity-50">
         Trusted by leading companies
       </h3>
 
@@ -369,7 +368,13 @@ export function UsedBy() {
 
 export function Heading({ children }: PropsWithChildren) {
   return (
-    <h3 className="text-center text-4xl md:text-5xl max-w-[300px] md:max-w-[640px] mx-auto font-brand leading-[1.3]">
+    <h3
+      className={cn(
+        "text-center text-4xl md:text-5xl",
+        "max-w-[300px] md:max-w-[640px] mx-auto",
+        "font-brand leading-[1.3]"
+      )}
+    >
       {children}
     </h3>
   );
@@ -385,7 +390,12 @@ export function HeadingHighlight({ children }: PropsWithChildren) {
 
 export function HeadingDescription({ children }: PropsWithChildren) {
   return (
-    <p className="text-center text-xl font-medium max-w-[760px] mx-auto py-8 opacity-60">
+    <p
+      className={cn(
+        "text-center text-xl",
+        "max-w-[760px] mx-auto py-8 opacity-60"
+      )}
+    >
       {children}
     </p>
   );
@@ -411,7 +421,7 @@ function WorksStep({
       </div>
 
       <h4 className="text-2xl font-brand">{title}</h4>
-      <p className="text-center text-lg">{children}</p>
+      <p className="text-center text-lg text-base-content/80">{children}</p>
     </div>
   );
 }
@@ -537,7 +547,8 @@ function ClickableFeature({
   return (
     <div
       className={cn(
-        "rounded-box p-4 border border-transparent hover:border-base-300 gap-2 flex flex-col",
+        "rounded-box p-4 border border-transparent",
+        "hover:border-base-300 gap-2 flex flex-col",
         "cursor-pointer",
         active && "bg-base-300/50 hover:border-transparent"
       )}
@@ -548,7 +559,7 @@ function ClickableFeature({
         {img && <img src={img} alt={title} className="w-6 h-6" />}
         {title}
       </h3>
-      <p className="opacity-50 font-medium leading-tight">{description}</p>
+      <p className="opacity-50">{description}</p>
     </div>
   );
 }
@@ -1037,22 +1048,6 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
         You need to be on a paid plan first to topup credits. Credits don't roll
         over to next month.
       </div>
-
-      <div className="my-20 flex flex-col items-center">
-        <Heading>Still not sure?</Heading>
-        <HeadingDescription>
-          Book a demo with the maker - Pramod and understand how CrawlChat can
-          help you steamline your documentation and support processes
-        </HeadingDescription>
-        <Link
-          to="https://cal.com/crawlchat/demo"
-          target="_blank"
-          className="btn btn-primary btn-outline btn-xl w-full md:w-auto"
-        >
-          Book a demo
-          <TbCalendar />
-        </Link>
-      </div>
     </div>
   );
 }
@@ -1494,7 +1489,7 @@ export function Nav({
       className={cn(
         "backdrop-blur-2xl",
         "sticky top-0 z-20",
-        "border-b border-accent/20"
+        "border-b border-base-200"
       )}
     >
       <nav
@@ -1547,7 +1542,7 @@ export function Nav({
             </div>
           )}
           {user && (
-            <a href="/app" className="btn btn-primary hidden md:flex">
+            <a href="/app" className="btn btn-primary btn-soft hidden md:flex">
               Dashboard
               <TbArrowRight />
             </a>
@@ -1567,127 +1562,81 @@ function Hero() {
 
   const features = [
     {
-      text: "Works on your website, Discord, and Slack, or MCP",
-      icon: <TbCode />,
+      text: "Build knowledge base",
     },
     {
-      text: "Strong citations for your users and analytics to improve your docs",
-      icon: <TbChartBar />,
+      text: "Integrate chatbot",
     },
     {
-      text: "Automatically creates support tickets when AI can't help",
-      icon: <TbRobotFace />,
-    },
-  ];
-
-  const channels = [
-    {
-      icon: <TbWorld />,
-      tooltip: "Embed on your website",
+      text: "Observe",
     },
     {
-      icon: <TbBrandDiscord />,
-      tooltip: "Add as Discord bot on your server",
-    },
-    {
-      icon: <TbBrandSlack />,
-      tooltip: "Add as Slack bot on your workspace",
-    },
-    {
-      icon: <TbBrandGithub />,
-      tooltip:
-        "Add as GitHub bot to answer questions in discussions and issues",
-    },
-    {
-      icon: <MCPIcon />,
-      tooltip: "Distribute your docs as an MCP server",
-    },
-    {
-      icon: <TbCode />,
-      tooltip: "Integrate with your workflows using API",
+      text: "Customise",
     },
   ];
 
   return (
     <div
       className={cn(
-        "flex gap-10 md:gap-14 mb-10 flex-col md:flex-row py-2 md:mt-8"
+        "flex mb-10 flex-col py-2 md:mt-8",
+        "justify-center items-center",
+        "max-w-[800px] mx-auto"
       )}
     >
-      <div className={cn("flex flex-col flex-[1.4] z-10")}>
-        {focusChangelog && (
-          <a
-            className="mb-4 cursor-pointer hover:scale-[1.02] transition-all w-fit"
-            href={`/changelog/${focusChangelog.slug}`}
-          >
-            <div className="bg-red-50 text-sm px-1.5 py-1 rounded-box flex items-center gap-2 pr-2 border border-red-300 text-red-700">
-              <span className="px-2 bg-red-200 rounded-box font-medium border border-red-300">
-                NEW
-              </span>
-              <span className="leading-none">{focusChangelog.title}</span>
-              <span>
-                <TbChevronRight />
-              </span>
-            </div>
-          </a>
-        )}
-
-        <h1 className="font-brand text-[36px] md:text-[62px] leading-[1.2]">
-          Power up your documentation with{" "}
-          <span className="text-accent whitespace-nowrap">AI</span>
-        </h1>
-
-        <p className="md:text-xl mt-6 font-brand italic text-base-content/50">
-          Add an AI chatbot to your documentation website. Users can ask
-          questions and get instant answers from your docs with citations.
-        </p>
-
-        <ul className="mt-6 flex flex-col gap-2">
-          {features.map((feature, index) => (
-            <li key={index} className="flex gap-2 items-start">
-              <div className="text-primary rounded-box p-1 mt-0.5">
-                <TbCheck size={20} />
-              </div>
-              <span className="md:text-lg">{feature.text}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div
-          className={cn(
-            "flex gap-4 mt-8 mb-4 flex-wrap",
-            "flex-col sm:flex-row"
-          )}
+      {focusChangelog && (
+        <a
+          className="mb-4 cursor-pointer hover:scale-[1.02] transition-all w-fit"
+          href={`/changelog/${focusChangelog.slug}`}
         >
-          <Link to="/pricing" className="btn btn-primary btn-xl">
-            Start free trial
-            <TbArrowRight />
-          </Link>
-          <div
-            className="tooltip"
-            data-tip="Connect with the maker - Pramod and understand how CrawlChat can help your business"
-          >
-            <Link
-              to="https://cal.com/crawlchat/demo"
-              target="_blank"
-              className="btn btn-primary btn-outline btn-xl w-full md:w-auto"
-            >
-              Book a demo
-              <TbCalendar />
-            </Link>
+          <div className="bg-red-50 text-sm px-1.5 py-1 rounded-box flex items-center gap-2 pr-2 border border-red-300 text-red-700">
+            <span className="px-2 bg-red-200 rounded-box font-medium border border-red-300">
+              NEW
+            </span>
+            <span className="leading-none">{focusChangelog.title}</span>
+            <span>
+              <TbChevronRight />
+            </span>
           </div>
-        </div>
-      </div>
+        </a>
+      )}
 
-      <div className="flex-1 flex-col mt-2">
-        <div className="relative animate-breath-y">
-          <div className="border-2 border-accent rounded-box overflow-hidden shadow">
-            <iframe
-              src="/w/crawlchat?theme=light"
-              className="w-full h-[560px]"
-            />
-          </div>
-        </div>
+      <h1
+        className={cn(
+          "font-brand text-[36px] md:text-[62px]",
+          "leading-[1.2] text-center"
+        )}
+      >
+        Power up your documentation with{" "}
+        <span className="text-accent whitespace-nowrap">AI</span>
+      </h1>
+
+      <p
+        className={cn(
+          "md:text-xl mt-6 font-brand",
+          "italic text-base-content/80",
+          "text-center"
+        )}
+      >
+        Add an AI chatbot to your documentation website. Users can ask questions
+        and get instant answers from your docs with citations.
+      </p>
+
+      <ul className="mt-6 flex gap-6">
+        {features.map((feature, index) => (
+          <li key={index} className="flex gap-2 items-center opacity-50">
+            <TbCircleCheck size={20} />
+            <span className="md:text-lg">{feature.text}</span>
+          </li>
+        ))}
+      </ul>
+
+      <div
+        className={cn("flex gap-4 mt-8 mb-4 flex-wrap", "flex-col sm:flex-row")}
+      >
+        <Link to="/pricing" className="btn btn-primary btn-xl">
+          Start free trial
+          <TbArrowRight />
+        </Link>
       </div>
     </div>
   );
@@ -1718,10 +1667,10 @@ export function CustomTestimonial({
   authorCompany: string;
 }) {
   return (
-    <div className={cn("border border-base-300", "p-6 group")}>
+    <div className={cn("border border-base-300 rounded-box", "p-6 group")}>
       <p
         className={cn(
-          "font-brand text-center text-base-content/60",
+          "text-center text-base-content/80",
           "group-hover:text-base-content"
         )}
       >
@@ -2877,7 +2826,7 @@ function BentoCard({
       )}
     >
       <div className="text-3xl text-accent">{icon}</div>
-      <h4 className="text-xl font-brand">{title}</h4>
+      <h4 className="text-xl font-brand font-medium">{title}</h4>
       <p className="text-base-content/70 leading-relaxed">{description}</p>
     </div>
   );
@@ -3007,20 +2956,6 @@ export function OpenSource() {
 export default function Landing({ loaderData }: Route.ComponentProps) {
   return (
     <>
-      <div
-        className={cn(
-          "bg-gradient-to-b from-accent/20 to-base-100",
-          "absolute top-0 left-0 w-full h-[600px]"
-        )}
-      />
-      <div
-        className={cn(
-          "absolute top-0 left-0 w-full h-[600px]",
-          "hero-bg-pattern",
-          "[mask-image:linear-gradient(to_bottom,black,transparent)]"
-        )}
-      />
-
       <Container>
         <Hero />
       </Container>
@@ -3053,14 +2988,6 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
         <ChannelDiscord />
       </Container>
 
-      {/* <Container>
-        <Stats
-          messagesThisWeek={loaderData.messagesThisWeek}
-          messagesDay={loaderData.messagesDay}
-          messagesMonth={loaderData.messagesMonth}
-        />
-      </Container> */}
-
       <Container>
         <Why />
       </Container>
@@ -3076,10 +3003,6 @@ export default function Landing({ loaderData }: Route.ComponentProps) {
       <Container>
         <PricingFeatures />
       </Container>
-
-      {/* <Container>
-        <SecondaryCTAs />
-      </Container> */}
 
       <SourcesChannels />
 

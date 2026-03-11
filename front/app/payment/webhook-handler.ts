@@ -66,7 +66,7 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
           "expired",
           "message",
           "Expired credits",
-          creditsExpired
+          Math.min(0, creditsExpired)
         );
       }
 
