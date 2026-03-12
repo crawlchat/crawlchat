@@ -29,7 +29,6 @@ import {
   TbPencil,
   TbPlug,
   TbPointer,
-  TbRobotFace,
   TbSettings,
   TbStarFilled,
   TbTicket,
@@ -45,6 +44,7 @@ import { PlanIconBadge } from "~/components/plan-icon-badge";
 import { ScrapePrivacyBadge } from "~/components/scrape-type-badge";
 import { AppContext } from "./app-context";
 import { Logo } from "./logo";
+import { MCPIcon } from "./mcp-icon";
 
 type MenuItemType = {
   label: string;
@@ -349,7 +349,7 @@ export function SideMenu({
           {
             label: "MCP",
             to: "/integrate/mcp",
-            icon: <TbRobotFace />,
+            icon: <MCPIcon />,
             forScrape: true,
           },
           {

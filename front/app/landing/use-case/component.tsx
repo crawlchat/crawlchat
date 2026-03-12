@@ -21,7 +21,7 @@ export function UseCaseHero({
 
       <h1
         className={cn(
-          "font-brand text-[42px] md:text-[64px] leading-[1.1]",
+          "font-brand text-[36px] md:text-[62px] leading-[1.2]",
           "text-center max-w-[800px] mx-auto"
         )}
       >
@@ -66,7 +66,7 @@ export function UseCaseIssues({ issues }: { issues: UseCaseIssueItem[] }) {
             <h3 className="text-3xl font-medium font-brand">
               {issue.shortAnswer}
             </h3>
-            <p>{issue.answer}</p>
+            <p className="text-base-content/80">{issue.answer}</p>
             <ul className="flex flex-col gap-4 md:flex-row md:gap-4 flex-wrap">
               {issue.features.map((feature) => (
                 <li
