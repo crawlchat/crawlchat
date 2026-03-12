@@ -1499,16 +1499,16 @@ function Hero() {
 
   const features = [
     {
-      text: "Make knowledge base",
+      text: "8+ knowledge sources",
     },
     {
-      text: "Integrate chatbot",
+      text: "Chatbot on 6+ channels",
     },
     {
-      text: "Observe",
+      text: "Insigts & Observability",
     },
     {
-      text: "Customise",
+      text: "Customize as per your needs",
     },
   ];
 
@@ -1554,8 +1554,9 @@ function Hero() {
           "leading-[1.2] text-center"
         )}
       >
-        Power up your documentation with{" "}
-        <span className="text-accent whitespace-nowrap">AI</span>
+        Make your documentation{" "}
+        <span className="text-accent whitespace-nowrap">answer</span> the
+        questions
       </h1>
 
       <p
@@ -1565,11 +1566,13 @@ function Hero() {
           "text-center"
         )}
       >
-        Add an AI chatbot to your documentation website. Users can ask questions
-        and get instant answers from your docs with citations.
+        CrawlChat enables your technical documentation to{" "}
+        <span className="text-primary">answer</span> users’ questions and
+        provide valuable <span className="text-primary">insights</span>, helping
+        you improve your documentation and product.
       </p>
 
-      <ul className="mt-6 flex gap-6 flex-wrap justify-center">
+      <ul className="mt-6 flex gap-x-4 gap-y-2 flex-wrap justify-center">
         {features.map((feature, index) => (
           <li key={index} className="flex gap-2 items-center opacity-50">
             <TbCircleCheck size={20} />
