@@ -33,9 +33,16 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
   }
 
   if (webhook.plan && webhook.type === "created") {
+    await clearBalance(
+      user.id,
+      "message",
+      "Clear credits on subscription start"
+    );
+
     await activatePlan(user.id, webhook.plan, {
       provider: gateway.provider,
       subscriptionId: webhook.subscriptionId,
+      activatedAt: webhook.subscriptionCreatedAt ?? undefined,
     });
 
     return Response.json({ message: "Activated subscription plan" });

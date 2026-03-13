@@ -183,6 +183,6 @@ export async function clearBalance(
 ) {
   const balance = await getBalance(userId, purpose);
   if (balance > 0) {
-    await addCreditTransaction(userId, "usage", purpose, description, balance);
+    await addCreditTransaction(userId, "usage", purpose, description, -balance);
   }
 }
