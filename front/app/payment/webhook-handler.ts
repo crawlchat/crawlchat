@@ -42,7 +42,7 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
     await activatePlan(user.id, webhook.plan, {
       provider: gateway.provider,
       subscriptionId: webhook.subscriptionId,
-      activatedAt: webhook.subscriptionCreatedAt ?? undefined,
+      activatedAt: webhook.eventCreatedAt ?? undefined,
     });
 
     return Response.json({ message: "Activated subscription plan" });
@@ -70,7 +70,7 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
     return Response.json({ message: "Expired and cleared monthly credits" });
   }
 
-  if (webhook.type === "renewed") {
+  if (webhook.type === "renewed" && webhook.eventCreatedAt) {
     const plan = webhook.plan || planMap[user.plan.planId];
     await clearBalance(user.id, "message", "Monthly reset");
 
@@ -81,6 +81,17 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
       "Subscription credits",
       plan.credits.messages
     );
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        plan: {
+          update: {
+            creditsResetAt: webhook.eventCreatedAt,
+          },
+        },
+      },
+    });
 
     return Response.json({ message: "Reset monthly credits" });
   }

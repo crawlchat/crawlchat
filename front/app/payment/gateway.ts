@@ -26,7 +26,7 @@ export type PaymentGatewaySubscriptionWebhook = {
   paymentId?: string | null;
   paymentAmount?: number | null;
   paymentCurrency?: string | null;
-  subscriptionCreatedAt?: Date | null;
+  eventCreatedAt?: Date | null;
 };
 
 export type PaymentGatewayTopupWebhook = {
