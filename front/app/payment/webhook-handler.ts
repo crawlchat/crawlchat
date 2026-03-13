@@ -3,7 +3,7 @@ import {
   clearBalance,
 } from "@packages/common/credit-transaction";
 import { prisma } from "@packages/common/prisma";
-import { activatePlan, PLAN_FREE } from "@packages/common/user-plan";
+import { activatePlan, PLAN_FREE, planMap } from "@packages/common/user-plan";
 import type { PaymentGateway } from "./gateway";
 
 export async function handleWebhook(request: Request, gateway: PaymentGateway) {
@@ -70,7 +70,8 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
     return Response.json({ message: "Expired and cleared monthly credits" });
   }
 
-  if (webhook.plan && webhook.type === "renewed") {
+  if (webhook.type === "renewed") {
+    const plan = webhook.plan || planMap[user.plan.planId];
     await clearBalance(user.id, "message", "Monthly reset");
 
     await addCreditTransaction(
@@ -78,7 +79,7 @@ export async function handleWebhook(request: Request, gateway: PaymentGateway) {
       "subscription",
       "message",
       "Subscription credits",
-      webhook.plan.credits.messages
+      plan.credits.messages
     );
 
     return Response.json({ message: "Reset monthly credits" });
