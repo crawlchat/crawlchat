@@ -53,6 +53,7 @@ export const lemonsqueezyGateway: PaymentGateway = {
     const productId = payload.data.attributes.product_id;
     const plan = productIdPlanMap[productId];
     const subscriptionId = payload.data.id;
+    const eventCreatedAt = new Date(payload.data.attributes.created_at);
 
     if (type !== "renewed" && !plan) {
       throw new Error(JSON.stringify({ error: "Plan not found", status: 401 }));
@@ -65,6 +66,7 @@ export const lemonsqueezyGateway: PaymentGateway = {
       productId,
       plan,
       subscriptionId,
+      eventCreatedAt,
     };
   },
 
