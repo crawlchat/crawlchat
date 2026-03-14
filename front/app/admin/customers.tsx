@@ -1,4 +1,3 @@
-import { getBalance } from "@packages/common/credit-transaction";
 import { prisma } from "@packages/common/prisma";
 import { PLAN_FREE, planMap } from "@packages/common/user-plan";
 import { useEffect, useRef, useState } from "react";
@@ -45,7 +44,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
       const messageCredits = await getUserMessageCredits(user.id);
 
-      const allowedMessages = await getBalance(user.id, "message");
+      const allowedMessages = messageCredits.total;
       const remainingMessages = messageCredits.balance;
       const usedMessages = allowedMessages - remainingMessages;
 
