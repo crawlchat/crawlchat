@@ -1,6 +1,6 @@
 import cn from "@meltdownjs/cn";
-import type { KnowledgeGroupType } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
+import { getCollectionSummary } from "@packages/common/summary";
 import {
   useEffect,
   useMemo,
@@ -30,11 +30,9 @@ import { getAuthUser } from "~/auth/middleware";
 import { showModal } from "~/components/daisy-utils";
 import { EmptyState } from "~/components/empty-state";
 import { Page } from "~/components/page";
-import { getMessagesSummary } from "~/messages-summary";
 import { makeMeta } from "~/meta";
 import { commitSession, getSession } from "~/session";
 import type { Route } from "./+types/page";
-import { calcUniqueUsers } from "./calc-unique-users";
 import CategoryCard from "./category-card";
 import { DailyMessagesChart } from "./daily-messages-chart";
 import LanguageDistribution from "./language-distribution";
@@ -44,10 +42,6 @@ import Tags from "./tags";
 import { TopCitedGroups } from "./top-cited-groups";
 import { TopPages } from "./top-pages";
 import { UniqueUsers } from "./unique-users";
-
-function monoString(str: string) {
-  return str.trim().toLowerCase().replace(/^\n+/, "").replace(/\n+$/, "");
-}
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getAuthUser(request);
@@ -96,180 +90,22 @@ export async function loader({ request }: Route.LoaderArgs) {
   const days = VALID_DAYS.includes(daysParam) ? daysParam : 14;
   const DAY_MS = 1000 * 60 * 60 * 24;
 
-  const messages = await prisma.message.findMany({
-    where: {
-      scrapeId,
-      createdAt: {
-        gte: new Date(Date.now() - days * DAY_MS),
-      },
-    },
-    select: {
-      createdAt: true,
-      llmMessage: {
-        select: {
-          role: true,
-        },
-      },
-      rating: true,
-      analysis: true,
-      links: true,
-      fingerprint: true,
-      channel: true,
-      thread: {
-        select: {
-          location: true,
-        },
-      },
-    },
-  });
-
-  const nScrapeItems = scrapeId
-    ? await prisma.scrapeItem.count({
-        where: {
-          scrapeId,
-        },
-      })
-    : 0;
-
   const scrape = scrapes.find((s) => s.id === scrapeId);
-  const messagesSummary = getMessagesSummary(messages);
-  const categoriesSummary = scrape?.messageCategories
-    ?.map((category) => ({
-      title: category.title,
-      summary: getMessagesSummary(
-        messages.filter(
-          (m) =>
-            m.analysis?.category &&
-            monoString(m.analysis.category) === monoString(category.title)
-        ),
-        true
-      ),
-    }))
-    .sort((a, b) => b.summary.messagesCount - a.summary.messagesCount);
-
-  const topScrapeItems = await prisma.scrapeItem.findMany({
-    where: {
-      scrapeId,
-      url: {
-        in: messagesSummary.topItems.map((item) => item.url),
-      },
-    },
-    select: {
-      id: true,
-      title: true,
-      url: true,
-      knowledgeGroup: true,
-    },
-  });
-
-  const topItems = [];
-  for (const item of messagesSummary.topItems) {
-    const scrapeItem = topScrapeItems.find((i) => i.url === item.url);
-    if (scrapeItem) {
-      topItems.push({
-        id: scrapeItem.id,
-        title: scrapeItem.title,
-        url: scrapeItem.url,
-        knowledgeGroup: scrapeItem.knowledgeGroup,
-        count: item.count,
-      });
-    }
-  }
-
-  const allUniqueUsers = calcUniqueUsers(messages);
-  const uniqueUsers = allUniqueUsers.slice(0, 10);
-
-  const groupCitations: Record<
-    string,
-    {
-      id: string;
-      name: string;
-      type: KnowledgeGroupType;
-      subType: string | null;
-      count: number;
-    }
-  > = {};
-  let totalGroupCitations = 0;
-
-  for (const message of messages) {
-    for (const link of message.links) {
-      if (link.knowledgeGroupId) {
-        const groupId = link.knowledgeGroupId;
-        if (!groupCitations[groupId]) {
-          const group = await prisma.knowledgeGroup.findUnique({
-            where: { id: groupId },
-            select: { id: true, title: true, type: true, subType: true },
-          });
-          if (group) {
-            groupCitations[groupId] = {
-              id: group.id,
-              name: group.title ?? "Untitled",
-              type: group.type,
-              subType: group.subType,
-              count: 0,
-            };
-          }
-        }
-        if (groupCitations[groupId]) {
-          groupCitations[groupId].count++;
-          totalGroupCitations++;
-        }
-      }
-    }
-  }
-
-  const topGroupsCited = Object.values(groupCitations)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 4)
-    .map((group) => ({
-      ...group,
-      citedCount: group.count,
-      totalCited: totalGroupCitations,
-      percent:
-        totalGroupCitations > 0 ? (group.count / totalGroupCitations) * 100 : 0,
-    }));
-
-  const avgUserLifetime =
-    allUniqueUsers.length > 0
-      ? allUniqueUsers.reduce(
-          (acc, curr) =>
-            acc +
-            Math.max(
-              curr.lastAsked.getTime() - curr.firstAsked.getTime(),
-              1000 * 60 * 60 * 24
-            ),
-          0
-        ) / allUniqueUsers.length
-      : 0;
-
-  const avgQuestionsPerUser =
-    allUniqueUsers.length > 0
-      ? allUniqueUsers.reduce((acc, curr) => acc + curr.questionsCount, 0) /
-        allUniqueUsers.length
-      : 0;
-
-  const totalLinksReferred = messages
-    .filter((m) => m.llmMessage?.role === "assistant")
-    .filter((m) => m.links)
-    .reduce((acc, curr) => acc + curr.links.length, 0);
-  const timeSaved = totalLinksReferred * 2;
+  const summary = scrapeId
+    ? await getCollectionSummary({
+        scrapeId,
+        fromTime: new Date(Date.now() - days * DAY_MS),
+        endTime: new Date(),
+      })
+    : null;
 
   return {
     user,
     scrapeId,
     scrape,
     noScrapes: scrapes.length === 0,
-    nScrapeItems,
-    messagesSummary,
-    categoriesSummary,
-    topItems,
-    uniqueUsers,
-    uniqueUsersCount: allUniqueUsers.length,
     days,
-    topGroupsCited,
-    avgUserLifetime,
-    avgQuestionsPerUser,
-    timeSaved,
+    summary,
   };
 }
 
@@ -409,6 +245,8 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     }
   }, [loaderData.noScrapes, canCreateCollection]);
 
+  const { summary } = loaderData;
+
   return (
     <Page
       title="Summary"
@@ -496,36 +334,36 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
         </div>
       )}
 
-      {!loaderData.noScrapes && (
+      {summary && (
         <div className="h-full gap-4 flex flex-col" ref={containerRef}>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <StatCard
               label="Today"
-              value={loaderData.messagesSummary.messagesToday}
+              value={summary.messagesSummary.messagesToday}
               icon={<TbMessage2Bolt />}
               tooltip="Questions asked today"
             />
             <StatCard
               label="Total"
-              value={loaderData.messagesSummary.messagesCount}
+              value={summary.messagesSummary.messagesCount}
               icon={<TbMessage2Up />}
               tooltip="Total questions asked in the period"
             />
             <StatCard
               label="Not helpful"
-              value={loaderData.messagesSummary.ratingDownCount}
+              value={summary.messagesSummary.ratingDownCount}
               icon={<TbThumbDown />}
               tooltip="Answers with 👎"
             />
             <StatCard
               label="Users"
-              value={loaderData.uniqueUsersCount}
+              value={summary.uniqueUsersCount}
               icon={<TbUser />}
               tooltip="Unique users in the period"
             />
             <StatCard
               label="Questions per user"
-              value={loaderData.avgQuestionsPerUser}
+              value={summary.avgQuestionsPerUser}
               icon={<TbMessage2Heart />}
               tooltip="Averaged number"
               toFixed={1}
@@ -533,7 +371,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             <StatCard
               label="Avg user lifetime"
               icon={<TbClock />}
-              value={loaderData.avgUserLifetime / (1000 * 60 * 60 * 24)}
+              value={summary.avgUserLifetime / (1000 * 60 * 60 * 24)}
               suffix={"d"}
               tooltip="Days from first to last question"
               toFixed={1}
@@ -541,28 +379,28 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
             <StatCard
               label="Time saved"
               icon={<TbClockShield />}
-              value={loaderData.timeSaved / 60}
+              value={summary.timeSaved / 60}
               suffix={"h"}
               tooltip="Human hours saved based on the number of pages referred to answer the questions"
               toFixed={1}
             />
             <StatCard
               label="Happy"
-              value={Math.round(loaderData.messagesSummary.happyPct * 100)}
+              value={Math.round(summary.messagesSummary.happyPct * 100)}
               icon={<TbMoodHappy />}
               suffix="%"
               tooltip="Questions with happy sentiment"
             />
             <StatCard
               label="Sad"
-              value={Math.round(loaderData.messagesSummary.sadPct * 100)}
+              value={Math.round(summary.messagesSummary.sadPct * 100)}
               icon={<TbMoodCry />}
               suffix="%"
               tooltip="Questions with sad sentiment"
             />
             <StatCard
               label="Resolved"
-              value={loaderData.messagesSummary.resolvedCount}
+              value={summary.messagesSummary.resolvedCount}
               icon={<TbConfetti />}
               tooltip="Questions resolved"
             />
@@ -570,13 +408,13 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
 
           <DailyMessagesChart containerRef={containerRef} />
 
-          {loaderData.categoriesSummary &&
-            loaderData.categoriesSummary.length > 0 && (
+          {summary.categoriesSummary &&
+            summary.categoriesSummary.length > 0 && (
               <div>
                 <Heading>Categories</Heading>
                 <div className="flex flex-col gap-2">
-                  {loaderData.categoriesSummary &&
-                    loaderData.categoriesSummary.map((category, i) => (
+                  {summary.categoriesSummary &&
+                    summary.categoriesSummary.map((category, i) => (
                       <CategoryCard
                         key={i}
                         title={category.title}
@@ -587,14 +425,14 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
               </div>
             )}
 
-          {loaderData.topItems && loaderData.topItems.length > 0 ? (
+          {summary.topItems && summary.topItems.length > 0 ? (
             <div>
               <Heading>Top cited pages</Heading>
-              <TopPages topItems={loaderData.topItems} />
+              <TopPages topItems={summary.topItems} />
             </div>
           ) : null}
 
-          {loaderData.uniqueUsers.length > 0 ? (
+          {summary.uniqueUsers.length > 0 ? (
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Heading className="mb-0">Users</Heading>
@@ -602,11 +440,11 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
                   Show all
                 </a>
               </div>
-              <UniqueUsers users={loaderData.uniqueUsers} />
+              <UniqueUsers users={summary.uniqueUsers} />
             </div>
           ) : null}
 
-          {Object.keys(loaderData.messagesSummary.tags).length > 0 ? (
+          {Object.keys(summary.messagesSummary.tags).length > 0 ? (
             <div>
               <div className="flex justify-between items-center mb-2">
                 <Heading className="mb-0">Tags</Heading>
@@ -626,20 +464,19 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
           ) : null}
 
           <div className="flex flex-col md:flex-row gap-4">
-            {Object.keys(loaderData.messagesSummary.languagesDistribution)
-              .length > 0 && (
+            {Object.keys(summary.messagesSummary.languagesDistribution).length >
+              0 && (
               <div>
                 <Heading>Languages</Heading>
                 <LanguageDistribution
-                  languages={loaderData.messagesSummary.languagesDistribution}
+                  languages={summary.messagesSummary.languagesDistribution}
                 />
               </div>
             )}
-            {loaderData.topGroupsCited &&
-            loaderData.topGroupsCited.length > 0 ? (
+            {summary.topGroupsCited && summary.topGroupsCited.length > 0 ? (
               <div className="flex-1">
                 <Heading>Top cited groups</Heading>
-                <TopCitedGroups topGroupsCited={loaderData.topGroupsCited} />
+                <TopCitedGroups topGroupsCited={summary.topGroupsCited} />
               </div>
             ) : null}
           </div>

@@ -45,8 +45,8 @@ import {
 } from "./llm/text-search-tool";
 import { draftRateLimiter, mcpRateLimiter } from "./rate-limiter";
 import adminRouter from "./routes/admin";
-import apiRouter from "./routes/api";
 import healthRouter from "./routes/health";
+import mcpRouter from "./routes/mcp";
 import { handleWs } from "./routes/socket";
 
 declare global {
@@ -86,10 +86,11 @@ app.use(
 );
 app.use(cors());
 
-app.use("/api", apiRouter);
 app.use("/admin", adminRouter);
 app.use("/github", githubBotRouter);
 app.use("/health", healthRouter);
+app.use("/mcp", mcpRouter);
+
 expressWs.app.ws("/", handleWs);
 
 app.get("/", function (req: Request, res: Response) {

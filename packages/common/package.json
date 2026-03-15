@@ -69,6 +69,10 @@
     "./credit-transaction": {
       "default": "./dist/credit-transaction.js",
       "types": "./dist/credit-transaction.d.ts"
+    },
+    "./summary": {
+      "default": "./dist/summary.js",
+      "types": "./dist/summary.d.ts"
     }
   },
   "typesVersions": {
@@ -117,6 +121,9 @@
       ],
       "credit-transaction": [
         "./dist/credit-transaction.d.ts"
+      ],
+      "summary": [
+        "./dist/summary.d.ts"
       ]
     }
   },

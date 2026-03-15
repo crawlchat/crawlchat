@@ -25,6 +25,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
     "@packages/agentic": "*",
     "@packages/common": "*",
     "@packages/flash": "*",
