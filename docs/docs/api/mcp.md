@@ -1,56 +1,83 @@
 ---
-sidebar_position: 5
+sidebar_position: 6
 ---
 
-# MCP API
+# MCP
 
-You can use this REST API to search your collection and get relevant results. This is the same endpoint used by the [MCP Server](/connect/mcp-server) integration. Unlike other APIs, this is a **public endpoint** and does not require an API key. It only works with **public collections** (non-private).
+Use this API to connect to CrawlChat as a hosted MCP server with authenticated tools for reading and managing your collections.
 
-:::warning Rate Limited
-This is a public endpoint and is rate limited. Excessive requests will be throttled.
+:::note
+This page documents the hosted MCP protocol endpoints. If you only need public search for one collection, use the [Public Answer API](/api/public-answer).
 :::
+
+:::note
+If you are looking for MCP server for your documentation, go to [Connect > MCP server](/connect/mcp-server)
+:::
+
+### Install / Setup
+
+Install and configure CrawlChat as a remote MCP server in your MCP client:
+
+1. Create or copy your API key from [API Keys](https://crawlchat.app/api-key).
+2. Add a remote MCP server in your client using the base URL below.
+3. Pass your API key in the `x-api-key` header for every request.
 
 ### URL
 
 ```
-GET https://wings.crawlchat.app/mcp/{COLLECTION_ID}?query={QUERY}
+https://wings.crawlchat.app/mcp
 ```
 
-You can find the `COLLECTION_ID` from the [Settings](https://crawlchat.app/settings) page on your dashboard.
+### Headers
 
-### Query Parameters
+| Key         | Type     | Note                          |
+| ----------- | -------- | ----------------------------- |
+| `x-api-key` | `STRING` | Required for all MCP requests |
 
-| Key                | Type     | Note                                      |
-| ------------------ | -------- | ----------------------------------------- |
-| `query` (required) | `STRING` | The search query to find relevant results |
+### Available Tools
 
-### CURL Request
+The hosted MCP server currently exposes these tools:
 
-```bash
-curl 'https://wings.crawlchat.app/mcp/YOUR_COLLECTION_ID?query=How%20to%20setup%20the%20Discord%20bot'
-```
+| Tool                        | Purpose                                              |
+| --------------------------- | ---------------------------------------------------- |
+| `get_user`                  | Returns authenticated user details                   |
+| `get_collections`           | Lists collections available to the user              |
+| `get_groups`                | Lists knowledge groups in a collection               |
+| `get_data_gaps`             | Returns recent unresolved data gaps for a collection |
+| `get_messages`              | Returns paginated recent messages for a collection   |
+| `get_summary`               | Returns summary analytics for a date range           |
+| `set_ai_model`              | Updates AI model for a collection                    |
+| `set_collection_visibility` | Sets collection public/private visibility            |
+| `set_prompt`                | Updates collection prompt                            |
+| `set_show_sources`          | Enables or disables source visibility                |
 
-### Response
+### MCP Client Config Example
 
-You get the search results from the collection's knowledge base. Following is a sample response
+Use your MCP client's remote server config format with this URL and headers:
 
 ```json
-[
-  {
-    "content": "Content of the page",
-    "url": "https://crawlchat.app/pricing",
-    "score": 0.9889705,
-    "fetchUniqueId": "74200",
-    "id": "6970788f245830fd5bbca33b/db046818-aad3-4ffb-a95b-01d383ed8f51",
-    "query": "crawlchat pricing"
+{
+  "name": "CrawlChat",
+  "url": "https://wings.crawlchat.app/mcp",
+  "headers": {
+    "x-api-key": "YOUR_API_KEY"
   }
-]
+}
+```
+
+### HTTP Example
+
+```bash
+curl -X POST "https://wings.crawlchat.app/mcp" \
+  -H "content-type: application/json" \
+  -H "x-api-key: YOUR_API_KEY" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"example-client","version":"1.0.0"}}}'
 ```
 
 ### Error Responses
 
-| Status | Body                                | Reason                                           |
-| ------ | ----------------------------------- | ------------------------------------------------ |
-| `400`  | `{"message": "Private collection"}` | The collection is private and cannot be accessed |
-| `400`  | `{"message": "Not enough credits"}` | The collection owner has run out of credits      |
-| `429`  |                                     | Rate limit exceeded                              |
+| Status | Body                                | Reason                                                        |
+| ------ | ----------------------------------- | ------------------------------------------------------------- |
+| `401`  | `{"error":"Invalid authorization"}` | Missing or invalid `x-api-key`, or session ownership mismatch |
+| `400`  | `{"error":"Missing sessionId"}`     | Missing `sessionId` on `POST /mcp/messages`                   |
+| `404`  | `{"error":"Session not found"}`     | Unknown or expired session ID                                 |
