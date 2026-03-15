@@ -78,49 +78,60 @@ function createMcpServer(user: ApiUser) {
   const server = new McpServer({
     name: "crawlchat",
     version: "1.0.0",
+    description:
+      "Authenticated CrawlChat MCP server for reading and managing collections, messages, and analytics.",
   });
   const mcpServer: any = server;
 
-  mcpServer.tool("get_user", async () => {
-    return {
-      content: [{ type: "text", text: JSON.stringify({ user }) }],
-    };
-  });
+  mcpServer.tool(
+    "get_user",
+    "Returns authenticated user profile details.",
+    async () => {
+      return {
+        content: [{ type: "text", text: JSON.stringify({ user }) }],
+      };
+    }
+  );
 
-  mcpServer.tool("get_collections", async () => {
-    const memberships = await prisma.scrapeUser.findMany({
-      where: {
-        userId: user.id,
-      },
-      include: {
-        scrape: true,
-      },
-    });
+  mcpServer.tool(
+    "get_collections",
+    "Lists collections accessible by the authenticated user.",
+    async () => {
+      const memberships = await prisma.scrapeUser.findMany({
+        where: {
+          userId: user.id,
+        },
+        include: {
+          scrape: true,
+        },
+      });
 
-    const collections = memberships.map((membership) => ({
-      title: membership.scrape.title,
-      id: membership.scrape.id,
-      createdAt: membership.scrape.createdAt,
-      llmModel: membership.scrape.llmModel,
-      slug: membership.scrape.slug,
-      logoUrl: membership.scrape.logoUrl,
-      ticketingEnabled: membership.scrape.ticketingEnabled,
-      discordServerId: membership.scrape.discordServerId,
-      discordDraftConfig: membership.scrape.discordDraftConfig,
-      slackTeamId: membership.scrape.slackTeamId,
-      private: membership.scrape.private,
-      categories: membership.scrape.messageCategories,
-      chatPrompt: membership.scrape.chatPrompt,
-      showSources: membership.scrape.showSources,
-    }));
+      const collections = memberships.map((membership) => ({
+        title: membership.scrape.title,
+        id: membership.scrape.id,
+        createdAt: membership.scrape.createdAt,
+        llmModel: membership.scrape.llmModel,
+        slug: membership.scrape.slug,
+        logoUrl: membership.scrape.logoUrl,
+        ticketingEnabled: membership.scrape.ticketingEnabled,
+        discordServerId: membership.scrape.discordServerId,
+        discordDraftConfig: membership.scrape.discordDraftConfig,
+        slackTeamId: membership.scrape.slackTeamId,
+        private: membership.scrape.private,
+        categories: membership.scrape.messageCategories,
+        chatPrompt: membership.scrape.chatPrompt,
+        showSources: membership.scrape.showSources,
+      }));
 
-    return {
-      content: [{ type: "text", text: JSON.stringify(collections) }],
-    };
-  });
+      return {
+        content: [{ type: "text", text: JSON.stringify(collections) }],
+      };
+    }
+  );
 
   mcpServer.tool(
     "get_groups",
+    "Lists knowledge groups in a collection.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
     },
@@ -151,6 +162,7 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "get_data_gaps",
+    "Returns unresolved recent data gaps for a collection.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
     },
@@ -193,6 +205,7 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "get_messages",
+    "Returns paginated recent messages for a collection.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
       page: z.number().int().min(1).optional(),
@@ -250,6 +263,7 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "get_summary",
+    "Returns summary analytics for a collection and time range.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
       fromTime: z.string().describe("Start time in ISO 8601 format."),
@@ -306,6 +320,7 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "set_ai_model",
+    "Updates the AI model used by a collection.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
       aiModel: z.string().min(1),
@@ -324,6 +339,7 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "set_collection_visibility",
+    "Sets collection visibility to public or private.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
       private: z.boolean(),
@@ -348,6 +364,7 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "set_prompt",
+    "Updates the chat prompt for a collection.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
       prompt: z.string(),
@@ -366,6 +383,7 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "set_show_sources",
+    "Enables or disables source visibility for answers.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
       showSources: z.boolean(),
