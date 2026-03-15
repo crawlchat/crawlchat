@@ -23,10 +23,14 @@ export function DailyMessagesChart({
   const [width, setWidth] = useState(0);
 
   const [chartData, categories] = useMemo(() => {
-    const data = [];
+    const data: Record<string, number | string>[] = [];
     const today = new Date();
     const DAY_MS = 1000 * 60 * 60 * 24;
     const groupByMonth = loaderData.days > 60;
+
+    if (!loaderData.summary) {
+      return [data, new Set<string>()];
+    }
 
     if (groupByMonth) {
       const monthlyData: Record<string, Record<string, number | string>> = {};
@@ -53,7 +57,7 @@ export function DailyMessagesChart({
       }
 
       for (const [dayKey, item] of Object.entries(
-        loaderData.messagesSummary.dailyMessages
+        loaderData.summary.messagesSummary.dailyMessages
       )) {
         const monthKey = dayKey.substring(0, 7);
         if (!monthlyData[monthKey]) continue;
@@ -81,7 +85,7 @@ export function DailyMessagesChart({
         const key = date.toISOString().split("T")[0];
         const name = moment(date).format("MMM D");
 
-        const item = loaderData.messagesSummary.dailyMessages[key];
+        const item = loaderData.summary.messagesSummary.dailyMessages[key];
 
         const record: Record<string, number | string> = {
           name,
@@ -106,7 +110,7 @@ export function DailyMessagesChart({
     }
 
     return [data, categories];
-  }, [loaderData.messagesSummary.dailyMessages, loaderData.days]);
+  }, [loaderData.summary, loaderData.days]);
 
   useEffect(() => {
     if (containerRef.current) {

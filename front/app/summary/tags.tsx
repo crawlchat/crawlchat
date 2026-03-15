@@ -45,11 +45,15 @@ export default function Tags({ tagsOrder }: { tagsOrder: "top" | "latest" }) {
   const loaderData = useLoaderData<typeof loader>();
 
   const tags = useMemo(() => {
-    const sortedTags = Object.entries(loaderData.messagesSummary.tags).sort(
-      (a, b) => {
-        return b[1].count - a[1].count;
-      }
-    );
+    if (!loaderData.summary) {
+      return [];
+    }
+
+    const sortedTags = Object.entries(
+      loaderData.summary.messagesSummary.tags
+    ).sort((a, b) => {
+      return b[1].count - a[1].count;
+    });
 
     if (tagsOrder === "latest") {
       sortedTags.sort((a, b) => {
@@ -60,7 +64,7 @@ export default function Tags({ tagsOrder }: { tagsOrder: "top" | "latest" }) {
     return sortedTags
       .slice(0, 20)
       .map(([title, d]) => ({ title, count: d.count }));
-  }, [loaderData.messagesSummary.tags, tagsOrder]);
+  }, [loaderData.summary, tagsOrder]);
 
   return (
     <div className={cn("flex flex-row flex-wrap gap-2")}>
