@@ -1,7 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import { Prisma } from "@packages/common/prisma";
-import { prisma } from "@packages/common/prisma";
+import { Prisma, prisma } from "@packages/common/prisma";
 import { getCollectionSummary } from "@packages/common/summary";
 import { Router } from "express";
 import { z } from "zod";
@@ -43,7 +42,9 @@ async function getApiUser(apiKey: string | undefined) {
 }
 
 function ensureScrapeAccess(user: ApiUser, scrapeId: string) {
-  if (!user.scrapeUsers.find((scrapeUser) => scrapeUser.scrapeId === scrapeId)) {
+  if (
+    !user.scrapeUsers.find((scrapeUser) => scrapeUser.scrapeId === scrapeId)
+  ) {
     throw new Error("Unauthorised");
   }
 }
@@ -242,10 +243,7 @@ function createMcpServer(user: ApiUser) {
 
       const fromDate = new Date(fromTime);
       const endDate = new Date(endTime);
-      if (
-        Number.isNaN(fromDate.getTime()) ||
-        Number.isNaN(endDate.getTime())
-      ) {
+      if (Number.isNaN(fromDate.getTime()) || Number.isNaN(endDate.getTime())) {
         throw new Error("Invalid fromTime or endTime");
       }
       if (fromDate > endDate) {
@@ -347,7 +345,13 @@ function createMcpServer(user: ApiUser) {
       scrapeId: z.string().describe("The ID of the collection."),
       showSources: z.boolean(),
     },
-    async ({ scrapeId, showSources }: { scrapeId: string; showSources: boolean }) => {
+    async ({
+      scrapeId,
+      showSources,
+    }: {
+      scrapeId: string;
+      showSources: boolean;
+    }) => {
       ensureScrapeAccess(user, scrapeId);
       await prisma.scrape.update({
         where: { id: scrapeId },
