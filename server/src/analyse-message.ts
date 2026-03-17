@@ -57,6 +57,9 @@ export async function analyseMessage(
     questionSentiment: z.nativeEnum(QuestionSentiment).describe(
       `
         The sentiment of the question.
+        Here are the instructions for the sentiment:
+        - Happy: The user is expressing positive emotions, maybe the previous question was answered well, etc..
+        - Sad: The user is expressing anger, frustration, etc. maybe the previous question was answered poorly, something did not work for him, etc.
         It should be one of the following: ${Object.values(
           QuestionSentiment
         ).join(", ")}
