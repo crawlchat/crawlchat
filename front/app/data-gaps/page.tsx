@@ -218,7 +218,7 @@ export default function DataGapsPage({ loaderData }: Route.ComponentProps) {
         </div>
       )}
       {loaderData.messages.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
           <div className="text-base-content/50">
             These topics were asked but not found in the knowledge base. Review
             each one and either add it to your knowledge base or cancel it if
