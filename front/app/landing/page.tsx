@@ -10,7 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FaConfluence, FaMicrophone } from "react-icons/fa";
 import { RiChatVoiceAiFill } from "react-icons/ri";
-import { SiDocusaurus, SiLinear, SiN8N, SiOpenai } from "react-icons/si";
+import { SiDocusaurus, SiLinear, SiN8N } from "react-icons/si";
 import {
   TbArrowRight,
   TbBook,
@@ -41,6 +41,7 @@ import {
   TbFile,
   TbFolder,
   TbGlobe,
+  TbGraph,
   TbHelpCircleFilled,
   TbInfoCircleFilled,
   TbLanguage,
@@ -48,6 +49,7 @@ import {
   TbMail,
   TbMenu2,
   TbMessage,
+  TbMoneybag,
   TbMoodHappy,
   TbMusic,
   TbMusicX,
@@ -1554,9 +1556,8 @@ function Hero() {
           "leading-[1.2] text-center"
         )}
       >
-        Make your documentation{" "}
-        <span className="text-accent whitespace-nowrap">answer</span> the
-        questions
+        AI <span className="text-accent">answers</span> that help you improve
+        your <span className="text-accent">product</span>
       </h1>
 
       <p
@@ -1566,10 +1567,10 @@ function Hero() {
           "text-center"
         )}
       >
-        CrawlChat enables your technical documentation to{" "}
-        <span className="text-primary">answer</span> users’ questions and
-        provide valuable <span className="text-primary">insights</span>, helping
-        you improve your documentation and product.
+        CrawlChat connects all your knowledge sources into an AI chatbot across
+        multiple channels, helping users get instant answers while giving
+        product, support, and documentation teams insights to improve
+        documentation and product experience.
       </p>
 
       <ul className="mt-6 flex gap-x-4 gap-y-2 flex-wrap justify-center">
@@ -2702,28 +2703,28 @@ function BentoCard({
 function Why() {
   const benefits = [
     {
-      icon: <TbSearch />,
-      title: "vs. RAG",
+      icon: <TbCode />,
+      title: "For Software Companies",
       description:
-        "The RAG workflow just stops at finding the relevant documents. CrawlChat goes further by reranking them, supporting multiple sources, multiple platforms to deploy the chat assistant, categorizing the questions, finding data gaps, giving you the ability to add custom actions, and so on.",
+        "CrawlChat is tailored for technical documentation and developer workflows. It lets you connect your GitHub issues, GitHub code repositories, Notion pages, Confluence pages, Linear issues, and more, that are very specific for software companies. It also lets you deploy the chatbot on Discord, Slack, MCP servers which again are very specific for software companies.",
     },
     {
-      icon: <SiOpenai />,
-      title: "vs. LLMs",
+      icon: <TbGraph />,
+      title: "Insights",
       description:
-        "Offloading support doesn't help. CrawlChat gives complete visibility into your community queries and useful analytics.",
+        "Other solutions just stop at answering the questions. CrawlChat provides you analytics, categorisation, sentiment analysis, and more, that help you improve your documentation and product.",
     },
     {
-      icon: <TbUserHeart />,
-      title: "vs. Human Support",
+      icon: <TbGlobe />,
+      title: "Omni Channel",
       description:
-        "The queries you get are repeated and answered 80% of the time in your docs. CrawlChat respects humans and saves their time!",
+        "CrawlChat is one-stop solution to deploy the chatbot on multiple channels, including Discord, Slack, MCP servers, API, Websites and more.",
     },
     {
-      icon: <TbMessage />,
-      title: "vs. Other AI Chatbots",
+      icon: <TbMoneybag />,
+      title: "Affordable & Open Source",
       description:
-        "CrawlChat is tailored for technical documentation and developer workflows. Other platforms don't provide tools such as Discord bot, MCP server, integrated Support Tickets, Data gaps, etc. If you have software and help docs, CrawlChat is the best choice.",
+        "CrawlChat is the most affordable Ask AI solution for software companies with all the tools required to make your users happy. The pricing is clear and transparent unlike other platforms. CrawlChat is also open source and you can self-host it for yourself.",
     },
   ];
 
