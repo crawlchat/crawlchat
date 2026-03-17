@@ -355,17 +355,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     flow.flowState.state.messages
   );
 
-  const sourcesWithScore = sources.filter((s) => !!s.score).length;
-  const sourcesQualified = sources.filter(
-    (s) => !!s.score && s.score > (scrape.dataGapMinScore ?? 0.2)
-  ).length;
-  const sourcesQualifiedPct = sourcesQualified / sourcesWithScore;
-
-  console.log({
-    sourcesWithScore,
-    sourcesQualified,
-    sourcesQualifiedPct,
-  });
+  const maxScore = Math.max(...sources.map((s) => s.score ?? 0));
 
   const answer: AnswerCompleteEvent = {
     type: "answer-complete",
@@ -384,7 +374,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
     messages: flow.flowState.state.messages,
     context: collectContext(flow.flowState.state.messages),
     dataGap:
-      sourcesQualifiedPct > 0.1
+      maxScore > (scrape.dataGapMinScore ?? 0.2)
         ? collectDataGap(flow.flowState.state.messages)
         : undefined,
     question: query,
