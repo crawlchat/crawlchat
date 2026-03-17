@@ -95,6 +95,11 @@ export function DataGapCard({ message }: { message: Message }) {
       ),
     [message.links]
   );
+  const strength = useMemo(() => {
+    if (maxScore < 0.3) return "Weak";
+    if (maxScore <= 0.75) return "Moderate";
+    return "Strong";
+  }, [maxScore]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(
@@ -120,18 +125,21 @@ export function DataGapCard({ message }: { message: Message }) {
           <div className="flex flex-col gap-1">
             <div>{message.dataGap!.title}</div>
             <div className="flex items-center gap-2">
-              <div className="tooltip" data-tip={`${maxScore.toFixed(2)}`}>
+              <div
+                className="tooltip tooltip-right"
+                data-tip={`${strength} - ${maxScore.toFixed(2)}`}
+              >
                 <div
                   className={cn(
                     "badge badge-soft",
-                    maxScore < 0.3 && "badge-warning",
-                    maxScore > 0.3 && maxScore <= 0.75 && "badge-info",
-                    maxScore > 0.75 && "badge-primary"
+                    strength === "Weak" && "badge-warning",
+                    strength === "Moderate" && "badge-info",
+                    strength === "Strong" && "badge-primary"
                   )}
                 >
-                  {maxScore < 0.3 && <TbBattery1 />}
-                  {maxScore >= 0.3 && maxScore <= 0.75 && <TbBattery2 />}
-                  {maxScore > 0.75 && <TbBattery3 />}
+                  {strength === "Weak" && <TbBattery1 />}
+                  {strength === "Moderate" && <TbBattery2 />}
+                  {strength === "Strong" && <TbBattery3 />}
                 </div>
               </div>
               <Timestamp
