@@ -4,6 +4,7 @@ import type { Route } from "./+types/page";
 
 export async function loader({ params }: Route.ComponentProps) {
   const { org, repo } = params;
+  const githubRepoUrl = `https://github.com/${org}/${repo}`;
 
   const user = await prisma.user.findFirstOrThrow({
     where: {
@@ -13,7 +14,7 @@ export async function loader({ params }: Route.ComponentProps) {
 
   let group = await prisma.knowledgeGroup.findFirst({
     where: {
-      url: `https://github.com/${org}/${repo}`,
+      url: githubRepoUrl,
       type: "scrape_github",
     },
     include: {
@@ -22,6 +23,20 @@ export async function loader({ params }: Route.ComponentProps) {
   });
 
   if (!group) {
+    const repoResponse = await fetch(
+      `https://api.github.com/repos/${org}/${repo}`,
+      {
+        headers: {
+          Accept: "application/vnd.github+json",
+        },
+      }
+    );
+    const repoData = repoResponse.ok
+      ? ((await repoResponse.json()) as { default_branch?: string })
+      : undefined;
+    const githubBranch =
+      repoData?.default_branch === "master" ? "master" : "main";
+
     const newScrape = await prisma.scrape.create({
       data: {
         userId: user.id,
@@ -50,7 +65,8 @@ export async function loader({ params }: Route.ComponentProps) {
     group = await prisma.knowledgeGroup.create({
       data: {
         scrapeId: newScrape.id,
-        url: `https://github.com/${org}/${repo}`,
+        url: githubRepoUrl,
+        githubBranch,
         type: "scrape_github",
         userId: user.id,
         status: "done",
