@@ -186,7 +186,12 @@ export function RichAPIPlayground({
 
   return (
     <div className={cn("shadow-xs border border-base-300 rounded-box")}>
-      <div className={cn("flex justify-between items-center gap-2", "p-2")}>
+      <div
+        className={cn(
+          "flex justify-between md:items-center gap-2",
+          "p-2 flex-col md:flex-row"
+        )}
+      >
         <div className="flex items-center gap-2">
           <div className={cn("badge badge-primary badge-soft")}>
             {method?.toUpperCase()}
@@ -239,10 +244,13 @@ export function RichAPIPlayground({
                 (a, b) => FIELD_TYPE_ORDER[a.type] - FIELD_TYPE_ORDER[b.type]
               )
               .map((field) => (
-                <li key={field.key} className="flex gap-4">
+                <li
+                  key={field.key}
+                  className="flex flex-col md:flex-row gap-4 m-0! p-0!"
+                >
                   <div className="max-w-[260px] w-full">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{field.key}</span>
+                      <span>{field.key}</span>
                       {field.required && <span className="text-error">*</span>}
                       <span className="badge badge-sm badge-soft">
                         {field.type}
