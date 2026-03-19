@@ -126,7 +126,17 @@ export function RichAPIPlayground({
   const [values, setValues] = useState<Record<string, string | undefined>>(
     fields?.reduce(
       (acc, field) => {
-        acc[fieldKey(field)] = field.defaultValue ?? undefined;
+        let isJson = false;
+        try {
+          JSON.parse(field.defaultValue ?? "");
+          isJson = true;
+        } catch {
+          isJson = false;
+        }
+        acc[fieldKey(field)] =
+          field.dataType === "json" && isJson
+            ? JSON.stringify(JSON.parse(field.defaultValue ?? ""), null, 2)
+            : (field.defaultValue ?? undefined);
         return acc;
       },
       {} as Record<string, string | undefined>
