@@ -240,11 +240,15 @@ export const baseAnswererInternal: Answerer = async (
   const githubRepoUrl = githubRepoGroup?.url ?? githubRepoGroup?.githubUrl;
   if (githubRepoGroup && githubRepoUrl) {
     githubRepoPath = `/tmp/flash-${githubRepoGroup.id}`;
-    await ensureRepoCloned(
-      githubRepoUrl,
-      githubRepoPath,
-      githubRepoGroup.githubBranch ?? "main"
-    );
+    try {
+      await ensureRepoCloned(
+        githubRepoUrl,
+        githubRepoPath,
+        githubRepoGroup.githubBranch ?? "main"
+      );
+    } catch (error) {
+      console.log("Failed to clone GitHub repo", error);
+    }
   }
 
   const richBlocks = scrape.richBlocksConfig?.blocks ?? [];
