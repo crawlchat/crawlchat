@@ -2,12 +2,13 @@ import { Agent, Flow, Message, multiLinePrompt } from "@packages/agentic";
 import { MultimodalContent } from "@packages/common/llm-message";
 import {
   ApiAction,
+  KnowledgeGroup,
   RichBlockConfig,
   ScrapeItem,
   Thread,
 } from "@packages/common/prisma";
 import { richMessageBlocks } from "@packages/common/rich-message-block";
-import { createCodebaseTools } from "@packages/flash";
+import { CodebaseTool, createCodebaseTools } from "@packages/flash";
 import zodToJsonSchema from "zod-to-json-schema";
 import { makeActionTools } from "./action-tool";
 import { LlmConfig } from "./config";
@@ -49,7 +50,10 @@ export function makeRagAgent(
     clientData?: any;
     secret?: string;
     scrapeItem?: ScrapeItem;
-    githubRepoPath?: string;
+    githubRepo?: {
+      group: KnowledgeGroup;
+      path: string;
+    };
   }
 ) {
   const queryContext: SearchToolContext & TextSearchToolContext = {
@@ -115,11 +119,35 @@ export function makeRagAgent(
 
   const dataGapTool = makeDataGapTool();
 
-  const codebaseTools = options?.githubRepoPath
-    ? createCodebaseTools(options.githubRepoPath, {
+  const githubRepo = options?.githubRepo;
+  let codebaseTools: CodebaseTool[] = [];
+  let githubRepoPrompt = "";
+  const githubRepoUrl = githubRepo?.group.githubUrl ?? githubRepo?.group.url;
+  if (githubRepo && githubRepoUrl) {
+    codebaseTools = createCodebaseTools(
+      githubRepoUrl,
+      githubRepo.group.githubBranch ?? "main",
+      githubRepo.path,
+      {
         onToolCall: options?.onPreCodebaseTool,
-      })
-    : [];
+      }
+    );
+    githubRepoPrompt = multiLinePrompt([
+      "You have access to a codebase through the following tools:",
+      "- grep: Search file contents using regex patterns. Returns matching lines with file paths and line numbers.",
+      "- ls: List files and directories in a specified path.",
+      "- find: Find files by name or glob pattern (e.g., '**/*.ts').",
+      "- tree: Get a tree-like representation of the directory structure.",
+      "Use these tools when the user asks about code, file structure, or wants to explore the codebase.",
+      "Start with 'tree' to understand the project structure, then use 'grep' or 'find' to locate specific code.",
+      "Use 'ls' to explore specific directories in detail.",
+      "You need to give citation to the files that are used to answer the question.",
+      "The citation should be in the format of !!<uniqueId>!! that is passed in the context.",
+      "Give the citation in place, not as a seperate section at the end of the answer.",
+      "Don't add the citation in headers and code blocks. Always have it either in regular text or as a new line.",
+      "You must add the citation for sure. Don't skip it.",
+    ]);
+  }
 
   let currentPagePrompt = "";
   if (options?.scrapeItem) {
@@ -192,19 +220,6 @@ export function makeRagAgent(
       "When you have scrapeItemId from a previous search result (it appears in the context JSON), pass it to text_search_regex to search only that document; use a larger snippetWindow only when you need more context from that item, and increase further on follow-up calls only if the snippet is still insufficient.",
       "Recommended to use text_search_regex or text_search when you want to know about a specific term or phrase. Best for codebase related questions.",
 
-      options?.githubRepoPath
-        ? multiLinePrompt([
-            "You have access to a codebase through the following tools:",
-            "- grep: Search file contents using regex patterns. Returns matching lines with file paths and line numbers.",
-            "- ls: List files and directories in a specified path.",
-            "- find: Find files by name or glob pattern (e.g., '**/*.ts').",
-            "- tree: Get a tree-like representation of the directory structure.",
-            "Use these tools when the user asks about code, file structure, or wants to explore the codebase.",
-            "Start with 'tree' to understand the project structure, then use 'grep' or 'find' to locate specific code.",
-            "Use 'ls' to explore specific directories in detail.",
-          ])
-        : "",
-
       options?.showSources ? citationPrompt : "",
 
       enabledRichBlocks.length > 0 ? richBlocksPrompt : "",
@@ -214,6 +229,8 @@ export function makeRagAgent(
       systemPrompt,
 
       currentPagePrompt,
+
+      githubRepoPrompt,
 
       `<client-data>\n${JSON.stringify(options?.clientData)}\n</client-data>`,
     ]),

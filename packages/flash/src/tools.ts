@@ -1,10 +1,10 @@
 import { Tool } from "@packages/agentic";
-import { z } from "zod";
-import * as fs from "fs/promises";
-import * as path from "path";
 import { exec } from "child_process";
-import { promisify } from "util";
+import * as fs from "fs/promises";
 import { glob } from "glob";
+import * as path from "path";
+import { promisify } from "util";
+import { z } from "zod";
 
 const execAsync = promisify(exec);
 
@@ -55,7 +55,7 @@ const ReadSchema = z.object({
     .describe("Number of lines to return (defaults to 100, max 200)"),
 });
 
-type CodebaseTool =
+export type CodebaseTool =
   | Tool<typeof GrepSchema, object>
   | Tool<typeof LsSchema, object>
   | Tool<typeof FindSchema, object>
@@ -76,6 +76,8 @@ function resolvePath(repoPath: string, relativePath?: string): string {
 }
 
 function createGrepTool(
+  githubRepo: string,
+  branch: string,
   repoPath: string,
   options?: CodebaseToolOptions
 ): Tool<typeof GrepSchema, object> {
@@ -119,13 +121,17 @@ function createGrepTool(
       );
       const lines = stdout.trim().split("\n").filter(Boolean).slice(0, 100);
       return {
-        content: lines.length ? lines.join("\n") : "No matches found",
+        content: lines.length
+          ? JSON.stringify({ lines: lines.join("\n"), githubRepo, branch })
+          : "No matches found",
       };
     },
   };
 }
 
 function createLsTool(
+  githubRepo: string,
+  branch: string,
   repoPath: string,
   options?: CodebaseToolOptions
 ): Tool<typeof LsSchema, object> {
@@ -144,12 +150,18 @@ function createLsTool(
           return `${entry.name}${suffix}`;
         })
         .join("\n");
-      return { content: result || "Empty directory" };
+      return {
+        content: result
+          ? JSON.stringify({ result, githubRepo, branch })
+          : "Empty directory",
+      };
     },
   };
 }
 
 function createFindTool(
+  githubRepo: string,
+  branch: string,
   repoPath: string,
   options?: CodebaseToolOptions
 ): Tool<typeof FindSchema, object> {
@@ -170,7 +182,11 @@ function createFindTool(
         matches.length > 200 ? `\n... and ${matches.length - 200} more` : "";
       return {
         content: limited.length
-          ? limited.join("\n") + suffix
+          ? JSON.stringify({
+              files: limited.join("\n") + suffix,
+              githubRepo,
+              branch,
+            })
           : "No files found",
       };
     },
@@ -214,6 +230,8 @@ async function buildTree(
 }
 
 function createTreeTool(
+  githubRepo: string,
+  branch: string,
   repoPath: string,
   options?: CodebaseToolOptions
 ): Tool<typeof TreeSchema, object> {
@@ -229,12 +247,20 @@ function createTreeTool(
       const rootName = input.path || path.basename(repoPath);
       const treeLines = await buildTree(targetPath, "", 0, maxDepth);
       const lines = [`${rootName}/`, ...treeLines];
-      return { content: lines.join("\n") };
+      return {
+        content: JSON.stringify({
+          lines: lines.join("\n"),
+          githubRepo,
+          branch,
+        }),
+      };
     },
   };
 }
 
 function createReadTool(
+  githubRepo: string,
+  branch: string,
   repoPath: string,
   options?: CodebaseToolOptions
 ): Tool<typeof ReadSchema, object> {
@@ -255,28 +281,42 @@ function createReadTool(
       const numbered = selected.map(
         (line, index) => `${startLine + index}|${line}`
       );
-      return { content: numbered.join("\n") };
+      return {
+        content: JSON.stringify({
+          lines: numbered.join("\n"),
+          githubRepo,
+          branch,
+          uniqueId: `${githubRepo}:${branch}:${input.path}${startLine ? `#L${startLine}` : ""}`,
+        }),
+      };
     },
   };
 }
 
 export function createCodebaseTools(
+  githubRepoUrl: string,
+  branch: string,
   repoPath: string,
   options?: CodebaseToolOptions
 ): CodebaseTool[] {
+  const githubRepo = githubRepoUrl
+    .replace(/^https:\/\/github\.com\//, "")
+    .split("/")
+    .slice(0, 2)
+    .join("/");
   return [
-    createGrepTool(repoPath, options),
-    createLsTool(repoPath, options),
-    createFindTool(repoPath, options),
-    createTreeTool(repoPath, options),
-    createReadTool(repoPath, options),
+    createGrepTool(githubRepo, branch, repoPath, options),
+    createLsTool(githubRepo, branch, repoPath, options),
+    createFindTool(githubRepo, branch, repoPath, options),
+    createTreeTool(githubRepo, branch, repoPath, options),
+    createReadTool(githubRepo, branch, repoPath, options),
   ];
 }
 
 export {
+  createFindTool,
   createGrepTool,
   createLsTool,
-  createFindTool,
-  createTreeTool,
   createReadTool,
+  createTreeTool,
 };

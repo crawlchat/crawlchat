@@ -6,6 +6,7 @@ import { jsonrepair } from "jsonrepair";
 import { useState, type PropsWithChildren } from "react";
 import {
   TbArrowRight,
+  TbBrandGithub,
   TbCheck,
   TbCircleCheckFilled,
   TbCopy,
@@ -240,7 +241,7 @@ export function MarkdownProse({
   return (
     <div className="prose markdown-prose">
       <Markdown
-        remarkPlugins={[remarkGfm, linkifyRegex(/\!\![0-9a-zA-Z]+!!/)]}
+        remarkPlugins={[remarkGfm, linkifyRegex(/!![^\s]+!!/)]}
         components={{
           code: ({ node, ...props }) => {
             const { children, className, ...rest } = props;
@@ -334,12 +335,40 @@ export function MarkdownProse({
           a: ({ node, ...props }) => {
             const { children, ...rest } = props;
 
+            if (typeof children !== "string") {
+              return <a {...rest}>{children}</a>;
+            }
+
+            const githubRepoMatch = children.match(
+              /!!([^\s]+):([^\s]+):([^\s]+)!!/
+            );
+
+            if (githubRepoMatch) {
+              const [, repo, branch, filePath] = githubRepoMatch;
+              const filename = filePath.split("/").pop()?.replace(/#L\d+/, "");
+              return (
+                <a
+                  href={`https://github.com/${repo}/blob/${branch}/${filePath}`}
+                  target="_blank"
+                  className={cn(
+                    "border border-base-300 rounded-box",
+                    "no-underline inline-flex items-center px-3 gap-2",
+                    "translate-y-[2px] bg-primary/5 text-primary",
+                    "opacity-50 hover:opacity-100 text-sm"
+                  )}
+                >
+                  <TbBrandGithub />
+                  <span>{filename}</span>
+                </a>
+              );
+            }
+
             const defaultNode = <a {...rest}>{children}</a>;
-            if (!sources || typeof children !== "string") {
+            if (!sources) {
               return children;
             }
 
-            const match = children.match(/\!\!([0-9]*)!!/);
+            const match = children.match(/!!([0-9]*)!!/);
             if (children.startsWith("!!") && !match) {
               return null;
             } else if (!match) {
