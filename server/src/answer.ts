@@ -10,6 +10,7 @@ import {
 import {
   ApiAction,
   ApiActionCall,
+  KnowledgeGroup,
   MessageChannel,
   MessageSourceLink,
   Prisma,
@@ -236,14 +237,17 @@ export const baseAnswererInternal: Answerer = async (
       type: "scrape_github",
     },
   });
-  let githubRepoPath: string | undefined;
+  let githubRepo: { group: KnowledgeGroup; path: string } | undefined;
   const githubRepoUrl = githubRepoGroup?.url ?? githubRepoGroup?.githubUrl;
   if (githubRepoGroup && githubRepoUrl) {
-    githubRepoPath = `/tmp/flash-${githubRepoGroup.id}`;
+    githubRepo = {
+      group: githubRepoGroup,
+      path: `/tmp/flash-${githubRepoGroup.id}`,
+    };
     try {
       await ensureRepoCloned(
         githubRepoUrl,
-        githubRepoPath,
+        githubRepo.path,
         githubRepoGroup.githubBranch ?? "main"
       );
     } catch (error) {
@@ -329,7 +333,7 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
       clientData: options?.clientData,
       secret: options?.secret,
       scrapeItem: options?.scrapeItem,
-      githubRepoPath,
+      githubRepo,
     }
   );
 
