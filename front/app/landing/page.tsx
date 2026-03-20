@@ -1156,6 +1156,9 @@ export function Footer() {
               <li>
                 <FooterLink href="/open-source">Open source</FooterLink>
               </li>
+              <li>
+                <FooterLink href="/ask-github-repo">Ask GitHub Repo</FooterLink>
+              </li>
             </ul>
           </div>
           <div className="flex-1">

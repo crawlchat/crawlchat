@@ -92,6 +92,7 @@ export default [
 
   layout("landing/layout.tsx", [
     index("landing/page.tsx"),
+    route("ask-github-repo", "landing/ask-github-repo.tsx"),
     route("blog/:slug", "blog/page.tsx"),
     route("blog", "blog/list.tsx"),
     route("changelog", "changelog/list.tsx"),
