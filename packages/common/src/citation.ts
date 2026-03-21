@@ -32,8 +32,7 @@ export function extractCitations(
   }
 
   if (cleanCitations) {
-    cleanedContent = cleanedContent.replace(/!!([0-9]+)!!/g, "");
-    cleanedContent = cleanedContent.replace(/!!<fetchUniqueId>!!/g, "");
+    cleanedContent = cleanedContent.replace(/!![^\s]+!!/g, "");
   }
 
   if (addSourcesToMessage && Object.values(citedLinks).length > 0) {
