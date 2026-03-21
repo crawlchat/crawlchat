@@ -36,7 +36,7 @@ export function KnowledgeGroupBadge({
   return (
     <div className="badge badge-soft badge-primary">
       {icon}
-      {text}
+      <span className="whitespace-nowrap">{text}</span>
     </div>
   );
 }

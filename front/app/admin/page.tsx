@@ -9,7 +9,7 @@ import { prisma } from "@packages/common/prisma";
 import moment from "moment";
 import { useEffect, useRef, useState } from "react";
 import { toast, Toaster } from "react-hot-toast";
-import { TbChartBarOff, TbConfetti, TbFolder } from "react-icons/tb";
+import { TbApi, TbChartBarOff, TbConfetti, TbFolder } from "react-icons/tb";
 import { Link, redirect, useLoaderData } from "react-router";
 import {
   Bar,
@@ -347,6 +347,11 @@ function MessagesTable({
                           {messageDetail.message.dataGap.description}
                         </MarkdownProse>
                       </div>
+                    </div>
+                  )}
+                  {messageDetail.message.showedApiPlayground && (
+                    <div className="badge badge-soft badge-secondary">
+                      <TbApi />
                     </div>
                   )}
                 </div>
