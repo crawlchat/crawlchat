@@ -5,7 +5,6 @@ import type {
   Prisma,
   Scrape,
   ScrapeMessageCategory,
-  User,
 } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
 import { useEffect, useRef, useState } from "react";
@@ -13,7 +12,6 @@ import toast from "react-hot-toast";
 import {
   TbCheck,
   TbCopy,
-  TbCrown,
   TbFolder,
   TbListCheck,
   TbLock,
@@ -346,11 +344,7 @@ function ShowSourcesSetting({ scrape }: { scrape: Scrape }) {
   );
 }
 
-function AnalyseMessageSettings({
-  scrape,
-}: {
-  scrape: Scrape;
-}) {
+function AnalyseMessageSettings({ scrape }: { scrape: Scrape }) {
   const fetcher = useFetcher();
   const dirtyForm = useDirtyForm({
     analyseMessage: scrape.analyseMessage ?? false,
@@ -855,9 +849,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
 
           <AiModelSettings scrape={loaderData.scrape} />
 
-          <AnalyseMessageSettings
-            scrape={loaderData.scrape}
-          />
+          <AnalyseMessageSettings scrape={loaderData.scrape} />
 
           <DataGapMinScoreSettings scrape={loaderData.scrape} />
 
