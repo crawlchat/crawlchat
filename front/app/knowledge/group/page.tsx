@@ -114,19 +114,31 @@ export default function KnowledgeGroupPage({
   }, [location.pathname]);
 
   const tabs = useMemo(() => {
-    return [
+    const tabs = [
       {
         value: `/knowledge/group/${loaderData.knowledgeGroup.id}`,
         label: "Settings",
         icon: <TbSettings />,
       },
-      {
+    ];
+    const sourceSpec = getSourceSpec(
+      loaderData.knowledgeGroup.type,
+      loaderData.knowledgeGroup.subType
+    );
+    if (sourceSpec?.hasPages !== false) {
+      tabs.push({
         value: `/knowledge/group/${loaderData.knowledgeGroup.id}/items`,
         label: `Pages (${loaderData.items})`,
         icon: <TbBook2 />,
-      },
-    ];
-  }, [loaderData.knowledgeGroup.id, loaderData.items]);
+      });
+    }
+    return tabs;
+  }, [
+    loaderData.knowledgeGroup.id,
+    loaderData.items,
+    loaderData.knowledgeGroup.type,
+    loaderData.knowledgeGroup.subType,
+  ]);
 
   const sourceSpec = useMemo(
     () =>
