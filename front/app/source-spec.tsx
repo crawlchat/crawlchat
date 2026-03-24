@@ -35,6 +35,7 @@ export type SourceSpec = {
   autoSyncIntervals: KnowledgeGroupUpdateFrequency[];
   canClearStalePages: boolean;
   canSkipPages: boolean;
+  hasPages: boolean;
 };
 
 export const sourceSpecs: SourceSpec[] = [
@@ -59,6 +60,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: true,
+    hasPages: true,
   },
   {
     name: "Docusaurus",
@@ -81,6 +83,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: true,
+    hasPages: true,
   },
   {
     name: "Notion",
@@ -107,6 +110,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: true,
+    hasPages: true,
   },
   {
     name: "GH Repo",
@@ -128,6 +132,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: [],
     canClearStalePages: false,
     canSkipPages: false,
+    hasPages: false,
   },
   {
     name: "GH Issues",
@@ -150,6 +155,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: false,
+    hasPages: true,
   },
   {
     name: "GH Discussions",
@@ -172,6 +178,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: false,
+    hasPages: true,
   },
   {
     name: "Upload",
@@ -186,6 +193,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: [],
     canClearStalePages: false,
     canSkipPages: false,
+    hasPages: true,
   },
   {
     name: "Confluence",
@@ -212,6 +220,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["hourly", "daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: true,
+    hasPages: true,
   },
   {
     name: "Linear Issues",
@@ -238,6 +247,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["hourly", "daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: false,
+    hasPages: true,
   },
   {
     name: "Linear Projects",
@@ -264,6 +274,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["hourly", "daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: false,
+    hasPages: true,
   },
   {
     name: "Custom",
@@ -289,6 +300,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: [],
     canClearStalePages: false,
     canSkipPages: false,
+    hasPages: true,
   },
   {
     name: "Video",
@@ -311,6 +323,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: false,
+    hasPages: true,
   },
   {
     name: "Channel",
@@ -333,6 +346,7 @@ export const sourceSpecs: SourceSpec[] = [
     autoSyncIntervals: ["daily", "weekly", "monthly"],
     canClearStalePages: true,
     canSkipPages: true,
+    hasPages: true,
   },
 ];
 
