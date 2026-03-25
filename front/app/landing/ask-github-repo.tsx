@@ -176,9 +176,7 @@ export default function AskGithubRepoPage() {
           </section>
 
           <section className="border border-base-300 rounded-box p-6">
-            <h2 className="text-2xl font-brand">
-              FAQ: Chat with GitHub repo
-            </h2>
+            <h2 className="text-2xl font-brand">FAQ: Chat with GitHub repo</h2>
             <div className="mt-3 space-y-4 text-base-content/80">
               <div>
                 <h3 className="font-medium">
