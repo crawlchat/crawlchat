@@ -819,7 +819,7 @@ function Toolbar() {
         color,
       }}
     >
-      <div className="flex flex-1 gap-2 items-center">
+      <div className="flex flex-1 min-w-0 gap-2 items-center">
         {fullscreen && (
           <ToolbarButton onClick={() => close()}>
             <TbX />
@@ -833,7 +833,7 @@ function Toolbar() {
           />
         )}
 
-        <div className="text-xl font-bold">
+        <div className="text-xl font-bold truncate min-w-0">
           {scrape.widgetConfig?.title || scrape.title || "Ask AI"}
         </div>
 
