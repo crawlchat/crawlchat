@@ -72,7 +72,8 @@ export function meta() {
 }
 
 export default function ModelCosts({ loaderData }: Route.ComponentProps) {
-  const { modelCosts, totalMessages, totalCost, overallAverageCost } = loaderData;
+  const { modelCosts, totalMessages, totalCost, overallAverageCost } =
+    loaderData;
 
   return (
     <div className="p-4 flex flex-col gap-4">
