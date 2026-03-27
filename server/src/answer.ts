@@ -271,7 +271,7 @@ Use this whenever user asks for a HTTP API or when you are explaining an API.
 USE THIS BLOCK ALWAYS WHENEVER YOU ARE EXPLAINING AN API.
 Default to showing this block even if the user did not ask to "try it".
 For API-related answers, prefer including this block.
-Don't add "body" itself as a field. Add inner fields instead.`,
+Don't add "body" itself as a field.`,
     });
   }
 
