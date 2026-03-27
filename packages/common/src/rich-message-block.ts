@@ -46,7 +46,10 @@ export const apiPlaygroundBlock: RichMessageBlock = {
     }),
     fields: z.array(
       z.object({
-        key: z.string({ description: "Key of the field" }),
+        key: z.string({
+          description:
+            "Key of the field. This will be added to the corresponding `type` you pass.",
+        }),
         type: z.enum(["header", "queryParam", "body", "pathParam"]),
         required: z.boolean(),
         description: z.string({

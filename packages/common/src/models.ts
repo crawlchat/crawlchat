@@ -180,7 +180,7 @@ export const models: Record<string, AiModel> = {
     addedAt: new Date("2026-02-18"),
   },
   "openrouter/minimax/minimax-m2.5": {
-    model: "minimax/minimax-m2.1",
+    model: "minimax/minimax-m2.5",
     ragTopN: 4,
     creditsPerMessage: 2,
     baseURL: "https://openrouter.ai/api/v1",
@@ -190,6 +190,18 @@ export const models: Record<string, AiModel> = {
     accuracy: "Good",
     imageInputs: false,
     addedAt: new Date("2026-02-23"),
+  },
+  "openrouter/minimax/minimax-m2.7": {
+    model: "minimax/minimax-m2.7",
+    ragTopN: 4,
+    creditsPerMessage: 2,
+    baseURL: "https://openrouter.ai/api/v1",
+    displayName: "Minimax M2.7",
+    provider: "Minimax",
+    speed: "Medium",
+    accuracy: "Good",
+    imageInputs: false,
+    addedAt: new Date("2026-03-27"),
   },
   "openrouter/z-ai/glm-4.7": {
     model: "z-ai/glm-4.7",
