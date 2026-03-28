@@ -1,8 +1,8 @@
 ---
-sidebar_position: 8
+sidebar_position: 5
 ---
 
-# Docusaurus sidepanel
+# Side panel
 
 Now you can embed the Ask AI widget as sidepanel instead of as a popup. This pattern has been adopted by many documentations. It has few advantages over the traditional popup.
 
