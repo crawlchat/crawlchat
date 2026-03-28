@@ -288,10 +288,12 @@ class CrawlChatEmbed {
         sidepanel.style.height = `${window.innerHeight - rect.height}px`;
       }
 
-      const toc = getDocusaurusTocCol();
-      if (toc) {
-        const rect = toc.getBoundingClientRect();
-        sidepanel.style.width = `${window.innerWidth - rect.left - 22}px`;
+      const { elem: container, col } = getDocusaurusMainContainer();
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        const scroll = this.getScrollbarWidth();
+        const pad = col ? 10 : 20;
+        sidepanel.style.width = `${window.innerWidth - rect.right - scroll - pad}px`;
       }
     }
   }
@@ -360,20 +362,15 @@ class CrawlChatEmbed {
       }
     };
 
-    const handleMessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.type === "internal-link-click") {
-          this.positionSidePanel();
-        }
-      } catch {}
+    const handleNavigate = (e) => {
+      this.positionSidePanel();
     };
 
     document.removeEventListener("keydown", handleKeyDown);
     document.addEventListener("keydown", handleKeyDown);
 
-    window.removeEventListener("message", handleMessage);
-    window.addEventListener("message", handleMessage);
+    window.navigation.removeEventListener("navigate", handleNavigate);
+    window.navigation.addEventListener("navigate", handleNavigate);
   }
 
   toggleSidePanel() {
