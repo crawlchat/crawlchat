@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Embed on web
 
-The most common way to put the bot in use is to embed it on your documentation website. This is a very straight forward adding `<script/>` tag on your `html` page.
+The most common way to put the bot in use is to embed it on your documentation website. This is a very straight forward adding `<script/>` tag on your `html` page. Customise the web widget from [Customise](https://crawlchat.app/integrate/customise) page
 
 :::note
 Framework specific embed instructions are coming soon!
@@ -26,7 +26,7 @@ Copy the following code and past in the `<head>` section of your page. Replace v
 
 ## Docusaurus
 
-If you are running a Docusaurus website (just like this one), add the following code to your `docusaurus.config.ts` file. Replace value of `data-id` to your collection id. You can find it on [Settings](https://crawlchat.app/settings) page. Customise the web widget from [Customise](https://crawlchat.app/integrate/customise) page
+If you are running a Docusaurus website (just like this one), add the following code to your `docusaurus.config.ts` file. Replace value of `data-id` to your collection id. You can find it on [Settings](https://crawlchat.app/settings) page.
 
 ```js
 headTags: [
