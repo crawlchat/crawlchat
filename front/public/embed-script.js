@@ -295,9 +295,7 @@ class CrawlChatEmbed {
           const pad = col ? 10 : 20;
           sidepanel.style.width = `${window.innerWidth - rect.right - scroll - pad}px`;
         }
-      }
-
-      if (isMintlify()) {
+      } else if (isMintlify()) {
         const navBar = getMintlifyNavBar();
         if (navBar) {
           const rect = navBar.getBoundingClientRect();
