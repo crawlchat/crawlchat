@@ -343,6 +343,13 @@ class CrawlChatEmbed {
     sidepanel.id = this.sidepanelId;
     sidepanel.classList.add("hidden");
 
+    if (isDocusaurus()) {
+      sidepanel.classList.add("docusaurus");
+    }
+    if (isMintlify()) {
+      sidepanel.classList.add("mintlify");
+    }
+
     const params = new URLSearchParams({
       embed: "true",
       fullscreen: "true",
