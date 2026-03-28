@@ -307,7 +307,7 @@ class CrawlChatEmbed {
         if (container) {
           const rect = container.getBoundingClientRect();
           const scroll = this.getScrollbarWidth();
-          const pad = 20;
+          const pad = 30;
           sidepanel.style.width = `${window.innerWidth - rect.right - scroll - pad}px`;
         }
       }
