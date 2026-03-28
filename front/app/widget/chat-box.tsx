@@ -326,11 +326,13 @@ export function SourceLink({
   color,
   internalLinkHosts = [],
   handleInternalLinkClick,
+  small,
 }: {
   link: MessageSourceLink;
   color?: string;
   internalLinkHosts?: string[];
   handleInternalLinkClick?: (url: string) => void;
+  small?: boolean;
 }) {
   const internal =
     link.url && isValidUrl(link.url)
@@ -354,9 +356,10 @@ export function SourceLink({
       className={cn(
         "flex items-center gap-1",
         "transition-all decoration-0 opacity-70",
-        "hover:opacity-100 text-sm group",
+        "hover:opacity-100 group",
         (href || internal) && "cursor-pointer",
-        !href && !internal && "cursor-not-allowed"
+        !href && !internal && "cursor-not-allowed",
+        small ? "text-xs" : "text-sm"
       )}
       href={href}
       target={internal ? undefined : "_blank"}
@@ -395,11 +398,13 @@ export function Sources({
   color,
   internalLinkHosts,
   handleInternalLinkClick,
+  small,
 }: {
   citation: ReturnType<typeof extractCitations>;
   color?: string;
   internalLinkHosts?: string[];
   handleInternalLinkClick?: (url: string) => void;
+  small?: boolean;
 }) {
   const [showSources, setShowSources] = useState(false);
   const citedLinks = Object.entries(citation.citedLinks)
@@ -420,12 +425,14 @@ export function Sources({
   }
 
   return (
-    <div className={cn("flex flex-col gap-2", showSources && "mb-2")}>
+    <div className={cn("flex flex-col gap-2")}>
       <div
         className={cn(
-          "flex items-center gap-2 hover:opacity-100 opacity-70 cursor-pointer text-sm",
+          "flex items-center gap-2 hover:opacity-100",
+          "opacity-70 cursor-pointer",
           "transition-all",
-          showSources && "opacity-100"
+          showSources && "opacity-100",
+          small ? "text-xs" : "text-sm"
         )}
         onClick={() => setShowSources(!showSources)}
         style={{
@@ -444,6 +451,7 @@ export function Sources({
             color={color}
             internalLinkHosts={internalLinkHosts}
             handleInternalLinkClick={handleInternalLinkClick}
+            small={small}
           />
         ))}
     </div>
@@ -551,6 +559,7 @@ export function AssistantMessage({
         citation={citation}
         internalLinkHosts={internalLinkHosts}
         handleInternalLinkClick={handleInternalLinkClick}
+        small={small}
       />
 
       <div className="flex flex-col gap-4">
