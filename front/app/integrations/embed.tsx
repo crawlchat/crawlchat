@@ -53,6 +53,7 @@ function makeScriptCode(scrapeId: string) {
         "src": "${origin}/embed.js",
         "id": "crawlchat-script",
         "data-id": "${scrapeId}"
+        "data-sidepanel": "true" // optional
       },
     },
 ],`;
@@ -70,11 +71,7 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
     <Page title={"Web embed"} icon={<TbWorld />}>
       <SettingsSectionProvider>
         <SettingsContainer>
-          <SettingsSection
-            id="embed"
-            title="Embed - Ask AI"
-            description="Copy paste the <script> tag below to your website."
-          >
+          <SettingsSection id="embed" title="Embed - Ask AI" description={""}>
             <div className="flex flex-col gap-2 flex-1">
               <div className="tabs tabs-lift">
                 <input
@@ -86,7 +83,8 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
                 />
                 <div className="tab-content bg-base-100 border-base-300 p-4">
                   <MarkdownProse>
-                    {`\`\`\`json
+                    {`Copy paste the \`<script>\` tag below to your website.\n
+\`\`\`json
 ${scriptCode.script}
 \`\`\`
 `}
@@ -101,11 +99,22 @@ ${scriptCode.script}
                 />
                 <div className="tab-content bg-base-100 border-base-300 p-4">
                   <MarkdownProse>
-                    {`\`\`\`json
+                    {`Copy paste the following config in your \`docusaurus.config.ts\`.\n
+\`\`\`json
 ${scriptCode.docusaurusConfig}
 \`\`\`
 `}
                   </MarkdownProse>
+                  <div className="mt-6">
+                    Explore about{" "}
+                    <a
+                      href="https://docs.crawlchat.app/connct/side-panel"
+                      className="link link-primary"
+                      target="_blank"
+                    >
+                      Side Panel
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
