@@ -27,6 +27,7 @@ export function useChatBox({
   fullscreen,
   readonly: initReadOnly,
   sidePanel,
+  small,
   secret,
   defaultQuery,
   initialTheme,
@@ -40,6 +41,7 @@ export function useChatBox({
   fullscreen?: boolean;
   readonly?: boolean;
   sidePanel?: boolean;
+  small?: boolean;
   secret?: string | null;
   defaultQuery?: string | null;
   initialTheme?: "light" | "dark" | "system" | null;
@@ -429,6 +431,7 @@ export function useChatBox({
     defaultQuery,
     currentPage,
     makeGroupFetcher,
+    small,
     close,
     erase,
     deleteMessages,
@@ -465,6 +468,7 @@ export function ChatBoxProvider({
   fullscreen,
   readonly,
   sidePanel,
+  small,
   secret,
   defaultQuery,
   initialTheme,
@@ -479,6 +483,7 @@ export function ChatBoxProvider({
   fullscreen?: boolean;
   readonly?: boolean;
   sidePanel?: boolean;
+  small?: boolean;
   secret?: string | null;
   defaultQuery?: string | null;
   initialTheme?: "light" | "dark" | "system" | null;
@@ -493,6 +498,7 @@ export function ChatBoxProvider({
     fullscreen,
     readonly,
     sidePanel,
+    small,
     secret,
     defaultQuery,
     initialTheme,

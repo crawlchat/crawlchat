@@ -7,6 +7,7 @@ export function CrawlChatScript({
   noPrimaryColor,
   secret,
   theme,
+  small,
 }: {
   id: string;
   sidePanel?: boolean;
@@ -16,6 +17,7 @@ export function CrawlChatScript({
   noPrimaryColor?: boolean;
   secret?: string;
   theme?: "light" | "dark" | "system";
+  small?: boolean;
 }) {
   return (
     <script
@@ -29,6 +31,7 @@ export function CrawlChatScript({
       data-no-primary-color={noPrimaryColor}
       data-secret={secret}
       data-theme={theme}
+      data-small={small}
     />
   );
 }

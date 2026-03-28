@@ -206,6 +206,7 @@ const DEFAULT_MESSAGE: Message = {
   githubCommentId: null,
   llmCost: 0,
   dataGap: null,
+  showedApiPlayground: false,
 };
 
 function AskAIButton({
