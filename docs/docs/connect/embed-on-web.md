@@ -26,7 +26,7 @@ Copy the following code and past in the `<head>` section of your page. Replace v
 
 ## Docusaurus
 
-If you are running a Docusaurus website (just like this one), add the following code to your `docusaurus.config.ts` file. Replace value of `data-id` to your collection id. You can find it on [Settings](https://crawlchat.app/settings) page.
+If you are running a Docusaurus website (just like this one), add the following code to your `docusaurus.config.ts` file. Replace value of `data-id` to your collection id. You can find it on [Settings](https://crawlchat.app/settings) page. Customise the web widget from [Customise](https://crawlchat.app/integrate/customise) page
 
 ```js
 headTags: [
