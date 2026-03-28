@@ -230,6 +230,7 @@ export const models: Record<string, AiModel> = {
     speed: "Medium",
     accuracy: "Good",
     addedAt: new Date("2026-02-18"),
+    deprecated: true,
   },
   "openrouter/openai/gpt-5.2": {
     model: "openai/gpt-5.2",
