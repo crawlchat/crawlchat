@@ -289,6 +289,7 @@ class CrawlChatEmbed {
       }
 
       const { elem: container, col } = getDocusaurusMainContainer();
+
       if (container) {
         const rect = container.getBoundingClientRect();
         const scroll = this.getScrollbarWidth();

@@ -122,6 +122,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const height = searchParams.get("height");
   const fullscreen = searchParams.get("fullscreen") === "true";
   const sidePanel = searchParams.get("sidepanel") === "true";
+  const small = searchParams.get("small") === "true";
   const secret = searchParams.get("secret");
   const defaultQuery = searchParams.get("q");
   const theme = searchParams.get("theme") as "light" | "dark" | "system" | null;
@@ -140,6 +141,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
       height,
       fullscreen,
       sidePanel,
+      small,
       secret,
       defaultQuery,
       theme,
@@ -353,6 +355,7 @@ export default function ScrapeWidget({ loaderData }: Route.ComponentProps) {
       token={loaderData.userToken}
       fullscreen={loaderData.fullscreen}
       sidePanel={loaderData.sidePanel}
+      small={loaderData.small}
       secret={loaderData.secret}
       defaultQuery={loaderData.defaultQuery}
       initialTheme={loaderData.theme}

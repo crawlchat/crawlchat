@@ -94,13 +94,15 @@ function ChatInputBadge({
   children,
   tooltip,
 }: PropsWithChildren<{ tooltip?: string }>) {
+  const { small } = useChatBoxContext();
   return (
     <div className="group relative">
       <div
         className={cn(
           "rounded-box text-base-content/70 hover:text-base-content",
-          "transition-all text-sm flex items-center gap-1 truncate",
-          "group-hover:opacity-20"
+          "transition-all flex items-center gap-1 truncate",
+          "group-hover:opacity-20",
+          small ? "text-xs" : "text-sm"
         )}
       >
         {children}
@@ -109,7 +111,7 @@ function ChatInputBadge({
         className={cn(
           "absolute top-0 right-0 bg-base-200 rounded-box pl-2",
           "opacity-0 group-hover:opacity-100 transition-all",
-          "text-sm"
+          small ? "text-xs" : "text-sm"
         )}
       >
         {tooltip}
@@ -128,6 +130,7 @@ function ChatInput() {
     inputRef,
     embed,
     sidePanel,
+    small,
     defaultQuery,
     currentPage,
   } = useChatBoxContext();
@@ -144,7 +147,7 @@ function ChatInput() {
       if (inputRef.current) {
         inputRef.current.style.height = "auto";
         inputRef.current!.style.height = `${Math.max(
-          28,
+          small ? 20 : 28,
           inputRef.current!.scrollHeight
         )}px`;
       }
@@ -251,9 +254,10 @@ function ChatInput() {
             ref={inputRef}
             placeholder={getPlaceholder()}
             className={cn(
-              "text-lg p-0 max-h-[240px] overflow-y-auto resize-none",
+              "p-0 max-h-[240px] overflow-y-auto resize-none",
               "outline-none w-full placeholder-base-content/40",
-              !query && "truncate"
+              !query && "truncate",
+              small ? "text-sm" : "text-lg"
             )}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -265,8 +269,9 @@ function ChatInput() {
 
         <button
           className={cn(
-            "btn btn-sm btn-circle text-lg shadow-none border-0",
-            cleanedQuery.length > 0 ? "btn-primary" : "btn-soft"
+            "btn btn-circle text-lg shadow-none border-0",
+            cleanedQuery.length > 0 ? "btn-primary" : "btn-soft",
+            small ? "btn-xs" : "btn-sm"
           )}
           onClick={handleAsk}
           disabled={isDisabled}
@@ -371,8 +376,15 @@ export function SourceLink({
 }
 
 export function UserMessage({ content }: { content: string }) {
+  const { small } = useChatBoxContext();
   return (
-    <div className="user-message text-xl font-bold opacity-80 whitespace-pre-wrap">
+    <div
+      className={cn(
+        "user-message font-bold",
+        "opacity-80 whitespace-pre-wrap",
+        !small && "text-xl"
+      )}
+    >
       {content}
     </div>
   );
@@ -455,7 +467,7 @@ function MessageButton({
     <div className="tooltip" data-tip={tip}>
       <button
         className={cn(
-          "btn btn-circle btn-sm shadow-none",
+          "btn btn-circle btn-xs shadow-none",
           active && "btn-primary"
         )}
         onClick={onClick}
@@ -511,6 +523,7 @@ export function AssistantMessage({
     verifyEmailFetcher,
     internalLinkHosts,
     handleInternalLinkClick,
+    small,
   } = useChatBoxContext();
   const citation = useMemo(
     () => extractCitations(content, links),
@@ -554,6 +567,7 @@ export function AssistantMessage({
             customerEmail,
             requestEmailVerificationFetcher,
             verifyEmailFetcher,
+            size: small ? "sm" : undefined,
           }}
         >
           {citation.content}
@@ -601,11 +615,11 @@ export function AssistantMessage({
 }
 
 function NoMessages() {
-  const { ask, scrape } = useChatBoxContext();
+  const { ask, scrape, small } = useChatBoxContext();
 
   return (
     <div className="flex flex-col gap-4 p-4 flex-1">
-      <MarkdownProse>
+      <MarkdownProse options={{ size: small ? "sm" : undefined }}>
         {scrape.widgetConfig?.welcomeMessage ||
           "Ask your queries here. Remember, I am an AI assistant and refer to the sources to confirm the answer."}
       </MarkdownProse>
@@ -723,10 +737,10 @@ const ToolbarButton = forwardRef<
   PropsWithChildren<
     { onClick?: () => void } & ButtonHTMLAttributes<HTMLButtonElement>
   >
->(({ children, onClick, ...props }, ref) => {
+>(({ children, onClick, className, ...props }, ref) => {
   return (
     <button
-      className="btn btn-sm btn-ghost btn-plain btn-square text-lg"
+      className={cn("btn btn-xs btn-square text-lg", className)}
       tabIndex={0}
       ref={ref}
       onClick={onClick}
@@ -751,6 +765,7 @@ function Toolbar() {
     close,
     makeGroup,
     makeGroupFetcher,
+    small,
   } = useChatBoxContext();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const menuItems = useMemo(() => {
@@ -809,10 +824,12 @@ function Toolbar() {
     <div
       id="chat-box-toolbar"
       className={cn(
-        "flex h-[60px] gap-2 border-b border-base-300",
-        "p-4 w-full justify-between bg-base-200 items-center",
+        "flex gap-2 border-b border-base-300",
+        "w-full justify-between bg-base-200 items-center",
         "items-center",
-        backgroundColor && "border-0"
+        backgroundColor && "border-0",
+        small ? "p-2" : "p-4",
+        small ? "h-[44px]" : "h-[60px]"
       )}
       style={{
         backgroundColor,
@@ -833,7 +850,12 @@ function Toolbar() {
           />
         )}
 
-        <div className="text-xl font-bold truncate min-w-0">
+        <div
+          className={cn(
+            "font-bold truncate min-w-0",
+            small ? undefined : "text-xl"
+          )}
+        >
           {scrape.widgetConfig?.title || scrape.title || "Ask AI"}
         </div>
 
@@ -851,7 +873,10 @@ function Toolbar() {
       <div className="flex gap-2">
         {screen === "mcp" && (
           <div className="tooltip tooltip-left" data-tip="Switch to chat">
-            <ToolbarButton onClick={() => setScreen("chat")}>
+            <ToolbarButton
+              onClick={() => setScreen("chat")}
+              className="btn-ghost"
+            >
               <TbMessage />
             </ToolbarButton>
           </div>
@@ -862,6 +887,7 @@ function Toolbar() {
             <ToolbarButton
               onClick={() => makeGroup()}
               disabled={makeGroupFetcher.state !== "idle"}
+              className="btn-ghost"
             >
               {makeGroupFetcher.state !== "idle" ? (
                 <span className="loading loading-spinner loading-sm" />
@@ -877,7 +903,7 @@ function Toolbar() {
             className="tooltip tooltip-left"
             data-tip="Clear & start new conversation"
           >
-            <ToolbarButton onClick={() => erase()}>
+            <ToolbarButton onClick={() => erase()} className="btn-ghost">
               <TbTrash />
             </ToolbarButton>
           </div>
@@ -885,7 +911,7 @@ function Toolbar() {
 
         {menuItems.length > 0 && (
           <div className="dropdown dropdown-end">
-            <ToolbarButton>
+            <ToolbarButton className="btn-ghost">
               <TbMenu2 />
             </ToolbarButton>
             <ul
@@ -982,7 +1008,7 @@ export function ChatboxContainer({
 }
 
 export default function ScrapeWidget() {
-  const { screen, chat, ask, scrape, sidePanel } = useChatBoxContext();
+  const { screen, chat, ask, scrape, sidePanel, small } = useChatBoxContext();
 
   function handleAsk(question: string) {
     ask(question);
@@ -1054,7 +1080,12 @@ export default function ScrapeWidget() {
       </div>
       {screen === "chat" && <ChatInput />}
       {!scrape.widgetConfig?.hideBranding && (
-        <div className="px-4 py-2 bg-base-300/80 border-t border-base-300">
+        <div
+          className={cn(
+            "bg-base-300/80 border-t border-base-300",
+            small ? "px-2 py-1" : "px-4 py-2"
+          )}
+        >
           <PoweredBy />
         </div>
       )}

@@ -236,10 +236,16 @@ export function MarkdownProse({
     onSourceMouseLeave?: () => void;
     requestEmailVerificationFetcher?: FetcherWithComponents<any>;
     verifyEmailFetcher?: FetcherWithComponents<any>;
+    size?: "sm";
   };
 }>) {
   return (
-    <div className="prose markdown-prose">
+    <div
+      className={cn(
+        "prose markdown-prose",
+        options?.size === "sm" && "prose-sm"
+      )}
+    >
       <Markdown
         remarkPlugins={[remarkGfm, linkifyRegex(/!![^\s]+!!/)]}
         components={{
