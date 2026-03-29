@@ -1,6 +1,7 @@
 import { prisma } from "@packages/common/prisma";
 import { useMemo } from "react";
-import { TbWorld } from "react-icons/tb";
+import { SiDocusaurus, SiMintlify } from "react-icons/si";
+import { TbCode, TbWorld } from "react-icons/tb";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { Page } from "~/components/page";
@@ -58,9 +59,9 @@ function makeScriptCode(scrapeId: string) {
     },
 ],`;
 
-  const mintlify = `function loadCrawlChat() {
+  const mintlify = `function inject() {
   const script = document.createElement("script");
-  script.src = "https://crawlchat.app/embed.js";
+  script.src = "${origin}/embed.js";
   script.id = "crawlchat-script";
   script.dataset.id = "${scrapeId}";
   script.dataset.sidepanel = true; // optional
@@ -68,7 +69,7 @@ function makeScriptCode(scrapeId: string) {
   document.head.appendChild(script);
 }
 
-loadCrawlChat();`;
+inject();`;
 
   return { script, docusaurus, mintlify };
 }
@@ -86,29 +87,25 @@ export default function ScrapeEmbed({ loaderData }: Route.ComponentProps) {
           <SettingsSection id="embed" title="Embed - Ask AI" description={""}>
             <div className="flex flex-col gap-2 flex-1">
               <div className="tabs tabs-lift">
-                <input
-                  type="radio"
-                  name="embed-code"
-                  className="tab"
-                  aria-label="Code"
-                  defaultChecked
-                />
+                <label className="tab gap-2">
+                  <input type="radio" name="embed-code" defaultChecked />
+                  <TbCode /> Code
+                </label>
                 <div className="tab-content bg-base-100 border-base-300 p-4">
                   <MarkdownProse>
                     {`Copy paste the \`<script>\` tag below to your website.\n
-\`\`\`json
+\`\`\`html
 ${scriptCode.script}
 \`\`\`
 `}
                   </MarkdownProse>
                 </div>
 
-                <input
-                  type="radio"
-                  name="embed-code"
-                  className="tab"
-                  aria-label="Docusaurus"
-                />
+                <label className="tab gap-2">
+                  <input type="radio" name="embed-code" />
+                  <SiDocusaurus />
+                  Docusaurus
+                </label>
                 <div className="tab-content bg-base-100 border-base-300 p-4">
                   <MarkdownProse>
                     {`Copy paste the following config in your \`docusaurus.config.ts\`.\n
@@ -129,12 +126,11 @@ ${scriptCode.docusaurus}
                   </div>
                 </div>
 
-                <input
-                  type="radio"
-                  name="embed-code"
-                  className="tab"
-                  aria-label="Mintlify"
-                />
+                <label className="tab gap-2">
+                  <input type="radio" name="embed-code" />
+                  <SiMintlify />
+                  Mintlify
+                </label>
                 <div className="tab-content bg-base-100 border-base-300 p-4">
                   <MarkdownProse>
                     {`Create \`crawlchat.js\` inside your root folder.\n
