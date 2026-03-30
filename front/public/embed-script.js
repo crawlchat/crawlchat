@@ -36,10 +36,14 @@ class CrawlChatEmbed {
   }
 
   isSidePanel() {
-    return (
+    if (
       this.getCustomTags().sidepanel === "true" ||
       this.getScriptElem()?.dataset.sidepanel === "true"
-    );
+    ) {
+      if (getMintlifyMainContainer() || getDocusaurusMainContainer()) {
+        return true;
+      }
+    }
   }
 
   async mount() {
@@ -55,21 +59,12 @@ class CrawlChatEmbed {
 
     window.addEventListener("message", (e) => this.handleOnMessage(e));
 
-    if (!this.isMobile() && this.isSidePanel()) {
-      this.mountSidePanel();
-      if (this.getScriptElem()?.dataset.sidepanelOpen === "true") {
-        setTimeout(() => {
-          this.showSidePanel();
-        }, 500);
-      }
-      return;
-    }
-
     const iframe = document.createElement("iframe");
     iframe.id = this.iframeId;
 
     const params = new URLSearchParams({
       embed: "true",
+      fullscreen: "true",
     });
     const customTags = this.getCustomTags();
     if (Object.keys(customTags).length > 0) {
@@ -78,7 +73,6 @@ class CrawlChatEmbed {
     if (this.isMobile()) {
       params.set("width", window.innerWidth.toString() + "px");
       params.set("height", window.innerHeight.toString() + "px");
-      params.set("fullscreen", "true");
     }
     if (this.getScriptElem()?.dataset.noPrimaryColor === "true") {
       params.set("noPrimaryColor", "true");
@@ -118,14 +112,20 @@ class CrawlChatEmbed {
     const div = document.getElementById(this.embedDivId);
     div.classList.add("open");
 
-    const overflowY = this.getScrollbarWidth() > 0 ? "scroll" : "hidden";
+    if (this.isSidePanel()) {
+      div.classList.add("sidepanel");
+      this.positionSidePanel();
+    } else {
+      div.classList.add("popup");
+      const overflowY = this.getScrollbarWidth() > 0 ? "scroll" : "hidden";
 
-    this.lastScrollTop = window.scrollY;
-    this.lastBodyStyle = document.body.style;
-    document.body.style.position = "fixed";
-    document.body.style.overflowY = overflowY;
-    document.body.style.width = "100%";
-    document.body.style.top = `-${this.lastScrollTop}px`;
+      this.lastScrollTop = window.scrollY;
+      this.lastBodyStyle = document.body.style;
+      document.body.style.position = "fixed";
+      document.body.style.overflowY = overflowY;
+      document.body.style.width = "100%";
+      document.body.style.top = `-${this.lastScrollTop}px`;
+    }
 
     const iframe = document.getElementById(this.iframeId);
     iframe.contentWindow.postMessage("focus", "*");
@@ -137,6 +137,8 @@ class CrawlChatEmbed {
 
     const div = document.getElementById(this.embedDivId);
     div?.classList.remove("open");
+    div?.classList.remove("popup");
+    div?.classList.remove("sidepanel");
     setTimeout(() => {
       window.focus();
     }, this.transitionDuration);
@@ -254,31 +256,16 @@ class CrawlChatEmbed {
     span.innerText = text;
     div.appendChild(span);
 
-    if (this.widgetConfig.tooltip) {
-      div.appendChild(this.makeTooltip(this.widgetConfig.tooltip));
-    }
-
     div.addEventListener("click", () => {
-      if (this.isSidePanel()) {
-        this.toggleSidePanel();
-      } else {
-        this.show();
-      }
+      this.show();
       div.classList.add("hidden");
     });
 
     document.body.appendChild(div);
   }
 
-  makeTooltip(text) {
-    const div = document.createElement("div");
-    div.innerText = text;
-    div.className = "tooltip";
-    return div;
-  }
-
   positionSidePanel() {
-    const sidepanel = document.getElementById(this.sidepanelId);
+    const sidepanel = document.getElementById(this.embedDivId);
     if (sidepanel) {
       sidepanel.style.position = "fixed";
       sidepanel.style.right = "0px";
@@ -290,7 +277,7 @@ class CrawlChatEmbed {
         const navBar = getDocusaurusNavBar();
         if (navBar) {
           const rect = navBar.getBoundingClientRect();
-          sidepanel.style.top = `${rect.height}px`;
+          sidepanel.style.top = `${rect.height + 1}px`;
           sidepanel.style.height = `${window.innerHeight - rect.height}px`;
         }
 
@@ -320,111 +307,8 @@ class CrawlChatEmbed {
     }
   }
 
-  showSidePanel() {
-    const sidepanel = document.getElementById(this.sidepanelId);
-    if (sidepanel) {
-      this.positionSidePanel();
-      sidepanel.classList.remove("hidden");
-    }
-
-    this.hideAskAIButton();
-    const iframe = document.getElementById(this.iframeId);
-    iframe.contentWindow.postMessage("focus", "*");
-  }
-
-  hideSidePanel() {
-    document.getElementById(this.sidepanelId)?.classList.add("hidden");
-    this.showAskAIButton();
-  }
-
-  mountSidePanel() {
-    if (!isDocusaurus() && !isMintlify()) {
-      console.warn("CrawlChat sidepanel is not supported");
-      return;
-    }
-
-    document
-      .getElementById("__docusaurus")
-      ?.classList.add("crawlchat-with-sidepanel");
-
-    const sidepanel = document.createElement("div");
-    sidepanel.id = this.sidepanelId;
-    sidepanel.classList.add("hidden");
-
-    if (isDocusaurus()) {
-      sidepanel.classList.add("docusaurus");
-    }
-    if (isMintlify()) {
-      sidepanel.classList.add("mintlify");
-    }
-
-    const params = new URLSearchParams({
-      embed: "true",
-      fullscreen: "true",
-      sidepanel: "true",
-    });
-    if (this.getScriptElem()?.dataset.noPrimaryColor === "true") {
-      params.set("noPrimaryColor", "true");
-    }
-    const secret = this.getScriptElem()?.dataset.secret;
-    if (secret) {
-      params.set("secret", secret);
-    }
-    const theme = this.getScriptElem()?.dataset.theme;
-    if (theme) {
-      params.set("theme", theme);
-    }
-
-    const iframe = document.createElement("iframe");
-    iframe.src = `${this.host}/w/${this.scrapeId}?${params.toString()}`;
-    iframe.allowTransparency = "true";
-    iframe.allow = "clipboard-write";
-    iframe.className = "crawlchat-embed";
-    iframe.id = this.iframeId;
-
-    sidepanel.appendChild(iframe);
-
-    document.body.appendChild(sidepanel);
-    this.positionSidePanel();
-
-    const handleKeyDown = (e) => {
-      if (e.metaKey && e.key === "i") {
-        this.toggleSidePanel();
-      }
-    };
-
-    const handleNavigate = (e) => {
-      setTimeout(() => {
-        this.positionSidePanel();
-      }, 50);
-    };
-
-    document.removeEventListener("keydown", handleKeyDown);
-    document.addEventListener("keydown", handleKeyDown);
-
-    window.navigation.removeEventListener("navigate", handleNavigate);
-    window.navigation.addEventListener("navigate", handleNavigate);
-  }
-
-  toggleSidePanel() {
-    if (this.isSidePanelOpen()) {
-      this.hideSidePanel();
-    } else {
-      this.showSidePanel();
-    }
-  }
-
-  isSidePanelOpen() {
-    const sidepanel = document.getElementById(this.sidepanelId);
-    return !sidepanel?.classList.contains("hidden");
-  }
-
   open(options = {}) {
-    if (this.isSidePanel()) {
-      this.showSidePanel();
-    } else {
-      this.show();
-    }
+    this.show();
 
     if (options.query) {
       const iframe = document.getElementById(this.iframeId);

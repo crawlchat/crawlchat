@@ -3,6 +3,7 @@ import { RateLimiter } from "@packages/common/rate-limiter";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TbArrowRight, TbCircleCheck, TbCircleX } from "react-icons/tb";
 import { redirect, useFetcher, useLoaderData } from "react-router";
+import "~/app.css";
 import { getClientIp } from "~/client-ip";
 import { Logo } from "~/components/logo";
 import {
@@ -169,7 +170,12 @@ export default function LoginPage() {
           <div className="text-2xl font-bold text-center py-4">
             People love <span className="font-brand">CrawlChat</span> ❤️
           </div>
-          <div className="max-w-500px overflow-y-auto no-scrollbar pb-4 max-w-96">
+          <div
+            className={cn(
+              "max-w-96",
+              "bg-base-100 overflow-hidden rounded-box"
+            )}
+          >
             {testiIndex === 0 && <JonnyTestimonial />}
             {testiIndex === 1 && <AntonTestimonial />}
             {testiIndex === 2 && <MauritsTestimonial />}
@@ -191,7 +197,7 @@ export default function LoginPage() {
           <div
             className={cn(
               "flex flex-col md:w-94 gap-4 items-center border",
-              "border-base-300 rounded-box p-6 bg-base-200 shadow"
+              "border-base-300 rounded-box p-6 bg-base-200"
             )}
           >
             <Logo />
