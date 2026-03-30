@@ -97,6 +97,9 @@ class CrawlChatEmbed {
 
     div.appendChild(iframe);
     document.body.appendChild(div);
+
+    document.removeEventListener("keydown", this.handleKeyDown);
+    document.addEventListener("keydown", this.handleKeyDown);
   }
 
   getScrapeId() {
@@ -108,12 +111,26 @@ class CrawlChatEmbed {
     return window.innerWidth - document.documentElement.clientWidth;
   }
 
+  handleKeyDown = (e) => {
+    if (e.metaKey && e.key === "i") {
+      this.toggle();
+    }
+  };
+
+  handleSidepanelResize = (e) => {
+    this.positionSidePanel();
+  };
+
   show() {
     const div = document.getElementById(this.embedDivId);
     div.classList.add("open");
 
     if (this.isSidePanel()) {
       div.classList.add("sidepanel");
+
+      window.removeEventListener("resize", this.handleSidepanelResize);
+      window.addEventListener("resize", this.handleSidepanelResize);
+
       this.positionSidePanel();
     } else {
       div.classList.add("popup");
@@ -132,8 +149,10 @@ class CrawlChatEmbed {
   }
 
   async hide() {
-    document.body.style = this.lastBodyStyle;
-    window.scrollTo(0, this.lastScrollTop);
+    if (!this.isSidePanel()) {
+      document.body.style = this.lastBodyStyle;
+      window.scrollTo(0, this.lastScrollTop);
+    }
 
     const div = document.getElementById(this.embedDivId);
     div?.classList.remove("open");
@@ -144,6 +163,14 @@ class CrawlChatEmbed {
     }, this.transitionDuration);
 
     await this.showAskAIButton();
+  }
+
+  toggle() {
+    if (this.isWidgetOpen()) {
+      this.hide();
+    } else {
+      this.show();
+    }
   }
 
   isWidgetOpen() {
