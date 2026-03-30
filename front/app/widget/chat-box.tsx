@@ -749,7 +749,7 @@ const ToolbarButton = forwardRef<
 >(({ children, onClick, className, ...props }, ref) => {
   return (
     <button
-      className={cn("btn btn-xs btn-square text-lg", className)}
+      className={cn("btn btn-ghost btn-xs btn-square text-lg", className)}
       tabIndex={0}
       ref={ref}
       onClick={onClick}

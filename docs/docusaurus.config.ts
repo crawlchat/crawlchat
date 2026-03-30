@@ -106,7 +106,7 @@ const config: Config = {
           position: "right",
           value: `<button 
           class="crawlchat-nav-askai" 
-          onclick="window.crawlchatEmbed.toggleSidePanel()">
+          onclick="window.crawlchatEmbed.show()">
             Ask AI
             <span class="keyboard-keys">
               <kbd>⌘</kbd>
