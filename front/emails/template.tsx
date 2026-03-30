@@ -12,7 +12,7 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import type { PropsWithChildren } from "react";
+import { Fragment, type PropsWithChildren } from "react";
 import { emailConfig } from "./config";
 
 export function MailTemplate({
@@ -25,6 +25,7 @@ export function MailTemplate({
   icon,
   brand = "CrawlChat",
   noEmailPreferences = false,
+  footerLinks = [],
 }: PropsWithChildren<{
   title: string;
   preview: string;
@@ -37,7 +38,15 @@ export function MailTemplate({
   icon?: string;
   brand?: string;
   noEmailPreferences?: boolean;
+  footerLinks?: { label: string; href: string }[];
 }>) {
+  if (!noEmailPreferences) {
+    footerLinks.push({
+      label: "Email preference",
+      href: `${emailConfig.baseUrl}/profile`,
+    });
+  }
+
   return (
     <Html lang="en">
       <Head>
@@ -136,7 +145,7 @@ export function MailTemplate({
           )}
         </Container>
 
-        {!noEmailPreferences && (
+        {footerLinks.length > 0 && (
           <Container
             style={{
               width: "100%",
@@ -147,16 +156,29 @@ export function MailTemplate({
           >
             <Row>
               <Column align="center">
-                <Link
-                  style={{
-                    textAlign: "center",
-                    opacity: 0.4,
-                    color: "#000000",
-                  }}
-                  href={`${emailConfig.baseUrl}/profile`}
-                >
-                  Email preference
-                </Link>
+                {footerLinks.map((link, i) => (
+                  <Fragment key={i}>
+                    {i > 0 && (
+                      <span
+                        style={{
+                          opacity: 0.4,
+                          color: "#000000",
+                        }}
+                      >
+                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                      </span>
+                    )}
+                    <Link
+                      href={link.href}
+                      style={{
+                        opacity: 0.4,
+                        color: "#000000",
+                      }}
+                    >
+                      {link.label}
+                    </Link>
+                  </Fragment>
+                ))}
               </Column>
             </Row>
           </Container>

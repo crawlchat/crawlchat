@@ -19,6 +19,12 @@ export default function DataGapAlertEmail({
         text: "View data gap",
         href: `${emailConfig.baseUrl}/data-gaps`,
       }}
+      footerLinks={[
+        {
+          label: "Set min score",
+          href: `${emailConfig.baseUrl}/settings#data-gap-min-score`,
+        },
+      ]}
     >
       <p>
         There is a new data gap found for one of questions someone asked in{" "}
