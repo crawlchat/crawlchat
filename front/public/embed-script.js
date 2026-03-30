@@ -11,7 +11,6 @@ class CrawlChatEmbed {
     this.lastBodyStyle = {};
     this.originalTocMaxWidth = null;
     this.widgetConfig = {};
-    this.sidepanelId = "crawlchat-sidepanel";
     this.tocSelector = "main .container .row .col:first-child";
   }
 
