@@ -149,12 +149,18 @@ class CrawlChatEmbed {
   }
 
   async hide() {
+    const div = document.getElementById(this.embedDivId);
+
     if (!this.isSidePanel()) {
       document.body.style = this.lastBodyStyle;
       window.scrollTo(0, this.lastScrollTop);
     }
 
-    const div = document.getElementById(this.embedDivId);
+    div.style.removeProperty("width");
+    div.style.removeProperty("right");
+    div.style.removeProperty("top");
+    div.style.removeProperty("height");
+
     div?.classList.remove("open");
     div?.classList.remove("popup");
     div?.classList.remove("sidepanel");
