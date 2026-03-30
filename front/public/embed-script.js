@@ -36,8 +36,9 @@ class CrawlChatEmbed {
 
   isSidePanel() {
     if (
-      this.getCustomTags().sidepanel === "true" ||
-      this.getScriptElem()?.dataset.sidepanel === "true"
+      !this.isMobile() &&
+      (this.getCustomTags().sidepanel === "true" ||
+        this.getScriptElem()?.dataset.sidepanel === "true")
     ) {
       if (getMintlifyMainContainer() || getDocusaurusMainContainer()) {
         return true;
