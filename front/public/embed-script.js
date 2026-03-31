@@ -89,7 +89,7 @@ class CrawlChatEmbed {
       params.set("fullscreen", "true");
     }
     if (this.getScriptElem()?.dataset.small === "true") {
-      params.set("small", true);
+      params.set("small", "true");
     }
     const src = `${this.host}/w/${this.scrapeId}?${params.toString()}`;
 
