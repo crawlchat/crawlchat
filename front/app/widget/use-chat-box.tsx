@@ -260,7 +260,7 @@ export function useChatBox({
             });
           }
           if (data.fullscreen !== undefined && data.fullscreen !== null) {
-            setFullscreen(false);
+            setFullscreen(data.fullscreen);
           }
         }
       } catch {}
