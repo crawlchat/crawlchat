@@ -88,6 +88,9 @@ class CrawlChatEmbed {
     if (this.isSidePanel()) {
       params.set("fullscreen", "true");
     }
+    if (this.getScriptElem()?.dataset.small === "true") {
+      params.set("small", true);
+    }
     const src = `${this.host}/w/${this.scrapeId}?${params.toString()}`;
 
     iframe.src = src;
@@ -366,6 +369,7 @@ class CrawlChatEmbed {
           type: "host-navigation",
           url: url ?? window.location.href,
           title: document.title,
+          fullscreen: this.isSidePanel(),
         }),
         "*"
       );
