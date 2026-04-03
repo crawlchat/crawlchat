@@ -645,7 +645,8 @@ function NoMessages() {
                     key={i}
                     className={cn(
                       "border border-base-300 rounded-box flex items-center gap-2",
-                      "p-2 px-3 w-full hover:bg-base-200 transition-all cursor-pointer"
+                      "p-2 px-3 w-full hover:bg-base-200 transition-all cursor-pointer",
+                      small && "text-sm"
                     )}
                     onClick={() => ask(question.text)}
                   >
