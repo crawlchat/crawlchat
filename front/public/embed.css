@@ -17,8 +17,13 @@
 }
 
 #crawlchat-embed.sidepanel {
-  border-left: 1px solid #e0e0e0;
+  padding: 8px;
+}
+
+#crawlchat-embed.sidepanel iframe {
+  border: 1px solid #e0e0e0;
   overflow: hidden;
+  border-radius: 8px;
 }
 
 #crawlchat-embed.open {
@@ -98,13 +103,13 @@
   z-index: 25;
 }
 
-[data-theme="dark"] #crawlchat-embed.sidepanel,
-.dark #crawlchat-embed.sidepanel {
-  border-left: 1px solid #222;
+[data-theme="dark"] #crawlchat-embed.sidepanel iframe,
+.dark #crawlchat-embed.sidepanel iframe {
+  border: 1px solid #222;
 }
 
 @media (max-width: 768px) {
-  #crawlchat-embed.sidepanel {
+  #crawlchat-embed.sidepanel iframe {
     border: none;
   }
 }
