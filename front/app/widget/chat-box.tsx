@@ -29,11 +29,11 @@ import {
   TbHelp,
   TbMenu2,
   TbMessage,
+  TbMessagePlus,
   TbShare2,
   TbThumbDown,
   TbThumbUp,
-  TbTrash,
-  TbUsersGroup,
+  TbUsers,
   TbX,
 } from "react-icons/tb";
 import { CursorIcon } from "~/components/cursor-icon";
@@ -782,6 +782,18 @@ function Toolbar() {
     const items = [];
     if (chat.messages.length > 0) {
       items.push({
+        key: "group-chat",
+        label: "Group chat",
+        icon: <TbUsers />,
+        onClick: makeGroup,
+      });
+      items.push({
+        key: "new-chat",
+        label: "New chat",
+        icon: <TbMessagePlus />,
+        onClick: erase,
+      });
+      items.push({
         key: "share",
         label: "Share chat",
         icon: <TbShare2 />,
@@ -797,7 +809,12 @@ function Toolbar() {
       });
     }
     return items;
-  }, [chat.messages.length, scrape.widgetConfig?.showMcpSetup]);
+  }, [
+    chat.messages.length,
+    scrape.widgetConfig?.showMcpSetup,
+    erase,
+    makeGroup,
+  ]);
 
   useEffect(
     function () {
@@ -823,6 +840,12 @@ function Toolbar() {
     }
     if (value === "mcp") {
       return setScreen("mcp");
+    }
+    if (value === "new-chat") {
+      return erase();
+    }
+    if (value === "group-chat") {
+      return makeGroup();
     }
   }
 
@@ -908,19 +931,16 @@ function Toolbar() {
               {makeGroupFetcher.state !== "idle" ? (
                 <span className="loading loading-spinner loading-sm" />
               ) : (
-                <TbUsersGroup />
+                <TbUsers />
               )}
             </ToolbarButton>
           </div>
         )}
 
         {chat.allMessages.length > 0 && (
-          <div
-            className="tooltip tooltip-left"
-            data-tip="Clear & start new conversation"
-          >
+          <div className="tooltip tooltip-left" data-tip="New chat">
             <ToolbarButton onClick={() => erase()} className="btn-ghost">
-              <TbTrash />
+              <TbMessagePlus />
             </ToolbarButton>
           </div>
         )}
