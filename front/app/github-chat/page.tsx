@@ -48,8 +48,8 @@ export async function loader({ params }: Route.ComponentProps) {
         indexer: "mars",
         llmModel: "openrouter/moonshotai/kimi-k2.5",
         chatPrompt: `You are a helpful assistant that can answer questions about the GitHub repository.
-        Keep it simple and concise. Don't use headings a lot.
-        `,
+Keep it simple and concise. Don't use headings a lot.
+Don't use search tool, use only code related tools.`,
       },
     });
 
