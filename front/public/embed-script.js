@@ -87,6 +87,8 @@ class CrawlChatEmbed {
     }
     if (this.isSidePanel()) {
       params.set("fullscreen", "true");
+      params.set("sidepanel", "true");
+      params.set("small", "true");
     }
     if (this.getScriptElem()?.dataset.small === "true") {
       params.set("small", "true");
@@ -323,7 +325,7 @@ class CrawlChatEmbed {
         if (container) {
           const rect = container.getBoundingClientRect();
           const scroll = this.getScrollbarWidth();
-          const pad = col ? 10 : 20;
+          const pad = col ? 0 : 10;
           sidepanel.style.width = `${window.innerWidth - rect.right - scroll - pad}px`;
         }
       } else if (isMintlify()) {
