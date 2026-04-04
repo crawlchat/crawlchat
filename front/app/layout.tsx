@@ -1,12 +1,8 @@
 import cn from "@meltdownjs/cn";
 import { createToken } from "@packages/common/jwt";
+import { allActivePlans, PLAN_FREE, planMap } from "@packages/common/plans";
 import { prisma } from "@packages/common/prisma";
-import {
-  allActivePlans,
-  getPagesCount,
-  PLAN_FREE,
-  planMap,
-} from "@packages/common/user-plan";
+import { getPagesCount } from "@packages/common/user-plan";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { Outlet, useFetcher } from "react-router";

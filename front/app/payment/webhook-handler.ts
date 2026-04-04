@@ -2,8 +2,9 @@ import {
   addCreditTransaction,
   clearBalance,
 } from "@packages/common/credit-transaction";
+import { PLAN_FREE, planMap } from "@packages/common/plans";
 import { prisma } from "@packages/common/prisma";
-import { activatePlan, PLAN_FREE, planMap } from "@packages/common/user-plan";
+import { activatePlan } from "@packages/common/user-plan";
 import type { PaymentGateway } from "./gateway";
 
 export async function handleWebhook(request: Request, gateway: PaymentGateway) {

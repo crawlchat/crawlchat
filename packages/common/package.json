@@ -73,6 +73,10 @@
     "./summary": {
       "default": "./dist/summary.js",
       "types": "./dist/summary.d.ts"
+    },
+    "./plans": {
+      "default": "./dist/plans.js",
+      "types": "./dist/plans.d.ts"
     }
   },
   "typesVersions": {
@@ -124,6 +128,9 @@
       ],
       "summary": [
         "./dist/summary.d.ts"
+      ],
+      "plans": [
+        "./dist/plans.d.ts"
       ]
     }
   },

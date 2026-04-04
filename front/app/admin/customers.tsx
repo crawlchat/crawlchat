@@ -1,5 +1,5 @@
+import { PLAN_FREE, planMap } from "@packages/common/plans";
 import { prisma } from "@packages/common/prisma";
-import { PLAN_FREE, planMap } from "@packages/common/user-plan";
 import { useEffect, useRef, useState } from "react";
 import { Link, redirect } from "react-router";
 import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";

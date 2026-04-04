@@ -1,5 +1,5 @@
 import cn from "@meltdownjs/cn";
-import { planMap, topupPlans } from "@packages/common/user-plan";
+import { planMap, topupPlans } from "@packages/common/plans";
 import { useEffect, useRef, useState } from "react";
 import { TbMessagePlus } from "react-icons/tb";
 import { useLoaderData } from "react-router";

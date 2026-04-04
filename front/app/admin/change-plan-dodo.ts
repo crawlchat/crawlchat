@@ -1,5 +1,6 @@
+import { planMap } from "@packages/common/plans";
 import { prisma } from "@packages/common/prisma";
-import { activatePlan, planMap } from "@packages/common/user-plan";
+import { activatePlan } from "@packages/common/user-plan";
 import { redirect } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { getDodoClient, planProductIdMap } from "~/payment/gateway-dodo";

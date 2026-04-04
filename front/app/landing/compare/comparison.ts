@@ -1,8 +1,4 @@
-export type FeatureValue = {
-  value: boolean | number | string;
-  lable?: string;
-  bestOrder?: "low" | "high";
-};
+import type { CompareEntity } from "./table";
 
 export type FeatureName =
   | "ai_models"
@@ -69,14 +65,7 @@ export const featureNames: Record<FeatureName, string> = {
   entry_price: "Entry price",
 };
 
-type Features = Record<FeatureName, FeatureValue>;
-export type ProductFeatures = {
-  name: string;
-  url: string;
-  features: Features;
-};
-
-export const crawlchat: ProductFeatures = {
+export const crawlchat: CompareEntity<FeatureName> = {
   name: "CrawlChat",
   url: "https://crawlchat.app",
   features: {
@@ -188,7 +177,7 @@ export const crawlchat: ProductFeatures = {
   },
 };
 
-export const kapaai: ProductFeatures = {
+export const kapaai: CompareEntity<FeatureName> = {
   name: "Kapa.ai",
   url: "https://kapa.ai",
   features: {
@@ -286,7 +275,7 @@ export const kapaai: ProductFeatures = {
   },
 };
 
-export const docsbot: ProductFeatures = {
+export const docsbot: CompareEntity<FeatureName> = {
   name: "DocsBot AI",
   url: "https://docsbot.ai",
   features: {
@@ -383,7 +372,7 @@ export const docsbot: ProductFeatures = {
   },
 };
 
-export const sitegpt: ProductFeatures = {
+export const sitegpt: CompareEntity<FeatureName> = {
   name: "SiteGPT",
   url: "https://sitegpt.ai",
   features: {
@@ -481,7 +470,7 @@ export const sitegpt: ProductFeatures = {
   },
 };
 
-export const chatbase: ProductFeatures = {
+export const chatbase: CompareEntity<FeatureName> = {
   name: "Chatbase",
   url: "https://chatbase.co",
   features: {
@@ -578,7 +567,7 @@ export const chatbase: ProductFeatures = {
   },
 };
 
-export const mava: ProductFeatures = {
+export const mava: CompareEntity<FeatureName> = {
   name: "Mava",
   url: "https://mava.ai",
   features: {

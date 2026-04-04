@@ -1,13 +1,14 @@
 import cn from "@meltdownjs/cn";
 import { models, oldModels } from "@packages/common";
 import { createToken } from "@packages/common/jwt";
+import { PLAN_GROW } from "@packages/common/plans";
 import type {
   Prisma,
   Scrape,
   ScrapeMessageCategory,
 } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
   TbCheck,
@@ -24,6 +25,7 @@ import {
 import { Link, redirect, useFetcher, useSearchParams } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
+import { AppContext } from "~/components/app-context";
 import { hideModal, showModal } from "~/components/daisy-utils";
 import { DataList } from "~/components/data-list";
 import { Page } from "~/components/page";
@@ -35,6 +37,7 @@ import {
 } from "~/components/settings-section";
 import { Timestamp } from "~/components/timestamp";
 import { useDirtyForm } from "~/components/use-dirty-form";
+import { FromPlanBadge } from "~/from-plan-badge";
 import { makeMeta } from "~/meta";
 import type { Route } from "./+types/scrape";
 
@@ -345,6 +348,7 @@ function ShowSourcesSetting({ scrape }: { scrape: Scrape }) {
 }
 
 function AnalyseMessageSettings({ scrape }: { scrape: Scrape }) {
+  const { isFeatureEnabled } = useContext(AppContext);
   const fetcher = useFetcher();
   const dirtyForm = useDirtyForm({
     analyseMessage: scrape.analyseMessage ?? false,
@@ -367,9 +371,12 @@ function AnalyseMessageSettings({ scrape }: { scrape: Scrape }) {
             name="analyseMessage"
             defaultChecked={scrape.analyseMessage ?? false}
             onChange={dirtyForm.handleChange("analyseMessage")}
+            disabled={!isFeatureEnabled(PLAN_GROW.id)}
           />
           Active
         </label>
+
+        <FromPlanBadge fromPlanId={PLAN_GROW.id} />
       </div>
     </SettingsSection>
   );

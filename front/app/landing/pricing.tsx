@@ -1,7 +1,8 @@
-import { allActivePlans, topupPlans } from "@packages/common/user-plan";
+import { allActivePlans, topupPlans } from "@packages/common/plans";
 import { makeMeta } from "~/meta";
 import { planProductIdMap, productIdTopupMap } from "~/payment/gateway-dodo";
-import { Container, Pricing, PricingFeatures } from "./page";
+import { Container, Pricing } from "./page";
+import { PricingFeatureComparison } from "./pricing-features";
 
 export function meta() {
   return makeMeta({
@@ -34,7 +35,7 @@ export default function Landing() {
       </Container>
 
       <Container>
-        <PricingFeatures />
+        <PricingFeatureComparison />
       </Container>
     </>
   );
