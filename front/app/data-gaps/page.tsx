@@ -56,11 +56,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     },
   });
 
-  const newGaps = (await fetchDataGaps(scrapeId)).length;
+  const gaps = await fetchDataGaps(scrapeId);
 
   const messages =
     view === "new"
-      ? await fetchDataGaps(scrapeId)
+      ? gaps
       : await prisma.message.findMany({
           where: {
             scrapeId,
@@ -75,12 +75,12 @@ export async function loader({ request }: Route.LoaderArgs) {
           },
         });
 
-  return { messages, accepted, rejected, new: newGaps };
+  return { messages, count: { accepted, rejected, new: gaps.length } };
 }
 
-export function meta() {
+export function meta({ loaderData }: Route.MetaArgs) {
   return makeMeta({
-    title: "Data gaps - CrawlChat",
+    title: `[${loaderData.messages.length}] Data gaps - CrawlChat`,
   });
 }
 
@@ -289,7 +289,9 @@ export default function DataGapsPage({ loaderData }: Route.ComponentProps) {
             onClick={() => handleViewChange("new")}
           >
             New
-            <span className="badge rounded-full px-2">{loaderData.new}</span>
+            <span className="badge rounded-full px-2">
+              {loaderData.count.new}
+            </span>
           </button>
           <button
             className={cn(
@@ -300,7 +302,7 @@ export default function DataGapsPage({ loaderData }: Route.ComponentProps) {
           >
             Accepted
             <span className="badge rounded-full px-2">
-              {loaderData.accepted}
+              {loaderData.count.accepted}
             </span>
           </button>
         </div>
