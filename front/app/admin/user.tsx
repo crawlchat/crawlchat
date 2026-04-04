@@ -1,6 +1,6 @@
+import { PLAN_FREE, planMap } from "@packages/common/plans";
 import type { Scrape } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
-import { PLAN_FREE, planMap } from "@packages/common/user-plan";
 import { Link, redirect } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { DataList } from "~/components/data-list";

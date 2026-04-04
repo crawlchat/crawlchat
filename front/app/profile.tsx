@@ -1,6 +1,7 @@
+import { planMap } from "@packages/common/plans";
 import type { Prisma } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
-import { getPagesCount, planMap } from "@packages/common/user-plan";
+import { getPagesCount } from "@packages/common/user-plan";
 import {
   TbArrowRight,
   TbCrown,
@@ -138,9 +139,7 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
     dataGapUpdates: loaderData.user.settings?.dataGapEmailUpdates,
   });
 
-  const credits = loaderData.user.plan!.credits!;
   const limits = loaderData.user.plan!.limits;
-  const plan = loaderData.plan!;
 
   return (
     <Page title="Profile" icon={<TbSettings />}>

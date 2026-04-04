@@ -1,6 +1,7 @@
 import { addCreditTransaction } from "@packages/common/credit-transaction";
+import { PLAN_FREE, planMap } from "@packages/common/plans";
 import { Prisma, prisma } from "@packages/common/prisma";
-import { PLAN_FREE, activatePlan, planMap } from "@packages/common/user-plan";
+import { activatePlan } from "@packages/common/user-plan";
 import { DodoPayments } from "dodopayments";
 import { sendTeamJoinEmail, sendWelcomeEmail } from "~/email";
 import { productIdPlanMap } from "~/payment/gateway-dodo";

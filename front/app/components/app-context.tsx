@@ -1,6 +1,7 @@
 import type { Prisma, Scrape, User } from "@packages/common/prisma";
 import { createContext, useEffect, useMemo, useState } from "react";
 import type { BlogPost } from "~/blog/posts";
+import { isEnabled } from "~/plan-check";
 import type { SetupProgressAction } from "../setup-progress/config";
 
 const CONVERSATIONS_DEFAULT_VIEW_KEY = "conversations-default-view";
@@ -64,6 +65,10 @@ export const useApp = ({
     _setConversationsDefaultView(value);
   }
 
+  function isFeatureEnabled(fromPlanId: string) {
+    return isEnabled(fromPlanId, user.plan.planId);
+  }
+
   return {
     user,
     containerWidth,
@@ -78,6 +83,7 @@ export const useApp = ({
     latestChangelog,
     conversationsDefaultView,
     setConversationsDefaultView,
+    isFeatureEnabled,
   };
 };
 

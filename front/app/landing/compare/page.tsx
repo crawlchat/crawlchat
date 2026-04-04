@@ -1,7 +1,7 @@
 import cn from "@meltdownjs/cn";
 import { BsClaude, BsPerplexity } from "react-icons/bs";
 import { RiGeminiLine } from "react-icons/ri";
-import { TbBrandOpenai, TbCheck, TbX } from "react-icons/tb";
+import { TbBrandOpenai } from "react-icons/tb";
 import { makeMeta } from "~/meta";
 import { Container } from "../page";
 import type { Route } from "./+types/page";
@@ -14,11 +14,8 @@ import {
   mava,
   sitegpt,
   type FeatureName,
-  type FeatureValue,
-  type ProductFeatures,
 } from "./comparison";
-
-type Comparison = ProductFeatures[];
+import { CompareTable, type Comparison } from "./table";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const slug = params.slug;
@@ -28,7 +25,7 @@ export async function loader({ params }: Route.LoaderArgs) {
     throw new Error("Product not found");
   }
 
-  const comparison: Comparison = [crawlchat];
+  const comparison: Comparison<FeatureName> = [crawlchat];
   if (product === "kapaai") {
     comparison.push(kapaai);
   } else if (product === "docsbot") {
@@ -53,36 +50,6 @@ export function meta({ loaderData }: Route.ComponentProps) {
   });
 }
 
-function FeatureValueComponent({ value }: { value: FeatureValue }) {
-  function main() {
-    if (typeof value.value === "boolean") {
-      return value.value ? (
-        <div className="text-primary">
-          <TbCheck />
-          <span className="hidden">Yes</span>
-        </div>
-      ) : (
-        <div className="text-base-content/20">
-          <TbX className="text-base-content/20" />
-          <span className="hidden">No</span>
-        </div>
-      );
-    }
-    return value.value;
-  }
-
-  function label() {
-    return value.lable;
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center">
-      <span>{main()}</span>
-      <span className="text-xs text-base-content/50">{label()}</span>
-    </div>
-  );
-}
-
 export default function ComparePage({ loaderData }: Route.ComponentProps) {
   const crawlchat = loaderData.comparison[0];
   const competitor = loaderData.comparison[1];
@@ -104,42 +71,11 @@ export default function ComparePage({ loaderData }: Route.ComponentProps) {
       </Container>
 
       <Container>
-        <div className="overflow-x-auto border border-base-300 rounded-box">
-          <table className="table table-xl">
-            <thead>
-              <tr>
-                <th className="w-1/3"></th>
-                <td className="w-1/3 text-center text-2xl">CrawlChat</td>
-                <td className="w-1/3 text-center text-2xl">
-                  {competitor.name}
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(featureNames).map((key) => (
-                <tr key={key}>
-                  <td className="text-base-content/80">
-                    {featureNames[key as FeatureName]}
-                  </td>
-                  <td className="text-center">
-                    <FeatureValueComponent
-                      value={
-                        loaderData.comparison[0].features[key as FeatureName]
-                      }
-                    />
-                  </td>
-                  <td className="text-center">
-                    <FeatureValueComponent
-                      value={
-                        loaderData.comparison[1].features[key as FeatureName]
-                      }
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <CompareTable
+          names={featureNames}
+          comparison={loaderData.comparison}
+          size="xl"
+        />
       </Container>
 
       <Container>

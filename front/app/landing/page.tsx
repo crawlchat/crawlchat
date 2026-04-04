@@ -1,10 +1,6 @@
 import cn from "@meltdownjs/cn";
+import { type Plan, allActivePlans, topupPlans } from "@packages/common/plans";
 import type { User } from "@packages/common/prisma";
-import {
-  type Plan,
-  allActivePlans,
-  topupPlans,
-} from "@packages/common/user-plan";
 import type { HTMLAttributes, PropsWithChildren, ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -15,7 +11,6 @@ import {
   TbArrowRight,
   TbBook,
   TbBook2,
-  TbBrandChrome,
   TbBrandDiscord,
   TbBrandGithub,
   TbBrandLinkedin,
@@ -32,7 +27,6 @@ import {
   TbCircleCheckFilled,
   TbCircleFilled,
   TbCircleXFilled,
-  TbClock,
   TbCode,
   TbColorSwatch,
   TbCrown,
@@ -42,7 +36,6 @@ import {
   TbFolder,
   TbGlobe,
   TbGraph,
-  TbHelpCircleFilled,
   TbInfoCircleFilled,
   TbLanguage,
   TbLock,
@@ -50,21 +43,15 @@ import {
   TbMenu2,
   TbMessage,
   TbMoneybag,
-  TbMoodHappy,
   TbMusic,
   TbMusicX,
-  TbPencil,
   TbPlayerPauseFilled,
   TbPlayerPlayFilled,
   TbPlug,
   TbPlus,
-  TbPointer,
   TbRobotFace,
   TbScoreboard,
-  TbSearch,
-  TbShieldLock,
   TbThumbUp,
-  TbTicket,
   TbUpload,
   TbUserHeart,
   TbUsers,
@@ -79,6 +66,7 @@ import { numberToKMB } from "~/components/number-util";
 import { track } from "~/components/track";
 import { makeMeta } from "~/meta";
 import { planProductIdMap, productIdTopupMap } from "~/payment/gateway-dodo";
+import { PricingFeatureComparison } from "./pricing-features";
 
 export function meta() {
   return makeMeta({
@@ -849,7 +837,7 @@ function PricingBox({
   );
 }
 
-function CreditsPopover() {
+function InfoPopover({ children }: PropsWithChildren) {
   return (
     <div className="dropdown dropdown-top dropdown-center inline-flex ml-2">
       <div
@@ -862,17 +850,11 @@ function CreditsPopover() {
       <div
         tabIndex={-1}
         className={cn(
-          "dropdown-content menu bg-base-200 rounded-box z-1 w-52 p-2 shadow-sm",
+          "dropdown-content menu bg-base-200 rounded-box z-1 w-52 p-4 py-3 shadow-sm",
           "mb-2"
         )}
       >
-        <p>
-          The net messages you get depends on the AI model you use.{" "}
-          <a href="/ai-models" className="link link-primary link-hover">
-            Click here
-          </a>{" "}
-          for more details.
-        </p>
+        {children}
       </div>
     </div>
   );
@@ -892,12 +874,31 @@ function PlanBox({ plan, url }: { plan: Plan; url: string }) {
             <div>
               {plan.credits.messages} message credits/
               {plan.resetType === "monthly" ? "month" : "year"}
-              <CreditsPopover />
+              <InfoPopover>
+                <p>
+                  The net messages you get depends on the AI model you use.{" "}
+                  <a href="/ai-models" className="link link-primary link-hover">
+                    Click here
+                  </a>{" "}
+                  for more details.
+                </p>
+              </InfoPopover>
             </div>
           ),
         },
         { text: `${plan.limits.scrapes} collections` },
         { text: `${plan.limits.teamMembers} team members` },
+        {
+          text: (
+            <div>
+              Analysis
+              <InfoPopover>
+                Categories, Tags, Language breakdown, Short questions
+              </InfoPopover>
+            </div>
+          ),
+          excluded: !plan.supportsAnalysis,
+        },
       ]}
       href={url}
       payLabel="Start free trial"
@@ -2516,177 +2517,6 @@ function SourcesChannels() {
   );
 }
 
-function PricingFeature({
-  icon,
-  title,
-  tooltip,
-}: {
-  icon: ReactNode;
-  title: string;
-  tooltip?: string;
-}) {
-  return (
-    <div className="flex items-center gap-2 group">
-      <div className="text-primary text-lg">{icon}</div>
-      <div className="font-brand text-primary text-lg">{title}</div>
-
-      {tooltip && (
-        <div
-          className={cn(
-            "tooltip text-base-content/30 group-hover:opacity-100 opacity-0",
-            "hidden md:block"
-          )}
-          data-tip={tooltip}
-        >
-          <TbInfoCircleFilled />
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function PricingFeatures() {
-  const features = [
-    {
-      icon: <TbCode />,
-      title: "API",
-    },
-    {
-      icon: <TbBrandDiscord />,
-      title: "Discord bot",
-    },
-    {
-      icon: <TbBrandSlack />,
-      title: "Slack app",
-    },
-    {
-      icon: <MCPIcon />,
-      title: "MCP server",
-    },
-    {
-      icon: <TbBrandGithub />,
-      title: "GitHub issues",
-      tooltip: "Import your GitHub issues into your knowledge base",
-    },
-    {
-      icon: <TbBrandNotion />,
-      title: "Notion",
-      tooltip: "Import your Notion pages into your knowledge base",
-    },
-    {
-      icon: <FaConfluence />,
-      title: "Confluence",
-      tooltip: "Import your Confluence pages into your knowledge base",
-    },
-    {
-      icon: <SiLinear />,
-      title: "Linear",
-      tooltip:
-        "Import your Linear issues and projects into your knowledge base",
-    },
-    {
-      icon: <SiN8N />,
-      title: "n8n",
-      tooltip: "Integrate with n8n by using CrawlChat node into your workflows",
-    },
-    {
-      icon: <TbChartBar />,
-      title: "Analytics",
-    },
-    {
-      icon: <TbFolder />,
-      title: "Categories",
-      tooltip: "Group your questions into categories for better insights",
-    },
-    {
-      icon: <TbChartBarOff />,
-      title: "Data gaps",
-    },
-    {
-      icon: <TbUsers />,
-      title: "Teams",
-    },
-    {
-      icon: <TbTicket />,
-      title: "Support tickets",
-      tooltip: "Create support tickets for your users when AI can't help",
-    },
-    {
-      icon: <TbShieldLock />,
-      title: "Private",
-      tooltip: "Keep your knowledge base private and secure",
-    },
-    {
-      icon: <TbMoodHappy />,
-      title: "Sentiment analysis",
-    },
-    {
-      icon: <TbPointer />,
-      title: "Actions",
-      tooltip: "Add custom actions as APIs for the chatbot to perform",
-    },
-    {
-      icon: <TbPencil />,
-      title: "Compose",
-      tooltip:
-        "Use your knowledge base to create content for different purposes",
-    },
-    {
-      icon: <TbBrandChrome />,
-      title: "Chrome extension",
-      tooltip:
-        "Use the Chrome extension to quickly generate text content from your documentation",
-    },
-    {
-      icon: <TbMail />,
-      title: "Email reports",
-      tooltip:
-        "Get weekly reports on your email about the questions asked and analytics",
-    },
-    {
-      icon: <TbHelpCircleFilled />,
-      title: "Follow up questions",
-    },
-    {
-      icon: <TbClock />,
-      title: "1 year data retention",
-      tooltip: "Your data is retained for 1 year",
-    },
-    {
-      icon: <TbSearch />,
-      title: "Hybrid search",
-      tooltip: "Vector + text search for better results",
-    },
-    {
-      icon: <TbUsers />,
-      title: "Chat users across channels",
-      tooltip: "View chat users across channels",
-    },
-  ];
-
-  return (
-    <div className="border border-base-300 rounded-box p-6">
-      <div className="mb-4">
-        <h2 className="text-2xl font-medium font-brand">Features</h2>
-        <p className="text-base-content/50">
-          Following features are available in all plans.
-        </p>
-      </div>
-
-      <ul className="grid grid-cols-1 md:grid-cols-3 gap-2">
-        {features.map((feature) => (
-          <PricingFeature
-            key={feature.title}
-            icon={feature.icon}
-            title={feature.title}
-            tooltip={feature.tooltip}
-          />
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 function BentoCard({
   icon,
   title,
@@ -2882,7 +2712,7 @@ export default function Landing() {
       </Container>
 
       <Container>
-        <PricingFeatures />
+        <PricingFeatureComparison />
       </Container>
 
       <SourcesChannels />

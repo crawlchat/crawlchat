@@ -3,7 +3,7 @@ import {
   PLAN_PRO,
   PLAN_STARTER,
   type Plan,
-} from "@packages/common/user-plan";
+} from "@packages/common/plans";
 import crypto from "crypto";
 import type { PaymentGateway, PaymentGatewayWebhookType } from "./gateway";
 
