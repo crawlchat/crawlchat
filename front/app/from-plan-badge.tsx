@@ -4,8 +4,8 @@ import { TbCrown } from "react-icons/tb";
 import { AppContext } from "./components/app-context";
 
 export function FromPlanBadge({ fromPlanId }: { fromPlanId: string }) {
-  const { isFeatureEnabled } = useContext(AppContext);
-  const enabled = isFeatureEnabled(fromPlanId);
+  const { isScrapeFeatureEnabled } = useContext(AppContext);
+  const enabled = isScrapeFeatureEnabled(fromPlanId);
 
   if (enabled) return null;
 

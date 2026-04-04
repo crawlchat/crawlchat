@@ -12,6 +12,7 @@ export const useApp = ({
   scrapeId,
   scrape,
   latestChangelog,
+  ownerPlanId,
 }: {
   user: User;
   scrapeUsers: Prisma.ScrapeUserGetPayload<{
@@ -26,6 +27,7 @@ export const useApp = ({
   scrapeId?: string;
   scrape?: Scrape;
   latestChangelog?: BlogPost;
+  ownerPlanId?: string;
 }) => {
   const [containerWidth, setContainerWidth] = useState<number>();
   const [progressActions, setProgressActions] = useState<SetupProgressAction[]>(
@@ -65,8 +67,10 @@ export const useApp = ({
     _setConversationsDefaultView(value);
   }
 
-  function isFeatureEnabled(fromPlanId: string) {
-    return isEnabled(fromPlanId, user.plan.planId);
+  function isScrapeFeatureEnabled(fromPlanId: string) {
+    if (ownerPlanId) {
+      return isEnabled(fromPlanId, ownerPlanId);
+    }
   }
 
   return {
@@ -83,7 +87,7 @@ export const useApp = ({
     latestChangelog,
     conversationsDefaultView,
     setConversationsDefaultView,
-    isFeatureEnabled,
+    isScrapeFeatureEnabled,
   };
 };
 

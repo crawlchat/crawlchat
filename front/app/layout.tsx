@@ -107,6 +107,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     pathname,
     latestChangelog,
     messageCredits,
+    ownerPlanId: owner.plan.planId,
   };
 }
 
@@ -118,6 +119,7 @@ export default function DashboardPage({ loaderData }: Route.ComponentProps) {
     scrapeId: loaderData.scrapeId,
     scrape: loaderData.scrape,
     latestChangelog: loaderData.latestChangelog,
+    ownerPlanId: loaderData.ownerPlanId,
   });
   const scrapeIdFetcher = useFetcher();
 
