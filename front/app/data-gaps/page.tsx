@@ -15,7 +15,7 @@ import {
   TbMessage,
   TbX,
 } from "react-icons/tb";
-import { Link, useFetcher } from "react-router";
+import { Link, useFetcher, useSearchParams } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { EmptyState } from "~/components/empty-state";
@@ -30,9 +30,52 @@ export async function loader({ request }: Route.LoaderArgs) {
   const scrapeId = await getSessionScrapeId(request);
   authoriseScrapeUser(user!.scrapeUsers, scrapeId);
 
-  const messages = await fetchDataGaps(scrapeId);
+  const url = new URL(request.url);
+  const view =
+    (url.searchParams.get("view") as "new" | "accepted" | "rejected") ?? "new";
 
-  return { messages };
+  const accepted = await prisma.message.count({
+    where: {
+      scrapeId,
+      dataGap: {
+        is: {
+          status: "accepted",
+        },
+      },
+    },
+  });
+
+  const rejected = await prisma.message.count({
+    where: {
+      scrapeId,
+      dataGap: {
+        is: {
+          status: "rejected",
+        },
+      },
+    },
+  });
+
+  const newGaps = (await fetchDataGaps(scrapeId)).length;
+
+  const messages =
+    view === "new"
+      ? await fetchDataGaps(scrapeId)
+      : await prisma.message.findMany({
+          where: {
+            scrapeId,
+            dataGap: {
+              is: {
+                status: view,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        });
+
+  return { messages, accepted, rejected, new: newGaps };
 }
 
 export function meta() {
@@ -169,37 +212,39 @@ export function DataGapCard({ message }: { message: Message }) {
               </button>
             </div>
 
-            <div className="join">
-              <acceptFetcher.Form method="post">
-                <input type="hidden" name="messageId" value={message.id} />
-                <input type="hidden" name="intent" value="accept" />
-                <button
-                  className="btn btn-success btn-soft join-item"
-                  type="submit"
-                  disabled={acceptFetcher.state !== "idle"}
-                >
-                  <TbCheck />
-                  Accept
-                </button>
-              </acceptFetcher.Form>
-              <rejectFetcher.Form method="post">
-                <input type="hidden" name="messageId" value={message.id} />
-                <input type="hidden" name="intent" value="reject" />
-                <div
-                  className="tooltip tooltip-left"
-                  data-tip="Reject it so that similar data gaps are not created again"
-                >
+            {!message.dataGap?.status && (
+              <div className="join">
+                <acceptFetcher.Form method="post">
+                  <input type="hidden" name="messageId" value={message.id} />
+                  <input type="hidden" name="intent" value="accept" />
                   <button
-                    className="btn btn-error btn-soft join-item"
-                    disabled={rejectFetcher.state !== "idle"}
+                    className="btn btn-success btn-soft join-item"
                     type="submit"
+                    disabled={acceptFetcher.state !== "idle"}
                   >
-                    <TbX />
-                    Reject
+                    <TbCheck />
+                    Accept
                   </button>
-                </div>
-              </rejectFetcher.Form>
-            </div>
+                </acceptFetcher.Form>
+                <rejectFetcher.Form method="post">
+                  <input type="hidden" name="messageId" value={message.id} />
+                  <input type="hidden" name="intent" value="reject" />
+                  <div
+                    className="tooltip tooltip-left"
+                    data-tip="Reject it so that similar data gaps are not created again"
+                  >
+                    <button
+                      className="btn btn-error btn-soft join-item"
+                      disabled={rejectFetcher.state !== "idle"}
+                      type="submit"
+                    >
+                      <TbX />
+                      Reject
+                    </button>
+                  </div>
+                </rejectFetcher.Form>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -214,8 +259,52 @@ export function DataGapCard({ message }: { message: Message }) {
 }
 
 export default function DataGapsPage({ loaderData }: Route.ComponentProps) {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  function handleViewChange(view: string) {
+    setSearchParams((p) => {
+      p.set("view", view);
+      return p;
+    });
+  }
+
+  const view = searchParams.get("view") ?? "new";
+
   return (
     <Page title="Data gaps" icon={<TbChartBarOff />}>
+      <div
+        className={cn(
+          "flex flex-col md:flex-row",
+          "justify-between mb-4 gap-4"
+        )}
+      >
+        <div className="text-base-content/50">
+          These topics were asked but not found in the knowledge base. Review
+          each one and either add it to your knowledge base or cancel it if it's
+          not relevant.
+        </div>
+        <div className="join">
+          <button
+            className={cn("btn join-item", view === "new" && "btn-neutral")}
+            onClick={() => handleViewChange("new")}
+          >
+            New
+            <span className="badge rounded-full px-2">{loaderData.new}</span>
+          </button>
+          <button
+            className={cn(
+              "btn join-item",
+              view === "accepted" && "btn-neutral"
+            )}
+            onClick={() => handleViewChange("accepted")}
+          >
+            Accepted
+            <span className="badge rounded-full px-2">
+              {loaderData.accepted}
+            </span>
+          </button>
+        </div>
+      </div>
       {loaderData.messages.length === 0 && (
         <div className="w-full h-full flex justify-center items-center">
           <EmptyState
@@ -227,11 +316,6 @@ export default function DataGapsPage({ loaderData }: Route.ComponentProps) {
       )}
       {loaderData.messages.length > 0 && (
         <div className="flex flex-col gap-4">
-          <div className="text-base-content/50">
-            These topics were asked but not found in the knowledge base. Review
-            each one and either add it to your knowledge base or cancel it if
-            it's not relevant.
-          </div>
           <div className={cn("border border-base-300 rounded-box bg-base-100")}>
             {loaderData.messages.map((message) => (
               <DataGapCard key={message.id} message={message} />
