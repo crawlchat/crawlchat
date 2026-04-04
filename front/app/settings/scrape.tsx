@@ -348,7 +348,7 @@ function ShowSourcesSetting({ scrape }: { scrape: Scrape }) {
 }
 
 function AnalyseMessageSettings({ scrape }: { scrape: Scrape }) {
-  const { isFeatureEnabled } = useContext(AppContext);
+  const { isScrapeFeatureEnabled } = useContext(AppContext);
   const fetcher = useFetcher();
   const dirtyForm = useDirtyForm({
     analyseMessage: scrape.analyseMessage ?? false,
@@ -371,7 +371,7 @@ function AnalyseMessageSettings({ scrape }: { scrape: Scrape }) {
             name="analyseMessage"
             defaultChecked={scrape.analyseMessage ?? false}
             onChange={dirtyForm.handleChange("analyseMessage")}
-            disabled={!isFeatureEnabled(PLAN_GROW.id)}
+            disabled={!isScrapeFeatureEnabled(PLAN_GROW.id)}
           />
           Active
         </label>
