@@ -241,6 +241,16 @@ export function UsedBy() {
           className="max-h-[34px] grayscale"
         />
       </UsedByItem>
+
+      <UsedByItem href="https://openc3.com" target="_blank">
+        <div className="bg-gray-900 rounded-box p-2 rounded-full shrink-0">
+          <img
+            src="/used-by/openc3.png"
+            alt="OpenC3"
+            className="max-h-[32px] grayscale"
+          />
+        </div>
+      </UsedByItem>
     </>
   );
 
