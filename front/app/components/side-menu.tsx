@@ -1,6 +1,6 @@
 import cn from "@meltdownjs/cn";
+import type { Plan } from "@packages/common/plans";
 import type { Scrape, User } from "@packages/common/prisma";
-import type { Plan } from "@packages/common/user-plan";
 import {
   useContext,
   useEffect,
