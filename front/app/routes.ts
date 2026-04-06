@@ -73,6 +73,7 @@ export default [
 
     route("actions", "actions/list.tsx"),
     route("actions/new", "actions/new.tsx"),
+    route("actions/test", "actions/test.tsx"),
     route("actions/:actionId", "actions/edit.tsx"),
 
     route("articles", "articles/list.tsx"),
