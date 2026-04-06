@@ -1,6 +1,7 @@
 import { useContext } from "react";
-import { TbCheck, TbTrash } from "react-icons/tb";
+import { TbCheck, TbPlayerPlay, TbTrash } from "react-icons/tb";
 import { type FetcherWithComponents } from "react-router";
+import { showModal } from "~/components/daisy-utils";
 import { EditActionContext } from "./use-edit-action";
 
 export function SaveForm({
@@ -23,6 +24,17 @@ export function SaveForm({
 
   return (
     <>
+      {url && method && (
+        <div className="tooltip tooltip-left" data-tip="Test the API">
+          <button
+            className="btn btn-square btn-accent btn-soft"
+            onClick={() => showModal("api-action-test-modal")}
+          >
+            <TbPlayerPlay />
+          </button>
+        </div>
+      )}
+
       {deleteFetcher && (
         <deleteFetcher.Form method="post">
           <input type="hidden" name="intent" value="delete" />

@@ -8,6 +8,7 @@ import { makeMeta } from "~/meta";
 import type { Route } from "./+types/new";
 import { EditForm } from "./edit-form";
 import { SaveForm } from "./save-form";
+import { ApiActionTestModal } from "./test-modal";
 import { EditActionProvider } from "./use-edit-action";
 
 export async function action({ request }: Route.ActionArgs) {
@@ -53,6 +54,8 @@ export default function NewAction() {
         right={<SaveForm fetcher={fetcher} />}
       >
         <EditForm />
+
+        <ApiActionTestModal />
       </Page>
     </EditActionProvider>
   );

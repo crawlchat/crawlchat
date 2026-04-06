@@ -180,8 +180,8 @@ export function ApiActionTestModal() {
         </div>
 
         <div>
-          {data.items.map((item) => (
-            <fieldset className="fieldset">
+          {data.items.map((item, index) => (
+            <fieldset key={index} className="fieldset">
               <legend className="fieldset-legend gap-1">
                 {item.key}
                 <span className="opacity-50">(Body)</span>
@@ -198,8 +198,8 @@ export function ApiActionTestModal() {
         </div>
 
         <div>
-          {headers.items.map((item) => (
-            <fieldset className="fieldset">
+          {headers.items.map((item, index) => (
+            <fieldset key={index} className="fieldset">
               <legend className="fieldset-legend gap-1">
                 {item.key}
                 <span className="opacity-50">(Header)</span>
@@ -231,7 +231,9 @@ export function ApiActionTestModal() {
                 },
                 {
                   label: "Error",
-                  value: fetcher.data.error ?? "-",
+                  value: (
+                    <div className="text-xs">{fetcher.data.error ?? "-"}</div>
+                  ),
                 },
               ]}
             />
@@ -239,7 +241,11 @@ export function ApiActionTestModal() {
         )}
 
         <div>
-          <fetcher.Form method="post" className="flex justify-end gap-2">
+          <fetcher.Form
+            method="post"
+            action="/actions/test"
+            className="flex justify-end gap-2"
+          >
             <input type="hidden" name="intent" value="test" />
             <input
               type="hidden"
