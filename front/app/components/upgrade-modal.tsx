@@ -1,9 +1,13 @@
-import type { Plan } from "@packages/common/user-plan";
+import type { Plan } from "@packages/common/plans";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import { PricingBoxes, PricingSwitch } from "~/landing/page";
 
-export function UpgradeModal({ plans }: { plans: Plan[] }) {
+export function UpgradeModal({
+  plans,
+}: {
+  plans: Array<Plan & { url: string }>;
+}) {
   const paymentFetcher = useFetcher();
   const [yearly, setYearly] = useState(false);
 
