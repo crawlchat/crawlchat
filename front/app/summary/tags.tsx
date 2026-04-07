@@ -28,7 +28,7 @@ function Tag({ title, count }: { title: string; count: number }) {
         )}
       >
         <input type="hidden" name="intent" value="remove-tag" />
-        <input type="hidden" name="tagName" value={title} />
+        <input type="hidden" name="name" value={title} />
         <button className="btn btn-xs btn-soft btn-square btn-error">
           {fetcher.state !== "idle" ? (
             <span className="loading loading-spinner" />

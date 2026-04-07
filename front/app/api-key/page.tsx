@@ -144,9 +144,14 @@ function CreateApiKeyModal() {
             </fieldset>
           </div>
           <div className="modal-action">
-            <form method="dialog">
-              <button className="btn">Close</button>
-            </form>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => hideModal("create-api-key-modal")}
+            >
+              Close
+            </button>
+
             <button
               type="submit"
               className="btn btn-primary"
@@ -203,9 +208,13 @@ function DeleteApiKey({
             This action cannot be undone.
           </p>
           <div className="modal-action">
-            <form method="dialog">
-              <button className="btn">Close</button>
-            </form>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => hideModal("delete-api-key-modal")}
+            >
+              Close
+            </button>
             <button
               className="btn btn-error"
               type="submit"
