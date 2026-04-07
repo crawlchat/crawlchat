@@ -134,7 +134,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 
   if (intent === "remove-tag") {
-    const tagName = formData.get("tagName") as string;
+    const tagName = formData.get("name") as string;
     await prisma.$runCommandRaw({
       update: "Message",
       updates: [

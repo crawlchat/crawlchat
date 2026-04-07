@@ -263,9 +263,13 @@ function DeleteUser({
             <span className="font-bold">{scrapeUser?.email}</span>?
           </p>
           <div className="modal-action">
-            <form method="dialog">
-              <button className="btn">Close</button>
-            </form>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => hideModal("delete-modal")}
+            >
+              Close
+            </button>
             <button
               className="btn btn-error"
               type="submit"
@@ -313,6 +317,7 @@ function Invite() {
               they have not signed up yet.
             </p>
             <input
+              type="email"
               className="input w-full"
               placeholder="Ex: team-member@example.com"
               name="email"
@@ -320,9 +325,14 @@ function Invite() {
             />
           </div>
           <div className="modal-action">
-            <form method="dialog">
-              <button className="btn">Close</button>
-            </form>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => hideModal("invite-modal")}
+            >
+              Close
+            </button>
+
             <button
               type="submit"
               className="btn btn-primary"
@@ -370,9 +380,13 @@ function Leave({ scrapeTitle }: { scrapeTitle: string }) {
             <span className="font-bold">{scrapeTitle}</span>?
           </p>
           <div className="modal-action">
-            <form method="dialog">
-              <button className="btn">Close</button>
-            </form>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => hideModal("leave-modal")}
+            >
+              Close
+            </button>
             <button
               className="btn btn-error"
               type="submit"

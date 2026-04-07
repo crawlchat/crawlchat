@@ -24,7 +24,7 @@ export default function LanguageDistribution({
     <div
       className={cn("w-fit bg-base-100 border border-base-300 rounded-box p-4")}
     >
-      <PieChart width={200} height={200}>
+      <PieChart width={200} height={200} id="language-distribution-chart">
         <Pie
           data={data}
           innerRadius="80%"

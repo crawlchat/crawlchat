@@ -1,6 +1,6 @@
 import cn from "@meltdownjs/cn";
 import moment from "moment";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TbFolder } from "react-icons/tb";
 import { Link } from "react-router";
 import { Line, LineChart, Tooltip, XAxis } from "recharts";
@@ -14,6 +14,12 @@ export default function CategoryCard({
   title: string;
   summary: MessagesSummary;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const chartData = useMemo(() => {
     const data = [];
     const today = new Date();
@@ -58,16 +64,25 @@ export default function CategoryCard({
       </div>
 
       <div className="flex gap-4 flex-wrap">
-        <LineChart width={160} height={40} data={chartData}>
-          <XAxis dataKey="name" hide />
-          <Tooltip content={renderTooltip} />
-          <Line
-            type="monotone"
-            dataKey="Messages"
-            stroke={"var(--color-primary)"}
-            dot={false}
-          />
-        </LineChart>
+        {mounted ? (
+          <LineChart
+            width={160}
+            height={40}
+            data={chartData}
+            id="category-card-chart"
+          >
+            <XAxis dataKey="name" hide />
+            <Tooltip content={renderTooltip} />
+            <Line
+              type="monotone"
+              dataKey="Messages"
+              stroke={"var(--color-primary)"}
+              dot={false}
+            />
+          </LineChart>
+        ) : (
+          <div className="w-[160px] h-[40px]" />
+        )}
         <CategoryCardStat label="This week" value={summary.messagesCount} />
         <CategoryCardStat label="Today" value={summary.messagesToday} />
         <CategoryCardStat
