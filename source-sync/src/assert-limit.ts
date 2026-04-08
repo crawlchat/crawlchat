@@ -14,16 +14,12 @@ export const assertLimit = async (
     where: { scrapeId, url, knowledgeGroupId, status: "completed" },
   });
 
-  console.log("existingItems", existingItems);
-
   if (existingItems > 0) {
     return;
   }
 
   const limit = userPlan?.limits?.pages ?? PLAN_FREE.limits.pages;
   const pagesCount = await getPagesCount(userId);
-
-  console.log("checking limit", { limit, pagesCount, n });
 
   if (pagesCount + n <= limit) {
     return;
