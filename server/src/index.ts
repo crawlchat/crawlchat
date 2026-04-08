@@ -203,6 +203,7 @@ app.get("/mcp/:scrapeId", async (req, res) => {
       alert: {
         scrapeId: scrape.id,
         token: createToken(scrape.userId),
+        threshold: scrape.lowCreditsThreshold,
       },
     }))
   ) {
@@ -395,6 +396,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
       alert: {
         scrapeId: scrape.id,
         token: createToken(scrape.userId),
+        threshold: scrape.lowCreditsThreshold,
       },
     }))
   ) {
@@ -624,6 +626,7 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
       alert: {
         scrapeId: scrape.id,
         token: createToken(scrape.userId),
+        threshold: scrape.lowCreditsThreshold,
       },
     }))
   ) {
@@ -968,6 +971,7 @@ app.post("/compose/:scrapeId", authenticate, async (req, res) => {
       alert: {
         scrapeId: scrape.id,
         token: createToken(scrape.userId),
+        threshold: scrape.lowCreditsThreshold,
       },
     }))
   ) {
@@ -1167,11 +1171,16 @@ app.post("/fix-message", authenticate, async (req, res) => {
 
   authoriseScrapeUser(req.user!.scrapeUsers, message.scrapeId, res);
 
+  const scrape = await prisma.scrape.findFirstOrThrow({
+    where: { id: message.scrapeId },
+  });
+
   if (
     !(await hasEnoughCredits(userId, "messages", {
       alert: {
         scrapeId: message.scrapeId,
         token: createToken(userId),
+        threshold: scrape.lowCreditsThreshold,
       },
     }))
   ) {
@@ -1296,6 +1305,7 @@ app.post("/extract-facts/:scrapeId", authenticate, async (req, res) => {
       alert: {
         scrapeId: scrape.id,
         token: createToken(scrape.userId),
+        threshold: scrape.lowCreditsThreshold,
       },
     }))
   ) {
@@ -1385,6 +1395,7 @@ app.post("/fact-check/:scrapeId", authenticate, async (req, res) => {
       alert: {
         scrapeId: scrape.id,
         token: createToken(scrape.userId),
+        threshold: scrape.lowCreditsThreshold,
       },
     }))
   ) {

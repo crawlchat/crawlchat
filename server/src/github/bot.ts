@@ -331,6 +331,7 @@ async function answer(data: {
       alert: {
         scrapeId: scrape.id,
         token: createToken(scrape.userId),
+        threshold: scrape.lowCreditsThreshold,
       },
     }))
   ) {
