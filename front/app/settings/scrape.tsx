@@ -142,6 +142,11 @@ export async function action({ request }: Route.ActionArgs) {
   if (formData.has("from-api-playground")) {
     update.apiPlayground = formData.get("api-playground") === "on";
   }
+  if (formData.has("lowCreditsThreshold")) {
+    update.lowCreditsThreshold = parseFloat(
+      formData.get("lowCreditsThreshold") as string
+    );
+  }
 
   const scrape = await prisma.scrape.update({
     where: { id: scrapeId },
@@ -378,6 +383,35 @@ function AnalyseMessageSettings({ scrape }: { scrape: Scrape }) {
 
         <FromPlanBadge fromPlanId={PLAN_GROW.id} />
       </div>
+    </SettingsSection>
+  );
+}
+
+function LowCreditsThresholdSettings({ scrape }: { scrape: Scrape }) {
+  const fetcher = useFetcher();
+  const dirtyForm = useDirtyForm({
+    lowCreditsThreshold: scrape.lowCreditsThreshold ?? 100,
+  });
+
+  return (
+    <SettingsSection
+      id="low-credits-threshold"
+      title="Low credits alert"
+      description="Configure the threshold for the low credits alert. The alert will be sent when the balance is less than the threshold every hour. The default is 100 if not set and it should be between 100 and 2000."
+      fetcher={fetcher}
+      dirty={dirtyForm.isDirty("lowCreditsThreshold")}
+    >
+      <input
+        type="number"
+        className="input"
+        name="lowCreditsThreshold"
+        defaultValue={scrape.lowCreditsThreshold ?? 100}
+        onChange={dirtyForm.handleChange("lowCreditsThreshold")}
+        placeholder="Ex: 100"
+        min={100}
+        max={2000}
+        required
+      />
     </SettingsSection>
   );
 }
@@ -863,6 +897,8 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
           <ShowSourcesSetting scrape={loaderData.scrape} />
 
           <CategorySettings scrape={loaderData.scrape} />
+
+          <LowCreditsThresholdSettings scrape={loaderData.scrape} />
 
           <ApiPlaygroundSettings scrape={loaderData.scrape} />
 
