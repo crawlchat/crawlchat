@@ -10,13 +10,13 @@ export const assertLimit = async (
   userId: string,
   userPlan: UserPlan | null
 ) => {
-  const existingItem = await prisma.scrapeItem.count({
+  const existingItems = await prisma.scrapeItem.count({
     where: { scrapeId, url, knowledgeGroupId, status: "completed" },
   });
 
-  console.log("existingItem", existingItem);
+  console.log("existingItems", existingItems);
 
-  if (existingItem > 0) {
+  if (existingItems > 0) {
     return;
   }
 
