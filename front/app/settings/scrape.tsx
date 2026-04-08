@@ -397,7 +397,7 @@ function LowCreditsThresholdSettings({ scrape }: { scrape: Scrape }) {
     <SettingsSection
       id="low-credits-threshold"
       title="Low credits alert"
-      description="Configure the threshold for the low credits alert. The alert will be sent when the balance is less than the threshold every hour. The default is 100 if not set and it should be between 100 and 2000."
+      description="Configure the threshold for the low credits alert. The alert will be sent when the balance is less than the threshold. The default is 100 if not set and it should be between 100 and 2000. The email will be sent whenever credits are being consumed with atleast one hour gap."
       fetcher={fetcher}
       dirty={dirtyForm.isDirty("lowCreditsThreshold")}
     >
