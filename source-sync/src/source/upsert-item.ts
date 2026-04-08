@@ -23,6 +23,7 @@ export async function upsertItem(
     url,
     chunks.length,
     knowledgeGroup.scrapeId,
+    knowledgeGroup.id,
     knowledgeGroup.userId,
     userPlan
   );
