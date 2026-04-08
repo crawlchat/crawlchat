@@ -208,6 +208,10 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
       await checkUserRateLimits(scrape, fingerprint);
     } catch (error: unknown) {
       if (error instanceof Error && error.message.startsWith("APP: ")) {
+        console.log(
+          "user rate limit exceeded",
+          scrape.slug ?? scrape.title ?? scrape.id
+        );
         ws.send(makeMessage("error", { message: error.message.slice(4) }));
         return;
       }
