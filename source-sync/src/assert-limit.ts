@@ -6,20 +6,27 @@ export const assertLimit = async (
   url: string,
   n: number,
   scrapeId: string,
+  knowledgeGroupId: string,
   userId: string,
   userPlan: UserPlan | null
 ) => {
-  const existingItem = await prisma.scrapeItem.findFirst({
-    where: { scrapeId: scrapeId, url },
+  const existingItem = await prisma.scrapeItem.count({
+    where: { scrapeId, url, knowledgeGroupId, status: "completed" },
   });
-  if (existingItem) {
+
+  console.log("existingItem", existingItem);
+
+  if (existingItem > 0) {
     return;
   }
 
   const limit = userPlan?.limits?.pages ?? PLAN_FREE.limits.pages;
   const pagesCount = await getPagesCount(userId);
+
+  console.log("checking limit", { limit, pagesCount, n });
+
   if (pagesCount + n <= limit) {
     return;
   }
-  throw new Error("Pages limit reached for the plan");
+  throw new Error("APP: Pages limit reached for the plan");
 };
