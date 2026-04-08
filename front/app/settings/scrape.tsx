@@ -737,7 +737,7 @@ function FingerprintRateLimitSettings({ scrape }: { scrape: Scrape }) {
 
   return (
     <SettingsSection
-      id="fingerprint-rate-limit"
+      id="user-rate-limit"
       title="User rate limits"
       description="Configure the rate limit for the unique users for asking the questions. You can apply either hourly or daily or both as per your needs. Works on Web widget for now."
       fetcher={fetcher}
