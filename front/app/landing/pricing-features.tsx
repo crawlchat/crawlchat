@@ -59,7 +59,7 @@ export type PricingFeature =
   | "pages"
   | "credits"
   | "collections"
-  | "collection_mcp";
+  | "collections_mcp";
 
 export const pricingFeatureNames: CompareFeatureNames<PricingFeature> = {
   credits: {
@@ -147,7 +147,7 @@ export const pricingFeatureNames: CompareFeatureNames<PricingFeature> = {
     note: "On web widget",
   },
   users: { label: "Users View", icon: <TbUser />, type: "features" },
-  collection_mcp: {
+  collections_mcp: {
     label: "Collections MCP",
     note: "View & manage your collections",
     icon: <MCPIcon />,
@@ -262,7 +262,7 @@ export const launchPlan: CompareEntity<PricingFeature> = {
     users: {
       value: true,
     },
-    collection_mcp: {
+    collections_mcp: {
       value: false,
     },
   },
@@ -354,7 +354,7 @@ export const growPlan: CompareEntity<PricingFeature> = {
     users: {
       value: true,
     },
-    collection_mcp: {
+    collections_mcp: {
       value: false,
     },
   },
@@ -446,7 +446,7 @@ export const acceleratePlan: CompareEntity<PricingFeature> = {
     users: {
       value: true,
     },
-    collection_mcp: {
+    collections_mcp: {
       value: true,
     },
   },
