@@ -140,7 +140,7 @@ print(result)`,
             <p className="text-sm text-base-content/60">
               Replace <code>{`{{YOUR_COLLECTION_ID}}`}</code> and{" "}
               <code>{`{{YOUR_API_KEY}}`}</code> with your own{" "}
-              <Link to="/api-key" className="link link-primary link-hover">
+              <Link to="/api/keys" className="link link-primary link-hover">
                 API Key
               </Link>
               . Check{" "}

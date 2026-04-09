@@ -177,7 +177,7 @@ function WithSubMenuItems({
       <ul
         className={cn(
           "ml-4 hidden flex-col gap-1",
-          "border-l border-base-300",
+          "border-l border-base-300 pl-1",
           isExpanded && "flex"
         )}
       >
@@ -420,10 +420,24 @@ export function SideMenu({
         ],
       },
       {
-        label: "API Keys",
-        to: "/api-key",
-        icon: <TbKey />,
+        label: "API",
+        to: "/api",
+        icon: <TbCode />,
         forScrape: true,
+        items: [
+          {
+            label: "Keys",
+            to: "/api/keys",
+            icon: <TbKey />,
+            forScrape: true,
+          },
+          {
+            label: "MCP",
+            to: "/api/mcp",
+            icon: <MCPIcon />,
+            forScrape: true,
+          },
+        ],
       },
       {
         label: "Usage",

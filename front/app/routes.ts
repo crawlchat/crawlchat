@@ -87,7 +87,10 @@ export default [
       route("fact-check/api", "fact-check/api.ts"),
     ]),
 
-    route("api-key", "api-key/page.tsx"),
+    ...prefix("api", [
+      route("keys", "api/keys.tsx"),
+      route("mcp", "api/mcp.tsx"),
+    ]),
   ]),
 
   layout("landing/layout.tsx", [

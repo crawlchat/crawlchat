@@ -22,7 +22,7 @@ npm i n8n-nodes-crawlchat
 
 #### 1. Get Your API Key
 
-1. Go to [API Keys](https://crawlchat.app/api-key) on your dashboard
+1. Go to [API Keys](https://crawlchat.app/api/keys) on your dashboard
 2. Create a new API key
 3. Copy the key
 

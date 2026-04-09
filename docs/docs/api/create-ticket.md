@@ -8,7 +8,7 @@ You can use this REST API to create a support ticket on CrawlChat. These support
 
 ### API Key
 
-You need to pass an `API_KEY` to all the following requests. You can create an `API_KEY` from the [API Keys](https://crawlchat.app/api-key) page on your dashboard.
+You need to pass an `API_KEY` to all the following requests. You can create an `API_KEY` from the [API Keys](https://crawlchat.app/api/keys) page on your dashboard.
 
 ### URL
 

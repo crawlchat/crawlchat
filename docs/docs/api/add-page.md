@@ -8,7 +8,7 @@ You can use this REST API to add content as Page to you Collections Knowledge Ba
 
 ### API Key
 
-You need to pass an `API_KEY` to all the following requests. You can create an `API_KEY` from the [API Keys](https://crawlchat.app/api-key) page on your dashboard.
+You need to pass an `API_KEY` to all the following requests. You can create an `API_KEY` from the [API Keys](https://crawlchat.app/api/keys) page on your dashboard.
 
 ### URL
 
