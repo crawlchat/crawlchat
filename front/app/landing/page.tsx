@@ -889,17 +889,6 @@ function PlanBox({ plan, url }: { plan: Plan; url: string }) {
         },
         { text: `${plan.limits.scrapes} collections` },
         { text: `${plan.limits.teamMembers} team members` },
-        {
-          text: (
-            <div>
-              Analysis
-              <InfoPopover>
-                Categories, Tags, Language breakdown, Short questions
-              </InfoPopover>
-            </div>
-          ),
-          excluded: !plan.supportsAnalysis,
-        },
       ]}
       href={url}
       payLabel="Start free trial"
@@ -973,27 +962,10 @@ export function PricingSwitch({
   );
 }
 
-export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
-  const { plans, topupPlans } = useLoaderData<typeof loader>();
-  const [isYearly, setIsYearly] = useState(false);
-
+export function PricingTopups() {
+  const { topupPlans } = useLoaderData<typeof loader>();
   return (
-    <div className={cn("mt-32", noMarginTop && "mt-10")} id="pricing">
-      <Heading>
-        <HeadingHighlight>Pricing</HeadingHighlight> for everyone
-      </Heading>
-
-      <HeadingDescription>
-        Choose the plan that best fits your needs. Start with a 7-day free trial
-        and cancel anytime.
-      </HeadingDescription>
-
-      <PricingSwitch yearly={isYearly} setYearly={setIsYearly} />
-
-      <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
-        <PricingBoxes plans={plans} yearly={isYearly} />
-      </div>
-
+    <div>
       <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-10 w-full">
         {topupPlans.map((plan) => (
           <div
@@ -1020,6 +992,30 @@ export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
       <div className="opacity-50 text-center my-10">
         You need to be on a paid plan first to topup credits. Credits don't roll
         over to next month.
+      </div>
+    </div>
+  );
+}
+
+export function Pricing({ noMarginTop }: { noMarginTop?: boolean }) {
+  const { plans, topupPlans } = useLoaderData<typeof loader>();
+  const [isYearly, setIsYearly] = useState(false);
+
+  return (
+    <div className={cn("mt-32", noMarginTop && "mt-10")} id="pricing">
+      <Heading>
+        <HeadingHighlight>Pricing</HeadingHighlight> for everyone
+      </Heading>
+
+      <HeadingDescription>
+        Choose the plan that best fits your needs. Start with a 7-day free trial
+        and cancel anytime.
+      </HeadingDescription>
+
+      <PricingSwitch yearly={isYearly} setYearly={setIsYearly} />
+
+      <div className="flex flex-col md:flex-row md:gap-6 gap-10 mt-20">
+        <PricingBoxes plans={plans} yearly={isYearly} />
       </div>
     </div>
   );
@@ -2736,6 +2732,10 @@ export default function Landing() {
 
       <Container>
         <PricingFeatureComparison />
+      </Container>
+
+      <Container>
+        <PricingTopups />
       </Container>
 
       <SourcesChannels />
