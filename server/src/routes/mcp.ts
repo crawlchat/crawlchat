@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { getBalance } from "@packages/common/credit-transaction";
 import { Prisma, prisma } from "@packages/common/prisma";
 import { getCollectionSummary } from "@packages/common/summary";
 import { Request, Router } from "express";
@@ -95,33 +96,55 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "get_collections",
-    "Lists collections accessible by the authenticated user.",
+    "Lists collections accessible by the authenticated user. It provides plan details for each collection as well.",
     async () => {
       const memberships = await prisma.scrapeUser.findMany({
         where: {
           userId: user.id,
         },
         include: {
-          scrape: true,
+          scrape: {
+            include: {
+              user: true,
+            },
+          },
         },
       });
 
-      const collections = memberships.map((membership) => ({
-        title: membership.scrape.title,
-        id: membership.scrape.id,
-        createdAt: membership.scrape.createdAt,
-        llmModel: membership.scrape.llmModel,
-        slug: membership.scrape.slug,
-        logoUrl: membership.scrape.logoUrl,
-        ticketingEnabled: membership.scrape.ticketingEnabled,
-        discordServerId: membership.scrape.discordServerId,
-        discordDraftConfig: membership.scrape.discordDraftConfig,
-        slackTeamId: membership.scrape.slackTeamId,
-        private: membership.scrape.private,
-        categories: membership.scrape.messageCategories,
-        chatPrompt: membership.scrape.chatPrompt,
-        showSources: membership.scrape.showSources,
-      }));
+      const collections = await Promise.all(
+        memberships.map(async (membership) => {
+          const creditBalance = await getBalance(
+            membership.scrape.user.id,
+            "message"
+          );
+          return {
+            title: membership.scrape.title,
+            id: membership.scrape.id,
+            createdAt: membership.scrape.createdAt,
+            llmModel: membership.scrape.llmModel,
+            slug: membership.scrape.slug,
+            logoUrl: membership.scrape.logoUrl,
+            ticketingEnabled: membership.scrape.ticketingEnabled,
+            discordServerId: membership.scrape.discordServerId,
+            discordDraftConfig: membership.scrape.discordDraftConfig,
+            slackTeamId: membership.scrape.slackTeamId,
+            private: membership.scrape.private,
+            categories: membership.scrape.messageCategories,
+            chatPrompt: membership.scrape.chatPrompt,
+            showSources: membership.scrape.showSources,
+            owner: {
+              id: membership.scrape.user.id,
+              name: membership.scrape.user.name,
+              email: membership.scrape.user.email,
+              plan: {
+                planId: membership.scrape.user.plan?.planId,
+                status: membership.scrape.user.plan?.status,
+                creditBalance,
+              },
+            },
+          };
+        })
+      );
 
       return {
         content: [{ type: "text", text: JSON.stringify(collections) }],
@@ -205,33 +228,75 @@ function createMcpServer(user: ApiUser) {
 
   mcpServer.tool(
     "get_messages",
-    "Returns paginated recent messages for a collection.",
+    "Returns paginated recent messages for a collection default last 7 days.",
     {
       scrapeId: z.string().describe("The ID of the collection."),
       page: z.number().int().min(1).optional(),
+      fingerprint: z
+        .string()
+        .optional()
+        .describe("The fingerprint of the user."),
+      fromTime: z
+        .string()
+        .optional()
+        .describe("The start time in ISO 8601 format."),
+      endTime: z
+        .string()
+        .optional()
+        .describe("The end time in ISO 8601 format."),
+      category: z.string().optional().describe("The category of the messages."),
     },
-    async ({ scrapeId, page }: { scrapeId: string; page?: number }) => {
+    async ({
+      scrapeId,
+      page,
+      fingerprint,
+      fromTime,
+      endTime,
+      category,
+    }: {
+      scrapeId: string;
+      page?: number;
+      fingerprint?: string;
+      fromTime?: string;
+      endTime?: string;
+      category?: string;
+    }) => {
       ensureScrapeAccess(user, scrapeId);
       const pageNumber = page ?? 1;
       const pageSize = 50;
-      const oneWeekAgo = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
+
+      let gte: Date = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
+      let lte: Date | undefined;
+      if (fromTime) {
+        gte = new Date(fromTime);
+      }
+      if (endTime) {
+        lte = new Date(endTime);
+      }
+
+      const where: Prisma.MessageWhereInput = {
+        scrapeId,
+        createdAt: {
+          gte,
+          lte,
+        },
+        fingerprint,
+      };
+
+      if (category) {
+        where.analysis = {
+          is: {
+            category,
+          },
+        };
+      }
 
       const totalMessages = await prisma.message.count({
-        where: {
-          scrapeId,
-          createdAt: {
-            gte: oneWeekAgo,
-          },
-        },
+        where,
       });
 
       const messages = await prisma.message.findMany({
-        where: {
-          scrapeId,
-          createdAt: {
-            gte: oneWeekAgo,
-          },
-        },
+        where,
         orderBy: {
           createdAt: "desc",
         },
@@ -248,6 +313,18 @@ function createMcpServer(user: ApiUser) {
           channel: message.channel,
           attachments: message.attachments,
           links: message.links,
+          fingerprint: message.fingerprint,
+          credits: message.creditsUsed,
+          analysis: {
+            category: message.analysis?.category,
+            questionSentiment: message.analysis?.questionSentiment,
+            language: message.analysis?.language,
+            dataGapTitle: message.analysis?.dataGapTitle,
+            dataGapDescription: message.analysis?.dataGapDescription,
+            dataGapDone: message.analysis?.dataGapDone,
+            dataGapCancelled: message.analysis?.dataGapCancelled,
+            resolved: message.analysis?.resolved,
+          },
         })),
         total: totalMessages,
         page: pageNumber,
