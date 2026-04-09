@@ -1,4 +1,4 @@
-import { Text, Row } from "@react-email/components";
+import { Row, Text } from "@react-email/components";
 import { emailConfig } from "./config";
 import { MailTemplate } from "./template";
 

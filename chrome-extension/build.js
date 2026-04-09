@@ -1,6 +1,5 @@
-import { build } from "esbuild";
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { execSync } from "child_process";
+import { build } from "esbuild";
 
 async function buildExtension() {
   console.log("Building React popup...");

@@ -33,6 +33,7 @@ npm run dev:core
 ```
 
 This runs:
+
 - Frontend on `http://localhost:5173/`
 - Server on `http://localhost:3000/`
 - Source-sync on `http://localhost:3007/`
@@ -131,6 +132,7 @@ browser act --profile openclaw --request '{"kind": "resize", "width": 1920, "hei
 ## Best Practices
 
 ### Browser Resolution
+
 - Always use browser in desktop 16:9 resolution (1920x1080) for consistent UI testing:
 
 ```bash
@@ -138,11 +140,13 @@ browser act --profile openclaw --request '{"kind": "resize", "width": 1920, "hei
 ```
 
 ### UI Changes & Screenshots
+
 - When making UI-related changes, always include browser screenshots in:
   - Pull requests
   - Chat discussions for review
 
 ### Git Branching
+
 - Always create new branches from `main` unless a specific feature branch is required:
 
 ```bash

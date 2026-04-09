@@ -1,4 +1,4 @@
-import { RecordMetadata, QueryResponse } from "@pinecone-database/pinecone";
+import { QueryResponse, RecordMetadata } from "@pinecone-database/pinecone";
 
 export type IndexDocument = {
   id: string;

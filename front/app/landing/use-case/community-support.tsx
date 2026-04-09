@@ -21,9 +21,9 @@ import { Channels, Connectors, UseCaseHero, UseCaseIssues } from "./component";
 
 export function meta() {
   return makeMeta({
-    title: "Community support - CrawlChat",
+    title: "Documentation Assistant for Community Support - CrawlChat",
     description:
-      "Transform your technical documentation into an instant answering system for your community.",
+      "AI for documentation that helps your community get instant, source-linked answers across web, Discord, and Slack.",
   });
 }
 
@@ -34,11 +34,11 @@ export default function CommunitySupport() {
         <UseCaseHero
           title={
             <>
-              <span className="text-primary">Reduce your tech queries</span>{" "}
-              from your SaaS community
+              <span className="text-primary">Documentation assistant for</span>{" "}
+              your SaaS community
             </>
           }
-          description="Most queries from your community are already answered in your documentation. With CrawlChat, enable your documentation to answer queries instantly on the platforms where your community engages."
+          description="Most community queries are already answered in your docs. With CrawlChat, use AI for documentation to answer instantly on the platforms where your community engages."
         />
       </Container>
 
@@ -50,7 +50,7 @@ export default function CommunitySupport() {
                 "Why are people unable to find answers from the docs website?",
               shortAnswer: "Embed the answering agent on your website",
               answer:
-                "The way people consume documentation is changing. Text based search is no longer sufficient. CrawlChat provides a chat widget you can embed on your website, enabling your community to get instant answers directly from your documentation. Each answer includes links to the source documentation used.",
+                "The way people consume documentation is changing. Text based search is no longer sufficient. CrawlChat provides a documentation assistant widget you can embed on your website, enabling your community to get instant answers directly from your documentation. Each answer includes links to the source documentation used.",
               image: "/use-case/chat-widget.png",
               features: [
                 {
@@ -72,7 +72,7 @@ export default function CommunitySupport() {
                 "Why do they keep asking the questions already answered in the docs?",
               shortAnswer: "Answers queries directly from your docs",
               answer:
-                "CrawlChat builds a knowledge base from your documentation and uses it to answer questions instantly. Your community members get the answers they need without waiting for responses, ensuring your support team isn't overwhelmed with repetitive queries.",
+                "CrawlChat builds a knowledge base from your documentation and uses it to answer questions instantly. Your community members get the answers they need without waiting for responses, ensuring your support team isn't overwhelmed with repetitive queries. It works as an AI documentation assistant trained on your own sources.",
               image: "/use-case/group-types.png",
               features: [
                 {
@@ -169,7 +169,7 @@ export default function CommunitySupport() {
               Connect your <HeadingHighlight>docs instantly</HeadingHighlight>
             </>
           }
-          description="Add your documentation to the knowledge base so the chat assistant can answer questions. CrawlChat offers a wide range of connectors to instantly import your existing documentation into the knowledge base."
+          description="Add your documentation to the knowledge base so the documentation assistant can answer questions. CrawlChat offers a wide range of connectors to instantly import your existing documentation into the knowledge base."
         />
       </Container>
 
@@ -203,7 +203,7 @@ export default function CommunitySupport() {
               <HeadingHighlight>community</HeadingHighlight>
             </>
           }
-          description="Deliver your documentation to your community where they already engage, reducing friction in getting answers. Embed the chat assistant on these platforms to reach your community effectively."
+          description="Deliver your documentation to your community where they already engage, reducing friction in getting answers. Embed your documentation assistant on these platforms to reach your community effectively."
         />
       </Container>
     </>

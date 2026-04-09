@@ -12,7 +12,7 @@ jobs:
   notify_discord:
     if: github.repository == 'crawlchat/crawlchat'
     runs-on: ubuntu-24.04
-    
+
     steps:
       - name: Discord action notification
         env:
