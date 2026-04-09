@@ -83,7 +83,6 @@ export default [
 
     ...prefix("tool", [
       route("compose", "compose.tsx"),
-      route("skill-maker", "skill-maker.tsx"),
       route("fact-check", "fact-check/page.tsx"),
       route("fact-check/api", "fact-check/api.ts"),
     ]),
