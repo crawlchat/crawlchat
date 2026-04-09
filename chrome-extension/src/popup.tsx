@@ -1,6 +1,6 @@
-import { useState, useContext } from "react";
+import { useContext, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { TbCheck, TbLogout, TbX } from "react-icons/tb";
+import { TbCheck, TbLogout } from "react-icons/tb";
 import { PopupContext, usePopup } from "./context";
 
 function Welcome() {

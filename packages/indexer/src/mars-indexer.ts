@@ -1,9 +1,9 @@
 import {
   Pinecone,
-  RecordMetadata,
   QueryResponse,
+  RecordMetadata,
 } from "@pinecone-database/pinecone";
-import { Indexer, IndexDocument } from "./indexer";
+import { IndexDocument, Indexer } from "./indexer";
 import { randomFetchId } from "./random-fetch-id";
 
 export class MarsIndexer implements Indexer {

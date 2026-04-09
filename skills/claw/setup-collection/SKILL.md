@@ -43,6 +43,7 @@ On the knowledge page, find your group and click **"Refetch it"** to start crawl
 ### Issue 1: MongoDB Unique Constraint Error
 
 **Error:**
+
 ```
 PrismaClientKnownRequestError: Unique constraint failed on the constraint: `ScrapeItem_knowledgeGroupId_sourcePageId_key`
 ```
@@ -56,6 +57,7 @@ docker exec crawlchat-local-database-1 mongosh --eval 'db.getSiblingDB("crawlcha
 ### Issue 2: Source-sync OOM / Connection Pool Exhausted
 
 **Symptoms:**
+
 - `sorry, too many clients already` (pgvector)
 - Process killed by OOM killer
 
@@ -84,6 +86,7 @@ Get a free key from: https://openrouter.ai
 ### Issue 4: Embedding API Response Error
 
 **Error:**
+
 ```
 Cannot read properties of undefined (reading '0')
 ```
@@ -129,10 +132,10 @@ npm run dev
 
 ## Troubleshooting
 
-| Symptom | Solution |
-|---------|----------|
+| Symptom                             | Solution                                                      |
+| ----------------------------------- | ------------------------------------------------------------- |
 | "too many clients already" pgvector | Restart pgvector: `docker restart crawlchat-local-pgvector-1` |
-| OOM kills processes | Reduce concurrency to 1, or run only needed services |
-| Frontend not loading | Check port 5173, try `fuser -k 5173/tcp` to free port |
-| Login page crashes | Ensure `SELF_HOSTED=true` in `.env` |
-| Magic link not working | Check server logs for the link URL |
+| OOM kills processes                 | Reduce concurrency to 1, or run only needed services          |
+| Frontend not loading                | Check port 5173, try `fuser -k 5173/tcp` to free port         |
+| Login page crashes                  | Ensure `SELF_HOSTED=true` in `.env`                           |
+| Magic link not working              | Check server logs for the link URL                            |

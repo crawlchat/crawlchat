@@ -34,9 +34,7 @@ export default function CommunitySupport() {
         <UseCaseHero
           title={
             <>
-              <span className="text-primary">
-                Documentation assistant for
-              </span>{" "}
+              <span className="text-primary">Documentation assistant for</span>{" "}
               your SaaS community
             </>
           }

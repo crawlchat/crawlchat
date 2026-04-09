@@ -1,8 +1,8 @@
 import OpenAI from "openai";
-import { z, ZodSchema } from "zod";
-import { Stream } from "openai/streaming";
-import { ChatCompletionMessageParam } from "openai/resources";
 import { zodResponseFormat } from "openai/helpers/zod";
+import { ChatCompletionMessageParam } from "openai/resources";
+import { Stream } from "openai/streaming";
+import { z, ZodSchema } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 
 export type Message = ChatCompletionMessageParam;

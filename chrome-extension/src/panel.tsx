@@ -1,7 +1,7 @@
+import cn from "@meltdownjs/cn";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TbAlertCircle, TbCheck, TbCopy, TbPencil, TbX } from "react-icons/tb";
 import { Config } from "./config";
-import cn from "@meltdownjs/cn";
 
 function trimContent(content: string) {
   return content.trim().replace(/^\n/g, "").replace(/\n$/g, "");

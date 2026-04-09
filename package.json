@@ -29,6 +29,6 @@
     "prettier:fix": "turbo run prettier -- --write",
     "generate": "turbo run generate",
     "test": "turbo run test",
-    "clean" : "turbo run clean && rm -rf packages/**/dist && rm -rf packages/**/node_modules && rm -rf node_modules && rm -rf .cache && rm -rf packages/**/.turbo && rm -rf .turbo"
+    "clean": "turbo run clean && rm -rf packages/**/dist && rm -rf packages/**/node_modules && rm -rf node_modules && rm -rf .cache && rm -rf packages/**/.turbo && rm -rf .turbo"
   }
 }

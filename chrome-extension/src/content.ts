@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import Panel from "./panel";
 import { Config } from "./config";
+import Panel from "./panel";
 
 function injectShadowStyles(shadowRoot: ShadowRoot): void {
   chrome.runtime.sendMessage({ type: "GET_INJECT_CSS" }, (response) => {

@@ -15,7 +15,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     strategy:
       matrix:
         include:
@@ -40,7 +40,7 @@ jobs:
           - build_app: source-sync
             image_name: crawlchat-source-sync
             dockerfile: docker/Dockerfile
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -77,4 +77,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
-

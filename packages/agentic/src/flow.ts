@@ -98,10 +98,7 @@ export class Flow<CustomState, CustomMessage> {
           } catch (error) {
             const errorMessage =
               error instanceof Error ? error.message : String(error);
-            console.error(
-              `Tool ${normalizedToolId} failed:`,
-              errorMessage
-            );
+            console.error(`Tool ${normalizedToolId} failed:`, errorMessage);
             content = `Tool encountered an error: ${errorMessage}. Please proceed without this tool's result.`;
           }
 

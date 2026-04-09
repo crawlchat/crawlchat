@@ -1,6 +1,6 @@
 import OpenAI from "openai";
-import { Stream } from "openai/streaming";
 import { ChatCompletionAssistantMessageParam } from "openai/resources";
+import { Stream } from "openai/streaming";
 import { Message, Role } from "./agent";
 
 export type OnDelta = (options: {

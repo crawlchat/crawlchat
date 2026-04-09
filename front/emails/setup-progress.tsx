@@ -1,6 +1,6 @@
-import { Markdown, Text } from "@react-email/components";
-import { MailTemplate } from "./template";
+import { Markdown } from "@react-email/components";
 import { emailConfig } from "./config";
+import { MailTemplate } from "./template";
 
 const sampleActions = [
   {

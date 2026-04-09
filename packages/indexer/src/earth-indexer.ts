@@ -1,10 +1,10 @@
-import { Pool } from "pg";
-import pgvector from "pgvector/pg";
 import type {
   QueryResponse,
   RecordMetadata,
 } from "@pinecone-database/pinecone";
-import { Indexer, IndexDocument } from "./indexer";
+import { Pool } from "pg";
+import pgvector from "pgvector/pg";
+import { IndexDocument, Indexer } from "./indexer";
 import { randomFetchId } from "./random-fetch-id";
 
 const EMBEDDING_DIM = 3072;

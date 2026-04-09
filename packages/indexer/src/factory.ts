@@ -1,5 +1,5 @@
-import { Indexer } from "./indexer";
 import { EarthIndexer } from "./earth-indexer";
+import { Indexer } from "./indexer";
 import { MarsIndexer } from "./mars-indexer";
 
 export function makeIndexer({

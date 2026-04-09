@@ -1833,9 +1833,9 @@ export function FAQ() {
       answer: (
         <p>
           Documentation AI is an assistant that answers questions using your
-          existing docs as the source of truth. CrawlChat indexes your
-          technical documentation and serves source-linked answers on your
-          website, Discord, Slack, and other channels.
+          existing docs as the source of truth. CrawlChat indexes your technical
+          documentation and serves source-linked answers on your website,
+          Discord, Slack, and other channels.
         </p>
       ),
     },
