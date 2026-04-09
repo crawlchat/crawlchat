@@ -33,6 +33,7 @@ import {
   TbShare2,
   TbThumbDown,
   TbThumbUp,
+  TbTrash,
   TbUsers,
   TbX,
 } from "react-icons/tb";
@@ -938,9 +939,9 @@ function Toolbar() {
         )}
 
         {chat.allMessages.length > 0 && (
-          <div className="tooltip tooltip-left" data-tip="New chat">
+          <div className="tooltip tooltip-left" data-tip="Clear chat">
             <ToolbarButton onClick={() => erase()} className="btn-ghost">
-              <TbMessagePlus />
+              <TbTrash />
             </ToolbarButton>
           </div>
         )}
