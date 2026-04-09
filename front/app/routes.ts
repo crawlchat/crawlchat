@@ -158,5 +158,6 @@ export default [
 
   route("api-playground", "widget/api-playground/api.ts"),
 
+  route("sitemap.xml", "landing/sitemap.xml.ts"),
   route("health", "health.ts"),
 ] satisfies RouteConfig;

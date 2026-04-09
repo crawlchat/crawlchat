@@ -70,9 +70,9 @@ import { PricingFeatureComparison } from "./pricing-features";
 
 export function meta() {
   return makeMeta({
-    title: "CrawlChat - Power up your tech documentation with AI",
+    title: "CrawlChat - Documentation AI Assistant for SaaS Teams",
     description:
-      "Transform your technical documentation into an AI powered knowledge base. Get instant answers for your community via your website, Discord, or Slack.",
+      "AI for documentation that gives instant, source-linked answers on web, Discord, and Slack. Reduce hallucination in AI answers with grounded docs search.",
   });
 }
 
@@ -380,7 +380,7 @@ function Works() {
         )}
       >
         <WorksStep
-          title="Make knowledge base"
+          title="Build AI documentation knowledge base"
           cards={[
             [<TbGlobe />, "Discord"],
             [<TbBrandNotion />, "Notion"],
@@ -390,8 +390,8 @@ function Works() {
             [<TbPlus />, "+5 more"],
           ]}
         >
-          Add your existing documents or web pages to create your knowledge
-          base. Import documentation from multiple{" "}
+          Add your existing documents or web pages to create your AI
+          documentation knowledge base. Import documentation from multiple{" "}
           <span
             className={cn(
               stepHighlightClassNames(),
@@ -425,8 +425,8 @@ function Works() {
             [<TbPlus />, "+5 more"],
           ]}
         >
-          Embed the Ask AI widget on your website, Discord server, or Slack
-          workspace. Customize the bot's UI and{" "}
+          Embed your documentation assistant on your website, Discord server, or
+          Slack workspace. Customize the bot's UI and{" "}
           <span
             className={cn(
               stepHighlightClassNames(),
@@ -450,7 +450,8 @@ function Works() {
             [<TbPlus />, "Many more"],
           ]}
         >
-          Monitor all messages and conversations. Track performance{" "}
+          Monitor all messages and conversations. Track performance, detect
+          hallucination in AI answers, and improve answer quality with{" "}
           <span
             className={cn(
               stepHighlightClassNames(),
@@ -589,14 +590,14 @@ function ChannelWidget() {
   return (
     <div className="mt-32">
       <Heading>
-        Be on top with <HeadingHighlight>AI powered</HeadingHighlight> technical
-        docs
+        Documentation <HeadingHighlight>AI</HeadingHighlight> that answers where
+        users ask
       </Heading>
 
       <HeadingDescription>
-        Stop making users search through hundreds of pages. Add CrawlChat to
-        your documentation and let users find instant answers right where they
-        need them.
+        Stop making users search through hundreds of pages. Instead of sending
+        users to generic ask AI websites, add CrawlChat to your documentation
+        and let them get instant, grounded answers where they need them.
       </HeadingDescription>
 
       <FeaturesWithImage
@@ -1570,8 +1571,8 @@ function Hero() {
           "leading-[1.2] text-center"
         )}
       >
-        AI <span className="text-accent">answers</span> that help you improve
-        your <span className="text-accent">product</span>
+        Documentation <span className="text-accent">AI assistant</span> for
+        fast, grounded <span className="text-accent">answers</span>
       </h1>
 
       <p
@@ -1581,10 +1582,10 @@ function Hero() {
           "text-center"
         )}
       >
-        CrawlChat connects all your knowledge sources into an AI chatbot across
-        multiple channels, helping users get instant answers while giving
-        product, support, and documentation teams insights to improve
-        documentation and product experience.
+        CrawlChat is an AI documentation assistant that connects your knowledge
+        sources into one chatbot across multiple channels. Give users instant,
+        source-linked answers while helping product, support, and docs teams
+        reduce hallucination in AI responses.
       </p>
 
       <ul className="mt-6 flex gap-x-4 gap-y-2 flex-wrap justify-center">
@@ -1824,6 +1825,28 @@ export function FAQ() {
           URL of your documentation or upload the files (multiple formats are
           supported) to the knowledge base. The chatbot will smartly understand
           the documentation and uses it to answer the questions.
+        </p>
+      ),
+    },
+    {
+      question: "What is documentation AI?",
+      answer: (
+        <p>
+          Documentation AI is an assistant that answers questions using your
+          existing docs as the source of truth. CrawlChat indexes your
+          technical documentation and serves source-linked answers on your
+          website, Discord, Slack, and other channels.
+        </p>
+      ),
+    },
+    {
+      question: "How does CrawlChat reduce hallucination in AI answers?",
+      answer: (
+        <p>
+          CrawlChat grounds responses in your knowledge base and includes source
+          links with answers, so users can verify where information comes from.
+          You can monitor conversations, identify weak responses, and improve
+          docs continuously to reduce hallucinations over time.
         </p>
       ),
     },
