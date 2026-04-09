@@ -19,7 +19,7 @@ import { EmptyState } from "~/components/empty-state";
 import { Page } from "~/components/page";
 import { Timestamp } from "~/components/timestamp";
 import { makeMeta } from "~/meta";
-import type { Route } from "./+types/page";
+import type { Route } from "./+types/keys";
 
 function maskApiKey(apiKey: string) {
   if (apiKey.length <= 4) {

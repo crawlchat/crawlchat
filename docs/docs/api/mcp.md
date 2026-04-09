@@ -18,7 +18,7 @@ If you are looking for MCP server for your documentation, go to [Connect > MCP s
 
 Install and configure CrawlChat as a remote MCP server in your MCP client:
 
-1. Create or copy your API key from [API Keys](https://crawlchat.app/api-key).
+1. Create or copy your API key from [API Keys](https://crawlchat.app/api/keys).
 2. Add a remote MCP server in your client using the base URL below.
 3. Pass your API key in the `x-api-key` header for every request.
 
