@@ -1,3 +1,4 @@
+import { buildChangelogMonthGroups } from "../changelog/month-groups";
 import { readPosts } from "../blog/posts";
 
 const BASE_URL = "https://crawlchat.app";
@@ -46,16 +47,41 @@ function toUrlTag(path: string, lastmod?: string) {
 }
 
 export function loader() {
-  const changelogPosts = readPosts("changelog")
-    .filter((post) => post.type === "changelog" && post.status === "published")
-    .map((post) => ({
-      path: `/changelog/${post.slug}`,
-      lastmod: post.date.toISOString().slice(0, 10),
-    }));
+  const publishedChangelog = readPosts("changelog").filter(
+    (post) => post.type === "changelog" && post.status === "published"
+  );
+
+  const changelogPosts = publishedChangelog.map((post) => ({
+    path: `/changelog/${post.slug}`,
+    lastmod: post.date.toISOString().slice(0, 10),
+  }));
+
+  const monthToLastmod = new Map<string, string>();
+  for (const post of publishedChangelog) {
+    const y = post.date.getFullYear();
+    const m = post.date.getMonth() + 1;
+    const key = `${y}-${m}`;
+    const day = post.date.toISOString().slice(0, 10);
+    const prev = monthToLastmod.get(key);
+    if (!prev || day > prev) {
+      monthToLastmod.set(key, day);
+    }
+  }
+
+  const changelogMonthArchives = buildChangelogMonthGroups(
+    publishedChangelog
+  ).map((g) => ({
+    path: g.href,
+    lastmod: monthToLastmod.get(`${g.year}-${g.month}`)!,
+  }));
 
   const now = new Date().toISOString().slice(0, 10);
   const staticUrls = staticPaths.map((path) => ({ path, lastmod: now }));
-  const urls = [...staticUrls, ...changelogPosts];
+  const urls = [
+    ...staticUrls,
+    ...changelogPosts,
+    ...changelogMonthArchives,
+  ];
   const body =
     `<?xml version="1.0" encoding="UTF-8"?>` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
