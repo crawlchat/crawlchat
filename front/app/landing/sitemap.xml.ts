@@ -1,5 +1,5 @@
-import { buildChangelogMonthGroups } from "../changelog/month-groups";
 import { readPosts } from "../blog/posts";
+import { buildChangelogMonthGroups } from "../changelog/month-groups";
 
 const BASE_URL = "https://crawlchat.app";
 
