@@ -378,8 +378,8 @@ async function answer(data: {
     thread,
     data.question,
     conversationMessages,
+    "github_discussion",
     {
-      channel: "github_discussion",
       actions,
       prompt,
     }

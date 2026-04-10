@@ -279,10 +279,10 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
         }
         return { llmMessage };
       }),
+      "widget",
       {
         listen: answerListener,
         actions,
-        channel: "widget",
         clientData: message.data.clientData,
         secret: message.data.secret,
         scrapeItem: currentItem ?? undefined,

@@ -11,6 +11,9 @@ import { prisma } from "@packages/common/prisma";
 import { useContext, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import {
+  TbBrandDiscord,
+  TbBrandGithub,
+  TbBrandSlack,
   TbCheck,
   TbCopy,
   TbFolder,
@@ -22,7 +25,7 @@ import {
   TbTrash,
   TbWorld,
 } from "react-icons/tb";
-import { Link, redirect, useFetcher, useSearchParams } from "react-router";
+import { Link, redirect, useFetcher } from "react-router";
 import { getAuthUser } from "~/auth/middleware";
 import { authoriseScrapeUser, getSessionScrapeId } from "~/auth/scrape-session";
 import { AppContext } from "~/components/app-context";
@@ -157,6 +160,22 @@ export async function action({ request }: Route.ActionArgs) {
     update.fingerprintRateLimitDay = parseInt(
       formData.get("fingerprintRateLimitDay") as string
     );
+  }
+  if (formData.has("llmModelDiscord")) {
+    const value = formData.get("llmModelDiscord") as string;
+    update.llmModelDiscord = value === "" ? null : value;
+  }
+  if (formData.has("llmModelSlack")) {
+    const value = formData.get("llmModelSlack") as string;
+    update.llmModelSlack = value === "" ? null : value;
+  }
+  if (formData.has("llmModelGithub")) {
+    const value = formData.get("llmModelGithub") as string;
+    update.llmModelGithub = value === "" ? null : value;
+  }
+  if (formData.has("llmModelWeb")) {
+    const value = formData.get("llmModelWeb") as string;
+    update.llmModelWeb = value === "" ? null : value;
   }
 
   const scrape = await prisma.scrape.update({
@@ -296,38 +315,79 @@ function oldModelToModel(oldModel: string) {
 
 function AiModelSettings({ scrape }: { scrape: Scrape }) {
   const modelFetcher = useFetcher();
-  const [searchParams] = useSearchParams();
   const dirtyForm = useDirtyForm({
     llmModel: scrape.llmModel
       ? oldModelToModel(scrape.llmModel)
       : "openrouter/openai/gpt-4o-mini",
+    llmModelDiscord:
+      scrape.llmModelDiscord === null ? "" : scrape.llmModelDiscord,
+    llmModelSlack: scrape.llmModelSlack === null ? "" : scrape.llmModelSlack,
+    llmModelGithub: scrape.llmModelGithub === null ? "" : scrape.llmModelGithub,
+    llmModelWeb: scrape.llmModelWeb === null ? "" : scrape.llmModelWeb,
   });
+
+  function renderSelect(
+    name: keyof typeof dirtyForm.values,
+    icon?: React.ReactNode,
+    tooltip?: string,
+    addDefault?: boolean
+  ) {
+    return (
+      <div className="flex items-center gap-2">
+        <select
+          value={dirtyForm.getValue(name)}
+          onChange={dirtyForm.handleChange(name)}
+          className="select"
+          name={name}
+        >
+          {addDefault && <option value="">Default</option>}
+          {Object.entries(models)
+            .filter(([key, value]) => !value.deprecated)
+            .map(([key, value]) => (
+              <option key={key} value={key}>
+                {value.model} [{value.creditsPerMessage}]
+              </option>
+            ))}
+        </select>
+        {tooltip && icon && (
+          <div className="tooltip" data-tip={tooltip}>
+            <div className="text-2xl opacity-50">{icon}</div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function defaultAll() {
+    dirtyForm.setValue("llmModelWeb", "");
+    dirtyForm.setValue("llmModelDiscord", "");
+    dirtyForm.setValue("llmModelSlack", "");
+    dirtyForm.setValue("llmModelGithub", "");
+  }
 
   return (
     <SettingsSection
       id="ai-model"
       title="AI Model"
-      description="Select the AI model to use for the messages across channels."
+      description="Select the AI model to use for answering the questions. Configure for each channel if you want to use different models for different channels."
       fetcher={modelFetcher}
-      dirty={dirtyForm.isDirty("llmModel")}
+      dirty={dirtyForm.isAnyDirty}
       actionRight={
-        <Link to={`/ai-models`} className="btn btn-ghost btn-primary">
-          Compare
-        </Link>
+        <>
+          <Link to={`/ai-models`} className="btn btn-ghost">
+            Compare
+          </Link>
+          <button className="btn" type="button" onClick={defaultAll}>
+            Default all
+          </button>
+        </>
       }
     >
-      <select
-        value={dirtyForm.getValue("llmModel")}
-        onChange={dirtyForm.handleChange("llmModel")}
-        className="select"
-        name="llmModel"
-      >
-        {Object.entries(models).map(([key, value]) => (
-          <option key={key} value={key}>
-            {value.model} [{value.creditsPerMessage}]
-          </option>
-        ))}
-      </select>
+      {renderSelect("llmModel")}
+      {renderSelect("llmModelWeb", <TbWorld />, "Web embed", true)}
+      {renderSelect("llmModelDiscord", <TbBrandDiscord />, "Discord bot", true)}
+      {renderSelect("llmModelSlack", <TbBrandSlack />, "Slack app", true)}
+      {renderSelect("llmModelGithub", <TbBrandGithub />, "GitHub bot", true)}
     </SettingsSection>
   );
 }
