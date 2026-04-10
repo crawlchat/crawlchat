@@ -341,11 +341,13 @@ function AiModelSettings({ scrape }: { scrape: Scrape }) {
           name={name}
         >
           {addDefault && <option value="">Default</option>}
-          {Object.entries(models).map(([key, value]) => (
-            <option key={key} value={key}>
-              {value.model} [{value.creditsPerMessage}]
-            </option>
-          ))}
+          {Object.entries(models)
+            .filter(([key, value]) => !value.deprecated)
+            .map(([key, value]) => (
+              <option key={key} value={key}>
+                {value.model} [{value.creditsPerMessage}]
+              </option>
+            ))}
         </select>
         {tooltip && icon && (
           <div className="tooltip" data-tip={tooltip}>

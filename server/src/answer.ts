@@ -81,12 +81,12 @@ export type Answerer = (
   thread: Thread,
   query: string | MultimodalContent[],
   messages: FlowMessage<CustomMessage>[],
+  channel: MessageChannel,
   options?: {
     listen?: AnswerListener;
     prompt?: string;
     showSources?: boolean;
     actions?: ApiAction[];
-    channel?: MessageChannel;
     clientData?: any;
     secret?: string;
     scrapeItem?: ScrapeItem;
@@ -222,14 +222,33 @@ function collectRichBlocks(answer: string) {
   });
 }
 
+function getLlmModelKey(scrape: Scrape, channel?: MessageChannel) {
+  if (channel === "discord") {
+    return scrape.llmModelDiscord;
+  }
+  if (channel === "slack") {
+    return scrape.llmModelSlack;
+  }
+  if (channel === "github_discussion") {
+    return scrape.llmModelGithub;
+  }
+  if (channel === "widget") {
+    return scrape.llmModelWeb;
+  }
+
+  return scrape.llmModel;
+}
+
 export const baseAnswererInternal: Answerer = async (
   scrape,
   thread,
   query,
   messages,
+  channel,
   options
 ) => {
-  const llmConfig = options?.llmConfig ?? getConfig(scrape.llmModel);
+  const llmConfig =
+    options?.llmConfig ?? getConfig(getLlmModelKey(scrape, channel));
 
   const githubRepoGroup = await prisma.knowledgeGroup.findFirst({
     where: {
@@ -256,11 +275,11 @@ export const baseAnswererInternal: Answerer = async (
   }
 
   const richBlocks = scrape.richBlocksConfig?.blocks ?? [];
-  if (scrape.ticketingEnabled && options?.channel === "widget") {
+  if (scrape.ticketingEnabled && channel === "widget") {
     richBlocks.push(createTicketRichBlock);
   }
 
-  if (scrape.apiPlayground && options?.channel === "widget") {
+  if (scrape.apiPlayground && channel === "widget") {
     richBlocks.push({
       name: "API Playground",
       key: "api-playground",
@@ -275,7 +294,7 @@ Don't add "body" itself as a field.`,
     });
   }
 
-  if (options?.channel === "widget") {
+  if (channel === "widget") {
     richBlocks.push({
       name: "Verify email",
       key: "verify-email",
@@ -421,6 +440,7 @@ export const baseAnswerer: Answerer = async (
   thread,
   query,
   messages,
+  channel,
   options
 ) => {
   const times = 3;
@@ -428,7 +448,7 @@ export const baseAnswerer: Answerer = async (
     async (nTime) => {
       const fallbackLlmConfig = getConfig("openai/gpt-4o-mini");
       const llmConfig = nTime === times - 1 ? fallbackLlmConfig : undefined;
-      return baseAnswererInternal(scrape, thread, query, messages, {
+      return baseAnswererInternal(scrape, thread, query, messages, channel, {
         ...options,
         llmConfig,
       });

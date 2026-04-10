@@ -556,6 +556,7 @@ app.post("/answer/:scrapeId", authenticate, async (req, res) => {
         content: withAttachments(m.content, m.attachments),
       },
     })),
+    channel,
     {
       prompt,
       actions,
@@ -745,6 +746,7 @@ app.post("/google-chat/answer/:scrapeId", async (req, res) => {
     thread,
     messageText,
     recentMessages,
+    "google_chat",
     {
       prompt,
       actions,
