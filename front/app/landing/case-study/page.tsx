@@ -3,9 +3,21 @@ import { useMemo, type PropsWithChildren } from "react";
 import { TbArrowRight, TbCheck, TbCircleFilled, TbX } from "react-icons/tb";
 import { Link, redirect, useLoaderData } from "react-router";
 import { makeMeta } from "~/meta";
+import { Faq } from "../faq";
 import { ChannelCard, Container, SourceCard } from "../page";
 import type { Route } from "./+types/page";
 import { companies } from "./companies";
+import { localstackFaqItems } from "./localstack-faq-data";
+import { polotnoFaqItems } from "./polotno-faq-data";
+import { postizFaqItems } from "./postiz-faq-data";
+import { remotionFaqItems } from "./remotion-faq-data";
+
+const caseStudyFaqItemsBySlug = {
+  remotion: remotionFaqItems,
+  polotno: polotnoFaqItems,
+  postiz: postizFaqItems,
+  localstack: localstackFaqItems,
+} as const;
 
 export function loader({ params: { slug } }: Route.LoaderArgs) {
   const company = companies[slug as keyof typeof companies];
@@ -144,10 +156,22 @@ export default function CaseStudyLayout() {
             ))}
           </ul>
 
+          <div className="flex flex-col mt-16 pt-12 border-t border-base-300">
+            <Heading>Frequently asked questions</Heading>
+            <Faq
+              items={
+                caseStudyFaqItemsBySlug[
+                  slug as keyof typeof caseStudyFaqItemsBySlug
+                ]
+              }
+              className="mt-6"
+            />
+          </div>
+
           <div
             className={cn(
               "open-source-bg border border-primary/20 shadow",
-              "p-6 rounded-box flex flex-col gap-2"
+              "p-6 rounded-box flex flex-col gap-2 mt-16"
             )}
           >
             <h3 className={cn("text-2xl font-medium font-brand text-primary")}>
