@@ -38,6 +38,7 @@ export function useScrapeChat({
   const [connected, setConnected] = useState(false);
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
   const [fingerprint, setFingerprint] = useState<string | null>(null);
+  const [pagesFound, setPagesFound] = useState<number>(0);
 
   useEffect(() => {
     let mounted = true;
@@ -111,6 +112,8 @@ export function useScrapeChat({
         setConnected(true);
       } else if (message.type === "follow-up-questions") {
         setFollowUpQuestions(message.data.questions);
+      } else if (message.type === "found-pages") {
+        setPagesFound((c) => c + message.data.count);
       }
     };
   }
@@ -212,6 +215,8 @@ export function useScrapeChat({
   function ask(query: string, options?: { delete?: string[]; url?: string }) {
     if (query.length === 0) return -1;
 
+    setPagesFound(0);
+
     socket.current!.send(
       makeMessage("ask-llm", {
         threadId,
@@ -304,5 +309,6 @@ export function useScrapeChat({
     followUpQuestions,
     setFollowUpQuestions,
     fingerprint,
+    pagesFound,
   };
 }

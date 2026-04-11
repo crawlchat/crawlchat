@@ -302,13 +302,17 @@ function StatusText() {
 
   const statusText = getStatusText();
 
-  if (!statusText) {
-    return null;
-  }
-
   return (
-    <div className="font-mono">
-      <span className="chat-status-text">{statusText}</span>
+    <div>
+      {chat.pagesFound > 0 && (
+        <div className="text-sm text-base-content/40">
+          Found {chat.pagesFound} sources
+        </div>
+      )}
+
+      {statusText && (
+        <span className="chat-status-text text-sm">{statusText}</span>
+      )}
     </div>
   );
 }

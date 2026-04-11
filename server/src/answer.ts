@@ -68,11 +68,17 @@ export type InitEvent = {
   query: string;
 };
 
+export type FoundPagesEvent = {
+  type: "found-pages";
+  count: number;
+};
+
 export type AnswerEvent =
   | StreamDeltaEvent
   | ToolCallEvent
   | AnswerCompleteEvent
-  | InitEvent;
+  | InitEvent
+  | FoundPagesEvent;
 
 export type AnswerListener = (event: AnswerEvent) => void;
 
@@ -342,6 +348,12 @@ Just use this block, don't ask the user to enter the email. Use it only if the t
         options?.listen?.({
           type: "tool-call",
           action: `${toolId}: ${JSON.stringify(input)}`,
+        });
+      },
+      onPostSearch: (pagesFound: number) => {
+        options?.listen?.({
+          type: "found-pages",
+          count: pagesFound,
         });
       },
       llmConfig,

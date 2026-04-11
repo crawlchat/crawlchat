@@ -2,6 +2,7 @@ import { planMap } from "@packages/common/plans";
 import type { Prisma } from "@packages/common/prisma";
 import { prisma } from "@packages/common/prisma";
 import { getPagesCount } from "@packages/common/user-plan";
+import moment from "moment";
 import {
   TbArrowRight,
   TbCrown,
@@ -20,6 +21,7 @@ import {
 import { makeMeta } from "~/meta";
 import { getPaymentGateway } from "~/payment/factory";
 import type { Route } from "./+types/profile";
+import { DataList } from "./components/data-list";
 import { useDirtyForm } from "./components/use-dirty-form";
 import { getUserMessageCredits } from "./user-message-credits";
 
@@ -266,6 +268,18 @@ export default function SettingsPage({ loaderData }: Route.ComponentProps) {
                 </>
               }
             >
+              {loaderData.user.plan.creditsResetAt && (
+                <DataList
+                  data={[
+                    {
+                      label: "Next payment",
+                      value: moment(loaderData.user.plan.creditsResetAt)
+                        .add(1, "month")
+                        .format("DD/MM/YYYY"),
+                    },
+                  ]}
+                />
+              )}
               <table className="table">
                 <thead>
                   <tr>

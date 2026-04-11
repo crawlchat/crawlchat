@@ -253,6 +253,13 @@ export const handleWs: expressWs.WebsocketRequestHandler = (ws) => {
             })
           );
           break;
+
+        case "found-pages":
+          broadcastToThread(
+            threadId,
+            makeMessage("found-pages", { count: event.count })
+          );
+          break;
       }
     };
 

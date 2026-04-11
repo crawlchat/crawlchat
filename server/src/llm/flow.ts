@@ -42,6 +42,7 @@ export function makeRagAgent(
       toolId: string,
       input: Record<string, unknown>
     ) => void;
+    onPostSearch?: (pagesFound: number) => void;
     llmConfig: LlmConfig;
     richBlocks?: RichBlockConfig[];
     minScore?: number;
@@ -63,6 +64,7 @@ export function makeRagAgent(
 
   const ragTool = makeSearchTool(scrapeId, indexerKey, {
     onPreSearch: options?.onPreSearch,
+    onPostSearch: options?.onPostSearch,
     topN: options?.llmConfig.ragTopN,
     minScore: options?.minScore,
     queryContext,
