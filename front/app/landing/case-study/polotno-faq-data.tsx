@@ -6,10 +6,10 @@ export const polotnoFaqItems: FaqItem[] = [
     answer: (
       <p>
         Technical documentation AI helps teams ship faster support for complex
-        products: users ask in natural language and get answers grounded in
-        your real docs, APIs, and guides. For an embeddable editor SDK, that
-        reduces friction between documentation pages and day-to-day integration
-        work. CrawlChat indexes your documentation sources and serves consistent
+        products: users ask in natural language and get answers grounded in your
+        real docs, APIs, and guides. For an embeddable editor SDK, that reduces
+        friction between documentation pages and day-to-day integration work.
+        CrawlChat indexes your documentation sources and serves consistent
         answers wherever you connect it.
       </p>
     ),
@@ -18,12 +18,11 @@ export const polotnoFaqItems: FaqItem[] = [
     question: "Why add community threads to your knowledge base?",
     answer: (
       <p>
-        Community threads capture real user questions; a knowledge base
-        chatbot lets you reuse that signal so future questions get answered
-        from documented truth, not scattered posts alone. CrawlChat combines
-        your official docs with conversational sources so “AI for
-        documentation” stays accurate. You can tighten discovery with features
-        like{" "}
+        Community threads capture real user questions; a knowledge base chatbot
+        lets you reuse that signal so future questions get answered from
+        documented truth, not scattered posts alone. CrawlChat combines your
+        official docs with conversational sources so “AI for documentation”
+        stays accurate. You can tighten discovery with features like{" "}
         <a
           href="/changelog/32-search-knowledge-base"
           className="link link-primary link-hover"
@@ -46,20 +45,18 @@ export const polotnoFaqItems: FaqItem[] = [
     answer: (
       <p>
         MCP lets assistants pull answers from your CrawlChat collection inside
-        tools developers already use, which complements in-browser
-        documentation chatbots. That is a practical form of AI documentation
-        assistance for teams shipping SDKs. Learn more in{" "}
+        tools developers already use, which complements in-browser documentation
+        chatbots. That is a practical form of AI documentation assistance for
+        teams shipping SDKs. See how MCP sits next to web, Discord, and Slack in
+        the{" "}
         <a
-          href="/changelog/49-mcp-api-for-collections"
+          href="/changelog/33-better-integrate-navigation"
           className="link link-primary link-hover"
         >
-          MCP for collections
-        </a>{" "}
-        and compare with{" "}
-        <a
-          href="/case-study/remotion"
-          className="link link-primary link-hover"
-        >
+          Integrate menu update
+        </a>
+        {", and compare with "}
+        <a href="/case-study/remotion" className="link link-primary link-hover">
           Remotion
         </a>{" "}
         and{" "}
@@ -99,17 +96,11 @@ export const polotnoFaqItems: FaqItem[] = [
     answer: (
       <p>
         CrawlChat publishes case studies for documentation-heavy products. Read{" "}
-        <a
-          href="/case-study/remotion"
-          className="link link-primary link-hover"
-        >
+        <a href="/case-study/remotion" className="link link-primary link-hover">
           Remotion
         </a>{" "}
         for video-framework docs and{" "}
-        <a
-          href="/case-study/postiz"
-          className="link link-primary link-hover"
-        >
+        <a href="/case-study/postiz" className="link link-primary link-hover">
           Postiz
         </a>{" "}
         for open-source community support. Product updates ship in the{" "}

@@ -18,7 +18,9 @@ type FaqProps = {
 function DefaultAskFooter() {
   function handleAsk() {
     track("faq-ask", {});
-    (window as { crawlchatEmbed?: { show: () => void } }).crawlchatEmbed?.show();
+    (
+      window as { crawlchatEmbed?: { show: () => void } }
+    ).crawlchatEmbed?.show();
   }
 
   return (
@@ -45,8 +47,7 @@ export function Faq({ items, footer, className }: FaqProps) {
     }
   }
 
-  const footerNode =
-    footer === undefined ? <DefaultAskFooter /> : footer;
+  const footerNode = footer === undefined ? <DefaultAskFooter /> : footer;
 
   return (
     <div className={cn("flex flex-col", className)}>

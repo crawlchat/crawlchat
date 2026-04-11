@@ -22,7 +22,6 @@ import {
   TbChartBarOff,
   TbChevronDown,
   TbChevronRight,
-  TbChevronUp,
   TbCircleCheck,
   TbCircleCheckFilled,
   TbCircleFilled,

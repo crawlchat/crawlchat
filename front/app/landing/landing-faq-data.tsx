@@ -20,8 +20,8 @@ export const landingFaqItems: FaqItem[] = [
       <p>
         Documentation AI is an assistant that answers questions using your
         existing docs as the source of truth. CrawlChat indexes your technical
-        documentation and serves source-linked answers on your website,
-        Discord, Slack, and other channels.
+        documentation and serves source-linked answers on your website, Discord,
+        Slack, and other channels.
       </p>
     ),
   },
@@ -31,8 +31,8 @@ export const landingFaqItems: FaqItem[] = [
       <p>
         CrawlChat grounds responses in your knowledge base and includes source
         links with answers, so users can verify where information comes from.
-        You can monitor conversations, identify weak responses, and improve
-        docs continuously to reduce hallucinations over time.
+        You can monitor conversations, identify weak responses, and improve docs
+        continuously to reduce hallucinations over time.
       </p>
     ),
   },
@@ -62,9 +62,9 @@ export const landingFaqItems: FaqItem[] = [
     question: "Do I need to bring my own OpenAI API key?",
     answer: (
       <p>
-        No, CrawlChat uses the latest LLM models from OpenAI, Anthropic,
-        Google, and Gemini. You can use the chatbot without any API key. You can
-        choose the model that best suits your needs from the dashboard.
+        No, CrawlChat uses the latest LLM models from OpenAI, Anthropic, Google,
+        and Gemini. You can use the chatbot without any API key. You can choose
+        the model that best suits your needs from the dashboard.
       </p>
     ),
   },
@@ -72,11 +72,11 @@ export const landingFaqItems: FaqItem[] = [
     question: "Does it support other languages?",
     answer: (
       <p>
-        Absolutely. That's the advantage of using AI based chatbots. The
-        LLMs/AI models are capable of answering your customer or client's
-        queries in their own language out of the box. This includes all major 32
-        languages like English, Spanish, French, German, Italian, Portuguese,
-        Russian, Chinese, Japanese, Korean, etc.
+        Absolutely. That's the advantage of using AI based chatbots. The LLMs/AI
+        models are capable of answering your customer or client's queries in
+        their own language out of the box. This includes all major 32 languages
+        like English, Spanish, French, German, Italian, Portuguese, Russian,
+        Chinese, Japanese, Korean, etc.
       </p>
     ),
   },
@@ -97,9 +97,9 @@ export const landingFaqItems: FaqItem[] = [
     question: "How can I integrate the Ask AI widget to my website?",
     answer: (
       <p>
-        It is a very simple process. You can navigate to the integration
-        section and copy the code snippet. You can then paste the code snippet in
-        your website. It also provides config for documentation solutions like
+        It is a very simple process. You can navigate to the integration section
+        and copy the code snippet. You can then paste the code snippet in your
+        website. It also provides config for documentation solutions like
         Docusaurus, etc.
       </p>
     ),
@@ -110,8 +110,8 @@ export const landingFaqItems: FaqItem[] = [
       <p>
         Yes! CrawlChat provides a Discord bot and a Slack app that can be
         integrated with your Discord or Slack server. You can find the
-        instructions to integrate the chatbot to your Discord or Slack server
-        in the{" "}
+        instructions to integrate the chatbot to your Discord or Slack server in
+        the{" "}
         <a href="/discord-bot" className="text-primary">
           Discord bot
         </a>{" "}
@@ -127,11 +127,11 @@ export const landingFaqItems: FaqItem[] = [
       <div className="flex flex-col gap-4">
         <p>
           CrawlChat gives rating to each answer based on the relevance of the
-          answer to the question. The more the score is, the better the answer and
-          the documentation was for the given query. CrawlChat provides charts
-          over time, distribution of the score and per message & conversation
-          scores as well. They help you to monitor the performance of the
-          chatbot and the knowledge base.
+          answer to the question. The more the score is, the better the answer
+          and the documentation was for the given query. CrawlChat provides
+          charts over time, distribution of the score and per message &
+          conversation scores as well. They help you to monitor the performance
+          of the chatbot and the knowledge base.
         </p>
         <p>
           It also provides analytics on geo location of the users, browser,

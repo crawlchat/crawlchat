@@ -7,10 +7,9 @@ export const localstackFaqItems: FaqItem[] = [
       <p>
         You unify sources into one knowledge base, then deliver the same
         grounded answers on your documentation website, in Slack, and through
-        MCP for IDE workflows. That is how teams scale AI for documentation
-        when page count and channels both grow: one index, many surfaces.
-        CrawlChat supports that architecture for technical documentation AI at
-        scale.
+        MCP for IDE workflows. That is how teams scale AI for documentation when
+        page count and channels both grow: one index, many surfaces. CrawlChat
+        supports that architecture for technical documentation AI at scale.
       </p>
     ),
   },
@@ -61,7 +60,10 @@ export const localstackFaqItems: FaqItem[] = [
           knowledge base search
         </a>{" "}
         and{" "}
-        <a href="/changelog/13-data-gaps" className="link link-primary link-hover">
+        <a
+          href="/changelog/13-data-gaps"
+          className="link link-primary link-hover"
+        >
           data gaps
         </a>
         , then review{" "}
@@ -76,20 +78,18 @@ export const localstackFaqItems: FaqItem[] = [
     question: "Why add MCP if we already have a docs widget?",
     answer: (
       <p>
-        MCP brings the same collection into developer tools so “documentation
+        MCP brings your knowledge base into developer tools so “documentation
         search” happens inside the workflow, not only in the browser. That
-        complements your public documentation AI surface. Read{" "}
+        complements your public documentation AI surface. MCP is configured with
+        your other integrations—see the{" "}
         <a
-          href="/changelog/49-mcp-api-for-collections"
+          href="/changelog/33-better-integrate-navigation"
           className="link link-primary link-hover"
         >
-          MCP for collections
+          Integrate menu update
         </a>{" "}
-        and compare with{" "}
-        <a
-          href="/case-study/remotion"
-          className="link link-primary link-hover"
-        >
+        —and compare with{" "}
+        <a href="/case-study/remotion" className="link link-primary link-hover">
           Remotion
         </a>
         .
@@ -129,17 +129,11 @@ export const localstackFaqItems: FaqItem[] = [
     answer: (
       <p>
         Read{" "}
-        <a
-          href="/case-study/postiz"
-          className="link link-primary link-hover"
-        >
+        <a href="/case-study/postiz" className="link link-primary link-hover">
           Postiz
         </a>{" "}
         for open-source community support and{" "}
-        <a
-          href="/case-study/remotion"
-          className="link link-primary link-hover"
-        >
+        <a href="/case-study/remotion" className="link link-primary link-hover">
           Remotion
         </a>{" "}
         for MCP-heavy developer documentation AI. Start a trial from{" "}

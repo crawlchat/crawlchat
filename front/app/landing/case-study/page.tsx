@@ -159,7 +159,11 @@ export default function CaseStudyLayout() {
           <div className="flex flex-col mt-16 pt-12 border-t border-base-300">
             <Heading>Frequently asked questions</Heading>
             <Faq
-              items={caseStudyFaqItemsBySlug[slug as keyof typeof caseStudyFaqItemsBySlug]}
+              items={
+                caseStudyFaqItemsBySlug[
+                  slug as keyof typeof caseStudyFaqItemsBySlug
+                ]
+              }
               className="mt-6"
             />
           </div>

@@ -20,21 +20,18 @@ export const remotionFaqItems: FaqItem[] = [
     answer: (
       <p>
         A website widget helps visitors on your docs site; an MCP server brings
-        the same knowledge base chatbot-style answers into the IDE so
-        developers can query documentation without leaving their editor. Teams
-        often run both so “AI for documentation” covers the browser and the
-        toolchain. See how collections expose MCP in the{" "}
+        the same knowledge base chatbot-style answers into the IDE so developers
+        can query documentation without leaving their editor. Teams often run
+        both so “AI for documentation” covers the browser and the toolchain. MCP
+        appears with your other integrations under Integrate—see the{" "}
         <a
-          href="/changelog/49-mcp-api-for-collections"
+          href="/changelog/33-better-integrate-navigation"
           className="link link-primary link-hover"
         >
-          MCP for collections
+          Integrate menu update
         </a>{" "}
-        changelog post, and compare with{" "}
-        <a
-          href="/case-study/polotno"
-          className="link link-primary link-hover"
-        >
+        —and compare with{" "}
+        <a href="/case-study/polotno" className="link link-primary link-hover">
           Polotno
         </a>{" "}
         and{" "}
@@ -80,7 +77,8 @@ export const remotionFaqItems: FaqItem[] = [
       <p>
         You add CrawlChat’s embed to your documentation site so visitors get an
         AI assistant that only answers from your indexed content. For
-        Docusaurus-style setups, the side panel flow is a common pattern. See the{" "}
+        Docusaurus-style setups, the side panel flow is a common pattern. See
+        the{" "}
         <a
           href="/changelog/18-docusaurus-sidepanel"
           className="link link-primary link-hover"
@@ -100,10 +98,10 @@ export const remotionFaqItems: FaqItem[] = [
     answer: (
       <p>
         Look for software documentation tools that support multiple sources,
-        source-linked answers, and the channels your community uses (docs
-        site, Discord, MCP). CrawlChat is designed as documentation AI for
-        developer products: grounded responses, analytics, and multi-channel
-        delivery. Explore{" "}
+        source-linked answers, and the channels your community uses (docs site,
+        Discord, MCP). CrawlChat is designed as documentation AI for developer
+        products: grounded responses, analytics, and multi-channel delivery.
+        Explore{" "}
         <a href="/pricing" className="link link-primary link-hover">
           pricing
         </a>
@@ -112,10 +110,7 @@ export const remotionFaqItems: FaqItem[] = [
           changelog
         </a>
         , and read parallel stories on{" "}
-        <a
-          href="/case-study/postiz"
-          className="link link-primary link-hover"
-        >
+        <a href="/case-study/postiz" className="link link-primary link-hover">
           Postiz
         </a>{" "}
         and{" "}

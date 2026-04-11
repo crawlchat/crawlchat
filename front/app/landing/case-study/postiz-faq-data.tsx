@@ -18,9 +18,9 @@ export const postizFaqItems: FaqItem[] = [
     question: "Can CrawlChat use Notion, GitHub, YouTube, and Discord?",
     answer: (
       <p>
-        Yes. You connect sources that hold your truth—docs sites, Notion,
-        GitHub issues, YouTube transcripts, and more—then serve answers through
-        your chosen channels. That is how teams build a knowledge base chatbot
+        Yes. You connect sources that hold your truth—docs sites, Notion, GitHub
+        issues, YouTube transcripts, and more—then serve answers through your
+        chosen channels. That is how teams build a knowledge base chatbot
         without duplicating content by hand. See connectors such as{" "}
         <a
           href="/changelog/8-notion-connector"
@@ -73,10 +73,7 @@ export const postizFaqItems: FaqItem[] = [
           LocalStack
         </a>{" "}
         and{" "}
-        <a
-          href="/case-study/remotion"
-          className="link link-primary link-hover"
-        >
+        <a href="/case-study/remotion" className="link link-primary link-hover">
           Remotion
         </a>
         .
@@ -122,10 +119,7 @@ export const postizFaqItems: FaqItem[] = [
           LocalStack
         </a>{" "}
         for large multi-source knowledge bases and{" "}
-        <a
-          href="/case-study/polotno"
-          className="link link-primary link-hover"
-        >
+        <a href="/case-study/polotno" className="link link-primary link-hover">
           Polotno
         </a>{" "}
         for SDK-style documentation AI.
