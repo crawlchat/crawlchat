@@ -13,6 +13,7 @@ export function makeSearchTool(
   indexerKey: string | null,
   options?: {
     onPreSearch?: (query: string) => Promise<void>;
+    onPostSearch?: (pagesFound: number) => void;
     topN?: number;
     minScore?: number;
     queryContext?: SearchToolContext;
@@ -75,6 +76,9 @@ export function makeSearchTool(
       );
       if (options?.queryContext) {
         options.queryContext.queries.push(query);
+      }
+      if (options?.onPostSearch) {
+        options.onPostSearch(filtered.length);
       }
       const context = JSON.stringify(
         filtered.map((r, i) => ({
