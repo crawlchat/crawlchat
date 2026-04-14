@@ -1,9 +1,11 @@
 import { Agent, Flow } from "@packages/agentic";
 import { addCreditTransaction } from "@packages/common/credit-transaction";
+import { planMap } from "@packages/common/plans";
 import {
   MessageAnalysis,
   prisma,
   QuestionSentiment,
+  Scrape,
   ScrapeMessageCategory,
 } from "@packages/common/prisma";
 import { z } from "zod";
@@ -174,6 +176,7 @@ export async function analyseMessage(
 }
 
 export async function fillMessageAnalysis(
+  scrape: Scrape,
   messageId: string,
   questionMessageId: string,
   question: string,
@@ -184,6 +187,16 @@ export async function fillMessageAnalysis(
   }
 ) {
   try {
+    const owner = await prisma.user.findUniqueOrThrow({
+      where: { id: scrape.userId },
+    });
+
+    const plan = planMap[owner.plan.planId];
+
+    if (!(plan.supportsAnalysis || owner.plan.supportsAnalysis)) {
+      return;
+    }
+
     const message = await prisma.message.findFirstOrThrow({
       where: { id: messageId },
       include: {
@@ -194,10 +207,6 @@ export async function fillMessageAnalysis(
         },
       },
     });
-
-    if (!message.scrape.analyseMessage) {
-      return;
-    }
 
     const threadMessages = await prisma.message.findMany({
       where: {

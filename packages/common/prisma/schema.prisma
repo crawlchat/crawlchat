@@ -522,6 +522,7 @@ type UserPlan {
   limits            PlanLimits
 
   brandRemoval      BrandRemovalPlan?
+  supportsAnalysis  Boolean?
 
   expiresAt         DateTime?
   activatedAt       DateTime

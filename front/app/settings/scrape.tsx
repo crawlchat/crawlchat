@@ -1005,7 +1005,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
 
           <AiModelSettings scrape={loaderData.scrape} />
 
-          <AnalyseMessageSettings scrape={loaderData.scrape} />
+          {/* <AnalyseMessageSettings scrape={loaderData.scrape} /> */}
 
           <DataGapMinScoreSettings scrape={loaderData.scrape} />
 
