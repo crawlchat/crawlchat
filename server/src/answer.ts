@@ -532,18 +532,17 @@ export async function saveAnswer(
     scrape.id
   );
 
-  if (scrape.analyseMessage) {
-    fillMessageAnalysis(
-      newAnswerMessage.id,
-      questionMessageId,
-      getQueryString(answer.question),
-      answer.content,
-      {
-        categories: scrape.messageCategories,
-        onFollowUpQuestion,
-      }
-    );
-  }
+  fillMessageAnalysis(
+    scrape,
+    newAnswerMessage.id,
+    questionMessageId,
+    getQueryString(answer.question),
+    answer.content,
+    {
+      categories: scrape.messageCategories,
+      onFollowUpQuestion,
+    }
+  );
 
   if (answer.dataGap) {
     const token = createToken(scrape.userId);
