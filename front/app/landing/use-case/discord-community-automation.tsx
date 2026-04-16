@@ -52,7 +52,8 @@ export default function DiscordCommunityAutomation() {
         <UseCaseIssues
           issues={[
             {
-              question: "How do we answer repeated Discord support questions fast?",
+              question:
+                "How do we answer repeated Discord support questions fast?",
               shortAnswer: "Add a Discord support bot connected to your docs",
               answer:
                 "CrawlChat turns your docs into a Discord support bot so members can ask questions by tagging the bot. It responds in seconds with grounded answers and links to the original documentation, reducing repetitive moderator replies.",
@@ -73,7 +74,8 @@ export default function DiscordCommunityAutomation() {
               ],
             },
             {
-              question: "Can a Discord ticket bot automate community workflows?",
+              question:
+                "Can a Discord ticket bot automate community workflows?",
               shortAnswer: "Automate triage and improve ticket quality",
               answer:
                 "Use Discord community automation to guide users toward documented answers before escalation. When escalation is needed, CrawlChat supports structured handoff flows so moderators receive better context and can resolve issues faster.",
@@ -94,7 +96,8 @@ export default function DiscordCommunityAutomation() {
               ],
             },
             {
-              question: "How do we improve moderation and response quality over time?",
+              question:
+                "How do we improve moderation and response quality over time?",
               shortAnswer: "Use analytics and moderator feedback loops",
               answer:
                 "CrawlChat logs conversations, ratings, and unresolved questions so your team can improve response quality continuously. Moderators can refine answers directly from real community context and build better Discord community management playbooks.",
@@ -158,7 +161,8 @@ export default function DiscordCommunityAutomation() {
             {
               icon: <TbBrandDiscord />,
               title: "Discord",
-              tooltip: "Automate community support directly in Discord channels",
+              tooltip:
+                "Automate community support directly in Discord channels",
             },
             {
               icon: <TbBrandSlack />,

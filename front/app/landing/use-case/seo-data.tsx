@@ -35,7 +35,8 @@ export const communitySupportFaqs: FaqItem[] = [
     ),
   },
   {
-    question: "How does a support chatbot reduce repetitive community questions?",
+    question:
+      "How does a support chatbot reduce repetitive community questions?",
     answer: (
       <span>
         Most community questions repeat topics already covered in docs. A
@@ -114,8 +115,8 @@ export const empowerGtmFaqs: FaqItem[] = [
       <span>
         GTM teams depend on up-to-date product context to position clearly and
         answer buyer questions fast. A unified internal knowledge base helps
-        sales, success, and support stay aligned on one source of truth. You
-        can also use the same docs externally through{" "}
+        sales, success, and support stay aligned on one source of truth. You can
+        also use the same docs externally through{" "}
         <a
           href="/use-case/community-support"
           className="link link-primary link-hover"
@@ -301,7 +302,8 @@ export const discordCommunityAutomationFaqs: FaqItem[] = [
     ),
   },
   {
-    question: "What is the difference between ticket bot discord and discord chatbot?",
+    question:
+      "What is the difference between ticket bot discord and discord chatbot?",
     answer: (
       <span>
         Ticket bot workflows focus on triage and escalation, while a Discord

@@ -1,7 +1,18 @@
 import type { ReactNode } from "react";
-import { TbArrowRight, TbBrandDiscord, TbMessage, TbRobotFace } from "react-icons/tb";
+import {
+  TbArrowRight,
+  TbBrandDiscord,
+  TbMessage,
+  TbRobotFace,
+} from "react-icons/tb";
 import { makeMeta } from "~/meta";
-import { Badge, Container, Heading, HeadingDescription, HeadingHighlight } from "../page";
+import {
+  Badge,
+  Container,
+  Heading,
+  HeadingDescription,
+  HeadingHighlight,
+} from "../page";
 
 type UseCaseCard = {
   title: string;

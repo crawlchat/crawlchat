@@ -53,8 +53,10 @@ export default function CustomerSupportAutomation() {
         <UseCaseIssues
           issues={[
             {
-              question: "How can we reduce repetitive support tickets from docs?",
-              shortAnswer: "Use a customer support chatbot trained on your docs",
+              question:
+                "How can we reduce repetitive support tickets from docs?",
+              shortAnswer:
+                "Use a customer support chatbot trained on your docs",
               answer:
                 "CrawlChat builds a documentation-first support chatbot from your existing help center and product docs. Customers get fast, grounded answers before opening tickets, which helps your team improve ticket deflection without sacrificing answer quality.",
               image: "/use-case/chat-widget.png",
@@ -75,7 +77,8 @@ export default function CustomerSupportAutomation() {
             },
             {
               question: "What is ticket deflection and how do we measure it?",
-              shortAnswer: "Track ticket deflection with conversation analytics",
+              shortAnswer:
+                "Track ticket deflection with conversation analytics",
               answer:
                 "Ticket deflection means resolving user questions before they become support tickets. CrawlChat gives visibility into conversations, categories, confidence, and unresolved questions, so support teams can monitor deflection trends and continuously improve documentation coverage.",
               image: "/use-case/messages.png",
@@ -95,7 +98,8 @@ export default function CustomerSupportAutomation() {
               ],
             },
             {
-              question: "Can we provide always-on self service support globally?",
+              question:
+                "Can we provide always-on self service support globally?",
               shortAnswer: "Automated customer support with 24/7 coverage",
               answer:
                 "Automated customer support helps users find answers immediately, even outside your team’s working hours. CrawlChat supports multilingual responses and adapts answer style to your support voice, improving self service support across regions and time zones.",
@@ -135,7 +139,8 @@ export default function CustomerSupportAutomation() {
             {
               icon: <TbBrandGithub />,
               title: "Issues",
-              tooltip: "Use recurring issue answers in your support knowledge base",
+              tooltip:
+                "Use recurring issue answers in your support knowledge base",
             },
             {
               icon: <SiLinear />,
@@ -150,8 +155,9 @@ export default function CustomerSupportAutomation() {
           ]}
           title={
             <>
-              Build your <HeadingHighlight>support knowledge base</HeadingHighlight>{" "}
-              from existing docs
+              Build your{" "}
+              <HeadingHighlight>support knowledge base</HeadingHighlight> from
+              existing docs
             </>
           }
           description="Connect your documentation stack in minutes. CrawlChat unifies support docs, product docs, and issue history into one answer layer for customer support automation."
