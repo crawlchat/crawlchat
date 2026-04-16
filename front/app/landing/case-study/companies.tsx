@@ -194,7 +194,7 @@ export const companies: Record<string, CaseStudyCompany> = {
   },
   postiz: {
     title: "Postiz",
-    logo: "https://postiz.com/_next/static/media/logo.7379cc96.svg",
+    logo: "/used-by/postiz.svg",
     darkLogo: true,
     description:
       "Learn more about how Postiz uses CrawlChat to power their documentation.",

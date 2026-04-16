@@ -15,13 +15,20 @@ import {
 } from "react-icons/tb";
 import { makeMeta } from "~/meta";
 import { Container, HeadingHighlight } from "../page";
-import { Channels, Connectors, UseCaseHero, UseCaseIssues } from "./component";
+import {
+  Channels,
+  Connectors,
+  UseCaseFaqSection,
+  UseCaseHero,
+  UseCaseIssues,
+} from "./component";
+import { empowerGtmFaqs } from "./seo-data";
 
 export function meta() {
   return makeMeta({
-    title: "Empower GTM teams - CrawlChat",
+    title: "Internal Knowledge Base for GTM Teams - CrawlChat",
     description:
-      "Empower your GTM teams with instant access to comprehensive product knowledge through AI powered documentation.",
+      "Build an internal knowledge base for GTM teams using internal documentation, product knowledge, and sales enablement workflows.",
   });
 }
 
@@ -169,6 +176,10 @@ export default function CommunitySupport() {
           }
           description="Deliver your documentation to your teams where they already work, reducing friction in accessing answers. Embed the chat assistant on these platforms to reach your internal teams effectively."
         />
+      </Container>
+
+      <Container>
+        <UseCaseFaqSection items={empowerGtmFaqs} />
       </Container>
     </>
   );
