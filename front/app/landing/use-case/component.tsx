@@ -1,10 +1,12 @@
 import cn from "@meltdownjs/cn";
 import type { ReactNode } from "react";
+import { type FaqItem, Faq } from "../faq";
 import {
   Badge,
   ChannelCard,
   Heading,
   HeadingDescription,
+  HeadingHighlight,
   SourceCard,
 } from "../page";
 
@@ -152,6 +154,22 @@ export function Channels({
           />
         ))}
       </div>
+    </div>
+  );
+}
+
+export function UseCaseFaqSection({ items }: { items: FaqItem[] }) {
+  return (
+    <div className="mt-16">
+      <div className="mb-16 text-center">
+        <a href="/use-case" className="link link-primary link-hover">
+          View all use cases
+        </a>
+      </div>
+      <Heading>
+        Frequently Asked <HeadingHighlight>Questions</HeadingHighlight>
+      </Heading>
+      <Faq items={items} className="mt-16" />
     </div>
   );
 }

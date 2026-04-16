@@ -89,6 +89,9 @@ export default function CaseStudyLayout() {
               <div className="bg-base-200 border border-base-300 rounded-box">
                 {company.testimonial}
               </div>
+              <Link to="/case-study" className="link link-primary link-hover">
+                View all case studies
+              </Link>
             </div>
           </div>
         </div>

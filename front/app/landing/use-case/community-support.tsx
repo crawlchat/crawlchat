@@ -17,13 +17,20 @@ import {
 import { MCPIcon } from "~/components/mcp-icon";
 import { makeMeta } from "~/meta";
 import { Container, HeadingHighlight } from "../page";
-import { Channels, Connectors, UseCaseHero, UseCaseIssues } from "./component";
+import {
+  Channels,
+  Connectors,
+  UseCaseFaqSection,
+  UseCaseHero,
+  UseCaseIssues,
+} from "./component";
+import { communitySupportFaqs } from "./seo-data";
 
 export function meta() {
   return makeMeta({
-    title: "Documentation Assistant for Community Support - CrawlChat",
+    title: "Documentation Assistant and Support Chatbot - CrawlChat",
     description:
-      "AI for documentation that helps your community get instant, source-linked answers across web, Discord, and Slack.",
+      "Launch a documentation assistant and support chatbot for community support. Give instant, source-linked answers on web, Discord, and Slack.",
   });
 }
 
@@ -205,6 +212,10 @@ export default function CommunitySupport() {
           }
           description="Deliver your documentation to your community where they already engage, reducing friction in getting answers. Embed your documentation assistant on these platforms to reach your community effectively."
         />
+      </Container>
+
+      <Container>
+        <UseCaseFaqSection items={communitySupportFaqs} />
       </Container>
     </>
   );

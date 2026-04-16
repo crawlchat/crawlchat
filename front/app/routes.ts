@@ -116,13 +116,25 @@ export default [
     route("open-source", "landing/open-source.tsx"),
 
     ...prefix("use-case", [
+      index("landing/use-case/page.tsx"),
       route("community-support", "landing/use-case/community-support.tsx"),
       route("empower-gtm-teams", "landing/use-case/empower-gtm-teams.tsx"),
+      route(
+        "customer-support-automation",
+        "landing/use-case/customer-support-automation.tsx"
+      ),
+      route(
+        "discord-community-automation",
+        "landing/use-case/discord-community-automation.tsx"
+      ),
       route("discord-bot", "landing/use-case/discord-bot.tsx"),
       route("mcp", "landing/use-case/mcp.tsx"),
     ]),
 
-    route("case-study/:slug", "landing/case-study/page.tsx"),
+    ...prefix("case-study", [
+      index("landing/case-study/index.tsx"),
+      route(":slug", "landing/case-study/page.tsx"),
+    ]),
 
     route("compare/:slug", "landing/compare/page.tsx"),
   ]),

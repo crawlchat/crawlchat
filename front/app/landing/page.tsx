@@ -1091,6 +1091,30 @@ export function Footer() {
                 />
               </a>
             </p>
+            <div className="mt-4">
+              <ul className="flex flex-col gap-4">
+                <li>
+                  <FooterLink href="/use-case/community-support">
+                    Community support
+                  </FooterLink>
+                </li>
+                <li>
+                  <FooterLink href="/use-case/empower-gtm-teams">
+                    Internal knowledge base
+                  </FooterLink>
+                </li>
+                <li>
+                  <FooterLink href="/use-case/customer-support-automation">
+                    Customer support automation
+                  </FooterLink>
+                </li>
+                <li>
+                  <FooterLink href="/use-case/discord-community-automation">
+                    Discord community automation
+                  </FooterLink>
+                </li>
+              </ul>
+            </div>
           </div>
           <div className="flex-2">
             <ul className="flex flex-col gap-4">
@@ -1162,6 +1186,9 @@ export function Footer() {
               </li>
               <li>
                 <FooterLink href="/blog">Blog</FooterLink>
+              </li>
+              <li>
+                <FooterLink href="/case-study">Case studies</FooterLink>
               </li>
               <li>
                 <FooterLink href="/discord-bot">Discord bot</FooterLink>
@@ -1356,6 +1383,12 @@ function BurgerMenu({
         <li>
           <a href="/changelog">Changelog</a>
         </li>
+        <li>
+          <a href="/use-case">Use cases</a>
+        </li>
+        <li>
+          <a href="/case-study">Case studies</a>
+        </li>
       </ul>
     </div>
   );
@@ -1409,6 +1442,36 @@ function UseCasesDropdown() {
             <span className="text-sm text-base-content/50">
               Let your internal teams have a unified knowledge base. Best for
               GTM teams
+            </span>
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            className="flex flex-col gap-0 items-start"
+            to="/use-case/customer-support-automation"
+          >
+            <span className="flex items-center gap-2">
+              <TbMessage />
+              Docs deflection for support teams
+            </span>
+            <span className="text-sm text-base-content/50">
+              Deflect repetitive tickets with customer support automation
+            </span>
+          </Link>
+        </li>
+
+        <li>
+          <Link
+            className="flex flex-col gap-0 items-start"
+            to="/use-case/discord-community-automation"
+          >
+            <span className="flex items-center gap-2">
+              <TbBrandDiscord />
+              Discord community automation
+            </span>
+            <span className="text-sm text-base-content/50">
+              Automate Discord support with ticketing and moderation workflows
             </span>
           </Link>
         </li>
