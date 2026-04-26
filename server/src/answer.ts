@@ -544,22 +544,22 @@ export async function saveAnswer(
     }
   );
 
-  if (answer.dataGap) {
-    const token = createToken(scrape.userId);
-    await fetch(`${process.env.FRONT_URL}/email-alert`, {
-      method: "POST",
-      body: JSON.stringify({
-        intent: "data-gap-alert",
-        scrapeId: scrape.id,
-        messageId: newAnswerMessage.id,
-      }),
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }).catch((error) => {
-      console.error("Failed to send data gap alert", error);
-    });
-  }
+  // if (answer.dataGap) {
+  //   const token = createToken(scrape.userId);
+  //   await fetch(`${process.env.FRONT_URL}/email-alert`, {
+  //     method: "POST",
+  //     body: JSON.stringify({
+  //       intent: "data-gap-alert",
+  //       scrapeId: scrape.id,
+  //       messageId: newAnswerMessage.id,
+  //     }),
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   }).catch((error) => {
+  //     console.error("Failed to send data gap alert", error);
+  //   });
+  // }
 
   return newAnswerMessage;
 }
