@@ -83,11 +83,26 @@ function createMcpServer(user: ApiUser) {
       "Authenticated CrawlChat MCP server for reading and managing collections, messages, and analytics.",
   });
   const mcpServer: any = server;
+  const logMcpMethodCall = (
+    method: string,
+    input: Record<string, unknown> = {}
+  ) => {
+    console.info(
+      JSON.stringify({
+        event: "mcp_method_called",
+        method,
+        userId: user.id,
+        userEmail: user.email,
+        input,
+      })
+    );
+  };
 
   mcpServer.tool(
     "get_user",
     "Returns authenticated user profile details.",
     async () => {
+      logMcpMethodCall("get_user");
       return {
         content: [{ type: "text", text: JSON.stringify({ user }) }],
       };
@@ -98,6 +113,7 @@ function createMcpServer(user: ApiUser) {
     "get_collections",
     "Lists collections accessible by the authenticated user. It provides plan details for each collection as well.",
     async () => {
+      logMcpMethodCall("get_collections");
       const memberships = await prisma.scrapeUser.findMany({
         where: {
           userId: user.id,
@@ -159,6 +175,7 @@ function createMcpServer(user: ApiUser) {
       scrapeId: z.string().describe("The ID of the collection."),
     },
     async ({ scrapeId }: { scrapeId: string }) => {
+      logMcpMethodCall("get_groups", { scrapeId });
       ensureScrapeAccess(user, scrapeId);
 
       const groups = await prisma.knowledgeGroup.findMany({
@@ -190,6 +207,7 @@ function createMcpServer(user: ApiUser) {
       scrapeId: z.string().describe("The ID of the collection."),
     },
     async ({ scrapeId }: { scrapeId: string }) => {
+      logMcpMethodCall("get_data_gaps", { scrapeId });
       ensureScrapeAccess(user, scrapeId);
       const oneWeekAgo = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7);
       const dataGaps = await prisma.message.findMany({
@@ -261,6 +279,14 @@ function createMcpServer(user: ApiUser) {
       endTime?: string;
       category?: string;
     }) => {
+      logMcpMethodCall("get_messages", {
+        scrapeId,
+        page,
+        fingerprint,
+        fromTime,
+        endTime,
+        category,
+      });
       ensureScrapeAccess(user, scrapeId);
       const pageNumber = page ?? 1;
       const pageSize = 50;
@@ -355,6 +381,7 @@ function createMcpServer(user: ApiUser) {
       fromTime: string;
       endTime: string;
     }) => {
+      logMcpMethodCall("get_summary", { scrapeId, fromTime, endTime });
       ensureScrapeAccess(user, scrapeId);
 
       const fromDate = new Date(fromTime);
@@ -403,6 +430,7 @@ function createMcpServer(user: ApiUser) {
       aiModel: z.string().min(1),
     },
     async ({ scrapeId, aiModel }: { scrapeId: string; aiModel: string }) => {
+      logMcpMethodCall("set_ai_model", { scrapeId, aiModel });
       ensureScrapeAccess(user, scrapeId);
       await prisma.scrape.update({
         where: { id: scrapeId },
@@ -428,6 +456,10 @@ function createMcpServer(user: ApiUser) {
       scrapeId: string;
       private: boolean;
     }) => {
+      logMcpMethodCall("set_collection_visibility", {
+        scrapeId,
+        private: isPrivate,
+      });
       ensureScrapeAccess(user, scrapeId);
       await prisma.scrape.update({
         where: { id: scrapeId },
@@ -447,6 +479,7 @@ function createMcpServer(user: ApiUser) {
       prompt: z.string(),
     },
     async ({ scrapeId, prompt }: { scrapeId: string; prompt: string }) => {
+      logMcpMethodCall("set_prompt", { scrapeId, prompt });
       ensureScrapeAccess(user, scrapeId);
       await prisma.scrape.update({
         where: { id: scrapeId },
@@ -472,6 +505,7 @@ function createMcpServer(user: ApiUser) {
       scrapeId: string;
       showSources: boolean;
     }) => {
+      logMcpMethodCall("set_show_sources", { scrapeId, showSources });
       ensureScrapeAccess(user, scrapeId);
       await prisma.scrape.update({
         where: { id: scrapeId },
