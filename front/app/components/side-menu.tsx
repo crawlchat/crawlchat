@@ -122,7 +122,7 @@ function CreditProgress({
       <div className="flex justify-between text-xs">
         {title}
         <div className="tooltip tooltip-left" data-tip={tip}>
-          {numberToKMB(used)} / {numberToKMB(total)}
+          {numberToKMB(used, 2)} / {numberToKMB(total)}
         </div>
       </div>
       <progress
