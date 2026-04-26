@@ -1,7 +1,6 @@
 import { Role, Usage } from "@packages/agentic";
 import { extractCitations } from "@packages/common/citation";
 import { addCreditTransaction } from "@packages/common/credit-transaction";
-import { createToken } from "@packages/common/jwt";
 import {
   getQueryString,
   MultimodalContent,
