@@ -1015,7 +1015,7 @@ export default function ScrapeSettings({ loaderData }: Route.ComponentProps) {
 
           <LowCreditsThresholdSettings scrape={loaderData.scrape} />
 
-          <ApiPlaygroundSettings scrape={loaderData.scrape} />
+          {/* <ApiPlaygroundSettings scrape={loaderData.scrape} /> */}
 
           <FingerprintRateLimitSettings scrape={loaderData.scrape} />
 
