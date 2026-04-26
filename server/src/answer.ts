@@ -1,7 +1,6 @@
 import { Role, Usage } from "@packages/agentic";
 import { extractCitations } from "@packages/common/citation";
 import { addCreditTransaction } from "@packages/common/credit-transaction";
-import { createToken } from "@packages/common/jwt";
 import {
   getQueryString,
   MultimodalContent,
@@ -544,22 +543,22 @@ export async function saveAnswer(
     }
   );
 
-  if (answer.dataGap) {
-    const token = createToken(scrape.userId);
-    await fetch(`${process.env.FRONT_URL}/email-alert`, {
-      method: "POST",
-      body: JSON.stringify({
-        intent: "data-gap-alert",
-        scrapeId: scrape.id,
-        messageId: newAnswerMessage.id,
-      }),
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }).catch((error) => {
-      console.error("Failed to send data gap alert", error);
-    });
-  }
+  // if (answer.dataGap) {
+  //   const token = createToken(scrape.userId);
+  //   await fetch(`${process.env.FRONT_URL}/email-alert`, {
+  //     method: "POST",
+  //     body: JSON.stringify({
+  //       intent: "data-gap-alert",
+  //       scrapeId: scrape.id,
+  //       messageId: newAnswerMessage.id,
+  //     }),
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   }).catch((error) => {
+  //     console.error("Failed to send data gap alert", error);
+  //   });
+  // }
 
   return newAnswerMessage;
 }
