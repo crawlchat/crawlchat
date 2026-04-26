@@ -92,7 +92,6 @@ function createMcpServer(user: ApiUser) {
         event: "mcp_method_called",
         method,
         userId: user.id,
-        userEmail: user.email,
         input,
       })
     );
