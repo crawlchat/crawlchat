@@ -38,7 +38,6 @@ app.use(express.json());
 app.use(cors());
 
 app.use("/website-to-markdown", websiteToMarkdownRouter);
-
 app.use("/health", healthRouter);
 
 app.post(

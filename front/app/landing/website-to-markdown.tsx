@@ -52,20 +52,14 @@ export async function action({ request }: Route.ActionArgs) {
     return { error: "Missing url" } satisfies ActionFailure;
   }
 
-  const base = (
-    process.env.SOURCE_SYNC_URL ??
-    process.env.VITE_SOURCE_SYNC_URL ??
-    ""
-  ).replace(/\/$/, "");
-  if (!base) {
-    return { error: "Service configuration error" } satisfies ActionFailure;
-  }
-
-  const response = await fetch(`${base}/website-to-markdown`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url: urlRaw.trim() }),
-  });
+  const response = await fetch(
+    `${process.env.VITE_SOURCE_SYNC_URL}/website-to-markdown`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: urlRaw.trim() }),
+    }
+  );
 
   const data: unknown = await response.json().catch(() => ({}));
 

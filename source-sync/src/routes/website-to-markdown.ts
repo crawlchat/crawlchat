@@ -5,7 +5,7 @@ import { getMetaTitle } from "../scrape/parse";
 
 const router = Router();
 
-const websiteToMarkdownRateLimiter = new RateLimiter(10, "website-to-markdown");
+const rateLimiter = new RateLimiter(10, "website-to-markdown");
 
 const MAX_MARKDOWN_CHARS = 500_000;
 
@@ -57,7 +57,7 @@ function validatePublicHttpUrl(raw: string): ValidateResult {
 
 router.post("/", async (req, res) => {
   try {
-    websiteToMarkdownRateLimiter.check();
+    rateLimiter.check();
   } catch {
     res.status(429).json({
       message: "Too many requests. Try again in a minute.",
