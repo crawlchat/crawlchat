@@ -365,7 +365,7 @@ export const models: Record<string, AiModel> = {
     ragTopN: 4,
     creditsPerMessage: 2,
     baseURL: "https://openrouter.ai/api/v1",
-    supportsImages: false,
+    supportsImages: true,
     displayName: "Kimi K2.6",
     provider: "Moonshot AI",
     speed: "Medium",
