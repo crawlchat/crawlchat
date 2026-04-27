@@ -65,6 +65,7 @@ const staticPaths = [
   "/open-source",
   "/public-bots",
   "/ask-github-repo",
+  "/website-to-markdown",
   "/changelog",
   "/terms",
   "/policy",

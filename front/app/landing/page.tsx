@@ -1199,6 +1199,11 @@ export function Footer() {
               <li>
                 <FooterLink href="/ask-github-repo">Ask GitHub Repo</FooterLink>
               </li>
+              <li>
+                <FooterLink href="/website-to-markdown">
+                  Website to markdown
+                </FooterLink>
+              </li>
             </ul>
           </div>
           <div className="flex-1">
