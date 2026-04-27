@@ -20,7 +20,7 @@ export function CreditsUsedBadge({
 
   const tooltip = useMemo(() => {
     const parts = llmModel ? [llmModel] : [];
-    if (creditTransactions.length > 0) {
+    if (creditTransactions.length > 1) {
       parts.push(`[${creditTransactions.map((ct) => -ct.credits).join(", ")}]`);
     }
     return parts.length > 0 ? parts.join(" - ") : undefined;

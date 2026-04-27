@@ -54,6 +54,11 @@ export default function AIModels() {
       ...model,
       key,
     }))
+    .sort((a, b) => {
+      const aValue = a.model;
+      const bValue = b.model;
+      return aValue.localeCompare(bValue);
+    })
     .filter((model) => !model.deprecated);
   return (
     <>

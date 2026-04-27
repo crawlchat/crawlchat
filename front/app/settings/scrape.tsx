@@ -343,6 +343,11 @@ function AiModelSettings({ scrape }: { scrape: Scrape }) {
           {addDefault && <option value="">Default</option>}
           {Object.entries(models)
             .filter(([key, value]) => !value.deprecated)
+            .sort((a, b) => {
+              const aValue = models[a[0]];
+              const bValue = models[b[0]];
+              return aValue.model.localeCompare(bValue.model);
+            })
             .map(([key, value]) => (
               <option key={key} value={key}>
                 {value.model} [{value.creditsPerMessage}]
