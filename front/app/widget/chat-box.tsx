@@ -568,27 +568,29 @@ export function AssistantMessage({
       />
 
       <div className="flex flex-col gap-4">
-        <MarkdownProse
-          thread={thread}
-          sources={Object.values(citation.citedLinks).map((link) => ({
-            title: link?.title ?? link?.url ?? "Source",
-            url: link?.url ?? undefined,
-          }))}
-          options={{
-            onTicketCreate: createTicket,
-            ticketCreateLoading: ticketCreateFetcher.state !== "idle",
-            disabled: readOnly,
-            customerEmail,
-            requestEmailVerificationFetcher,
-            verifyEmailFetcher,
-            size: small ? "sm" : undefined,
-          }}
-        >
-          {citation.content}
-        </MarkdownProse>
+        {citation.content?.trim() && (
+          <MarkdownProse
+            thread={thread}
+            sources={Object.values(citation.citedLinks).map((link) => ({
+              title: link?.title ?? link?.url ?? "Source",
+              url: link?.url ?? undefined,
+            }))}
+            options={{
+              onTicketCreate: createTicket,
+              ticketCreateLoading: ticketCreateFetcher.state !== "idle",
+              disabled: readOnly,
+              customerEmail,
+              requestEmailVerificationFetcher,
+              verifyEmailFetcher,
+              size: small ? "sm" : undefined,
+            }}
+          >
+            {citation.content}
+          </MarkdownProse>
+        )}
 
         {chat.askStage !== "idle" && last && (
-          <div className="font-mono">
+          <div className="text-sm">
             <span className="chat-status-text">Making the answer...</span>
           </div>
         )}
