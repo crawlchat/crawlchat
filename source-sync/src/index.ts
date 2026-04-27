@@ -9,6 +9,7 @@ import type { Express, Request, Response } from "express";
 import express from "express";
 import { v4 as uuidv4 } from "uuid";
 import healthRouter from "./routes/health";
+import websiteToMarkdownRouter from "./routes/website-to-markdown";
 import {
   getPendingUrls,
   scheduleGroup,
@@ -35,6 +36,9 @@ const PORT = process.env.PORT || 3007;
 
 app.use(express.json());
 app.use(cors());
+
+app.use("/website-to-markdown", websiteToMarkdownRouter);
+
 app.use("/health", healthRouter);
 
 app.post(
