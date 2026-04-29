@@ -78,7 +78,7 @@ export async function action({ request }: Route.ActionArgs) {
         },
       },
     });
-    let existingMembers = 0;
+    let existingEmails = new Set<string>();
     const scrapes = await prisma.scrape.findMany({
       where: {
         userId: owner!.id,
@@ -86,18 +86,24 @@ export async function action({ request }: Route.ActionArgs) {
     });
 
     for (const scrape of scrapes) {
-      existingMembers += await prisma.scrapeUser.count({
+      const scrapeUsers = await prisma.scrapeUser.findMany({
         where: {
           scrapeId: scrape.id,
           role: {
             not: "owner",
           },
         },
+        select: {
+          email: true,
+        },
       });
+      for (const scrapeUser of scrapeUsers) {
+        existingEmails.add(scrapeUser.email);
+      }
     }
 
     const limits = owner!.plan.limits;
-    if (existingMembers >= limits.teamMembers) {
+    if (existingEmails.size >= limits.teamMembers) {
       return Response.json(
         { error: "You have reached the maximum number of team members" },
         { status: 400 }
