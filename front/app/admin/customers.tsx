@@ -86,8 +86,15 @@ export async function loader({ request }: Route.LoaderArgs) {
           })) as unknown as Array<{ total?: number }>)
         : null;
 
+      const now = new Date();
       const monthStart = new Date(
-        new Date().setMonth(new Date().getMonth(), 1)
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+        0,
+        0,
+        0,
+        0
       );
 
       const mtdCost = await prisma.message.aggregate({
