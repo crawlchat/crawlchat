@@ -106,8 +106,6 @@ export default [
         route(":slug", "changelog/page.tsx"),
       ]),
     ]),
-    route("public-bots", "landing/public-bots.tsx"),
-
     route("discord-bot", "landing/discord-bot.tsx"),
     route("support-tickets", "landing/support-tickets.tsx"),
 
