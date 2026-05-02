@@ -1863,11 +1863,35 @@ export function CristianTestimonial() {
   );
 }
 
+export function ClayTestimonial() {
+  return (
+    <CustomTestimonial
+      text={
+        <span>
+          <CTH>CrawlChat</CTH> has improved the <CTHS>user experience</CTHS> for
+          everyone visiting <CTHS>docs.openc3.com</CTHS> with a self-serve way
+          to interact with our documentation!
+        </span>
+      }
+      author="Clay Kramp"
+      authorImage="/testi-profile/clay.png"
+      authorLink="https://www.linkedin.com/in/clayandgen/"
+      icon={<TbBrandLinkedin />}
+      authorCompany="OpenC3"
+    />
+  );
+}
+
 export function CustomTestimonials() {
   const columns = [
     [<JonnyTestimonial key={1} />, <AntonTestimonial key={2} />],
-    [<MauritsTestimonial key={3} />, <EgelhausTestimonial key={4} />],
+    [
+      <MauritsTestimonial key={3} />,
+      <EgelhausTestimonial key={4} />,
+      <ClayTestimonial key={7} />,
+    ],
     [<HarshTestimonial key={5} />, <CristianTestimonial key={6} />],
+    ,
   ];
   return (
     <div className="mt-32 flex flex-col gap-10">

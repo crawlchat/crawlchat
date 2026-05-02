@@ -1,6 +1,6 @@
 import cn from "@meltdownjs/cn";
 import { RateLimiter } from "@packages/common/rate-limiter";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TbArrowRight, TbCircleCheck, TbCircleX } from "react-icons/tb";
 import { redirect, useFetcher, useLoaderData } from "react-router";
 import "~/app.css";
@@ -8,6 +8,7 @@ import { getClientIp } from "~/client-ip";
 import { Logo } from "~/components/logo";
 import {
   AntonTestimonial,
+  ClayTestimonial,
   CristianTestimonial,
   EgelhausTestimonial,
   HarshTestimonial,
@@ -43,6 +44,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       error,
       selfHosted: process.env.SELF_HOSTED,
       turnstileSiteKey: process.env.VITE_TURNSTILE_SITE_KEY,
+      testiIndex: Math.floor(Math.random() * 7),
     },
     {
       headers: {
@@ -131,7 +133,7 @@ export default function LoginPage() {
   const fetcher = useFetcher();
   const { mailSent, error, selfHosted, turnstileSiteKey } = useLoaderData();
   const emailRef = useRef<HTMLInputElement>(null);
-  const testiIndex = useMemo(() => Math.floor(Math.random() * 6), []);
+  const { testiIndex } = useLoaderData<typeof loader>();
   const turnstileLoaded = useRef(false);
   const [clientValidated, setClientValidated] = useState(!turnstileSiteKey);
 
@@ -184,6 +186,7 @@ export default function LoginPage() {
             {testiIndex === 3 && <EgelhausTestimonial />}
             {testiIndex === 4 && <HarshTestimonial />}
             {testiIndex === 5 && <CristianTestimonial />}
+            {testiIndex === 6 && <ClayTestimonial />}
           </div>
         </div>
       )}
